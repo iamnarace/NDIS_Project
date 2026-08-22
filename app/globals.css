@@ -67,6 +67,9 @@ html {
   scroll-behavior: smooth;
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 body {
@@ -78,6 +81,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  position: relative;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -3001,20 +3007,24 @@ img {
 .mobileDrawerContainer {
   position: fixed;
   top: 0;
-  right: -320px;
-  width: 320px;
-  height: 100vh;
+  right: 0;
+  width: min(300px, 85vw);
+  height: 100dvh;
+  max-height: 100vh;
   background: #FFFFFF;
   z-index: 1000;
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
-  transition: right 0.3s ease;
+  transform: translateX(105%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   padding: 24px;
+  visibility: hidden;
 }
 
-.mobileDrawerOpen {
-  right: 0 !important;
+.mobileDrawerContainer.mobileDrawerOpen {
+  transform: translateX(0);
+  visibility: visible;
 }
 
 .mobileDrawerHeader {
@@ -3098,7 +3108,19 @@ img {
   }
 }
 
+
 @media (max-width: 768px) {
+  /* Prevent Any Horizontal Movement */
+  body, html {
+    overflow-x: hidden !important;
+    position: relative;
+  }
+
+  .shell {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   /* Mobile Notice Bar */
   .topNoticeBar {
     padding: 6px 0;
@@ -3117,7 +3139,7 @@ img {
 
   /* Mobile Header */
   .headerContainer {
-    height: 72px;
+    height: 68px;
   }
   .desktopNav, .headerActionsGroup {
     display: none;
@@ -3126,46 +3148,69 @@ img {
     display: block;
   }
 
-  /* Mobile Hero */
+  /* Mobile Hero (No Overflow Cards) */
   .hero {
-    padding: 40px 0 60px;
+    padding: 32px 0 48px;
+    gap: 28px;
   }
   .heroCopy h1 {
-    font-size: 2.1rem;
+    font-size: 2rem;
+    line-height: 1.2;
   }
-  .floatingCard {
-    left: 8px;
-    bottom: 8px;
-    padding: 10px 14px;
+  .heroImg {
+    height: 260px;
   }
-  .floatingCard2 {
-    right: 8px;
-    top: 8px;
-    padding: 8px 12px;
+  .floatingCard, .floatingCard2 {
+    position: static;
+    margin-top: 10px;
+    width: 100%;
+    transform: none !important;
+    box-shadow: var(--shadow-sm);
   }
 
   /* Grids Stack Cleanly */
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 16px;
+    padding: 32px 0;
   }
   .serviceGrid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .serviceCard {
+    padding: 24px 20px;
   }
   .serviceDetailGrid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   .serviceDetail {
     padding: 24px 20px;
   }
   .brochuresGrid, .fundingComparisonGrid, .approachStepsGrid, .valuesGrid, .proofBand, .marketingHighlightsGrid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   .formGridRow2, .twoColumns, .serviceCheckGrid, .fundingSelectorGrid, .roleCardsGrid, .searchResultGrid {
     grid-template-columns: 1fr;
   }
 
-  /* Estimator Widget */
+  /* About Page Mobile */
+  .aboutPageSplit {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .aboutPhoto {
+    height: 260px;
+  }
+  .aboutPhotoTag {
+    position: static;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  /* Estimator Widget Mobile */
   .timingGrid {
     grid-template-columns: 1fr;
   }
@@ -3178,8 +3223,8 @@ img {
     display: none;
   }
   .supportFinderCard, .crispReferralWizard, .coverageCardWrapper, .contactFormCardWrapper, .policyPaperCard {
-    padding: 24px 18px;
-    margin: 40px 0;
+    padding: 24px 16px;
+    margin: 32px 0;
   }
 
   /* Coverage Checker Mobile */
@@ -3188,21 +3233,49 @@ img {
     align-items: stretch;
   }
   .activeRegionPanel {
-    padding: 20px 16px;
+    padding: 20px 14px;
   }
   .regionReferBtn {
     width: 100%;
     margin-top: 12px;
   }
 
-  /* Footer Mobile */
+  /* Photo CTA & Contact Band Mobile */
+  .photoCta {
+    margin: 32px auto;
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+  .photoCtaBg {
+    height: 320px;
+  }
+  .photoCtaContent {
+    padding: 24px 16px;
+  }
+  .contact {
+    margin-bottom: 32px;
+    padding: 28px 18px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .contactActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Footer Mobile (No Excess Bottom Scroll) */
+  .siteFooterWrapper {
+    margin-top: 40px;
+  }
   .mainFooterGrid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 28px;
+    padding: 40px 0 24px;
   }
   .footerCtaContent {
     flex-direction: column;
     text-align: center;
+    gap: 20px;
   }
   .footerCtaBtns {
     flex-direction: column;
@@ -3212,5 +3285,6 @@ img {
     flex-direction: column;
     text-align: center;
     gap: 10px;
+    padding: 16px 0 28px;
   }
 }
