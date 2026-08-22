@@ -3109,182 +3109,283 @@ img {
 }
 
 
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   MOBILE ERGONOMICS & SCREEN FITTING (INSPIRED BY CLEANEST MOBILE EXPERIENCES)
+═════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Prevent Any Horizontal Movement */
-  body, html {
+  /* 1. Global Viewport Lock - Zero Horizontal Drift */
+  html, body {
     overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
     position: relative;
+    -webkit-overflow-scrolling: touch;
   }
 
+  /* 2. Consistent 16px Mobile Gutters */
   .shell {
-    padding-left: 16px;
-    padding-right: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    box-sizing: border-box !important;
   }
 
-  /* Mobile Notice Bar */
-  .topNoticeBar {
-    padding: 6px 0;
+  /* 3. Compact 60px Mobile Header */
+  .mainHeader {
+    height: 62px !important;
   }
-  .topNoticeContent {
-    flex-direction: column;
-    text-align: center;
-    gap: 4px;
-  }
-  .noticeLeft span:not(.noticeBadge) {
-    font-size: 0.75rem;
-  }
-  .noticeRight {
-    display: none;
-  }
-
-  /* Mobile Header */
   .headerContainer {
-    height: 68px;
+    height: 62px !important;
+  }
+  .brandTitle {
+    font-size: 1.2rem !important;
+  }
+  .brandSub {
+    font-size: 0.5625rem !important;
   }
   .desktopNav, .headerActionsGroup {
-    display: none;
+    display: none !important;
   }
   .mobileMenuToggleBtn {
-    display: block;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 8px !important;
+    border-radius: var(--radius-sm);
   }
 
-  /* Mobile Hero (No Overflow Cards) */
+  /* 4. Streamlined Mobile Top Announcement */
+  .topNoticeBar {
+    padding: 5px 0 !important;
+  }
+  .topNoticeContent {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 2px !important;
+  }
+  .noticeLeft {
+    justify-content: center;
+    gap: 6px !important;
+    font-size: 0.75rem !important;
+  }
+  .noticeBadge {
+    padding: 1px 8px !important;
+    font-size: 0.625rem !important;
+  }
+  .noticeRight {
+    display: none !important;
+  }
+
+  /* 5. Fluid & Proportional Mobile Hero */
   .hero {
-    padding: 32px 0 48px;
-    gap: 28px;
+    padding: 24px 0 40px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
   }
   .heroCopy h1 {
-    font-size: 2rem;
-    line-height: 1.2;
+    font-size: 1.85rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 14px !important;
+  }
+  .lead {
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 22px !important;
+  }
+  .actions {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+  }
+  .actions .button {
+    width: 100% !important;
+    padding: 14px 20px !important;
+    font-size: 0.95rem !important;
+  }
+  .trustRow {
+    gap: 12px !important;
+  }
+  .trustRow span {
+    font-size: 0.8125rem !important;
+    width: 100%;
+  }
+
+  /* Clean Mobile Hero Image */
+  .heroVisual {
+    width: 100% !important;
+    position: static !important;
+  }
+  .heroPhoto {
+    border-radius: var(--radius-lg) !important;
+    border-width: 2px !important;
   }
   .heroImg {
-    height: 260px;
+    height: 240px !important;
+  }
+  .photoOverlay {
+    padding: 16px !important;
+  }
+  .photoOverlay strong {
+    font-size: 0.95rem !important;
   }
   .floatingCard, .floatingCard2 {
-    position: static;
-    margin-top: 10px;
-    width: 100%;
+    position: static !important;
+    margin-top: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     transform: none !important;
-    box-shadow: var(--shadow-sm);
+    padding: 10px 14px !important;
+    border-radius: var(--radius-md) !important;
   }
 
-  /* Grids Stack Cleanly */
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding: 32px 0;
+  /* 6. Section Spacing & Headings on Mobile */
+  .softSection, .pageHero, .approachSection, .coreValuesSection, .communitySpotlightSection, .testimonialsSection {
+    padding: 44px 0 !important;
   }
-  .serviceGrid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .pageHero {
+    padding: 32px 0 28px !important;
   }
-  .serviceCard {
-    padding: 24px 20px;
+  .pageHero h1 {
+    font-size: 1.8rem !important;
+    margin: 8px 0 12px !important;
   }
-  .serviceDetailGrid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .sectionTitle {
+    font-size: 1.7rem !important;
   }
-  .serviceDetail {
-    padding: 24px 20px;
+  .sectionHead {
+    margin-bottom: 28px !important;
   }
-  .brochuresGrid, .fundingComparisonGrid, .approachStepsGrid, .valuesGrid, .proofBand, .marketingHighlightsGrid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+
+  /* 7. Clean Full-Width Stacked Cards with No Bleed */
+  .serviceGrid, .serviceDetailGrid, .valuesGrid, .approachStepsGrid, .brochuresGrid,
+  .fundingComparisonGrid, .proofBand, .marketingHighlightsGrid, .testimonialsGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .serviceCard, .serviceDetail, .valueCard, .approachStepCard, .brochureCard,
+  .fundingPlanCard, .testimonialCard, .sidebarContactCard {
+    padding: 22px 18px !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  /* 8. Mobile Forms & Widgets */
+  .contactSplitSection, .aboutPageSplit {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+  .contactFormCardWrapper, .supportFinderCard, .crispReferralWizard, .coverageCardWrapper, .policyPaperCard {
+    padding: 22px 16px !important;
+    border-radius: var(--radius-lg) !important;
+    margin: 24px 0 !important;
   }
   .formGridRow2, .twoColumns, .serviceCheckGrid, .fundingSelectorGrid, .roleCardsGrid, .searchResultGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .formSubmitRow {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .formSubmitBtn {
+    width: 100% !important;
   }
 
-  /* About Page Mobile */
-  .aboutPageSplit {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .aboutPhoto {
-    height: 260px;
-  }
-  .aboutPhotoTag {
-    position: static;
-    margin-top: 10px;
-    width: 100%;
-  }
-
-  /* Estimator Widget Mobile */
+  /* 9. Support Finder Estimator Mobile */
   .timingGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
   .estimateNumbers {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    text-align: center;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    text-align: center !important;
   }
   .estimateDivider {
-    display: none;
+    display: none !important;
   }
-  .supportFinderCard, .crispReferralWizard, .coverageCardWrapper, .contactFormCardWrapper, .policyPaperCard {
-    padding: 24px 16px;
-    margin: 32px 0;
+  .estimateResultBox {
+    padding: 20px 14px !important;
+  }
+  .estimateVal {
+    font-size: 1.8rem !important;
   }
 
-  /* Coverage Checker Mobile */
+  /* 10. Regional Coverage Mobile */
+  .coverageTitle {
+    font-size: 1.65rem !important;
+  }
   .regionPanelHeader {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
   }
   .activeRegionPanel {
-    padding: 20px 14px;
+    padding: 18px 14px !important;
   }
   .regionReferBtn {
-    width: 100%;
-    margin-top: 12px;
+    width: 100% !important;
+    margin-top: 10px !important;
   }
 
-  /* Photo CTA & Contact Band Mobile */
+  /* 11. Photo CTA & Bottom Banners */
   .photoCta {
-    margin: 32px auto;
-    width: 100%;
-    border-radius: var(--radius-lg);
+    margin: 28px auto !important;
+    border-radius: var(--radius-lg) !important;
   }
   .photoCtaBg {
-    height: 320px;
+    height: 300px !important;
   }
   .photoCtaContent {
-    padding: 24px 16px;
+    padding: 20px 14px !important;
+  }
+  .photoCtaContent h2 {
+    font-size: 1.55rem !important;
   }
   .contact {
-    margin-bottom: 32px;
-    padding: 28px 18px;
-    flex-direction: column;
-    align-items: stretch;
+    margin-bottom: 28px !important;
+    padding: 24px 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 20px !important;
   }
   .contactActions {
-    flex-direction: column;
-    width: 100%;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
   }
 
-  /* Footer Mobile (No Excess Bottom Scroll) */
+  /* 12. Footer Mobile - Clean & Compact */
   .siteFooterWrapper {
-    margin-top: 40px;
+    margin-top: 32px !important;
   }
   .mainFooterGrid {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 40px 0 24px;
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    padding: 36px 0 20px !important;
   }
   .footerCtaContent {
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 16px !important;
   }
   .footerCtaBtns {
-    flex-direction: column;
-    width: 100%;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .countryAcknowledgementCard {
+    padding: 18px 14px !important;
+    margin: 16px 0 !important;
   }
   .footerBottomLegal {
-    flex-direction: column;
-    text-align: center;
-    gap: 10px;
-    padding: 16px 0 28px;
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 8px !important;
+    padding: 16px 0 28px !important;
   }
 }
