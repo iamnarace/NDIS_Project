@@ -48,6 +48,19 @@ export function SiteFooter() {
             <Shield size={16} color="#2DD4BF" />
             <span>NDIS Worker Screening Cleared · First Aid &amp; CPR Certified</span>
           </div>
+          <div className="footerNdisSupportTag" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', background: 'rgba(255, 255, 255, 0.06)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+            <Image
+              src="/marketing/CarePoint_NDIS_Badge_512.png"
+              alt="Proudly Supporting NDIS Participants"
+              width={40}
+              height={40}
+              style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#CCFBF1' }}>Proudly Supporting</span>
+              <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>NDIS Participants Across NSW</span>
+            </div>
+          </div>
         </div>
 
         {/* Navigation Column: Services */}

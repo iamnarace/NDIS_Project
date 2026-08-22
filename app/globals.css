@@ -2557,3 +2557,352 @@ img {
     width: 100%;
   }
 }
+
+/* ─── 4-Step Approach Section ─────────────────────────────────────────────── */
+.approachSection {
+  padding: 80px 0;
+  background: #FFFFFF;
+  position: relative;
+}
+
+.approachBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 163, 163, 0.1);
+  color: var(--teal-700);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.approachStepsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin: 48px 0 36px;
+}
+
+.approachStepCard {
+  background: #FFFFFF;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  position: relative;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+.approachStepCard:hover,
+.approachStepCard.active {
+  transform: translateY(-4px);
+  border-color: var(--teal-500);
+  box-shadow: 0 12px 28px rgba(13, 148, 136, 0.12);
+}
+
+.stepTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.stepNumber {
+  color: #FFFFFF;
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+}
+
+.stepIconBox {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+}
+
+.stepTitle {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--slate-900);
+  margin-bottom: 4px;
+}
+
+.stepSubtitle {
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--teal-700);
+  margin-bottom: 12px;
+}
+
+.stepDesc {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--slate-600);
+  flex-grow: 1;
+}
+
+.stepFooterIndicator {
+  height: 4px;
+  border-radius: var(--radius-full);
+  margin-top: 20px;
+  transition: all 0.2s ease;
+}
+
+.approachBannerStrip {
+  background: linear-gradient(135deg, #0D3B46 0%, #065F5B 100%);
+  border-radius: var(--radius-xl);
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(13, 59, 70, 0.15);
+}
+
+.approachBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.approachBannerLeft strong {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.approachBannerLeft p {
+  color: #CCFBF1;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.approachCtaBtn {
+  background: #F59E0B !important;
+  color: #0F172A !important;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.approachCtaBtn:hover {
+  background: #D97706 !important;
+}
+
+/* ─── Core Values Section ──────────────────────────────────────────────────── */
+.coreValuesSection {
+  padding: 80px 0;
+  background: var(--slate-50);
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.valueCard {
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--slate-200);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.valueCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.valueIconCircle {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+}
+
+.valueCardTitle {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.valueTagline {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.valueDesc {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--slate-600);
+  margin: 0;
+}
+
+/* ─── Community Spotlight Section ─────────────────────────────────────────── */
+.communitySpotlightSection {
+  padding: 80px 0;
+  background: #FFFFFF;
+}
+
+.campaignFeatureCard {
+  background: linear-gradient(135deg, #0D3B46 0%, #065F5B 100%);
+  border-radius: 24px;
+  padding: 48px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  color: #FFFFFF;
+  box-shadow: 0 16px 36px rgba(13, 59, 70, 0.18);
+  margin-bottom: 40px;
+}
+
+.campaignBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(45, 212, 191, 0.2);
+  color: #2DD4BF;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.campaignTitle {
+  font-family: var(--font-heading);
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  color: #FFFFFF;
+}
+
+.campaignText {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #E2E8F0;
+  margin-bottom: 24px;
+}
+
+.campaignPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.campaignPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.campaignActions {
+  display: flex;
+  gap: 16px;
+}
+
+.campaignImageCol {
+  display: flex;
+  justify-content: center;
+}
+
+.campaignImg {
+  width: 100%;
+  height: auto;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.marketingHighlightsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.highlightGraphicCard {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 16px;
+  border: 1px solid var(--slate-200);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.highlightGraphicCard:hover {
+  transform: translateY(-4px);
+}
+
+@media (max-width: 992px) {
+  .approachStepsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .valuesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .campaignFeatureCard {
+    grid-template-columns: 1fr;
+    padding: 32px 24px;
+  }
+  .marketingHighlightsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .approachStepsGrid {
+    grid-template-columns: 1fr;
+  }
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+  .approachBannerStrip {
+    flex-direction: column;
+    text-align: center;
+  }
+  .approachBannerLeft {
+    flex-direction: column;
+    text-align: center;
+  }
+  .campaignActions {
+    flex-direction: column;
+  }
+}

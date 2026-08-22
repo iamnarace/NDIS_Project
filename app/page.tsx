@@ -7,6 +7,9 @@ import { SupportFinderWidget } from '../components/SupportFinderWidget';
 import { SydneyCoverageChecker } from '../components/SydneyCoverageChecker';
 import { ResourceBrochures } from '../components/ResourceBrochures';
 import { FundingTransparencyCard } from '../components/FundingTransparencyCard';
+import { OurApproachSection } from '../components/OurApproachSection';
+import { CoreValuesSection } from '../components/CoreValuesSection';
+import { CommunitySpotlight } from '../components/CommunitySpotlight';
 
 const services = [
   { icon: Home, title: 'Daily Living Support', text: 'Respectful assistance with morning and evening routines, meal planning, and practical in-home support tailored to your lifestyle.' },
@@ -103,10 +106,16 @@ export default function HomePage() {
               </div>
             </div>
             <div className="floatingCard2">
-              <ShieldCheck size={22} />
+              <Image
+                src="/marketing/CarePoint_NDIS_Badge_512.png"
+                alt="Proudly Supporting NDIS Participants"
+                width={36}
+                height={36}
+                style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+              />
               <div>
-                <strong>Verified Support</strong>
-                <small>Worker screening &amp; First Aid certified</small>
+                <strong>Proudly Supporting</strong>
+                <small>NDIS Participants Across NSW</small>
               </div>
             </div>
           </div>
@@ -134,6 +143,12 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* ── COMMUNITY & CAMPAIGN SPOTLIGHT ───────────────────────────────── */}
+        <CommunitySpotlight />
+
+        {/* ── 4-STEP SUPPORT APPROACH INFOGRAPHIC ──────────────────────────── */}
+        <OurApproachSection />
 
         {/* ── SERVICES OVERVIEW ────────────────────────────────────────────── */}
         <section className="softSection" id="services">
@@ -170,52 +185,8 @@ export default function HomePage() {
           <SupportFinderWidget />
         </section>
 
-        {/* ── ABOUT / APPROACH SPLIT ───────────────────────────────────────── */}
-        <section className="split shell" id="about">
-          <div className="aboutPhotoWrap">
-            <Image
-              src="https://images.unsplash.com/photo-1607748862156-7c548e7e98f4?w=700&q=80&auto=format&fit=crop"
-              alt="Support worker assisting participant with daily routine"
-              className="aboutPhoto"
-              width={700}
-              height={480}
-            />
-            <div className="aboutPhotoTag">
-              <HeartHandshake size={24} />
-              <div>
-                <strong>Participant-First Care</strong>
-                <small>Every decision guided by your goals &amp; choice</small>
-              </div>
-            </div>
-          </div>
-
-          <div className="aboutCopy">
-            <span className="eyebrow">Why CarePoint</span>
-            <h2>Small enough to know you. Professional enough to support you well.</h2>
-            <p>
-              CarePoint is founded on a simple principle: disability support should feel dependable, transparent, and genuinely centred on the person receiving it.
-            </p>
-            <ul>
-              <li><CheckCircle2 size={18} /> Participant choice and control in every routine</li>
-              <li><CheckCircle2 size={18} /> Respectful communication and active listening</li>
-              <li><CheckCircle2 size={18} /> Reliable scheduling and clear service expectations</li>
-              <li><CheckCircle2 size={18} /> Transparent NDIS price-limit aligned agreements</li>
-              <li><CheckCircle2 size={18} /> Robust privacy, safety and incident awareness</li>
-            </ul>
-            <Link className="inlineCta" href="/about">
-              Learn more about our team and values <ArrowRight size={16} />
-            </Link>
-            <div className="complianceNote">
-              <ShieldCheck size={22} />
-              <div>
-                <strong>NDIS Provider Transparency</strong>
-                <p>
-                  CarePoint operates as an unregistered NDIS provider supporting self-managed and plan-managed participants in NSW.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ── CORE VALUES & PILLARS ────────────────────────────────────────── */}
+        <CoreValuesSection />
 
         {/* ── SYDNEY REGION COVERAGE CHECKER ───────────────────────────────── */}
         <section className="shell">
@@ -256,38 +227,6 @@ export default function HomePage() {
         {/* ── FUNDING TRANSPARENCY EXPLAINER ───────────────────────────────── */}
         <section className="shell">
           <FundingTransparencyCard />
-        </section>
-
-        {/* ── 4-STEP ONBOARDING PROCESS ────────────────────────────────────── */}
-        <section className="processSection" id="process">
-          <div className="shell">
-            <div className="sectionHead light">
-              <span className="eyebrow">Getting Started</span>
-              <h2>From Enquiry to Support, Without the Run-Around</h2>
-            </div>
-            <div className="steps">
-              <article>
-                <b>01</b>
-                <h3>Tell Us What You Need</h3>
-                <p>Send a quick enquiry with the participant&apos;s goals, location, and preferred support areas.</p>
-              </article>
-              <article>
-                <b>02</b>
-                <h3>Talk It Through</h3>
-                <p>We confirm fit, availability, funding management, and safety or routine requirements.</p>
-              </article>
-              <article>
-                <b>03</b>
-                <h3>Agree Clearly</h3>
-                <p>Supports, schedule, pricing, travel, and responsibilities are clearly documented in a simple service agreement.</p>
-              </article>
-              <article>
-                <b>04</b>
-                <h3>Support Begins</h3>
-                <p>Support starts smoothly with consistent check-ins and responsive communication.</p>
-              </article>
-            </div>
-          </div>
         </section>
 
         {/* ── PROOF & TRUST BAND ───────────────────────────────────────────── */}

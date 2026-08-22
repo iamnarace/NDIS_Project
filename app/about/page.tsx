@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 import { ResourceBrochures } from '../../components/ResourceBrochures';
+import { OurApproachSection } from '../../components/OurApproachSection';
+import { CoreValuesSection } from '../../components/CoreValuesSection';
 
 export default function AboutPage() {
   return (
@@ -15,7 +17,7 @@ export default function AboutPage() {
           <span className="eyebrow">About CarePoint</span>
           <h1>A Smaller Disability Support Provider With Professional Standards</h1>
           <p>
-            CarePoint Support Services is built on dependable relationships, open communication, and practical disability support that respects every participant&apos;s dignity, routine, and choices.
+            CarePoint Support Services is built on dependable relationships, open communication, and practical disability support that respects every participant&apos;s dignity, routine, and choices across Greater Sydney.
           </p>
         </section>
 
@@ -39,7 +41,7 @@ export default function AboutPage() {
           </div>
 
           <div className="aboutCopy">
-            <span className="eyebrow">Our Approach</span>
+            <span className="eyebrow">Our Philosophy</span>
             <h2>Listen First. Agree Clearly. Support Consistently.</h2>
             <p>
               We want participants, families, and coordinators to always know who they are dealing with, what has been agreed, what it costs, and what happens if circumstances change.
@@ -59,38 +61,11 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* 4-Step Support Approach Infographic */}
+        <OurApproachSection />
+
         {/* Core Values Grid */}
-        <section className="softSection">
-          <div className="shell">
-            <div className="sectionHead">
-              <span className="eyebrow">Our Pillars</span>
-              <h2>Values That Guide Every Support Hour</h2>
-            </div>
-            <div className="valuesGrid">
-              <article>
-                <Users size={32} />
-                <h3>Person-Centred</h3>
-                <p>
-                  Support is shaped around your unique lifestyle, hobbies, and personal independence goals rather than a rigid agency template.
-                </p>
-              </article>
-              <article>
-                <ShieldCheck size={32} />
-                <h3>Safe &amp; Accountable</h3>
-                <p>
-                  All workers hold verified NDIS Worker Screening Clearances, current First Aid &amp; CPR certifications, and adhere strictly to the NDIS Code of Conduct.
-                </p>
-              </article>
-              <article>
-                <HeartHandshake size={32} />
-                <h3>Reliable Consistency</h3>
-                <p>
-                  We prioritize reliable worker matching and punctual scheduling so you build a trusting, comfortable routine.
-                </p>
-              </article>
-            </div>
-          </div>
-        </section>
+        <CoreValuesSection />
 
         {/* Resource Brochures */}
         <section className="shell">
@@ -98,18 +73,15 @@ export default function AboutPage() {
         </section>
 
         {/* Provider Status Note */}
-        <section className="shell contentBand">
-          <div>
-            <span className="eyebrow">Operating Transparency</span>
-            <h2>Transparent While We Build</h2>
-          </div>
-          <div>
-            <p>
-              CarePoint is established under the unregistered NDIS provider framework for self-managed and plan-managed participants in NSW. We will never display an NDIS registered-provider badge or make misleading claims until full registration is formally completed.
-            </p>
-            <Link className="inlineCta" href="/referral">
-              Discuss a referral with our team →
-            </Link>
+        <section className="shell aboutPageNote">
+          <div className="complianceNote">
+            <ShieldCheck size={24} />
+            <div>
+              <strong>NDIS Service Scope &amp; Integrity</strong>
+              <p>
+                CarePoint operates as an unregistered NDIS provider in New South Wales supporting self-managed and plan-managed participants. We adhere to the NDIS Quality and Safeguards Commission Code of Conduct, verify all workers via NDIS Worker Screening Checks, and prioritize transparency at every step.
+              </p>
+            </div>
           </div>
         </section>
       </main>
