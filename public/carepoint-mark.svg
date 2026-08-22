@@ -10,8 +10,14 @@
     </linearGradient>
   </defs>
 
-  <rect width="64" height="64" rx="18" fill="url(#cpTeal)"/>
+  <rect width="64" height="64" rx="20" fill="url(#cpTeal)"/>
+  
+  <!-- Supportive Heart/Hands Embrace -->
+  <path d="M32 49C32 49 19 42 16 34.5C13 27 17 20 24 20C28.5 20 31.5 23 32 25C32.5 23 35.5 20 40 20C47 20 51 27 48 34.5C45 42 32 49 32 49Z" fill="#FFFFFF" fill-opacity="0.15"/>
+  
   <path d="M32 47C32 47 21 41 18.5 34.5C16 28 20 22 25.5 22C29 22 31 24.5 32 26.5C33 24.5 35 22 38.5 22C44 22 48 28 45.5 34.5C43 41 32 47 32 47Z" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Golden Sun Beacon -->
   <circle cx="32" cy="33" r="5.5" fill="url(#cpGold)"/>
   <circle cx="32" cy="33" r="2.2" fill="#FFFFFF"/>
 </svg>
