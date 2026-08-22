@@ -72,7 +72,7 @@ export function OurApproachSection() {
           </div>
           <h2 className="sectionTitle">Our 4-Step Support Approach</h2>
           <p className="sectionSubtitle">
-            How we partner with NDIS participants, families, and support coordinators across Sydney to deliver care you can genuinely rely on.
+            How we partner with NDIS participants, families, and support coordinators across Clarence Coast & Northern Rivers NSW to deliver care you can genuinely rely on.
           </p>
         </div>
 

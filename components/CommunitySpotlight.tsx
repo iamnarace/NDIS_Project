@@ -26,7 +26,7 @@ export function CommunitySpotlight() {
                 <Heart size={16} color="#F472B6" /> Person-Centred
               </span>
               <span className="campaignPill">
-                <MapPin size={16} color="#38BDF8" /> Greater Sydney NSW
+                <MapPin size={16} color="#38BDF8" /> Clarence Coast & Northern Rivers NSW
               </span>
             </div>
             <div className="campaignActions">
@@ -41,7 +41,7 @@ export function CommunitySpotlight() {
           <div className="campaignImageCol">
             <Image
               src="/marketing/CarePoint_Hero_Banner_Visual.png"
-              alt="CarePoint Support Worker with Participant in Sydney"
+              alt="CarePoint Support Worker with Participant"
               width={700}
               height={320}
               className="campaignImg"

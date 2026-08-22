@@ -1,31 +1,69 @@
 import Link from 'next/link';
+import { MessageSquare, HeartHandshake, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 
 export default function ComplaintsPage() {
-  return <><SiteHeader/><main>
-    <section className="pageHero shell compactHero">
-      <span className="eyebrow">Policy</span>
-      <h1>Complaints &amp; Feedback</h1>
-      <p><strong>Draft policy — for review before business launch.</strong></p>
-    </section>
-    <section className="shell contentBand">
-      <div>
-        <h2>Our approach</h2>
-        <p>CarePoint Support Services aims to make it safe and straightforward for participants, families, representatives and other stakeholders to raise feedback or concerns.</p>
-      </div>
-      <div>
-        <h2>How feedback will be handled</h2>
-        <ol style={{paddingLeft:'1.2em',color:'#617873',lineHeight:1.75}}>
-          <li>Listen respectfully and record the concern.</li>
-          <li>Assess any immediate safety issue and act promptly.</li>
-          <li>Discuss possible resolution with the person raising the concern.</li>
-          <li>Document actions and outcomes.</li>
-          <li>Review whether systems or support practices need improvement.</li>
-        </ol>
-        <p>People receiving NDIS supports can also raise concerns with the NDIS Quality and Safeguards Commission. Final contact details, response targets and escalation process will be added before launch.</p>
-        <Link className="button secondary" href="/">← Back to CarePoint</Link>
-      </div>
-    </section>
-  </main><SiteFooter/></>;
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        <section className="pageHero">
+          <div className="shell">
+            <span className="eyebrow">
+              <MessageSquare size={15} /> Feedback &amp; Continuous Improvement
+            </span>
+            <h1>Complaints, Compliments &amp; Feedback</h1>
+            <p>
+              You have the right to give feedback and make complaints at any time without fear of negative consequences. We welcome your input to continuously improve our support.
+            </p>
+          </div>
+        </section>
+
+        <section className="softSection">
+          <div className="shell">
+            <div className="policyPaperCard">
+              <div className="policySection">
+                <h2>1. Our Open Feedback Philosophy</h2>
+                <p>
+                  At CarePoint Support Services, we view feedback and complaints as valuable opportunities to learn, adapt, and enhance our services. Anyone — including participants, family members, advocates, and support coordinators — can lodge a complaint or share feedback.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>2. How to Raise Feedback or a Concern</h2>
+                <p>You can share your thoughts with us in any way you feel most comfortable:</p>
+                <ul>
+                  <li><strong>Email:</strong> Send a message to <em>support@carepointsupport.com.au</em></li>
+                  <li><strong>Direct Conversation:</strong> Speak openly with your support worker or CarePoint coordinator</li>
+                  <li><strong>Advocacy Support:</strong> You are welcome to have an independent advocate, family member, or friend assist you throughout the process</li>
+                </ul>
+              </div>
+
+              <div className="policySection">
+                <h2>3. How We Handle Complaints</h2>
+                <p>
+                  We acknowledge all complaints within 24 hours (1 business day), treat your concerns with confidentiality and respect, investigate the matter thoroughly, and provide you with a written outcome and proposed resolution within 10 business days.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>4. External Escalation: NDIS Commission</h2>
+                <p>
+                  If you are not satisfied with how your complaint has been handled, you have the right to contact the independent <strong>NDIS Quality and Safeguards Commission</strong> directly at <strong>1800 035 544</strong> or via <strong>ndiscommission.gov.au</strong>.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '32px' }}>
+                <Link className="button secondary" href="/">
+                  <ArrowLeft size={16} /> Return to Homepage
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  );
 }

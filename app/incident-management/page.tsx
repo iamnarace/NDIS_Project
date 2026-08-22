@@ -1,31 +1,66 @@
 import Link from 'next/link';
+import { AlertCircle, ShieldCheck, HeartPulse, ArrowLeft } from 'lucide-react';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 
-export default function IncidentPage() {
-  return <><SiteHeader/><main>
-    <section className="pageHero shell compactHero">
-      <span className="eyebrow">Policy</span>
-      <h1>Incident Management</h1>
-      <p><strong>Draft policy — for review before business launch.</strong></p>
-    </section>
-    <section className="shell contentBand">
-      <div>
-        <h2>Our commitment</h2>
-        <p>CarePoint Support Services intends to identify, respond to, record and review incidents connected with the delivery of supports, with participant safety, dignity and communication as the priority.</p>
-      </div>
-      <div>
-        <h2>Our intended process</h2>
-        <ol style={{paddingLeft:'1.2em',color:'#617873',lineHeight:1.75}}>
-          <li>Make the situation safe and arrange urgent assistance where required.</li>
-          <li>Support and inform the participant and relevant authorised people.</li>
-          <li>Record what happened, actions taken and any follow-up required.</li>
-          <li>Assess whether any external notification or escalation is required.</li>
-          <li>Review the incident for corrective actions and service improvements.</li>
-        </ol>
-        <p>Final responsibilities, records, notification requirements and emergency contacts will be confirmed against CarePoint&apos;s final provider status and service scope before launch.</p>
-        <Link className="button secondary" href="/">← Back to CarePoint</Link>
-      </div>
-    </section>
-  </main><SiteFooter/></>;
+export default function IncidentManagementPage() {
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        <section className="pageHero">
+          <div className="shell">
+            <span className="eyebrow">
+              <ShieldCheck size={15} /> Safety &amp; Safeguards
+            </span>
+            <h1>Incident Management &amp; Safety Framework</h1>
+            <p>
+              How CarePoint Support Services identifies, manages, records, and prevents incidents to ensure the safety, health, and wellbeing of every participant.
+            </p>
+          </div>
+        </section>
+
+        <section className="softSection">
+          <div className="shell">
+            <div className="policyPaperCard">
+              <div className="policySection">
+                <h2>1. Safety First Culture</h2>
+                <p>
+                  The safety and dignity of participants, staff, and the community are our highest priority. Our Incident Management System is designed to respond swiftly to any unforeseen events, minimize harm, provide immediate care, and learn from every occurrence.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>2. Immediate Response &amp; First Aid</h2>
+                <p>
+                  In the event of an incident or injury, our support workers are trained to prioritize immediate participant safety and first aid, notify emergency services if needed, contact nominees/family, and report the event immediately to senior management.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>3. Investigation &amp; Corrective Actions</h2>
+                <p>
+                  Every reported incident undergoes a root-cause review within 48 hours to determine contributing factors, update participant risk profiles, adjust support procedures, and implement preventative measures to ensure it does not happen again.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>4. Regulatory Reporting</h2>
+                <p>
+                  We comply fully with mandatory incident notification guidelines under NDIS safeguards and state health regulations.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '32px' }}>
+                <Link className="button secondary" href="/">
+                  <ArrowLeft size={16} /> Return to Homepage
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  );
 }

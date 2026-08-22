@@ -1,30 +1,71 @@
 import Link from 'next/link';
+import { Shield, Lock, FileText, ArrowLeft } from 'lucide-react';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 
 export default function PrivacyPage() {
-  return <><SiteHeader/><main>
-    <section className="pageHero shell compactHero">
-      <span className="eyebrow">Policy</span>
-      <h1>Privacy &amp; Confidentiality</h1>
-      <p><strong>Draft website policy — for review before business launch.</strong></p>
-    </section>
-    <section className="shell contentBand">
-      <div>
-        <h2>Overview</h2>
-        <p>CarePoint Support Services is being designed to collect only information reasonably required to respond to enquiries, arrange supports and maintain appropriate service records. Personal and sensitive information will be handled with care, access controls and appropriate security.</p>
-      </div>
-      <div>
-        <h2>What we may collect</h2>
-        <p>Contact details, participant or nominee details, funding-management information, support preferences, relevant health or safety information, service records and communications.</p>
-        <h2>How we intend to use information</h2>
-        <p>To assess enquiries, arrange agreed supports, communicate with authorised people, issue service documentation and invoices, manage safety and meet legal or regulatory obligations.</p>
-        <h2>Sharing information</h2>
-        <p>Information should only be shared where authorised, required to deliver agreed supports, or required by law. Final privacy notices, consent wording, retention periods and complaint contacts will be confirmed before launch.</p>
-        <h2>Website forms</h2>
-        <p>The current website is a development build. Referral and contact forms must not be used for real participant information until secure form handling, storage and final privacy controls are configured.</p>
-        <Link className="button secondary" href="/">← Back to CarePoint</Link>
-      </div>
-    </section>
-  </main><SiteFooter/></>;
+  return (
+    <>
+      <SiteHeader />
+      <main>
+        <section className="pageHero">
+          <div className="shell">
+            <span className="eyebrow">
+              <Shield size={15} /> Privacy &amp; Governance
+            </span>
+            <h1>Privacy Policy &amp; Information Handling</h1>
+            <p>
+              How CarePoint Support Services collects, manages, and protects personal and sensitive participant information in accordance with the Privacy Act 1988 (Cth) and Australian Privacy Principles.
+            </p>
+          </div>
+        </section>
+
+        <section className="softSection">
+          <div className="shell">
+            <div className="policyPaperCard">
+              <div className="policySection">
+                <h2>1. Commitment to Participant Privacy</h2>
+                <p>
+                  CarePoint Support Services respects and upholds the privacy rights of all NDIS participants, families, carers, and staff. We only collect personal information reasonably necessary to assess support needs, deliver tailored disability services, ensure participant safety, and fulfill statutory obligations.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>2. Types of Information Collected</h2>
+                <p>Information collected may include:</p>
+                <ul>
+                  <li>Contact details (name, address, phone number, email)</li>
+                  <li>NDIS plan details, funding management type, and plan dates</li>
+                  <li>Emergency contact details and appointed nominees/guardians</li>
+                  <li>Support preferences, daily routines, and personal goals</li>
+                  <li>Relevant health, medical, or behavioural support information necessary for safe support delivery</li>
+                </ul>
+              </div>
+
+              <div className="policySection">
+                <h2>3. How We Use and Protect Your Data</h2>
+                <p>
+                  Your information is stored securely on protected systems with restricted role-based access. We do not sell or disclose your personal information to third parties without your explicit informed consent, unless required or authorised by Australian law.
+                </p>
+              </div>
+
+              <div className="policySection">
+                <h2>4. Accessing and Correcting Your Information</h2>
+                <p>
+                  You have the right to request access to any personal information we hold about you and to request corrections if any details are inaccurate or out of date. Contact our Privacy Officer at <strong>support@carepointsupport.com.au</strong>.
+                </p>
+              </div>
+
+              <div style={{ marginTop: '32px' }}>
+                <Link className="button secondary" href="/">
+                  <ArrowLeft size={16} /> Return to Homepage
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  );
 }
