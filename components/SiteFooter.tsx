@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Shield, Phone, Mail, MapPin, Heart, ArrowRight } from 'lucide-react';
 
 export function SiteFooter() {
@@ -27,22 +28,13 @@ export function SiteFooter() {
         <div className="footerBrandCol">
           <Link className="footerBrandLogo" href="/">
             <div className="logoMarkContainer">
-              <svg width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="footerTeal" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0D9488"/>
-                    <stop offset="100%" stopColor="#065F5B"/>
-                  </linearGradient>
-                  <linearGradient id="footerSun" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FBBF24"/>
-                    <stop offset="100%" stopColor="#F59E0B"/>
-                  </linearGradient>
-                </defs>
-                <rect width="64" height="64" rx="18" fill="url(#footerTeal)"/>
-                <path d="M32 47C32 47 21 41 18.5 34.5C16 28 20 22 25.5 22C29 22 31 24.5 32 26.5C33 24.5 35 22 38.5 22C44 22 48 28 45.5 34.5C43 41 32 47 32 47Z" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="32" cy="33" r="5.5" fill="url(#footerSun)"/>
-                <circle cx="32" cy="33" r="2.2" fill="#FFFFFF"/>
-              </svg>
+              <Image
+                src="/brand/CarePoint_Mark_White.png"
+                alt="CarePoint Support Services Logo"
+                width={42}
+                height={42}
+                style={{ width: '42px', height: '42px', objectFit: 'contain' }}
+              />
             </div>
             <div className="brandTextGroup">
               <strong className="footerBrandTitle">Care<span className="brandAccent">Point</span></strong>

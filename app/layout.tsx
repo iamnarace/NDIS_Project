@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://carepointsupport.com.au'),
   title: 'CarePoint Support Services | NDIS Disability Support Sydney',
   description: 'Person-centred disability support for self-managed and plan-managed NDIS participants across Greater Sydney, NSW. Daily living, community participation, transport and life skills.',
   keywords: [
@@ -15,9 +16,12 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'CarePoint Support Services' }],
   icons: {
-    icon: '/carepoint-mark.svg',
-    shortcut: '/carepoint-mark.svg',
-    apple: '/carepoint-mark.svg',
+    icon: [
+      { url: '/brand/favicon.ico' },
+      { url: '/brand/CarePoint_Mark_512x512_Transparent.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/brand/favicon.ico',
+    apple: '/brand/CarePoint_Logo_192x192.png',
   },
   openGraph: {
     title: 'CarePoint Support Services | Person-Centred NDIS Support',
@@ -25,6 +29,14 @@ export const metadata: Metadata = {
     siteName: 'CarePoint Support Services',
     locale: 'en_AU',
     type: 'website',
+    images: [
+      {
+        url: '/brand/CarePoint_Logo_Master.png',
+        width: 1254,
+        height: 1254,
+        alt: 'CarePoint Support Services - Compassion. Empowerment. Independence.',
+      },
+    ],
   },
 };
 
@@ -32,7 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/carepoint-mark.svg" type="image/svg+xml" />
+        <link rel="icon" href="/brand/favicon.ico" sizes="any" />
       </head>
       <body>{children}</body>
     </html>
