@@ -293,12 +293,12 @@ export function ReferralForm() {
         <div className="wizardStepSection">
           <div className="twoColumns">
             <label className="inputLabel">
-              <span>Participant Suburb / Area in Sydney <strong className="req">*</strong></span>
+              <span>Town / Suburb (Yamba, Grafton, Maclean, New Italy, etc.) <strong className="req">*</strong></span>
               <input
                 required
                 type="text"
                 className="crispInput"
-                placeholder="e.g. Parramatta, Liverpool, Ryde, Hills..."
+                placeholder="e.g. Yamba, Maclean, Grafton, Iluka, New Italy, Evans Head..."
                 value={formData.suburb}
                 onChange={e => setFormData({ ...formData, suburb: e.target.value })}
               />

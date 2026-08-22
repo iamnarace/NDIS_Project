@@ -15,7 +15,7 @@ export function SiteHeader() {
         <div className="shell topNoticeContent">
           <div className="noticeLeft">
             <span className="noticeBadge">NDIS Provider</span>
-            <span>Supporting Self-Managed &amp; Plan-Managed Participants Across Greater Sydney, NSW</span>
+            <span>Supporting Self-Managed &amp; Plan-Managed Participants Across Yamba, Grafton &amp; Northern Rivers NSW</span>
           </div>
           <div className="noticeRight">
             <a href="mailto:support@carepointsupport.com.au" className="noticeContactLink">
@@ -108,7 +108,7 @@ export function SiteHeader() {
 
         <div className="mobileDrawerFooter">
           <span>📧 support@carepointsupport.com.au</span>
-          <span>📍 Greater Sydney, NSW</span>
+          <span>📍 Yamba, Grafton &amp; Northern Rivers, NSW</span>
           <small>Unregistered NDIS Provider · Supporting Self &amp; Plan Managed</small>
         </div>
       </div>

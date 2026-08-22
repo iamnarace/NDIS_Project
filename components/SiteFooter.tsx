@@ -42,7 +42,7 @@ export function SiteFooter() {
             </div>
           </Link>
           <p className="footerMissionText">
-            Respectful, dependable disability support tailored around your goals, routines, and choices across Greater Sydney. Supporting self-managed and plan-managed NDIS participants.
+            Respectful, dependable disability support tailored around your goals, routines, and choices across Yamba, Grafton, and Northern Rivers NSW. Supporting self-managed and plan-managed NDIS participants.
           </p>
           <div className="footerWorkerCheckBadge">
             <Shield size={16} color="#2DD4BF" />
@@ -94,7 +94,7 @@ export function SiteFooter() {
           </div>
           <div className="footerContactItem">
             <MapPin size={15} color="#2DD4BF" />
-            <span>Greater Sydney, NSW, Australia</span>
+            <span>Yamba &amp; Clarence Coast, NSW</span>
           </div>
           <div className="footerContactItem">
             <Shield size={15} color="#2DD4BF" />

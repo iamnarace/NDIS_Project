@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { SupportFinderWidget } from '../components/SupportFinderWidget';
-import { SydneyCoverageChecker } from '../components/SydneyCoverageChecker';
+import { RegionalCoverageChecker } from '../components/RegionalCoverageChecker';
 import { ResourceBrochures } from '../components/ResourceBrochures';
 import { FundingTransparencyCard } from '../components/FundingTransparencyCard';
 import { OurApproachSection } from '../components/OurApproachSection';
@@ -13,7 +13,7 @@ import { CommunitySpotlight } from '../components/CommunitySpotlight';
 
 const services = [
   { icon: Home, title: 'Daily Living Support', text: 'Respectful assistance with morning and evening routines, meal planning, and practical in-home support tailored to your lifestyle.' },
-  { icon: Users, title: 'Community Participation', text: 'Support to attend community events, join social groups, access sporting activities, and explore Sydney with confidence.' },
+  { icon: Users, title: 'Community Participation', text: 'Support to attend community events, join social groups, access sporting activities, and explore the Clarence Coast with confidence.' },
   { icon: Car, title: 'Transport & Outings', text: 'Safe, flexible transport assistance for appointments, education, shopping, and goal-focused social outings.' },
   { icon: Sparkles, title: 'Life Skills & Independence', text: 'Capacity-building support focused on developing confidence, everyday organisation, travel training, and cooking skills.' },
   { icon: HeartHandshake, title: 'Companionship & Social Support', text: 'Consistent, one-to-one mentoring and social connection built around your genuine hobbies, choices, and interests.' },
@@ -25,24 +25,24 @@ const trust = ['NDIS Worker Screening Clearance', 'First Aid & CPR Certified', '
 const stats = [
   { value: '100%', label: 'Person-Centred & Participant-Led' },
   { value: '6', label: 'Core & Capacity Support Areas' },
-  { value: 'Greater Sydney', label: 'Local Suburb Coverage' },
+  { value: '50–60 km', label: 'Radius from Yamba Hub' },
   { value: '24h', label: 'Referral Response Commitment' },
 ];
 
 const testimonials = [
   {
-    quote: 'CarePoint matched us with a support worker who genuinely shares my brother’s interests in cooking and music. The consistency and respect have been wonderful.',
-    name: 'Family Member & Nominee, Western Sydney',
+    quote: 'CarePoint matched us with a support worker in Maclean who genuinely shares my brother’s interests in cooking and music. The consistency and respect have been wonderful.',
+    name: 'Family Member & Nominee, Maclean NSW',
     rating: 5,
   },
   {
-    quote: 'As a Support Coordinator, finding reliable workers with clear communication and fast onboarding is critical. CarePoint makes the referral process smooth.',
-    name: 'NDIS Support Coordinator, Inner West',
+    quote: 'As a Support Coordinator across the Northern Rivers, finding reliable workers with clear communication and fast onboarding is critical. CarePoint makes the referral process smooth.',
+    name: 'NDIS Support Coordinator, Clarence Valley',
     rating: 5,
   },
   {
-    quote: 'I have full choice over my schedule and outings. My support worker helps me get to my weekly gym sessions and community art classes.',
-    name: 'NDIS Participant, Hills District',
+    quote: 'I have full choice over my schedule and outings. My support worker helps me get to my weekly gym sessions in Yamba and community art classes in Grafton.',
+    name: 'NDIS Participant, Yamba NSW',
     rating: 5,
   },
 ];
@@ -63,7 +63,7 @@ export default function HomePage() {
               Care you can count on.
             </h1>
             <p className="lead">
-              CarePoint Support Services provides practical, respectful disability support shaped around your goals, routines and choices across Greater Sydney.
+              CarePoint Support Services provides practical, respectful disability support shaped around your goals, routines and choices across Yamba, Grafton, New Italy, and Northern Rivers NSW.
             </p>
             <div className="actions">
               <Link className="button" href="/referral">
@@ -84,7 +84,7 @@ export default function HomePage() {
           </div>
 
           <div className="heroVisual">
-            <div className="heroPhoto" role="img" aria-label="Support worker and participant enjoying meaningful connection outdoors in Sydney">
+            <div className="heroPhoto" role="img" aria-label="Support worker and participant enjoying meaningful connection outdoors">
               <Image
                 src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&q=80&auto=format&fit=crop"
                 alt="Support worker smiling warmly with participant outdoors"
@@ -188,9 +188,9 @@ export default function HomePage() {
         {/* ── CORE VALUES & PILLARS ────────────────────────────────────────── */}
         <CoreValuesSection />
 
-        {/* ── SYDNEY REGION COVERAGE CHECKER ───────────────────────────────── */}
+        {/* ── REGIONAL COVERAGE CHECKER (YAMBA + 50-60KM RADIUS) ───────────── */}
         <section className="shell">
-          <SydneyCoverageChecker />
+          <RegionalCoverageChecker />
         </section>
 
         {/* ── TESTIMONIALS SECTION ─────────────────────────────────────────── */}
@@ -200,7 +200,7 @@ export default function HomePage() {
               <span className="eyebrow">Community Voices</span>
               <h2>Heard From Participants &amp; Coordinators</h2>
               <p style={{ margin: '0 auto', maxWidth: 580 }}>
-                These reflect the supportive, dependable relationships CarePoint is dedicated to building across Sydney.
+                These reflect the supportive, dependable relationships CarePoint is dedicated to building across Northern Rivers and Clarence Coast NSW.
               </p>
             </div>
             <div className="testimonialsGrid">
@@ -238,8 +238,8 @@ export default function HomePage() {
           </div>
           <div>
             <MapPin size={28} />
-            <strong>Greater Sydney Local</strong>
-            <span>Western Sydney, Inner West, Hills District, North Shore &amp; South West</span>
+            <strong>Clarence Coast &amp; Northern Rivers</strong>
+            <span>Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn &amp; Evans Head</span>
           </div>
           <div>
             <CalendarCheck size={28} />
@@ -252,7 +252,7 @@ export default function HomePage() {
         <section className="photoCta">
           <Image
             src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1400&q=80&auto=format&fit=crop"
-            alt="Group of people from diverse backgrounds smiling together outdoors"
+            alt="Group of people smiling together outdoors"
             className="photoCtaBg"
             width={1400}
             height={440}
@@ -283,7 +283,7 @@ export default function HomePage() {
             <div className="faqGrid">
               <details open>
                 <summary>Who can use CarePoint Support Services?</summary>
-                <p>CarePoint supports self-managed and plan-managed NDIS participants across Greater Sydney. Final eligibility and fit are confirmed during initial intake.</p>
+                <p>CarePoint supports self-managed and plan-managed NDIS participants across Yamba, Grafton, Maclean, New Italy, and the Clarence Coast NSW. Final eligibility and fit are confirmed during initial intake.</p>
               </details>
               <details>
                 <summary>Are you a registered NDIS provider?</summary>

@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 import { SupportFinderWidget } from '../../components/SupportFinderWidget';
-import { SydneyCoverageChecker } from '../../components/SydneyCoverageChecker';
+import { RegionalCoverageChecker } from '../../components/RegionalCoverageChecker';
+import { ResourceBrochures } from '../../components/ResourceBrochures';
 
 const services = [
   {
@@ -17,29 +18,29 @@ const services = [
     icon: Users,
     title: 'Social & Community Participation',
     category: 'Core Supports · Social & Civic Access',
-    text: 'Dedicated one-to-one support to explore community life, join local groups, attend appointments, and take part in activities with confidence.',
-    examples: ['Attending social clubs & community groups', 'Visiting local cafes, parks & libraries', 'Shopping and personal errands', 'Sports, gym, and recreational activities']
+    text: 'Dedicated one-to-one support to explore community life, join local groups, attend appointments, and take part in activities across the Clarence Coast with confidence.',
+    examples: ['Attending social clubs & community groups', 'Visiting local cafes, riverfront & beaches', 'Shopping and personal errands in town', 'Sports, gym, swimming & recreational activities']
   },
   {
     icon: Car,
     title: 'Transport & Outings Support',
     category: 'Core Supports · Travel & Transport',
-    text: 'Safe, flexible transport assistance connected to your agreed disability supports, education, medical appointments, and social commitments.',
-    examples: ['Medical and allied health appointments', 'Community recreation and outings', 'Travel to study, work or volunteering', 'Agreed local travel across Sydney']
+    text: 'Safe, flexible transport assistance connecting you to medical appointments, community outings, shopping, study, and social gatherings.',
+    examples: ['Medical, hospital & allied health trips', 'Community recreation & scenic coastal outings', 'Travel to study, TAFE, work or volunteering', 'Local travel across Yamba, Maclean & Grafton']
   },
   {
     icon: Sparkles,
     title: 'Life Skills & Capacity Building',
     category: 'Capacity Building · Daily Living Skills',
     text: 'Goal-focused, practical capacity-building support designed to nurture everyday confidence, practical routines, and lasting independence.',
-    examples: ['Planning weekly schedules & budgeting', 'Independent grocery shopping skills', 'Using Sydney public transport with confidence', 'Cooking & household skill development']
+    examples: ['Planning weekly schedules & budgeting', 'Independent grocery shopping skills', 'Confidence navigating local transport & community', 'Cooking & household skill development']
   },
   {
     icon: HeartHandshake,
     title: 'Companionship & Active Mentoring',
     category: 'Core Supports · Individual Support',
     text: 'Consistent, dependable one-to-one support built around shared interests, positive communication, active listening, and meaningful connection.',
-    examples: ['Engaging in shared hobbies & crafts', 'Active listening & emotional encouragement', 'Safe, enjoyable weekend social outings', 'Goal-focused motivation & companionship']
+    examples: ['Engaging in shared hobbies, arts & crafts', 'Active listening & emotional encouragement', 'Safe, enjoyable weekend social outings', 'Goal-focused motivation & companionship']
   },
   {
     icon: ClipboardCheck,
@@ -57,18 +58,20 @@ export default function ServicesPage() {
       <main>
         {/* Page Hero */}
         <section className="pageHero shell">
-          <span className="eyebrow">Comprehensive Disability Support</span>
-          <h1>Support For Everyday Life, Built Around You</h1>
-          <p>
-            CarePoint delivers practical, high-quality disability support for self-managed and plan-managed NDIS participants across Greater Sydney. Every service is discussed, agreed, and tailored to your personal goals.
-          </p>
-          <div className="actions">
-            <Link className="button" href="/referral">
-              Make a Direct Referral <ArrowRight size={18} />
-            </Link>
-            <Link className="button secondary" href="/contact">
-              Ask Our Team a Question
-            </Link>
+          <div className="heroCopy textCenter" style={{ margin: '0 auto', maxWidth: '800px' }}>
+            <span className="eyebrow">Comprehensive Disability Support</span>
+            <h1>Support For Everyday Life, Built Around You</h1>
+            <p className="lead">
+              CarePoint delivers practical, high-quality disability support for self-managed and plan-managed NDIS participants across Yamba, Maclean, Grafton, New Italy, and Northern Rivers NSW.
+            </p>
+            <div className="actions" style={{ justifyContent: 'center' }}>
+              <Link className="button" href="/referral">
+                Make a Direct Referral <ArrowRight size={18} />
+              </Link>
+              <Link className="button secondary" href="/contact">
+                Ask Our Team a Question
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -97,29 +100,18 @@ export default function ServicesPage() {
         </section>
 
         {/* Interactive Pricing Estimator */}
-        <section className="shell">
+        <section className="shell" style={{ margin: '40px auto' }}>
           <SupportFinderWidget />
         </section>
 
-        {/* Coverage Checker */}
-        <section className="shell">
-          <SydneyCoverageChecker />
+        {/* Regional Coverage Checker */}
+        <section className="shell" style={{ margin: '40px auto' }}>
+          <RegionalCoverageChecker />
         </section>
 
-        {/* Clinical & High-Risk Transparency Note */}
-        <section className="shell contentBand">
-          <div>
-            <span className="eyebrow">Scope &amp; Safety Commitment</span>
-            <h2>We Only Promise What We Safely Deliver</h2>
-          </div>
-          <div>
-            <p>
-              CarePoint will always confirm the participant&apos;s support requirements, our worker qualifications, funding arrangement, and risks before accepting a referral.
-            </p>
-            <p>
-              Supports requiring specialist medical nursing, complex clinical bowel/wound care, restrictive-practice behaviour management, or Specialist Disability Accommodation (SDA) are not offered unless properly accredited.
-            </p>
-          </div>
+        {/* Resource Brochures */}
+        <section className="shell" style={{ margin: '40px auto' }}>
+          <ResourceBrochures />
         </section>
       </main>
       <SiteFooter />

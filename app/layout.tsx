@@ -3,16 +3,18 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://carepointsupport.com.au'),
-  title: 'CarePoint Support Services | NDIS Disability Support Sydney',
-  description: 'Person-centred disability support for self-managed and plan-managed NDIS participants across Greater Sydney, NSW. Daily living, community participation, transport and life skills.',
+  title: 'CarePoint Support Services | NDIS Disability Support Yamba & Northern Rivers NSW',
+  description: 'Person-centred disability support for self-managed and plan-managed NDIS participants across Yamba, Maclean, Grafton, Iluka, New Italy, and Northern Rivers NSW.',
   keywords: [
-    'NDIS Sydney',
-    'Disability Support Worker Sydney',
+    'NDIS Yamba',
+    'NDIS Grafton',
+    'NDIS Maclean',
+    'Disability Support Worker Northern Rivers',
     'CarePoint Support Services',
-    'Plan Managed NDIS',
-    'Self Managed NDIS',
-    'Community Participation Sydney',
-    'Daily Living Support NSW'
+    'Plan Managed NDIS NSW',
+    'Self Managed NDIS NSW',
+    'Community Participation Clarence Valley',
+    'Daily Living Support Clarence Coast'
   ],
   authors: [{ name: 'CarePoint Support Services' }],
   icons: {
