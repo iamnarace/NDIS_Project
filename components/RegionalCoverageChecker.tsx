@@ -1,73 +1,59 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MapPin, CheckCircle2, Search, Sparkles, Navigation, Clock, ShieldCheck } from 'lucide-react';
+import { MapPin, CheckCircle2, Search, Sparkles, Navigation, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface RegionData {
   id: string;
   name: string;
-  distance: string;
+  badge: string;
   description: string;
   suburbs: string[];
-  intakeStatus: 'Open for Referrals' | 'Active Capacity' | 'Available';
 }
 
 const REGIONS: RegionData[] = [
   {
-    id: 'yamba-coastal',
-    name: 'Yamba & Clarence Mouth',
-    distance: '0 – 15 km (Primary Hub)',
-    description: 'Immediate daily living, social participation, transport, and community access support throughout Yamba and immediate coastal communities.',
+    id: 'clarence-coast',
+    name: 'Clarence Coast & Lower Clarence',
+    badge: 'Coastal & Riverfront',
+    description: 'Providing daily living, social participation, transport, and in-home support throughout Yamba, Maclean, Iluka and coastal communities.',
     suburbs: [
-      'Yamba (Main Hub)',
-      'Angourie',
-      'Palmers Island',
-      'Iluka (via Ferry/Ferry Link)',
-      'Freeburn Island',
-      'Micalo Island',
-    ],
-    intakeStatus: 'Open for Referrals',
-  },
-  {
-    id: 'lower-clarence',
-    name: 'Maclean & Lower Clarence',
-    distance: '15 – 30 km',
-    description: 'Dedicated support for in-home care, hospital appointments, community outings, and skills development across the Maclean and Lower Clarence districts.',
-    suburbs: [
+      'Yamba',
       'Maclean',
+      'Iluka',
+      'Angourie',
       'Townsend',
       'Harwood',
       'Woombah',
-      'Chatsworth',
-      'Lawrence',
+      'Palmers Island',
       'Brooms Head',
       'Ashby & Ashby Heights',
+      'Chatsworth Island',
     ],
-    intakeStatus: 'Open for Referrals',
   },
   {
     id: 'grafton-valley',
-    name: 'Grafton & Mid Clarence Valley',
-    distance: '45 – 60 km',
-    description: 'Comprehensive day support, appointment assistance, transport, shopping and recreation across Grafton and surrounding valley townships.',
+    name: 'Grafton & Clarence Valley',
+    badge: 'Valley & Central',
+    description: 'Dedicated support for in-home assistance, social outings, appointments, shopping, and life skills across Grafton and the valley.',
     suburbs: [
-      'Grafton (CBD & West)',
+      'Grafton',
       'South Grafton',
       'Ulmarra',
       'Junction Hill',
-      'Clarenza',
+      'Lawrence',
       'Coutts Crossing',
+      'Clarenza',
       'Swan Creek',
       'Koolkhan',
     ],
-    intakeStatus: 'Open for Referrals',
   },
   {
-    id: 'richmond-north',
-    name: 'New Italy & Richmond Valley South',
-    distance: '35 – 55 km (North)',
-    description: 'Support connections linking the Lower Clarence up through the historical New Italy and southern Richmond Valley communities.',
+    id: 'richmond-valley',
+    name: 'Richmond Valley & North Coast',
+    badge: 'Northern Connection',
+    description: 'Support connections linking the Clarence up through New Italy, Woodburn, Evans Head and surrounding communities.',
     suburbs: [
       'New Italy',
       'Woodburn',
@@ -78,13 +64,12 @@ const REGIONS: RegionData[] = [
       'Tabbimoble',
       'Bungawalbin',
     ],
-    intakeStatus: 'Open for Referrals',
   },
   {
     id: 'southern-beaches',
-    name: 'Southern Beaches & Yuraygir Coast',
-    distance: '30 – 55 km (South)',
-    description: 'Flexible coastal support for nature outings, independent living, and local transport along the Yuraygir and Corindi coastal strip.',
+    name: 'Southern Coastal Communities',
+    badge: 'Coastal Villages',
+    description: 'Flexible support for community access, independent living, and local outings along the southern coastal strip.',
     suburbs: [
       'Wooli',
       'Minnie Water',
@@ -93,7 +78,6 @@ const REGIONS: RegionData[] = [
       'Pillar Valley',
       'Tucabia',
     ],
-    intakeStatus: 'Open for Referrals',
   },
 ];
 
@@ -103,34 +87,34 @@ export function RegionalCoverageChecker() {
 
   const activeRegion = REGIONS.find((r) => r.id === selectedRegion) || REGIONS[0];
 
-  // Global search match
+  // Search match
   const searchMatches = searchQuery.trim() === ''
     ? []
     : REGIONS.flatMap((region) =>
         region.suburbs
           .filter((suburb) => suburb.toLowerCase().includes(searchQuery.toLowerCase().trim()))
-          .map((suburb) => ({ suburb, regionName: region.name, distance: region.distance }))
+          .map((suburb) => ({ suburb, regionName: region.name, badge: region.badge }))
       );
 
   return (
-    <section className="coverageCardWrapper">
+    <div className="coverageCardWrapper">
       <div className="coverageHeaderBlock">
         <div className="coverageEyebrow">
           <MapPin size={15} />
-          <span>Local Service Footprint · Northern Rivers &amp; Clarence Coast NSW</span>
+          <span>Local Community Service Coverage</span>
         </div>
-        <h2 className="coverageTitle">CarePoint Service Coverage Around Yamba &amp; Beyond</h2>
+        <h2 className="coverageTitle">Service Areas &amp; Locations Covered</h2>
         <p className="coverageSubtitle">
-          Headquartered from <strong>Yamba</strong>, we deliver dependable, person-centred disability support across a <strong>50–60 km radius</strong>—including Maclean, Iluka, Grafton, New Italy, Woodburn, Evans Head, and surrounding coastal and valley communities.
+          We provide dependable, person-centred disability support across the <strong>Clarence Coast, Grafton, New Italy, and Northern Rivers NSW</strong>. Select a region or search your suburb below:
         </p>
       </div>
 
-      {/* Quick Suburb Search Box */}
+      {/* Suburb Search */}
       <div className="coverageSearchBox">
         <Search size={18} className="searchIcon" />
         <input
           type="text"
-          placeholder="Type your town or suburb (e.g. Yamba, Grafton, Maclean, New Italy, Evans Head)..."
+          placeholder="Search your town or suburb (e.g. Yamba, Grafton, Maclean, New Italy, Evans Head, Iluka)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="coverageSearchInput"
@@ -143,7 +127,7 @@ export function RegionalCoverageChecker() {
         )}
       </div>
 
-      {/* Search Results Display */}
+      {/* Live Search Results */}
       {searchQuery.trim() !== '' && (
         <div className="searchResultsPanel">
           {searchMatches.length > 0 ? (
@@ -156,7 +140,7 @@ export function RegionalCoverageChecker() {
                   <div key={i} className="searchResultCard">
                     <div className="searchResultTop">
                       <span className="searchSubName">{m.suburb}</span>
-                      <span className="searchDistPill">{m.distance}</span>
+                      <span className="searchDistPill">{m.badge}</span>
                     </div>
                     <span className="searchRegionName">Part of {m.regionName}</span>
                     <span className="searchStatusGreen">🟢 Open for Referrals</span>
@@ -167,10 +151,10 @@ export function RegionalCoverageChecker() {
           ) : (
             <div className="searchNoResult">
               <p>
-                <strong>Location not listed?</strong> If you live within ~60 km of Yamba, Grafton, or the Northern Rivers, please contact us directly. We frequently accommodate custom travel and support schedules.
+                <strong>Don&apos;t see your specific town?</strong> We frequently support nearby surrounding localities across the region. Please get in touch to confirm availability.
               </p>
               <Link href="/contact" className="button secondary inlineSearchBtn">
-                Ask About Your Area
+                Contact Us About Your Area
               </Link>
             </div>
           )}
@@ -191,31 +175,31 @@ export function RegionalCoverageChecker() {
             }}
           >
             <span className="tabName">{region.name}</span>
-            <span className="tabDist">{region.distance}</span>
+            <span className="tabDist">{region.badge}</span>
           </button>
         ))}
       </div>
 
-      {/* Active Region Display Card */}
+      {/* Active Region Panel */}
       <div className="activeRegionPanel">
         <div className="regionPanelHeader">
           <div>
             <div className="regionStatusRow">
-              <span className="statusBadgeGreen">🟢 {activeRegion.intakeStatus}</span>
-              <span className="radiusBadge">📍 Radius: {activeRegion.distance}</span>
+              <span className="statusBadgeGreen">🟢 Open for Referrals</span>
+              <span className="radiusBadge">📍 {activeRegion.badge}</span>
             </div>
             <h3 className="regionDetailTitle">{activeRegion.name}</h3>
             <p className="regionDetailDesc">{activeRegion.description}</p>
           </div>
           <div className="regionCtaCol">
             <Link href="/referral" className="button primary regionReferBtn">
-              Refer in This Region
+              Start a Referral in This Area <ArrowRight size={16} />
             </Link>
           </div>
         </div>
 
         <div className="suburbsListBlock">
-          <span className="suburbsListLabel">Towns &amp; Communities Covered:</span>
+          <span className="suburbsListLabel">Towns &amp; Suburbs Included:</span>
           <div className="suburbChipsList">
             {activeRegion.suburbs.map((suburb) => (
               <span key={suburb} className="suburbChip">
@@ -233,14 +217,14 @@ export function RegionalCoverageChecker() {
           </div>
           <div className="trustItem">
             <Clock size={15} color="#0FA3A3" />
-            <span>Flexible Weekday &amp; Weekend Shift Hours</span>
+            <span>Flexible Weekday &amp; Weekend Schedule Options</span>
           </div>
           <div className="trustItem">
             <ShieldCheck size={15} color="#0FA3A3" />
-            <span>NDIS Pricing Guidelines Travel Compliant</span>
+            <span>NDIS Price Limit Aligned</span>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

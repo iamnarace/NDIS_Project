@@ -107,10 +107,15 @@ export function SiteFooter() {
       </div>
 
       {/* Acknowledgment of Country */}
-      <div className="shell countryAcknowledgement">
-        <p>
-          CarePoint Support Services acknowledges the Traditional Custodians of the lands on which we live, work and provide care across the Clarence Coast, Northern Rivers, and Australia. We pay our respects to Elders past, present and emerging.
-        </p>
+      <div className="shell">
+        <div className="countryAcknowledgementCard">
+          <div className="ackHeading">
+            <span>🌿 Acknowledgment of Country</span>
+          </div>
+          <p>
+            CarePoint Support Services acknowledges the Traditional Custodians of the lands on which we live, work and provide care across the Clarence Coast, Northern Rivers, and Australia. We pay our respects to Elders past, present and emerging.
+          </p>
+        </div>
       </div>
 
       {/* Bottom Legal Copyright */}

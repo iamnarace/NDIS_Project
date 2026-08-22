@@ -2883,3 +2883,92 @@ img {
     padding: 24px;
   }
 }
+
+/* ─── Focus Areas Pill Selector (Fixed & Polished) ────────────────────────── */
+.servicePillSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.servicePillBtn {
+  background: var(--bg-cream-light);
+  border: 1.5px solid var(--border-cream);
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.servicePillBtn:hover {
+  border-color: var(--teal-600);
+  background: #FFFFFF;
+  color: var(--teal-700);
+  transform: translateY(-1px);
+}
+
+.servicePillBtn.selectedPill {
+  background: #0D9488 !important;
+  border-color: #0D9488 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3) !important;
+}
+
+.servicePillBtn.selectedPill svg {
+  color: #FFFFFF;
+}
+
+/* ─── Traditional Custodians Acknowledgment (Highly Visible & Warm) ────────── */
+.countryAcknowledgementCard {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin: 32px 0 24px;
+}
+
+.ackHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ackHeading span {
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5EEAD4;
+}
+
+.countryAcknowledgementCard p {
+  color: #F8FAFC !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.7 !important;
+  font-weight: 500;
+}
+
+.footerBottomLegal {
+  padding: 20px 0 36px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: #CBD5E1 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500;
+}
+
+.footerBottomLegal span {
+  color: #CBD5E1 !important;
+}

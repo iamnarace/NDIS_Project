@@ -25,7 +25,7 @@ const trust = ['NDIS Worker Screening Clearance', 'First Aid & CPR Certified', '
 const stats = [
   { value: '100%', label: 'Person-Centred & Participant-Led' },
   { value: '6', label: 'Core & Capacity Support Areas' },
-  { value: '50–60 km', label: 'Radius from Yamba Hub' },
+  { value: 'Local', label: 'Clarence Coast & Northern Rivers' },
   { value: '24h', label: 'Referral Response Commitment' },
 ];
 
