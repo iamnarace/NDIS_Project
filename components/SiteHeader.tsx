@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowRight, Menu } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export function SiteHeader() {
+  const [open, setOpen] = useState(false);
+
   return (
     <>
       <div className="notice">Supporting self-managed and plan-managed NDIS participants · Greater Sydney, NSW</div>
@@ -20,8 +25,30 @@ export function SiteHeader() {
           <Link className="textLink" href="/contact">Talk to us</Link>
           <Link className="button small" href="/referral">Make a referral <ArrowRight size={16}/></Link>
         </div>
-        <Link href="/contact" className="mobileMenu" aria-label="Contact CarePoint"><Menu size={22}/></Link>
+        <button
+          className="mobileMenu"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          onClick={() => setOpen(o => !o)}
+        >
+          {open ? <X size={22}/> : <Menu size={22}/>}
+        </button>
       </header>
+
+      {/* Mobile drawer */}
+      <div id="mobile-nav" className={`mobileDrawer${open ? ' mobileDrawerOpen' : ''}`} role="dialog" aria-label="Navigation menu" aria-modal="true">
+        <nav className="mobileNav">
+          <Link href="/services" onClick={() => setOpen(false)}>Services</Link>
+          <Link href="/about" onClick={() => setOpen(false)}>About</Link>
+          <Link href="/referral" onClick={() => setOpen(false)}>Referrals</Link>
+          <Link href="/contact" onClick={() => setOpen(false)}>Contact</Link>
+          <Link className="button" href="/referral" onClick={() => setOpen(false)}>
+            Make a referral <ArrowRight size={16}/>
+          </Link>
+        </nav>
+      </div>
+      {open && <div className="mobileOverlay" aria-hidden="true" onClick={() => setOpen(false)}/>}
     </>
   );
 }

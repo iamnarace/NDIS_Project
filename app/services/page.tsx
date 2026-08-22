@@ -9,7 +9,7 @@ const services = [
   { icon: Car, title: 'Transport Support', text: 'Transport assistance connected to agreed disability supports, subject to funding, vehicle suitability and the service agreement.', examples: ['Appointments', 'Community access', 'Activities', 'Agreed local travel'] },
   { icon: Sparkles, title: 'Life Skills & Independence', text: 'Practical capacity-building support focused on confidence, routines and everyday independence.', examples: ['Planning and routines', 'Shopping skills', 'Using community services', 'Confidence building'] },
   { icon: HeartHandshake, title: 'Companionship & Social Support', text: 'Consistent support built around interests, communication preferences and meaningful participation.', examples: ['Conversation and connection', 'Hobbies and interests', 'Outings', 'Goal-focused social support'] },
-  { icon: ClipboardCheck, title: 'Household & Practical Assistance', text: 'Support with agreed household tasks where appropriate to the participant’s plan and goals.', examples: ['Light household tasks', 'Home organisation', 'Shopping support', 'Routine assistance'] },
+  { icon: ClipboardCheck, title: 'Household & Practical Assistance', text: "Support with agreed household tasks where appropriate to the participant's plan and goals.", examples: ['Light household tasks', 'Home organisation', 'Shopping support', 'Routine assistance'] },
 ];
 
 export default function ServicesPage() {
