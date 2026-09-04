@@ -1,93 +1,94 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Menu, X, Phone, Mail, ShieldCheck, MapPin, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, ArrowRight, Phone, Mail, MapPin, Sparkles } from 'lucide-react';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      {/* Top Notification & Trust Bar */}
+      {/* Top Announcement Bar (Compassion360 + NDIS Purple Trust) */}
       <div className="topNoticeBar">
         <div className="shell topNoticeContent">
           <div className="noticeLeft">
             <span className="noticeBadge">NDIS Provider</span>
-            <span>Supporting Self-Managed &amp; Plan-Managed Participants Across Yamba, Grafton &amp; Northern Rivers NSW</span>
+            <span className="noticeText">Supporting Self &amp; Plan-Managed Participants Across Yamba &amp; Northern Rivers NSW</span>
           </div>
           <div className="noticeRight">
-            <a href="mailto:bijaykafle41@gmail.com" className="noticeContactLink">
-              <Mail size={13} /> bijaykafle41@gmail.com
+            <span className="intakeBadge">
+              <span className="statusDotPulse"></span> Intake Open
+            </span>
+            <a href="mailto:support@opuscare.com.au" className="noticeContactLink">
+              <Mail size={13} /> support@opuscare.com.au
             </a>
-            <span className="noticeDivider">·</span>
-            <span className="noticeBadgeGreen">🟢 Intake Open</span>
+            <a href="tel:0415716516" className="noticePhoneLink">
+              <Phone size={13} /> 0415 716 516
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Main Navigation Header */}
+      {/* Main Header with Official Opus Care Logo */}
       <header className="mainHeader">
         <div className="shell headerContainer">
-          {/* Logo */}
-          <Link href="/" className="brandLogoLink" aria-label="Opus Care Support Services home">
-            <div className="logoMarkContainer">
-              <Image
-                src="/opus-care-logo.svg"
-                alt="Opus Care Support Services Logo"
-                width={46}
-                height={46}
-                priority
-                style={{ width: '46px', height: '46px', objectFit: 'contain' }}
-              />
-            </div>
-            <div className="brandTextGroup">
-              <span className="brandTitle">Care<span className="brandAccent">Point</span></span>
-              <span className="brandSub">SUPPORT SERVICES · NDIS</span>
-            </div>
+          <Link href="/" className="brandGroup" aria-label="Opus Care Support Services Home">
+            <Image
+              src="/brand/Opus_Care_Logo_Transparent.png"
+              alt="Opus Care Support Services"
+              width={210}
+              height={58}
+              priority
+              className="brandLogoImg"
+            />
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="desktopNav" aria-label="Main navigation">
+          {/* Desktop Navigation */}
+          <nav className="desktopNav" aria-label="Main Navigation">
             <Link href="/" className="navLink">Home</Link>
-            <Link href="/services" className="navLink">Services</Link>
-            <Link href="/about" className="navLink">About Us</Link>
-            <Link href="/faq" className="navLink">FAQ &amp; Pricing</Link>
-            <Link href="/contact" className="navLink">Contact</Link>
+            <Link href="/services" className="navLink">Services &amp; Supports</Link>
+            <Link href="/about" className="navLink">About Opus Care</Link>
+            <Link href="/faq" className="navLink">Pricing &amp; FAQ</Link>
+            <Link href="/contact" className="navLink">Contact Us</Link>
           </nav>
 
-          {/* Header Action Buttons */}
+          {/* Header Action Button */}
           <div className="headerActionsGroup">
-            <Link className="headerPhoneLink" href="/contact">
+            <a href="tel:0415716516" className="headerPhoneBtn" aria-label="Call Opus Care">
               <Phone size={15} />
-              <span>Contact Us</span>
-            </Link>
-            <Link className="button makeReferralHeaderBtn" href="/referral">
+              <span>0415 716 516</span>
+            </a>
+            <Link href="/referral" className="button primary sm headerCtaBtn">
               <span>Make a Referral</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </Link>
           </div>
 
-          {/* Mobile Hamburger Toggle */}
+          {/* Mobile Menu Toggle Button */}
           <button
+            type="button"
             className="mobileMenuToggleBtn"
-            aria-label={open ? 'Close menu' : 'Open navigation menu'}
+            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={open}
             onClick={() => setOpen(o => !o)}
           >
-            {open ? <X size={24}/> : <Menu size={24}/>}
+            {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Navigation Drawer */}
       <div className={`mobileDrawerContainer${open ? ' mobileDrawerOpen' : ''}`} role="dialog" aria-modal="true">
         <div className="mobileDrawerHeader">
-          <div className="brandTextGroup">
-            <span className="brandTitle">Care<span className="brandAccent">Point</span></span>
-            <span className="brandSub">SUPPORT SERVICES</span>
-          </div>
+          <Image
+            src="/brand/Opus_Care_Logo_Transparent.png"
+            alt="Opus Care Support Services"
+            width={160}
+            height={44}
+            className="mobileDrawerLogo"
+          />
           <button className="mobileMenuCloseBtn" onClick={() => setOpen(false)} aria-label="Close menu">
             <X size={22} />
           </button>
@@ -97,17 +98,18 @@ export function SiteHeader() {
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
           <Link href="/services" onClick={() => setOpen(false)}>Services &amp; Supports</Link>
           <Link href="/about" onClick={() => setOpen(false)}>About Opus Care</Link>
-          <Link href="/faq" onClick={() => setOpen(false)}>FAQ &amp; Pricing</Link>
-          <Link href="/contact" onClick={() => setOpen(false)}>Contact Team</Link>
+          <Link href="/faq" onClick={() => setOpen(false)}>Pricing &amp; FAQ</Link>
+          <Link href="/contact" onClick={() => setOpen(false)}>Contact Us</Link>
           <div className="mobileDrawerCta">
-            <Link className="button full" href="/referral" onClick={() => setOpen(false)}>
+            <Link className="button primary full" href="/referral" onClick={() => setOpen(false)}>
               Make a Direct Referral <ArrowRight size={16} />
             </Link>
           </div>
         </nav>
 
         <div className="mobileDrawerFooter">
-          <span>📧 bijaykafle41@gmail.com</span>
+          <span>📧 support@opuscare.com.au</span>
+          <span>📞 0415 716 516</span>
           <span>📍 Yamba, Grafton &amp; Northern Rivers, NSW</span>
           <small>Unregistered NDIS Provider · Supporting Self &amp; Plan Managed</small>
         </div>
@@ -116,3 +118,5 @@ export function SiteHeader() {
     </>
   );
 }
+
+export default SiteHeader;

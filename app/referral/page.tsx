@@ -14,7 +14,7 @@ export default function ReferralPage() {
           <span className="eyebrow">Participant &amp; Professional Referrals</span>
           <h1>Start With a Simple, Direct Referral</h1>
           <p>
-            NDIS participants, family members, nominees, support coordinators and plan managers can submit a direct enquiry below. We respond as soon as practical.
+            NDIS participants, family members, nominees, support coordinators and plan managers can submit a direct enquiry below. We respond within 1 business day.
           </p>
         </section>
 
@@ -54,8 +54,8 @@ export default function ReferralPage() {
 
             {/* Direct Contact Info */}
             <div className="contactMini">
-              <span><Mail size={18} /> bijaykafle41@gmail.com</span>
-              <span><MapPin size={18} /> Ballina to Grafton and Coffs Harbour, regional NSW</span>
+              <span><Mail size={18} /> support@opuscare.com.au</span>
+              <span><MapPin size={18} /> Servicing Greater Sydney, NSW</span>
               <span><Clock size={18} /> 24h Referral Response Guarantee</span>
             </div>
 

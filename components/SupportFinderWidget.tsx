@@ -43,7 +43,7 @@ export function SupportFinderWidget() {
           <span className="finderBadge"><Calculator size={15} /> Interactive Support Estimator</span>
           <span className="rateTag">NDIS Price Limit Aligned</span>
         </div>
-        <h3>Plan Your Support Routine</h3>
+        <h3>Plan Your Opus Care Routine</h3>
         <p>Explore how regular 1-on-1 support fits into your NDIS Core or Capacity Building budget.</p>
       </div>
 
@@ -60,99 +60,118 @@ export function SupportFinderWidget() {
             max="35"
             step="1"
             value={hoursPerWeek}
-            onChange={e => setHoursPerWeek(Number(e.target.value))}
-            className="crispRangeSlider"
+            onChange={(e) => setHoursPerWeek(Number(e.target.value))}
+            className="hoursSlider"
           />
-          <div className="sliderScale">
-            <span>2 hrs (Light)</span>
-            <span>10 hrs (Moderate)</span>
-            <span>20+ hrs (Comprehensive)</span>
+          <div className="sliderTicks">
+            <span>2 hrs</span>
+            <span>10 hrs</span>
+            <span>20 hrs</span>
+            <span>35 hrs</span>
           </div>
         </div>
 
-        {/* Schedule Timing Selector */}
+        {/* Preferred Timing */}
         <div className="calculatorBlock">
-          <label className="blockLabel">Preferred Support Timing:</label>
+          <label className="blockLabel">Preferred Shift Timing (NDIS Hourly Rate):</label>
           <div className="timingGrid">
             <button
               type="button"
-              className={`timingBtn ${timing === 'weekdayDay' ? 'activeTiming' : ''}`}
+              className={`timingBtn ${timing === 'weekdayDay' ? 'selected' : ''}`}
               onClick={() => setTiming('weekdayDay')}
             >
-              <strong>Weekday Daytime</strong>
-              <small>6:00 AM – 8:00 PM</small>
+              <Clock size={16} />
+              <div className="timingText">
+                <strong>Weekday Day</strong>
+                <small>$67.56/hr</small>
+              </div>
             </button>
-
             <button
               type="button"
-              className={`timingBtn ${timing === 'weekdayEve' ? 'activeTiming' : ''}`}
+              className={`timingBtn ${timing === 'weekdayEve' ? 'selected' : ''}`}
               onClick={() => setTiming('weekdayEve')}
             >
-              <strong>Weekday Evening</strong>
-              <small>8:00 PM – Midnight</small>
+              <Clock size={16} />
+              <div className="timingText">
+                <strong>Weekday Evening</strong>
+                <small>$74.44/hr</small>
+              </div>
             </button>
-
             <button
               type="button"
-              className={`timingBtn ${timing === 'saturday' ? 'activeTiming' : ''}`}
+              className={`timingBtn ${timing === 'saturday' ? 'selected' : ''}`}
               onClick={() => setTiming('saturday')}
             >
-              <strong>Saturday</strong>
-              <small>All day / Weekend</small>
+              <Calendar size={16} />
+              <div className="timingText">
+                <strong>Saturday</strong>
+                <small>$95.07/hr</small>
+              </div>
             </button>
-
             <button
               type="button"
-              className={`timingBtn ${timing === 'sunday' ? 'activeTiming' : ''}`}
+              className={`timingBtn ${timing === 'sunday' ? 'selected' : ''}`}
               onClick={() => setTiming('sunday')}
             >
-              <strong>Sunday</strong>
-              <small>All day / Weekend</small>
+              <Calendar size={16} />
+              <div className="timingText">
+                <strong>Sunday</strong>
+                <small>$122.59/hr</small>
+              </div>
             </button>
           </div>
         </div>
 
-        {/* Selected Services Tags */}
+        {/* Service Type Checkboxes */}
         <div className="calculatorBlock">
           <label className="blockLabel">Focus Areas For This Support:</label>
           <div className="servicePillSelector">
-            {services.map(s => (
-              <button
-                type="button"
-                key={s}
-                className={`servicePillBtn ${selectedServices.includes(s) ? 'selectedPill' : ''}`}
-                onClick={() => toggleService(s)}
-              >
-                {selectedServices.includes(s) && <CheckCircle2 size={14} />}
-                <span>{s}</span>
-              </button>
-            ))}
+            {services.map((srv) => {
+              const active = selectedServices.includes(srv);
+              return (
+                <button
+                  key={srv}
+                  type="button"
+                  onClick={() => toggleService(srv)}
+                  className={`servicePillBtn ${active ? 'selectedPill' : ''}`}
+                >
+                  <span className="pillDot">{active ? '✓' : '+'}</span>
+                  <span>{srv}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Budget Estimate Summary Box */}
+        {/* Real-time Price Estimation Breakdown Box */}
         <div className="estimateResultBox">
           <div className="estimateNumbers">
-            <div className="estimateCol">
-              <span className="estimateLabel">Estimated Weekly Cost</span>
-              <strong className="estimateVal">${weeklyEstimate}</strong>
-              <small className="estimateSub">NDIS Item Ref: 01_011_0107_1_1</small>
+            <div className="estCol">
+              <span className="estLabel">Estimated Weekly NDIS Funding</span>
+              <span className="estValue">${weeklyEstimate}</span>
+              <span className="estDetail">Based on {hoursPerWeek} hrs @ ${currentRate.toFixed(2)}/hr</span>
             </div>
-            <div className="estimateDivider" />
-            <div className="estimateCol">
-              <span className="estimateLabel">Monthly Plan Allocation</span>
-              <strong className="estimateVal secondaryVal">${monthlyEstimate}</strong>
-              <small className="estimateSub">Approx 4.33 weeks/month</small>
+            <div className="estimateDivider"></div>
+            <div className="estCol">
+              <span className="estLabel">Estimated Monthly Budget</span>
+              <span className="estValue">${monthlyEstimate}</span>
+              <span className="estDetail">Approx 4.33 weeks per month</span>
             </div>
           </div>
 
-          <div className="estimateFooter">
-            <div className="transparencyNote">
-              <Sparkles size={16} color="#0D9488" />
-              <span>Opus Care bills strictly according to agreed service agreements with zero hidden administrative or platform joining fees.</span>
-            </div>
-            <Link className="button full" href="/referral">
-              Discuss This Support Plan <ArrowRight size={17} />
+          <div className="estimatorNotice">
+            <p>
+              💡 Rates match standard NDIS Pricing Arrangements (1:1 Assistance in Self-Care / Social &amp; Community Access). Actual billing strictly follows the agreed Schedule of Supports in your Opus Care Service Agreement.
+            </p>
+          </div>
+
+          <div className="estimateActions">
+            <Link
+              href={`/referral?hours=${hoursPerWeek}&timing=${timing}&services=${encodeURIComponent(selectedServices.join(','))}`}
+              className="button primary full"
+            >
+              <span>Book This Support Schedule</span>
+              <ArrowRight size={16} />
             </Link>
           </div>
         </div>

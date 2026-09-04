@@ -52,7 +52,7 @@ export default function PrivacyPage() {
               <div className="policySection">
                 <h2>4. Accessing and Correcting Your Information</h2>
                 <p>
-                  You have the right to request access to any personal information we hold about you and to request corrections if any details are inaccurate or out of date. Contact our Privacy Officer at <strong>bijaykafle41@gmail.com</strong>.
+                  You have the right to request access to any personal information we hold about you and to request corrections if any details are inaccurate or out of date. Contact our Privacy Officer at <strong>support@opuscare.com.au</strong>.
                 </p>
               </div>
 

@@ -38,9 +38,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <span className="sidebarCardLabel">Direct Email</span>
-                    <h3>bijaykafle41@gmail.com</h3>
-                    <p>Send enquiries anytime. We review messages and respond as soon as practical.</p>
-                    <a href="mailto:bijaykafle41@gmail.com" className="sidebarActionLink">
+                    <h3>support@opuscare.com.au</h3>
+                    <p>Send enquiries anytime. We review and respond to all messages within 1 business day.</p>
+                    <a href="mailto:support@opuscare.com.au" className="sidebarActionLink">
                       Send an email →
                     </a>
                   </div>
