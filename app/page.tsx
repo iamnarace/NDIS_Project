@@ -7,7 +7,8 @@ import { RegionalCoverageChecker } from '../components/RegionalCoverageChecker';
 import { 
   Heart, Users, Compass, Clock, ShieldCheck, MapPin, ArrowRight, 
   CheckCircle2, Star, Sparkles, Newspaper, ExternalLink, Calendar, 
-  Smile, Award, FileText, Check, PhoneCall
+  Smile, Award, FileText, Check, Phone, PhoneCall, ArrowUpRight,
+  Home, Activity, Briefcase, GraduationCap, Accessibility, HeartHandshake, UserCheck
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -17,193 +18,238 @@ export default function HomePage() {
 
       <main className="mainContentWrap">
         {/* ═══════════════════════════════════════════════════════════════════
-            HERO SECTION: Compassion360 Box Style with Authentic Imagery
+            HERO PANE (Compassion 360 Style) - Clean, Centered, Huge Spacing
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="heroSection">
-          <div className="shell">
-            <div className="heroBoxGrid">
-              
-              {/* Left Column: Hero Copy & Actions */}
-              <div className="heroCopyBox">
-                <div className="heroBadgeRow">
-                  <span className="heroPillBadge">
-                    <Sparkles size={14} className="sparkleIcon" /> Person-Centred NDIS Support
-                  </span>
-                  <span className="heroLocationPill">
-                    <MapPin size={13} /> Yamba &amp; Northern Rivers NSW
-                  </span>
-                </div>
+        <section className="heroCleanPaneSection">
+          <div className="shell heroCleanPaneContainer">
+            <span className="heroCleanBadge">
+              🌿 PERSON-CENTRED NDIS SUPPORT
+            </span>
 
-                <h1 className="heroHeading">
-                  Empowering Your Independence with <span className="highlightNavy">Compassionate</span> <span className="highlightPurple">NDIS Care</span>
-                </h1>
+            <h1 className="heroCleanTitle">
+              Working towards your best life, one step at a time
+            </h1>
 
-                <p className="heroLead">
-                  Practical, respectful disability support designed entirely around your goals, daily routines, and choices. We proudly support self-managed and plan-managed participants with reliable, consistent support workers.
-                </p>
+            <p className="heroCleanDescription">
+              At Opus Care Support Services, we provide tailored, compassionate care to meet your unique needs. From daily living assistance to navigating community life across Yamba, Grafton, Maclean, and Northern Rivers NSW, our dedicated team works closely with you and your family to enhance your independence and achieve your goals.
+            </p>
 
-                <div className="heroFeatureChecklist">
-                  <div className="featCheckItem">
-                    <CheckCircle2 size={18} className="featIcon" />
-                    <span>NDIS Worker Screening &amp; WWCC Cleared</span>
-                  </div>
-                  <div className="featCheckItem">
-                    <CheckCircle2 size={18} className="featIcon" />
-                    <span>No Lock-In Contracts &amp; 100% Price-Limit Aligned</span>
-                  </div>
-                  <div className="featCheckItem">
-                    <CheckCircle2 size={18} className="featIcon" />
-                    <span>Rapid Intake Response Within 24 Hours</span>
-                  </div>
-                </div>
-
-                <div className="heroActionsGroup">
-                  <Link className="button primary lg heroCtaBtn" href="/referral">
-                    <span>Make a Direct Referral</span>
-                    <ArrowRight size={17} />
-                  </Link>
-                  <Link className="button outline lg heroSecondaryBtn" href="/services">
-                    <span>Explore Services</span>
-                  </Link>
-                </div>
-
-                <div className="heroTrustBar">
-                  <div className="trustAvatars">
-                    <span className="starRow">★★★★★</span>
-                    <span className="trustText"><strong>5.0 Star Rating</strong> from local participants &amp; families</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Hero Visual Frame & Floating Trust Badges */}
-              <div className="heroVisualBox">
-                <div className="heroImageFrame">
-                  <Image
-                    src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=900&q=80"
-                    alt="Opus Care Support Worker smiling with participant outdoors"
-                    width={600}
-                    height={460}
-                    priority
-                    className="heroMainImg"
-                  />
-                  <div className="heroImageOverlay">
-                    <div className="overlayBadge">
-                      <strong>Local Northern Rivers Team</strong>
-                      <span>Dedicated support right where you live</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="heroCardStack">
-                  <div className="heroTrustCard">
-                    <div className="cardIconWrap teal">
-                      <Heart size={20} />
-                    </div>
-                    <div>
-                      <strong>100% Person-Centred</strong>
-                      <p>You choose your worker &amp; your schedule</p>
-                    </div>
-                  </div>
-
-                  <div className="heroTrustCard">
-                    <div className="cardIconWrap purple">
-                      <ShieldCheck size={20} />
-                    </div>
-                    <div>
-                      <strong>NDIS Screening Cleared</strong>
-                      <p>Police checked, insured &amp; experienced staff</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+            <div className="heroCleanButtonRow">
+              <Link className="heroPillBtn filled" href="/referral">
+                <span>Check Your Eligibility</span>
+              </Link>
+              <a className="heroPillBtn outline" href="tel:0415716516">
+                <span>Call Us Now</span>
+                <ArrowUpRight size={18} />
+              </a>
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            STATS BAND: 4 Modular Bento Metric Boxes
+            IMAGE HERO BANNER: Authentic Outdoor Care & Blue NDIS Trust Band
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="statsBandSection">
+        <section className="photoBannerPaneSection">
           <div className="shell">
-            <div className="statsBentoGrid">
-              <div className="statBentoBox">
-                <span className="statNumber">6+</span>
-                <span className="statLabel">Core NDIS Services</span>
-                <small className="statSub">Daily life, community &amp; skills</small>
+            <div className="photoBannerBox">
+              <Image
+                src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1200&q=80"
+                alt="Opus Care Support Worker smiling with participant outdoors"
+                width={1200}
+                height={520}
+                priority
+                className="bannerCoverImg"
+              />
+              <div className="bannerOverlayText">
+                <span className="bannerSub">Welcome to Opus Care Support Services</span>
+                <h2>Together, Let&apos;s Build Your Independence</h2>
+                <p>Supporting Self-Managed and Plan-Managed Participants with Choice &amp; Control</p>
+                <div className="bannerBtnGroup">
+                  <Link className="heroPillBtn filled" href="/referral">
+                    <span>Check Your Eligibility</span>
+                  </Link>
+                  <Link className="heroPillBtn outlineWhite" href="/services">
+                    <span>View Our Services</span>
+                    <ArrowUpRight size={18} />
+                  </Link>
+                </div>
               </div>
-              <div className="statBentoBox">
-                <span className="statNumber">100%</span>
-                <span className="statLabel">Person-Centred Matching</span>
-                <small className="statSub">Support workers who fit your lifestyle</small>
+            </div>
+
+            {/* Blue Trust Band (Compassion 360 Screenshot 4) */}
+            <div className="blueTrustBandPane">
+              <div className="ndisBadgeGroup">
+                <div className="ndisCircleIcon">
+                  <Heart size={24} fill="#FFFFFF" color="#FFFFFF" />
+                </div>
+                <div className="ndisBadgeLabels">
+                  <strong>NDIS PROVIDER</strong>
+                  <span>Supporting Self &amp; Plan-Managed</span>
+                </div>
               </div>
-              <div className="statBentoBox">
-                <span className="statNumber">24/7</span>
-                <span className="statLabel">Emergency &amp; Respite</span>
-                <small className="statSub">Reliable round-the-clock availability</small>
+
+              <div className="blueTrustTextGroup">
+                <h3>Dedicated to Enabling Your Independence</h3>
+                <p>Breaking down barriers, matching trusted local support workers, and building inclusive communities.</p>
               </div>
-              <div className="statBentoBox">
-                <span className="statNumber">15+</span>
-                <span className="statLabel">Covered Suburbs</span>
-                <small className="statSub">Yamba, Maclean, Grafton &amp; surrounds</small>
-              </div>
+
+              <a href="tel:0415716516" className="blueTrustCallBtn">
+                <Phone size={18} />
+                <span>Call Now</span>
+              </a>
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            COMPASSION360 4-STEP CARE APPROACH (BENTO GRID)
+            SERVICES SECTION: Signature Photo Cards (Privilege Care Style)
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="sectionPadding whiteSection">
+        <section className="cleanSectionPadding">
           <div className="shell">
             <div className="sectionHeaderCenter">
-              <span className="sectionSuperBadge">
-                <Compass size={14} /> Our 4-Step Approach
-              </span>
-              <h2 className="sectionMainHeading">How Opus Care Supports Your Journey</h2>
-              <p className="sectionSubHeading">
-                From your initial enquiry to achieving your personal milestones, our simple 4-step process ensures a smooth, stress-free experience.
+              <span className="greenCategoryTag">EXPLORE SERVICES</span>
+              <h2 className="sectionSerifTitle">Trusted Services</h2>
+              <p className="sectionSubDesc">
+                Comprehensive, respectful disability support designed around your everyday routine across the Clarence Valley.
               </p>
             </div>
 
-            <div className="approachBentoGrid">
-              <div className="approachBentoCard">
-                <div className="stepNumberBadge">01</div>
-                <h3>1. Listen &amp; Understand</h3>
-                <p>We meet with you and your family to understand your daily routines, hobbies, goals, and specific support preferences.</p>
-                <div className="cardCheckItem">
-                  <Check size={14} className="cIcon" />
-                  <span>Free in-person or phone consultation</span>
+            <div className="photoCardGrid3">
+              {/* Card 1: Home & Living */}
+              <div className="photoServiceCard">
+                <div className="photoCardImgWrapper">
+                  <Image
+                    src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=700&q=80"
+                    alt="Home and Living Support"
+                    width={600}
+                    height={400}
+                    className="serviceCardPhoto"
+                  />
+                  <div className="photoCardCircleBadge purple">
+                    <Home size={28} />
+                  </div>
+                </div>
+                <div className="photoCardBottomPane">
+                  <h3>Home &amp; Living Support</h3>
+                  <p>Support with daily morning routines, meal prep, domestic chores, and personal care in your own home.</p>
+                  <Link href="/services" className="cardDiscoverLink">
+                    <span>Learn More</span> <ArrowRight size={15} />
+                  </Link>
                 </div>
               </div>
 
-              <div className="approachBentoCard">
-                <div className="stepNumberBadge">02</div>
-                <h3>2. Tailored Matching</h3>
-                <p>We match you with experienced, local support workers whose personalities, skills, and energy align with what you enjoy.</p>
-                <div className="cardCheckItem">
-                  <Check size={14} className="cIcon" />
-                  <span>You meet your worker before starting</span>
+              {/* Card 2: Daily Living & Life Skills */}
+              <div className="photoServiceCard">
+                <div className="photoCardImgWrapper">
+                  <Image
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80"
+                    alt="Daily Living and Life Skills"
+                    width={600}
+                    height={400}
+                    className="serviceCardPhoto"
+                  />
+                  <div className="photoCardCircleBadge purple">
+                    <Accessibility size={28} />
+                  </div>
+                </div>
+                <div className="photoCardBottomPane">
+                  <h3>Daily Living &amp; Life Skills</h3>
+                  <p>Practical coaching in cooking, budgeting, public transport, and household independence for self-confidence.</p>
+                  <Link href="/services" className="cardDiscoverLink">
+                    <span>Learn More</span> <ArrowRight size={15} />
+                  </Link>
                 </div>
               </div>
 
-              <div className="approachBentoCard">
-                <div className="stepNumberBadge">03</div>
-                <h3>3. Reliable Support</h3>
-                <p>Your support worker arrives on time, every time, assisting you with daily living, social outings, appointments, and skills.</p>
-                <div className="cardCheckItem">
-                  <Check size={14} className="cIcon" />
-                  <span>Consistent, familiar faces</span>
+              {/* Card 3: Community & Social Activities */}
+              <div className="photoServiceCard">
+                <div className="photoCardImgWrapper">
+                  <Image
+                    src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=700&q=80"
+                    alt="Community and Social Activities"
+                    width={600}
+                    height={400}
+                    className="serviceCardPhoto"
+                  />
+                  <div className="photoCardCircleBadge purple">
+                    <Users size={28} />
+                  </div>
+                </div>
+                <div className="photoCardBottomPane">
+                  <h3>Community &amp; Social Activities</h3>
+                  <p>Engage in local hobbies, beach trips, sports groups, creative classes, and social outings you enjoy.</p>
+                  <Link href="/services" className="cardDiscoverLink">
+                    <span>Learn More</span> <ArrowRight size={15} />
+                  </Link>
                 </div>
               </div>
 
-              <div className="approachBentoCard">
-                <div className="stepNumberBadge">04</div>
-                <h3>4. Review &amp; Grow</h3>
-                <p>We regularly check in with you and your Support Coordinator to ensure services remain aligned with your evolving NDIS goals.</p>
-                <div className="cardCheckItem">
-                  <Check size={14} className="cIcon" />
-                  <span>Flexible adjustments anytime</span>
+              {/* Card 4: Transport Assistance */}
+              <div className="photoServiceCard">
+                <div className="photoCardImgWrapper">
+                  <Image
+                    src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=700&q=80"
+                    alt="Transport & Travel Assistance"
+                    width={600}
+                    height={400}
+                    className="serviceCardPhoto"
+                  />
+                  <div className="photoCardCircleBadge purple">
+                    <MapPin size={28} />
+                  </div>
+                </div>
+                <div className="photoCardBottomPane">
+                  <h3>Transport &amp; Travel Assistance</h3>
+                  <p>Safe, reliable transit to doctor visits, therapy, education, shopping, and work across Northern Rivers NSW.</p>
+                  <Link href="/services" className="cardDiscoverLink">
+                    <span>Learn More</span> <ArrowRight size={15} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Card 5: Supported Independent Living */}
+              <div className="photoServiceCard">
+                <div className="photoCardImgWrapper">
+                  <Image
+                    src="https://images.unsplash.com/photo-1516307365426-bea591f05011?auto=format&fit=crop&w=700&q=80"
+                    alt="In-Home Respite Support"
+                    width={600}
+                    height={400}
+                    className="serviceCardPhoto"
+                  />
+                  <div className="photoCardCircleBadge purple">
+                    <Clock size={28} />
+                  </div>
+                </div>
+                <div className="photoCardBottomPane">
+                  <h3>In-Home Respite Support</h3>
+                  <p>Quality respite care giving primary carers peace of mind while participants enjoy safe, attentive 1-on-1 support.</p>
+                  <Link href="/services" className="cardDiscoverLink">
+                    <span>Learn More</span> <ArrowRight size={15} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Card 6: 1-on-1 Mentoring & Coaching */}
+              <div className="photoServiceCard">
+                <div className="photoCardImgWrapper">
+                  <Image
+                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=700&q=80"
+                    alt="Mentoring & Goal Coaching"
+                    width={600}
+                    height={400}
+                    className="serviceCardPhoto"
+                  />
+                  <div className="photoCardCircleBadge purple">
+                    <UserCheck size={28} />
+                  </div>
+                </div>
+                <div className="photoCardBottomPane">
+                  <h3>1-on-1 Mentoring &amp; Coaching</h3>
+                  <p>Youth and adult mentoring focused on personal growth, fitness, emotional wellbeing, and career pathways.</p>
+                  <Link href="/services" className="cardDiscoverLink">
+                    <span>Learn More</span> <ArrowRight size={15} />
+                  </Link>
                 </div>
               </div>
             </div>
@@ -211,311 +257,192 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            LIVE NDIS NEWS & PRICE GUIDE UPDATES WIDGET
+            INTAKE PROCESS PANE: Simple & Supportive (Privilege Care Style)
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="sectionPadding lightGraySection">
+        <section className="intakeProcessSection">
           <div className="shell">
-            <div className="ndisNewsBentoCard">
-              <div className="newsHeader">
-                <div className="newsTitleGroup">
-                  <span className="newsTagBadge">
-                    <Newspaper size={14} /> NDIS Sector News &amp; Updates
-                  </span>
-                  <h3>Latest NDIS Updates &amp; Price Guide Information</h3>
-                  <p>Stay informed about the latest NDIS pricing arrangements, PACE system rollout, and participant rights.</p>
+            <div className="sectionHeaderCenter">
+              <span className="greenCategoryTag">INTAKE PROCESS</span>
+              <h2 className="sectionSerifTitle">Our Simple and Supportive Intake Process</h2>
+              <p className="sectionSubDesc">
+                Getting started with Opus Care is effortless. Here is how we connect you with the right support.
+              </p>
+            </div>
+
+            <div className="intakeStepsGrid3">
+              {/* Step 01 */}
+              <div className="intakeProcessCard">
+                <span className="stepWatermarkNum">01</span>
+                <div className="intakeIconBox">
+                  <FileText size={32} />
                 </div>
-                <Link href="/faq" className="button outline sm viewAllNewsBtn">
-                  <span>View Pricing FAQ</span>
-                  <ArrowRight size={14} />
+                <h3>Fill Out Our Online Form</h3>
+                <p>Start your journey by completing our quick and easy online referral form. It helps us understand your routine and preferences.</p>
+              </div>
+
+              {/* Step 02 */}
+              <div className="intakeProcessCard">
+                <span className="stepWatermarkNum">02</span>
+                <div className="intakeIconBox">
+                  <PhoneCall size={32} />
+                </div>
+                <h3>Speak With Our Friendly Team</h3>
+                <p>Once we receive your form, our team contacts you to discuss your goals, answer questions, and arrange a personalized care plan.</p>
+              </div>
+
+              {/* Step 03 */}
+              <div className="intakeProcessCard">
+                <span className="stepWatermarkNum">03</span>
+                <div className="intakeIconBox">
+                  <HeartHandshake size={32} />
+                </div>
+                <h3>Receive Exceptional Care</h3>
+                <p>We provide personalized, high-quality care and support workers matched to your lifestyle to help you or your loved ones thrive.</p>
+              </div>
+            </div>
+
+            <div className="intakeActionRow">
+              <Link className="heroPillBtn filled lg" href="/referral">
+                <span>Start Intake Form Now</span>
+                <ArrowRight size={18} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            VISION & DIRECT CALL PANE (Privilege Care Screenshot 3)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <section className="cleanSectionPadding">
+          <div className="shell">
+            <div className="visionSplitGrid">
+              <div className="visionTextCol">
+                <span className="greenCategoryTag">ABOUT OPUS CARE</span>
+                <h2 className="sectionSerifTitle">Empowering Individuals to Achieve Their Dreams</h2>
+                <p className="visionParagraph">
+                  At Opus Care Support Services, we are dedicated to empowering individuals with disabilities to achieve their goals and lead independent, fulfilling lives across Yamba, Maclean, Grafton, and the Northern Rivers.
+                </p>
+
+                <div className="visionChecklist">
+                  <div className="visionCheckItem">
+                    <CheckCircle2 size={22} className="vCheckIcon" />
+                    <div>
+                      <strong>Our Mission:</strong> To provide comprehensive, person-centred services that support the unique aspirations of each participant in an environment where they can truly thrive.
+                    </div>
+                  </div>
+
+                  <div className="visionCheckItem">
+                    <CheckCircle2 size={22} className="vCheckIcon" />
+                    <div>
+                      <strong>Our Vision:</strong> To create an inclusive society where individuals with disabilities have equal opportunities to participate fully in all aspects of community life.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="visionCallGroup">
+                  <Link className="heroPillBtn purpleBtn" href="/about">
+                    <span>Discover More</span>
+                    <ArrowRight size={16} />
+                  </Link>
+
+                  <a href="tel:0415716516" className="directPhoneBlock">
+                    <div className="phoneCircleWrap">
+                      <Phone size={20} />
+                    </div>
+                    <div className="phoneTextWrap">
+                      <small>Speak to Our Local Team</small>
+                      <strong>0415 716 516</strong>
+                    </div>
+                  </a>
+                </div>
+              </div>
+
+              <div className="visionImgCol">
+                <div className="visionImgCard">
+                  <Image
+                    src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=700&q=80"
+                    alt="Participant and Support Worker smiling together"
+                    width={700}
+                    height={550}
+                    className="visionPhoto"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TESTIMONIALS PANE: Full Purple Band (Privilege Care Screenshot 2)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <section className="purpleFeedbackSection">
+          <div className="shell">
+            <div className="feedbackHeader">
+              <span className="feedbackSuperTag">TESTIMONIALS</span>
+              <h2 className="feedbackMainTitle">Our Clients Feedback</h2>
+            </div>
+
+            <div className="feedbackCenterCard">
+              <h3>What our clients say about us</h3>
+              <div className="feedbackBigScore">5.00</div>
+              <div className="feedbackStars">★★★★★</div>
+              <p className="feedbackSummaryText">
+                Based on trusted feedback from local participants, families, and Support Coordinators across Northern Rivers NSW.
+              </p>
+
+              <div className="feedbackQuotesGrid">
+                <div className="singleQuoteBox">
+                  <p>&ldquo;Opus Care matched my son with a support worker who genuinely shares his love for music and outdoor activities. It has transformed his weekly confidence.&rdquo;</p>
+                  <strong>Sarah M. — Parent · Yamba NSW</strong>
+                </div>
+
+                <div className="singleQuoteBox">
+                  <p>&ldquo;As a Support Coordinator, finding reliable workers in Grafton with zero intake delays is hard. Opus Care responded within hours and started supports that week.&rdquo;</p>
+                  <strong>David T. — Support Coordinator · Clarence Valley</strong>
+                </div>
+              </div>
+
+              <div className="feedbackActionRow">
+                <Link href="/contact" className="heroPillBtn filled">
+                  <span>Send Us Your Feedback</span>
                 </Link>
               </div>
-
-              <div className="newsItemsGrid">
-                <div className="newsItemBox">
-                  <div className="newsItemDate">
-                    <Calendar size={13} /> 2026 Price Guide Current
-                  </div>
-                  <h4>NDIS Price Limit Alignment</h4>
-                  <p>All Opus Care 1:1 support rates are strictly capped at official NDIA price limits with zero hidden gap fees.</p>
-                  <span className="newsStatusPill">✓ 100% Compliant</span>
-                </div>
-
-                <div className="newsItemBox">
-                  <div className="newsItemDate">
-                    <Calendar size={13} /> PACE System Compatible
-                  </div>
-                  <h4>Seamless Plan Endorsements</h4>
-                  <p>Our intake systems connect seamlessly with NDIA&apos;s PACE system for smooth invoicing and plan management claims.</p>
-                  <span className="newsStatusPill">✓ Direct Invoicing</span>
-                </div>
-
-                <div className="newsItemBox">
-                  <div className="newsItemDate">
-                    <Calendar size={13} /> Choice &amp; Control
-                  </div>
-                  <h4>Self &amp; Plan-Managed Freedom</h4>
-                  <p>Enjoy complete flexibility to choose your own support hours, routines, and preferred support workers.</p>
-                  <span className="newsStatusPill">✓ No Lock-In Contracts</span>
-                </div>
-              </div>
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            SERVICES CATALOGUE: 6 Structured Bento Boxes
+            INTERACTIVE ESTIMATOR & COVERAGE CARD PANES
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="sectionPadding whiteSection">
+        <section className="cleanSectionPadding">
           <div className="shell">
             <div className="sectionHeaderCenter">
-              <span className="sectionSuperBadge">
-                <Heart size={14} /> Support Catalogue
-              </span>
-              <h2 className="sectionMainHeading">Comprehensive NDIS Disability Supports</h2>
-              <p className="sectionSubHeading">
-                Practical, respectful support tailored to your unique lifestyle across Yamba, Grafton, Maclean, and the Northern Rivers.
+              <span className="greenCategoryTag">PLANNING &amp; COVERAGE</span>
+              <h2 className="sectionSerifTitle">Plan Your Support &amp; Check Coverage</h2>
+              <p className="sectionSubDesc">
+                Calculate your NDIS budget and verify immediate support worker availability in your town.
               </p>
             </div>
 
-            <div className="servicesBentoGrid">
-              
-              {/* Service 1 */}
-              <div className="serviceBentoCard">
-                <div className="serviceCardTop">
-                  <div className="serviceIconCircle teal">
-                    <Users size={22} />
-                  </div>
-                  <span className="serviceCategoryTag">Core Support</span>
-                </div>
-                <h3>Assistance with Daily Life</h3>
-                <p>Support with morning routines, meal preparation, personal care, light housekeeping, and medication reminders at home.</p>
-                <ul className="serviceFeatureList">
-                  <li><Check size={14} className="sCheck" /> Morning &amp; evening personal care</li>
-                  <li><Check size={14} className="sCheck" /> Nutritious meal preparation</li>
-                  <li><Check size={14} className="sCheck" /> Household chores &amp; organization</li>
-                </ul>
-                <div className="serviceCardFooter">
-                  <Link href="/services" className="serviceLearnLink">
-                    <span>Learn more</span> <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Service 2 */}
-              <div className="serviceBentoCard">
-                <div className="serviceCardTop">
-                  <div className="serviceIconCircle purple">
-                    <Compass size={22} />
-                  </div>
-                  <span className="serviceCategoryTag">Social &amp; Civic</span>
-                </div>
-                <h3>Community &amp; Social Participation</h3>
-                <p>Engage in community groups, beach visits, sports, creative classes, library outings, and social events you love.</p>
-                <ul className="serviceFeatureList">
-                  <li><Check size={14} className="sCheck" /> Attending local clubs &amp; events</li>
-                  <li><Check size={14} className="sCheck" /> Beach &amp; outdoor leisure trips</li>
-                  <li><Check size={14} className="sCheck" /> Building lasting friendships</li>
-                </ul>
-                <div className="serviceCardFooter">
-                  <Link href="/services" className="serviceLearnLink">
-                    <span>Learn more</span> <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Service 3 */}
-              <div className="serviceBentoCard">
-                <div className="serviceCardTop">
-                  <div className="serviceIconCircle coral">
-                    <Sparkles size={22} />
-                  </div>
-                  <span className="serviceCategoryTag">Capacity Building</span>
-                </div>
-                <h3>Life Skills &amp; Independence</h3>
-                <p>Build essential skills for autonomous living, including cooking, grocery shopping, budgeting, and public transport practice.</p>
-                <ul className="serviceFeatureList">
-                  <li><Check size={14} className="sCheck" /> Cooking &amp; kitchen confidence</li>
-                  <li><Check size={14} className="sCheck" /> Budgeting &amp; shopping skills</li>
-                  <li><Check size={14} className="sCheck" /> Time management &amp; scheduling</li>
-                </ul>
-                <div className="serviceCardFooter">
-                  <Link href="/services" className="serviceLearnLink">
-                    <span>Learn more</span> <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Service 4 */}
-              <div className="serviceBentoCard">
-                <div className="serviceCardTop">
-                  <div className="serviceIconCircle teal">
-                    <MapPin size={22} />
-                  </div>
-                  <span className="serviceCategoryTag">Travel Support</span>
-                </div>
-                <h3>Transport &amp; Travel Assistance</h3>
-                <p>Safe, reliable transportation to medical appointments, work, study, grocery stores, and social activities across the valley.</p>
-                <ul className="serviceFeatureList">
-                  <li><Check size={14} className="sCheck" /> Medical &amp; therapy appointments</li>
-                  <li><Check size={14} className="sCheck" /> Work &amp; education commuting</li>
-                  <li><Check size={14} className="sCheck" /> Fully insured, safe vehicles</li>
-                </ul>
-                <div className="serviceCardFooter">
-                  <Link href="/services" className="serviceLearnLink">
-                    <span>Learn more</span> <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Service 5 */}
-              <div className="serviceBentoCard">
-                <div className="serviceCardTop">
-                  <div className="serviceIconCircle purple">
-                    <Clock size={22} />
-                  </div>
-                  <span className="serviceCategoryTag">Carer Respite</span>
-                </div>
-                <h3>In-Home Respite Support</h3>
-                <p>Providing primary carers with peace of mind while participants enjoy engaging, supportive, and safe 1-on-1 care.</p>
-                <ul className="serviceFeatureList">
-                  <li><Check size={14} className="sCheck" /> Day &amp; evening respite blocks</li>
-                  <li><Check size={14} className="sCheck" /> Weekend recreational support</li>
-                  <li><Check size={14} className="sCheck" /> Calm, familiar home environment</li>
-                </ul>
-                <div className="serviceCardFooter">
-                  <Link href="/services" className="serviceLearnLink">
-                    <span>Learn more</span> <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Service 6 */}
-              <div className="serviceBentoCard">
-                <div className="serviceCardTop">
-                  <div className="serviceIconCircle coral">
-                    <Award size={22} />
-                  </div>
-                  <span className="serviceCategoryTag">Goal Mentoring</span>
-                </div>
-                <h3>1-on-1 Mentoring &amp; Goal Coaching</h3>
-                <p>Dedicated youth and adult mentoring focused on personal growth, emotional wellbeing, fitness, and career pathways.</p>
-                <ul className="serviceFeatureList">
-                  <li><Check size={14} className="sCheck" /> Confidence &amp; routine building</li>
-                  <li><Check size={14} className="sCheck" /> Fitness &amp; recreational coaching</li>
-                  <li><Check size={14} className="sCheck" /> Pathways to work or study</li>
-                </ul>
-                <div className="serviceCardFooter">
-                  <Link href="/services" className="serviceLearnLink">
-                    <span>Learn more</span> <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            INTERACTIVE CALCULATOR & COVERAGE BOXES
-        ═══════════════════════════════════════════════════════════════════ */}
-        <section className="sectionPadding lightGraySection">
-          <div className="shell">
-            <div className="interactiveSectionGrid">
-              
-              {/* Estimator */}
-              <div className="interactiveCol">
+            <div className="interactivePanesGrid">
+              <div className="interactivePaneCol">
                 <SupportFinderWidget />
               </div>
-
-              {/* Regional Coverage */}
-              <div className="interactiveCol">
+              <div className="interactivePaneCol">
                 <RegionalCoverageChecker />
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            AUTHENTIC TESTIMONIALS (3 Bento Boxes)
-        ═══════════════════════════════════════════════════════════════════ */}
-        <section className="sectionPadding whiteSection">
-          <div className="shell">
-            <div className="sectionHeaderCenter">
-              <span className="sectionSuperBadge">
-                <Star size={14} /> Local Participant Stories
-              </span>
-              <h2 className="sectionMainHeading">What Participants &amp; Families Say</h2>
-              <p className="sectionSubHeading">
-                Real feedback from participants and Support Coordinators who partner with Opus Care.
-              </p>
-            </div>
-
-            <div className="testimonialsBentoGrid">
-              <div className="testimonialBentoCard">
-                <div className="starRating">★★★★★</div>
-                <p className="testimonialQuote">
-                  &ldquo;Opus Care matched my son with a support worker who genuinely shares his love for music and sports. It has transformed his weekly routine and confidence.&rdquo;
-                </p>
-                <div className="testimonialAuthor">
-                  <strong>Sarah M.</strong>
-                  <span>Parent · Yamba NSW</span>
-                </div>
-              </div>
-
-              <div className="testimonialBentoCard">
-                <div className="starRating">★★★★★</div>
-                <p className="testimonialQuote">
-                  &ldquo;As a Support Coordinator, finding reliable workers in Grafton with zero intake delays is hard. Opus Care responded within hours and started supports that week.&rdquo;
-                </p>
-                <div className="testimonialAuthor">
-                  <strong>David T.</strong>
-                  <span>Support Coordinator · Clarence Valley</span>
-                </div>
-              </div>
-
-              <div className="testimonialBentoCard">
-                <div className="starRating">★★★★★</div>
-                <p className="testimonialQuote">
-                  &ldquo;The flexibility is what I love most. My support worker helps me with meal prep, gym sessions, and getting to my appointments in Maclean on time.&rdquo;
-                </p>
-                <div className="testimonialAuthor">
-                  <strong>Michael K.</strong>
-                  <span>NDIS Participant · Maclean NSW</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            PHOTO CALL TO ACTION BAND
-        ═══════════════════════════════════════════════════════════════════ */}
-        <section className="ctaBannerSection">
-          <div className="shell">
-            <div className="ctaBannerBox">
-              <div className="ctaContentWrap">
-                <span className="ctaSuperTag">
-                  <PhoneCall size={14} /> Start Your Support Today
-                </span>
-                <h2>Ready for Person-Centred NDIS Support with Opus Care?</h2>
-                <p>
-                  Whether you need daily assistance, community access, or travel support, our team is here to help you live life on your terms.
-                </p>
-                <div className="ctaActionRow">
-                  <Link className="button primary lg" href="/referral">
-                    <span>Submit a Direct Referral</span>
-                    <ArrowRight size={17} />
-                  </Link>
-                  <Link className="button outline lg" href="/contact">
-                    <span>Speak with Our Team</span>
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
         </section>
       </main>
+
+      {/* Fixed Bottom Call Now Bar for Mobile */}
+      <div className="fixedMobileCallBar">
+        <a href="tel:0415716516" className="mobileCallInner">
+          <Phone size={18} />
+          <span>Call Now: 0415 716 516</span>
+        </a>
+      </div>
 
       <SiteFooter />
     </>
