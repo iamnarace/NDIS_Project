@@ -16,7 +16,7 @@ export default function ContactPage() {
             <span className="eyebrow">
               <Mail size={15} /> Get In Touch
             </span>
-            <h1>Contact CarePoint Support Services</h1>
+            <h1>Contact Opus Care Support Services</h1>
             <p>
               Whether you are an NDIS participant, family member, nominee, support coordinator or plan manager, we would love to hear from you.
             </p>
@@ -38,9 +38,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <span className="sidebarCardLabel">Direct Email</span>
-                    <h3>support@carepointsupport.com.au</h3>
-                    <p>Send enquiries anytime. We review and respond to all messages within 1 business day.</p>
-                    <a href="mailto:support@carepointsupport.com.au" className="sidebarActionLink">
+                    <h3>bijaykafle41@gmail.com</h3>
+                    <p>Send enquiries anytime. We review messages and respond as soon as practical.</p>
+                    <a href="mailto:bijaykafle41@gmail.com" className="sidebarActionLink">
                       Send an email →
                     </a>
                   </div>

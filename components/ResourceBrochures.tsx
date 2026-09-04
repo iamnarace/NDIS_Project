@@ -83,7 +83,7 @@ export function ResourceBrochures() {
                 </span>
                 <h4 className="coverTitle">{item.title}</h4>
                 <div className="coverFooter">
-                  <span>CarePoint Support Services</span>
+                  <span>Opus Care Support Services</span>
                   <small>{item.pages}</small>
                 </div>
               </div>

@@ -8,8 +8,8 @@ export function FundingTransparencyCard() {
     <div className="fundingTransparencyContainer">
       <div className="sectionHead">
         <span className="eyebrow"><Shield size={16} /> Transparent NDIS Funding</span>
-        <h2>How Your NDIS Plan Works With CarePoint</h2>
-        <p>We believe in total transparency. CarePoint operates as an unregistered NDIS disability support provider focused on personal, high-quality, dependable care.</p>
+        <h2>How Your NDIS Plan Works With Opus Care</h2>
+        <p>We believe in total transparency. Opus Care operates as an unregistered NDIS disability support provider focused on personal, high-quality, dependable care.</p>
       </div>
 
       <div className="fundingComparisonGrid">

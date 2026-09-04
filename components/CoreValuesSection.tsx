@@ -38,7 +38,7 @@ const VALUES: ValueCard[] = [
   {
     title: 'Community',
     tagline: 'Belonging & Connection',
-    description: 'Facilitating active social outings, hobbies, peer networks, and community participation across Sydney.',
+    description: 'Supporting social outings, hobbies, relationships and community participation across regional NSW.',
     themeColor: '#0D3B46',
     bgTint: 'rgba(13, 59, 70, 0.08)',
     icon: <Users size={28} color="#0D3B46" />,

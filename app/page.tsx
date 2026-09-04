@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ArrowRight, CalendarCheck, CheckCircle2, HeartHandshake, Home, MapPin, ShieldCheck, Sparkles, Star, Users, Car, ClipboardCheck, Clock3, Phone, BookOpen, Calculator } from 'lucide-react';
+import { ArrowRight, CalendarCheck, CheckCircle2, HeartHandshake, Home, MapPin, ShieldCheck, Sparkles, Users, Car, ClipboardCheck, Clock3, Phone, BookOpen, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -20,31 +20,13 @@ const services = [
   { icon: ClipboardCheck, title: 'Household Assistance', text: 'Practical help with everyday household tasks and home organisation aligned with your NDIS plan goals.' },
 ];
 
-const trust = ['NDIS Worker Screening Clearance', 'First Aid & CPR Certified', 'Person-Centred Approach', 'Zero Hidden Fees'];
+const trust = ['Participant choice', 'Clear service agreements', 'Person-centred approach', 'Transparent pricing'];
 
 const stats = [
   { value: '100%', label: 'Person-Centred & Participant-Led' },
   { value: '6', label: 'Core & Capacity Support Areas' },
   { value: 'Local', label: 'Clarence Coast & Northern Rivers' },
-  { value: '24h', label: 'Referral Response Commitment' },
-];
-
-const testimonials = [
-  {
-    quote: 'CarePoint matched us with a support worker in Maclean who genuinely shares my brother’s interests in cooking and music. The consistency and respect have been wonderful.',
-    name: 'Family Member & Nominee, Maclean NSW',
-    rating: 5,
-  },
-  {
-    quote: 'As a Support Coordinator across the Northern Rivers, finding reliable workers with clear communication and fast onboarding is critical. CarePoint makes the referral process smooth.',
-    name: 'NDIS Support Coordinator, Clarence Valley',
-    rating: 5,
-  },
-  {
-    quote: 'I have full choice over my schedule and outings. My support worker helps me get to my weekly gym sessions in Yamba and community art classes in Grafton.',
-    name: 'NDIS Participant, Yamba NSW',
-    rating: 5,
-  },
+  { value: 'Clear', label: 'Communication & Service Boundaries' },
 ];
 
 export default function HomePage() {
@@ -63,7 +45,7 @@ export default function HomePage() {
               Care you can count on.
             </h1>
             <p className="lead">
-              CarePoint Support Services provides practical, respectful disability support shaped around your goals, routines and choices across Yamba, Grafton, New Italy, and Northern Rivers NSW.
+              Opus Care Support Services provides practical, respectful disability support shaped around your goals, routines and choices across Yamba, Grafton, New Italy, and Northern Rivers NSW.
             </p>
             <div className="actions">
               <Link className="button" href="/referral">
@@ -86,7 +68,7 @@ export default function HomePage() {
           <div className="heroVisual">
             <div className="heroPhoto" role="img" aria-label="Support worker and participant enjoying meaningful connection outdoors">
               <Image
-                src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=800&q=80&auto=format&fit=crop"
+                src="/opus-care-regional-support.webp"
                 alt="Support worker smiling warmly with participant outdoors"
                 className="heroImg"
                 width={800}
@@ -94,7 +76,7 @@ export default function HomePage() {
                 priority
               />
               <div className="photoOverlay">
-                <span>CarePoint Support Services</span>
+                <span>Opus Care Support Services</span>
                 <strong>Your Goals. Your Schedule. Your Choice.</strong>
               </div>
             </div>
@@ -107,7 +89,7 @@ export default function HomePage() {
             </div>
             <div className="floatingCard2">
               <Image
-                src="/marketing/CarePoint_NDIS_Badge_512.png"
+                src="/opus-care-logo.svg"
                 alt="Proudly Supporting NDIS Participants"
                 width={36}
                 height={36}
@@ -193,32 +175,6 @@ export default function HomePage() {
           <RegionalCoverageChecker />
         </section>
 
-        {/* ── TESTIMONIALS SECTION ─────────────────────────────────────────── */}
-        <section className="testimonialsSection">
-          <div className="shell">
-            <div className="sectionHead" style={{ textAlign: 'center', margin: '0 auto 48px' }}>
-              <span className="eyebrow">Community Voices</span>
-              <h2>Heard From Participants &amp; Coordinators</h2>
-              <p style={{ margin: '0 auto', maxWidth: 580 }}>
-                These reflect the supportive, dependable relationships CarePoint is dedicated to building across Northern Rivers and Clarence Coast NSW.
-              </p>
-            </div>
-            <div className="testimonialsGrid">
-              {testimonials.map(({ quote, name, rating }) => (
-                <article key={name} className="testimonialCard">
-                  <div className="stars">
-                    {Array.from({ length: rating }).map((_, i) => (
-                      <Star key={i} size={16} fill="#F59E0B" color="#F59E0B" />
-                    ))}
-                  </div>
-                  <blockquote>&ldquo;{quote}&rdquo;</blockquote>
-                  <cite>— {name}</cite>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* ── RESOURCE BROCHURES & GUIDES ──────────────────────────────────── */}
         <section className="shell">
           <ResourceBrochures />
@@ -282,12 +238,12 @@ export default function HomePage() {
             </div>
             <div className="faqGrid">
               <details open>
-                <summary>Who can use CarePoint Support Services?</summary>
-                <p>CarePoint supports self-managed and plan-managed NDIS participants across Yamba, Grafton, Maclean, New Italy, and the Clarence Coast NSW. Final eligibility and fit are confirmed during initial intake.</p>
+                <summary>Who can use Opus Care Support Services?</summary>
+                <p>Opus Care supports self-managed and plan-managed NDIS participants across Yamba, Grafton, Maclean, New Italy, and the Clarence Coast NSW. Final eligibility and fit are confirmed during initial intake.</p>
               </details>
               <details>
                 <summary>Are you a registered NDIS provider?</summary>
-                <p>CarePoint operates as an unregistered provider under the NDIS framework. We do not claim registered status, which means we work directly with self-managed and plan-managed participants.</p>
+                <p>Opus Care operates as an unregistered provider under the NDIS framework. We do not claim registered status, which means we work directly with self-managed and plan-managed participants.</p>
               </details>
               <details>
                 <summary>How are prices and hourly rates set?</summary>
@@ -295,7 +251,7 @@ export default function HomePage() {
               </details>
               <details>
                 <summary>How quickly can support commence after referral?</summary>
-                <p>We review and respond to all referrals within 1 business day. Once we confirm fit and complete a simple service agreement, support can often start within 3–7 business days.</p>
+                <p>Start times depend on your needs, location, worker availability and completion of an agreed service arrangement. We explain the expected timeframe during intake.</p>
               </details>
             </div>
           </div>
@@ -305,7 +261,7 @@ export default function HomePage() {
         <section className="contact shell" id="contact">
           <div>
             <span className="eyebrow">Ready To Connect?</span>
-            <h2>Let&apos;s find out if CarePoint is the right fit.</h2>
+            <h2>Let&apos;s find out if Opus Care is the right fit.</h2>
             <p>Whether you&apos;re a participant, family member, support coordinator or plan manager, start with a simple enquiry.</p>
           </div>
           <div className="contactActions">

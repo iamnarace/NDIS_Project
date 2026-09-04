@@ -10,7 +10,7 @@ export function SiteFooter() {
         <div className="shell footerCtaContent">
           <div>
             <span className="footerEyebrow">Start Your Journey</span>
-            <h3>Looking for reliable, person-centred disability support in Sydney?</h3>
+            <h3>Looking for reliable, person-centred disability support in regional NSW?</h3>
           </div>
           <div className="footerCtaBtns">
             <Link className="button footerPrimaryBtn" href="/referral">
@@ -29,8 +29,8 @@ export function SiteFooter() {
           <Link className="footerBrandLogo" href="/">
             <div className="logoMarkContainer">
               <Image
-                src="/brand/CarePoint_Mark_White.png"
-                alt="CarePoint Support Services Logo"
+                src="/opus-care-logo.svg"
+                alt="Opus Care Support Services Logo"
                 width={42}
                 height={42}
                 style={{ width: '42px', height: '42px', objectFit: 'contain' }}
@@ -50,7 +50,7 @@ export function SiteFooter() {
           </div>
           <div className="footerNdisSupportTag" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', background: 'rgba(255, 255, 255, 0.06)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
             <Image
-              src="/marketing/CarePoint_NDIS_Badge_512.png"
+              src="/opus-care-logo.svg"
               alt="Proudly Supporting NDIS Participants"
               width={40}
               height={40}
@@ -77,7 +77,7 @@ export function SiteFooter() {
         {/* Navigation Column: Information & Governance */}
         <div className="footerCol">
           <strong className="footerColTitle">Governance &amp; Trust</strong>
-          <Link href="/about">About CarePoint</Link>
+          <Link href="/about">About Opus Care</Link>
           <Link href="/faq">FAQ &amp; Pricing</Link>
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/complaints">Complaints &amp; Feedback</Link>
@@ -90,7 +90,8 @@ export function SiteFooter() {
           <strong className="footerColTitle">Get In Touch</strong>
           <div className="footerContactItem">
             <Mail size={15} color="#2DD4BF" />
-            <span>support@carepointsupport.com.au</span>
+            <span>bijaykafle41@gmail.com</span>
+            <span>0491 337 177</span>
           </div>
           <div className="footerContactItem">
             <MapPin size={15} color="#2DD4BF" />
@@ -113,15 +114,15 @@ export function SiteFooter() {
             <span>🌿 Acknowledgment of Country</span>
           </div>
           <p>
-            CarePoint Support Services acknowledges the Traditional Custodians of the lands on which we live, work and provide care across the Clarence Coast, Northern Rivers, and Australia. We pay our respects to Elders past, present and emerging.
+            Opus Care Support Services acknowledges the Traditional Custodians of the lands on which we live, work and provide care across the Clarence Coast, Northern Rivers, and Australia. We pay our respects to Elders past, present and emerging.
           </p>
         </div>
       </div>
 
       {/* Bottom Legal Copyright */}
       <div className="shell footerBottomLegal">
-        <span>© {new Date().getFullYear()} CarePoint Support Services. All rights reserved.</span>
-        <span>CarePoint is an independent support provider and is not affiliated with the National Disability Insurance Agency (NDIA). NDIS is a registered trademark of the NDIA.</span>
+        <span>© {new Date().getFullYear()} Opus Care Support Services. ABN 41 267 197 576.</span>
+        <span>Opus Care is an independent support provider and is not affiliated with the National Disability Insurance Agency (NDIA). NDIS is a registered trademark of the NDIA.</span>
       </div>
     </footer>
   );

@@ -18,8 +18,8 @@ export function SiteHeader() {
             <span>Supporting Self-Managed &amp; Plan-Managed Participants Across Yamba, Grafton &amp; Northern Rivers NSW</span>
           </div>
           <div className="noticeRight">
-            <a href="mailto:support@carepointsupport.com.au" className="noticeContactLink">
-              <Mail size={13} /> support@carepointsupport.com.au
+            <a href="mailto:bijaykafle41@gmail.com" className="noticeContactLink">
+              <Mail size={13} /> bijaykafle41@gmail.com
             </a>
             <span className="noticeDivider">·</span>
             <span className="noticeBadgeGreen">🟢 Intake Open</span>
@@ -31,11 +31,11 @@ export function SiteHeader() {
       <header className="mainHeader">
         <div className="shell headerContainer">
           {/* Logo */}
-          <Link href="/" className="brandLogoLink" aria-label="CarePoint Support Services home">
+          <Link href="/" className="brandLogoLink" aria-label="Opus Care Support Services home">
             <div className="logoMarkContainer">
               <Image
-                src="/brand/CarePoint_Mark_512x512_Transparent.png"
-                alt="CarePoint Support Services Logo"
+                src="/opus-care-logo.svg"
+                alt="Opus Care Support Services Logo"
                 width={46}
                 height={46}
                 priority
@@ -96,7 +96,7 @@ export function SiteHeader() {
         <nav className="mobileNavLinks">
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
           <Link href="/services" onClick={() => setOpen(false)}>Services &amp; Supports</Link>
-          <Link href="/about" onClick={() => setOpen(false)}>About CarePoint</Link>
+          <Link href="/about" onClick={() => setOpen(false)}>About Opus Care</Link>
           <Link href="/faq" onClick={() => setOpen(false)}>FAQ &amp; Pricing</Link>
           <Link href="/contact" onClick={() => setOpen(false)}>Contact Team</Link>
           <div className="mobileDrawerCta">
@@ -107,7 +107,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="mobileDrawerFooter">
-          <span>📧 support@carepointsupport.com.au</span>
+          <span>📧 bijaykafle41@gmail.com</span>
           <span>📍 Yamba, Grafton &amp; Northern Rivers, NSW</span>
           <small>Unregistered NDIS Provider · Supporting Self &amp; Plan Managed</small>
         </div>

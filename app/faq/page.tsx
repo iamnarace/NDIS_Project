@@ -28,13 +28,13 @@ export default function FaqPage() {
           <div className="shell">
             <div className="faqGrid">
               <details open>
-                <summary>Who can use CarePoint Support Services?</summary>
-                <p>CarePoint supports self-managed and plan-managed NDIS participants across Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn, and surrounding Northern Rivers communities. Fit and availability are confirmed during our quick initial onboarding chat.</p>
+                <summary>Who can use Opus Care Support Services?</summary>
+                <p>Opus Care supports self-managed and plan-managed NDIS participants across Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn, and surrounding Northern Rivers communities. Fit and availability are confirmed during our quick initial onboarding chat.</p>
               </details>
 
               <details>
                 <summary>Are you a registered or unregistered NDIS provider?</summary>
-                <p>CarePoint operates as an unregistered provider under the NDIS framework. We do not claim registered status. This means we can work directly with self-managed and plan-managed participants, offering personalised support with zero administrative overhead.</p>
+                <p>Opus Care is an independent, unregistered provider. We work directly with self-managed and plan-managed participants and may also support clients through agreed arrangements with registered providers.</p>
               </details>
 
               <details>
@@ -44,12 +44,12 @@ export default function FaqPage() {
 
               <details>
                 <summary>How quickly can support start after making a referral?</summary>
-                <p>We review and respond to all referrals within 1 business day. After discussing your needs, confirming support worker availability, and signing an agreed service agreement, support can commence within 3–7 business days.</p>
+                <p>Start times depend on your needs, location, worker availability and completion of an agreed service arrangement. We explain the expected timeframe during intake.</p>
               </details>
 
               <details>
                 <summary>What qualifications and checks do your support workers hold?</summary>
-                <p>All CarePoint support workers hold valid NDIS Worker Screening Check clearances, Working With Children Checks (WWCC), Current First Aid &amp; CPR certifications, and adhere strictly to the NDIS Code of Conduct.</p>
+                <p>Worker checks, qualifications and experience are confirmed for the supports being provided. Please ask us which checks apply to your service before support begins.</p>
               </details>
 
               <details>

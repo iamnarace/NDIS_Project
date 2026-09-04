@@ -16,7 +16,7 @@ export function CommunitySpotlight() {
             </div>
             <h2 className="campaignTitle">Compassionate · Reliable · Person-Centred</h2>
             <p className="campaignText">
-              CarePoint Support Services connects NDIS participants with dedicated, screened support workers who genuinely listen, care, and empower you to live life on your terms.
+              Opus Care Support Services connects NDIS participants with dedicated, screened support workers who genuinely listen, care, and empower you to live life on your terms.
             </p>
             <div className="campaignPills">
               <span className="campaignPill">
@@ -40,8 +40,8 @@ export function CommunitySpotlight() {
           </div>
           <div className="campaignImageCol">
             <Image
-              src="/marketing/CarePoint_Hero_Banner_Visual.png"
-              alt="CarePoint Support Worker with Participant"
+              src="/opus-care-regional-support.webp"
+              alt="Opus Care Support Worker with Participant"
               width={700}
               height={320}
               className="campaignImg"
@@ -54,7 +54,7 @@ export function CommunitySpotlight() {
         <div className="marketingHighlightsGrid">
           <div className="highlightGraphicCard">
             <Image
-              src="/marketing/CarePoint_Choice_Control_Visual.png"
+              src="/opus-care-regional-support.webp"
               alt="Proudly Supporting Choice, Control and Inclusion"
               width={480}
               height={480}
@@ -65,8 +65,8 @@ export function CommunitySpotlight() {
 
           <div className="highlightGraphicCard">
             <Image
-              src="/marketing/CarePoint_Participant_Story_Visual.png"
-              alt="CarePoint Participant Story"
+              src="/opus-care-regional-support.webp"
+              alt="Opus Care Participant Story"
               width={480}
               height={480}
               className="highlightImg"

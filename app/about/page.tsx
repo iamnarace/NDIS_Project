@@ -16,11 +16,11 @@ export default function AboutPage() {
         <section className="pageHero">
           <div className="shell">
             <span className="eyebrow">
-              <Sparkles size={15} /> About CarePoint
+              <Sparkles size={15} /> About Opus Care
             </span>
             <h1>A Dedicated Disability Support Provider With Professional Standards</h1>
             <p>
-              CarePoint Support Services is built on dependable relationships, open communication, and practical disability support that respects every participant&apos;s dignity, routine, and choices across Yamba, Grafton, New Italy, and Northern Rivers NSW.
+              Opus Care Support Services is built on dependable relationships, open communication, and practical disability support that respects every participant&apos;s dignity, routine, and choices across Yamba, Grafton, New Italy, and Northern Rivers NSW.
             </p>
           </div>
         </section>
@@ -32,7 +32,7 @@ export default function AboutPage() {
               <div className="aboutPhotoWrap">
                 <Image
                   src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80&auto=format&fit=crop"
-                  alt="CarePoint support team member engaged in respectful consultation"
+                  alt="Opus Care support team member engaged in respectful consultation"
                   className="aboutPhoto"
                   width={700}
                   height={480}

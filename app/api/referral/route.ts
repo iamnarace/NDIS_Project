@@ -17,10 +17,10 @@ export async function POST(request: Request) {
     const to = process.env.REFERRAL_TO_EMAIL;
     const from = process.env.FROM_EMAIL;
     if (!apiKey || !to || !from) {
-      return NextResponse.json({ message: 'Online referrals are not configured yet. Please email support@carepointsupport.com.au.' }, { status: 503 });
+      return NextResponse.json({ message: 'Online referrals are not configured yet. Please email bijaykafle41@gmail.com.' }, { status: 503 });
     }
 
-    const subject = `New CarePoint referral enquiry — ${text(body.name, 120)}`;
+    const subject = `New Opus Care referral enquiry — ${text(body.name, 120)}`;
     const lines = [
       `Name: ${text(body.name, 120)}`,
       `Role: ${text(body.role, 120)}`,
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       console.error('Referral email failed', response.status);
-      return NextResponse.json({ message: 'We could not send the enquiry right now. Please email CarePoint directly.' }, { status: 502 });
+      return NextResponse.json({ message: 'We could not send the enquiry right now. Please email Opus Care directly.' }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true });

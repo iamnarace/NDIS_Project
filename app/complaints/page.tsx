@@ -26,7 +26,7 @@ export default function ComplaintsPage() {
               <div className="policySection">
                 <h2>1. Our Open Feedback Philosophy</h2>
                 <p>
-                  At CarePoint Support Services, we view feedback and complaints as valuable opportunities to learn, adapt, and enhance our services. Anyone — including participants, family members, advocates, and support coordinators — can lodge a complaint or share feedback.
+                  At Opus Care Support Services, we view feedback and complaints as valuable opportunities to learn, adapt, and enhance our services. Anyone — including participants, family members, advocates, and support coordinators — can lodge a complaint or share feedback.
                 </p>
               </div>
 
@@ -34,8 +34,8 @@ export default function ComplaintsPage() {
                 <h2>2. How to Raise Feedback or a Concern</h2>
                 <p>You can share your thoughts with us in any way you feel most comfortable:</p>
                 <ul>
-                  <li><strong>Email:</strong> Send a message to <em>support@carepointsupport.com.au</em></li>
-                  <li><strong>Direct Conversation:</strong> Speak openly with your support worker or CarePoint coordinator</li>
+                  <li><strong>Email:</strong> Send a message to <em>bijaykafle41@gmail.com</em></li>
+                  <li><strong>Direct Conversation:</strong> Speak openly with your support worker or Opus Care coordinator</li>
                   <li><strong>Advocacy Support:</strong> You are welcome to have an independent advocate, family member, or friend assist you throughout the process</li>
                 </ul>
               </div>

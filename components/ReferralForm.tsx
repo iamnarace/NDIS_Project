@@ -85,10 +85,10 @@ export function ReferralForm() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Unable to send referral');
       setStatus('success');
-      setMessage('Thank you! Your referral enquiry has been received. Our team will contact you within 1 business day.');
+      setMessage('Thank you! Your referral enquiry has been received. Our team will contact you as soon as practical.');
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Online referrals are currently being configured. Please contact us directly at support@carepointsupport.com.au.');
+      setMessage(error instanceof Error ? error.message : 'Online referrals are currently being configured. Please contact us directly at bijaykafle41@gmail.com.');
     }
   }
 
@@ -103,7 +103,7 @@ export function ReferralForm() {
         <div className="successDetailsBox">
           <div><strong>Name:</strong> {formData.name}</div>
           <div><strong>Role:</strong> {formData.role}</div>
-          <div><strong>Suburb:</strong> {formData.suburb || 'Greater Sydney'}</div>
+          <div><strong>Suburb:</strong> {formData.suburb || 'Regional NSW'}</div>
           <div><strong>Selected Supports:</strong> {formData.services.join(', ') || 'General support'}</div>
         </div>
         <p className="successNote">We treat all information confidentially in accordance with the Privacy Act and NDIS Code of Conduct.</p>
@@ -353,7 +353,7 @@ export function ReferralForm() {
               onChange={e => setFormData({ ...formData, consent: e.target.checked })}
             />
             <span>
-              I consent to CarePoint Support Services contacting me regarding this disability support enquiry. (No sensitive medical documents required now).
+              I consent to Opus Care Support Services contacting me regarding this disability support enquiry. (No sensitive medical documents required now).
             </span>
           </label>
 

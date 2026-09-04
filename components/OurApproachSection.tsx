@@ -108,14 +108,14 @@ export function OurApproachSection() {
         <div className="approachBannerStrip">
           <div className="approachBannerLeft">
             <Image
-              src="/marketing/CarePoint_NDIS_Badge_512.png"
+              src="/opus-care-logo.svg"
               alt="Proudly Supporting NDIS Participants"
               width={56}
               height={56}
               style={{ width: '56px', height: '56px', objectFit: 'contain' }}
             />
             <div>
-              <strong>Supporting NDIS Participants Across Greater Sydney &amp; NSW</strong>
+              <strong>Supporting Participants Across Regional NSW</strong>
               <p>Self-Managed &amp; Plan-Managed Participants · Fast Intake Turnaround</p>
             </div>
           </div>

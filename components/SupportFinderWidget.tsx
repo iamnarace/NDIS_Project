@@ -149,7 +149,7 @@ export function SupportFinderWidget() {
           <div className="estimateFooter">
             <div className="transparencyNote">
               <Sparkles size={16} color="#0D9488" />
-              <span>CarePoint bills strictly according to agreed service agreements with zero hidden administrative or platform joining fees.</span>
+              <span>Opus Care bills strictly according to agreed service agreements with zero hidden administrative or platform joining fees.</span>
             </div>
             <Link className="button full" href="/referral">
               Discuss This Support Plan <ArrowRight size={17} />

@@ -13,45 +13,45 @@ interface RegionData {
 
 const REGIONS: RegionData[] = [
   {
-    region: 'Western Sydney',
+    region: 'Northern Rivers',
     status: 'Open for Referrals',
-    suburbs: ['Parramatta', 'Blacktown', 'Penrith', 'Westmead', 'Merrylands', 'Auburn', 'Seven Hills', 'Mount Druitt'],
-    keyHighlights: 'Daily living, transport to Westmead health precinct, community social outings'
+    suburbs: ['Ballina', 'Lennox Head', 'Alstonville', 'Wardell', 'Woodburn', 'Evans Head', 'Casino', 'Lismore'],
+    keyHighlights: 'Daily living, local appointments, community access and social outings'
   },
   {
-    region: 'South West Sydney',
+    region: 'Clarence Valley',
     status: 'Open for Referrals',
-    suburbs: ['Liverpool', 'Campbelltown', 'Bankstown', 'Cabramatta', 'Fairfield', 'Casula', 'Ingleburn'],
+    suburbs: ['Grafton', 'Maclean', 'Yamba', 'Iluka', 'Lawrence', 'Ulmarra', 'South Grafton'],
     keyHighlights: 'Community sports, appointment transport, grocery & routine support'
   },
   {
-    region: 'Inner West & Canterbury',
+    region: 'Richmond Valley',
     status: 'Active Capacity',
-    suburbs: ['Strathfield', 'Burwood', 'Ashfield', 'Marrickville', 'Campsie', 'Newtown', 'Leichhardt'],
+    suburbs: ['Casino', 'Coraki', 'Evans Head', 'Woodburn', 'Broadwater', 'Rappville'],
     keyHighlights: 'Public transport training, social connection, cafe & arts outings'
   },
   {
-    region: 'Hills District & North West',
+    region: 'Lower Clarence Coast',
     status: 'Open for Referrals',
-    suburbs: ['Castle Hill', 'Baulkham Hills', 'Rouse Hill', 'Kellyville', 'Bella Vista', 'Norwest'],
+    suburbs: ['Yamba', 'Maclean', 'Iluka', 'Harwood', 'Palmers Island', 'Woombah'],
     keyHighlights: 'Independent living capacity, shopping assistance, park walks & activities'
   },
   {
-    region: 'Ryde & Northern Suburbs',
+    region: 'Mid North Coast',
     status: 'Active Capacity',
-    suburbs: ['Ryde', 'Macquarie Park', 'Epping', 'Eastwood', 'Hornsby', 'Pennant Hills'],
+    suburbs: ['Nambucca Heads', 'Macksville', 'Urunga', 'Bellingen', 'Sawtell', 'Toormina'],
     keyHighlights: 'University/TAFE study assistance, community recreation, evening routines'
   },
   {
-    region: 'Sydney City & Eastern Suburbs',
+    region: 'Coffs Coast',
     status: 'Accepting Waitlist',
-    suburbs: ['Sydney CBD', 'Redfern', 'Surry Hills', 'Bondi Junction', 'Randwick', 'Maroubra'],
+    suburbs: ['Coffs Harbour', 'Woolgoolga', 'Sawtell', 'Toormina', 'Nambucca Heads', 'Urunga'],
     keyHighlights: 'Tailored community access & weekend social support'
   },
 ];
 
 export function SydneyCoverageChecker() {
-  const [selectedRegion, setSelectedRegion] = useState<string>('Western Sydney');
+  const [selectedRegion, setSelectedRegion] = useState<string>('Northern Rivers');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const currentRegion = REGIONS.find(r => r.region === selectedRegion) || REGIONS[0];
@@ -67,11 +67,11 @@ export function SydneyCoverageChecker() {
     <div className="coverageCheckerCard">
       <div className="coverageHeader">
         <div className="badgeRow">
-          <span className="coverageBadge"><MapPin size={15} /> Local Greater Sydney Provider</span>
+          <span className="coverageBadge"><MapPin size={15} /> Regional NSW Support</span>
           <span className="statusLive">🟢 Taking New Referrals</span>
         </div>
         <h3>Check Support Availability in Your Suburb</h3>
-        <p>CarePoint provides dependable, local disability support workers across Sydney neighbourhoods.</p>
+        <p>Opus Care provides person-centred disability support along the regional NSW Pacific Highway corridor.</p>
       </div>
 
       {/* Suburb Quick Search */}
@@ -79,7 +79,7 @@ export function SydneyCoverageChecker() {
         <Search size={18} className="searchIcon" />
         <input
           type="text"
-          placeholder="Type your Sydney suburb (e.g. Parramatta, Liverpool, Castle Hill)..."
+          placeholder="Type your suburb (e.g. Ballina, Grafton, Coffs Harbour)..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="suburbSearchInput"
@@ -104,7 +104,7 @@ export function SydneyCoverageChecker() {
             ))
           ) : (
             <div className="noResultsFound">
-              <p>We provide flexible travel across most of Greater Sydney. If your suburb isn’t listed, send us a quick enquiry!</p>
+              <p>We cover communities from Ballina through the Clarence Valley to Coffs Harbour, subject to worker availability and agreed travel. If your town is not listed, please enquire.</p>
               <Link className="button small" href="/referral">Enquire for your area <ArrowRight size={15} /></Link>
             </div>
           )}

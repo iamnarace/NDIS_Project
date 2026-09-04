@@ -15,7 +15,7 @@ export default function PrivacyPage() {
             </span>
             <h1>Privacy Policy &amp; Information Handling</h1>
             <p>
-              How CarePoint Support Services collects, manages, and protects personal and sensitive participant information in accordance with the Privacy Act 1988 (Cth) and Australian Privacy Principles.
+              How Opus Care Support Services collects, manages, and protects personal and sensitive participant information in accordance with the Privacy Act 1988 (Cth) and Australian Privacy Principles.
             </p>
           </div>
         </section>
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
               <div className="policySection">
                 <h2>1. Commitment to Participant Privacy</h2>
                 <p>
-                  CarePoint Support Services respects and upholds the privacy rights of all NDIS participants, families, carers, and staff. We only collect personal information reasonably necessary to assess support needs, deliver tailored disability services, ensure participant safety, and fulfill statutory obligations.
+                  Opus Care Support Services respects and upholds the privacy rights of all NDIS participants, families, carers, and staff. We only collect personal information reasonably necessary to assess support needs, deliver tailored disability services, ensure participant safety, and fulfill statutory obligations.
                 </p>
               </div>
 
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
               <div className="policySection">
                 <h2>4. Accessing and Correcting Your Information</h2>
                 <p>
-                  You have the right to request access to any personal information we hold about you and to request corrections if any details are inaccurate or out of date. Contact our Privacy Officer at <strong>support@carepointsupport.com.au</strong>.
+                  You have the right to request access to any personal information we hold about you and to request corrections if any details are inaccurate or out of date. Contact our Privacy Officer at <strong>bijaykafle41@gmail.com</strong>.
                 </p>
               </div>
 

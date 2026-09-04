@@ -1,18 +1,18 @@
-# CarePoint Support Services
+# Opus Care Support Services
 
-Foundation website for **CarePoint Support Services**, a proposed NSW disability support business.
+Foundation website for **Opus Care Support Services**, a proposed NSW disability support business.
 
 ## Current positioning
 
 - Initial model: unregistered NDIS provider
 - Intended audience: self-managed and plan-managed NDIS participants
-- Initial service area placeholder: Greater Sydney / NSW
+- Service area: Ballina through the Northern Rivers and Clarence Valley to Grafton and Coffs Harbour
 - Current website content is a development foundation and must not be treated as final business, legal, insurance or registration information.
 
 ## Included
 
 - Responsive marketing website
-- CarePoint visual identity and starter logo mark
+- Opus Care visual identity and starter logo mark
 - Service overview
 - Participant/professional referral form UI
 - FAQ and contact sections
@@ -48,4 +48,4 @@ npm run dev
 
 ## Important
 
-Do not add an "NDIS Registered Provider" claim or NDIS registration badge unless registration has actually been approved and the wording/artwork is authorised. CarePoint should clearly describe its current provider status.
+Do not add an "NDIS Registered Provider" claim or NDIS registration badge unless registration has actually been approved and the wording/artwork is authorised. Opus Care should clearly describe its current provider status.

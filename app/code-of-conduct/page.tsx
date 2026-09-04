@@ -15,7 +15,7 @@ export default function CodeOfConductPage() {
             </span>
             <h1>NDIS Code of Conduct Commitment</h1>
             <p>
-              CarePoint Support Services and all team members operate strictly in accordance with the NDIS Code of Conduct to promote safe, respectful, and ethical support.
+              Opus Care Support Services and all team members operate strictly in accordance with the NDIS Code of Conduct to promote safe, respectful, and ethical support.
             </p>
           </div>
         </section>
@@ -26,7 +26,7 @@ export default function CodeOfConductPage() {
               <div className="policySection">
                 <h2>Our 7 Core Commitments Under the NDIS Code of Conduct</h2>
                 <p>
-                  All CarePoint workers, contractors, and management adhere to the 7 statutory principles set out by the NDIS Quality and Safeguards Commission:
+                  All Opus Care workers, contractors, and management adhere to the 7 statutory principles set out by the NDIS Quality and Safeguards Commission:
                 </p>
                 <div className="conductGrid">
                   <div className="conductItem">

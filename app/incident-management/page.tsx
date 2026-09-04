@@ -15,7 +15,7 @@ export default function IncidentManagementPage() {
             </span>
             <h1>Incident Management &amp; Safety Framework</h1>
             <p>
-              How CarePoint Support Services identifies, manages, records, and prevents incidents to ensure the safety, health, and wellbeing of every participant.
+              How Opus Care Support Services identifies, manages, records, and prevents incidents to ensure the safety, health, and wellbeing of every participant.
             </p>
           </div>
         </section>

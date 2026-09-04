@@ -56,7 +56,7 @@ export function ContactForm() {
         </div>
         <h3>Message Sent Successfully!</h3>
         <p>
-          Thank you for reaching out to <strong>CarePoint Support Services</strong>. Our local intake team in Yamba / Northern Rivers has received your enquiry and will respond within <strong>1 business day</strong>.
+          Thank you for reaching out to <strong>Opus Care Support Services</strong>. We have received your enquiry and will respond as soon as practical.
         </p>
         <div className="successDetailsSummary">
           <div><strong>Enquirer:</strong> {formData.name} ({role})</div>
