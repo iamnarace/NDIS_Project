@@ -1,0 +1,32 @@
+[
+  {
+    "id": "REF-1001",
+    "name": "Sarah Jenkins",
+    "role": "Support Coordinator",
+    "phone": "0412 345 678",
+    "email": "sarah.j@clarencecoordination.com.au",
+    "participantName": "Liam Davies",
+    "suburb": "Yamba",
+    "funding": "Plan-Managed",
+    "services": "Daily Living Support, Community Participation",
+    "schedulePreference": "Monday, Wednesday, Friday",
+    "message": "Liam is looking for an active support worker for community outings, gym, and assistance with meal prep 12 hours/week.",
+    "status": "new",
+    "createdAt": "2026-09-04T10:30:00Z"
+  },
+  {
+    "id": "REF-1002",
+    "name": "David Miller",
+    "role": "Family / Carer",
+    "phone": "0423 456 789",
+    "email": "david.m@gmail.com",
+    "participantName": "Emma Miller",
+    "suburb": "Grafton",
+    "funding": "Self-Managed",
+    "services": "Life Skills & Capacity, Transport Support",
+    "schedulePreference": "Tuesday, Thursday",
+    "message": "Emma would like 1-on-1 support for independent travel practice and cooking skills.",
+    "status": "contacted",
+    "createdAt": "2026-09-03T15:20:00Z"
+  }
+]

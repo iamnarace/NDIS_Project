@@ -1,0 +1,26 @@
+[
+  {
+    "id": "STF-001",
+    "name": "James Wilson",
+    "role": "Disability Support Worker",
+    "phone": "0455 111 222",
+    "email": "james.w@opuscare.com.au",
+    "suburbs": ["Yamba", "Maclean", "Iluka"],
+    "ndisScreening": "Cleared (Valid to Dec 2028)",
+    "wwcc": "WWC0982341E",
+    "firstAid": "Current (Valid to Nov 2027)",
+    "status": "active"
+  },
+  {
+    "id": "STF-002",
+    "name": "Sophie Clarke",
+    "role": "Support Worker & Mentor",
+    "phone": "0466 333 444",
+    "email": "sophie.c@opuscare.com.au",
+    "suburbs": ["Grafton", "South Grafton", "Ulmarra"],
+    "ndisScreening": "Cleared (Valid to Aug 2028)",
+    "wwcc": "WWC1122334E",
+    "firstAid": "Current (Valid to Oct 2027)",
+    "status": "active"
+  }
+]

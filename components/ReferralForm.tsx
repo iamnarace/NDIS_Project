@@ -1,15 +1,15 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { ArrowRight, CheckCircle2, Loader2, User, Users, Shield, MapPin, Calendar, Heart, ArrowLeft, HelpCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, User, Users, Shield, MapPin, Calendar, Heart, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
 const serviceOptions = [
-  { id: 'daily-living', title: 'Daily Living Support', desc: 'Routines, meal prep, personal assistance at home' },
-  { id: 'community', title: 'Community Participation', desc: 'Social activities, shopping, appointments & outings' },
-  { id: 'transport', title: 'Transport Support', desc: 'Getting to appointments, work, study & community' },
-  { id: 'life-skills', title: 'Life Skills & Capacity', desc: 'Confidence building, budgeting, cooking & independence' },
-  { id: 'companionship', title: 'Companionship & Mentoring', desc: 'Shared hobbies, active listening & 1-on-1 friendship' },
-  { id: 'household', title: 'Household Assistance', desc: 'Everyday household chores & practical home organisation' },
+  { id: 'daily-living', title: 'Daily Living Support', desc: 'Routines, meal prep & personal care at home' },
+  { id: 'community', title: 'Community Participation', desc: 'Social outings, beach trips, sports & activities' },
+  { id: 'transport', title: 'Transport Assistance', desc: 'Medical appointments, work & community transit' },
+  { id: 'life-skills', title: 'Life Skills & Capacity', desc: 'Budgeting, cooking, shopping & independence' },
+  { id: 'respite', title: 'In-Home Respite Care', desc: 'Attentive care giving primary carers peace of mind' },
+  { id: 'mentoring', title: '1-on-1 Mentoring & Coaching', desc: 'Confidence, fitness routines & goal setting' },
 ];
 
 const roles = [
@@ -20,10 +20,12 @@ const roles = [
 ];
 
 const fundingTypes = [
-  { id: 'plan-managed', label: 'Plan-Managed (Most Common)', desc: 'Invoices sent directly to your plan manager' },
-  { id: 'self-managed', label: 'Self-Managed', desc: 'Invoices sent to you for NDIS portal reimbursement' },
-  { id: 'not-sure', label: 'Not Sure / Applying', desc: 'We can help explain your plan setup during intake' },
+  { id: 'plan-managed', label: 'Plan-Managed', desc: 'Invoices sent directly to plan manager' },
+  { id: 'self-managed', label: 'Self-Managed', desc: 'Invoices sent directly to participant' },
+  { id: 'not-sure', label: 'Not Sure / Applying', desc: 'We explain during intake call' },
 ];
+
+const availableDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export function ReferralForm() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -38,12 +40,11 @@ export function ReferralForm() {
     email: '',
     participantName: '',
     suburb: '',
-    funding: 'plan-managed',
+    funding: 'Plan-Managed',
     services: [] as string[],
     days: [] as string[],
     message: '',
-    contactPreference: 'Phone',
-    consent: false,
+    consent: true,
   });
 
   const toggleService = (title: string) => {
@@ -66,10 +67,6 @@ export function ReferralForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!formData.consent) {
-      alert('Please check the consent box to submit your enquiry.');
-      return;
-    }
     setStatus('sending');
     setMessage('');
     try {
@@ -85,300 +82,322 @@ export function ReferralForm() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Unable to send referral');
       setStatus('success');
-      setMessage('Thank you! Your referral enquiry has been received. Our team will contact you as soon as practical.');
+      setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you within 24 business hours.');
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Online referrals are currently being configured. Please contact us directly at bijaykafle41@gmail.com.');
+      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please call 0415 716 516.');
     }
   }
 
   if (status === 'success') {
     return (
-      <div className="referralSuccessCard">
-        <div className="successIconBadge">
-          <CheckCircle2 size={48} color="#0D9488" />
+      <div className="referralSuccessPane">
+        <div className="successIconWrap">
+          <CheckCircle2 size={48} color="#10B981" />
         </div>
-        <h3>Referral Received Successfully</h3>
+        <h3>Referral Received!</h3>
         <p className="successLead">{message}</p>
         <div className="successDetailsBox">
-          <div><strong>Name:</strong> {formData.name}</div>
-          <div><strong>Role:</strong> {formData.role}</div>
-          <div><strong>Suburb:</strong> {formData.suburb || 'Regional NSW'}</div>
-          <div><strong>Selected Supports:</strong> {formData.services.join(', ') || 'General support'}</div>
+          <div><strong>Participant:</strong> {formData.participantName || formData.name}</div>
+          <div><strong>Contact Phone:</strong> {formData.phone}</div>
+          <div><strong>Suburbs:</strong> {formData.suburb || 'Yamba / Northern Rivers'}</div>
+          <div><strong>Response Time:</strong> Within 24 Business Hours</div>
         </div>
-        <p className="successNote">We treat all information confidentially in accordance with the Privacy Act and NDIS Code of Conduct.</p>
-        <button className="button" type="button" onClick={() => { setStatus('idle'); setStep(1); }}>
-          Submit another referral
+        <button
+          type="button"
+          onClick={() => {
+            setStatus('idle');
+            setStep(1);
+            setFormData({
+              role: 'participant',
+              name: '',
+              phone: '',
+              email: '',
+              participantName: '',
+              suburb: '',
+              funding: 'Plan-Managed',
+              services: [],
+              days: [],
+              message: '',
+              consent: true,
+            });
+          }}
+          className="paneBtn primary"
+        >
+          Submit Another Referral
         </button>
       </div>
     );
   }
 
   return (
-    <form className="crispReferralWizard" onSubmit={handleSubmit}>
-      {/* Wizard Header & Progress */}
-      <div className="wizardHeader">
-        <div className="wizardPillRow">
-          <span className="wizardBadge">Direct Referral & Intake</span>
-          <span className="stepCounter">Step {step} of 3</span>
+    <form onSubmit={handleSubmit} className="referralWizardForm">
+      {/* Wizard Progress Header */}
+      <div className="wizardProgressHeader">
+        <div className="wizardStepInfo">
+          <span className="wizardStepTag">STEP {step} OF 3</span>
+          <h3>
+            {step === 1 && '1. Contact Details & Role'}
+            {step === 2 && '2. Support Preferences'}
+            {step === 3 && '3. Schedule & Confirmation'}
+          </h3>
         </div>
-        <h3>{step === 1 ? '1. Your Details & Role' : step === 2 ? '2. Support Needs & NDIS Plan' : '3. Location, Schedule & Submit'}</h3>
-        <p className="wizardSubtitle">
-          {step === 1 && 'Tell us who is reaching out so we can prepare the right conversation.'}
-          {step === 2 && 'Select the types of support you’re looking for and your funding arrangement.'}
-          {step === 3 && 'Let us know your preferred days, location and any initial questions.'}
-        </p>
-
-        {/* Step Progress Bar */}
-        <div className="progressBarTrack">
-          <div className="progressBarFill" style={{ width: step === 1 ? '33.3%' : step === 2 ? '66.6%' : '100%' }} />
+        <div className="wizardProgressBarTrack">
+          <div 
+            className="wizardProgressBarFill" 
+            style={{ width: `${(step / 3) * 100}%` }}
+          />
         </div>
       </div>
 
-      {/* STEP 1 */}
-      {step === 1 && (
-        <div className="wizardStepSection">
-          <div className="fieldGroup">
-            <label className="fieldTitle">Who is this referral for?</label>
-            <div className="roleSelectorGrid">
-              {roles.map(({ id, label, icon: Icon }) => (
-                <button
-                  type="button"
-                  key={id}
-                  className={`roleSelectBtn ${formData.role === id ? 'activeRole' : ''}`}
-                  onClick={() => setFormData(prev => ({ ...prev, role: id }))}
-                >
-                  <Icon size={20} />
-                  <span>{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="twoColumns">
-            <label className="inputLabel">
-              <span>Your Full Name <strong className="req">*</strong></span>
-              <input
-                required
-                type="text"
-                className="crispInput"
-                placeholder="e.g. Sarah Jenkins"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-              />
-            </label>
-
-            {(formData.role === 'coordinator' || formData.role === 'family' || formData.role === 'plan-manager') && (
-              <label className="inputLabel">
-                <span>Participant First Name / Initials</span>
-                <input
-                  type="text"
-                  className="crispInput"
-                  placeholder="e.g. Alex (optional for privacy)"
-                  value={formData.participantName}
-                  onChange={e => setFormData({ ...formData, participantName: e.target.value })}
-                />
-              </label>
-            )}
-          </div>
-
-          <div className="twoColumns">
-            <label className="inputLabel">
-              <span>Phone Number <strong className="req">*</strong></span>
-              <input
-                required
-                type="tel"
-                className="crispInput"
-                placeholder="04xx xxx xxx"
-                value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </label>
-
-            <label className="inputLabel">
-              <span>Email Address <strong className="req">*</strong></span>
-              <input
-                required
-                type="email"
-                className="crispInput"
-                placeholder="name@example.com.au"
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-              />
-            </label>
-          </div>
-
-          <div className="wizardNavActions">
-            <div className="privacyNoticeText">
-              <Shield size={16} />
-              <span>We never share your contact details. Only used to discuss your support request.</span>
-            </div>
-            <button
-              type="button"
-              className="button"
-              onClick={() => {
-                if (!formData.name || !formData.phone || !formData.email) {
-                  alert('Please enter your Name, Phone and Email to continue.');
-                  return;
-                }
-                setStep(2);
-              }}
-            >
-              Continue to Support Needs <ArrowRight size={16} />
-            </button>
-          </div>
+      {status === 'error' && (
+        <div className="formErrorNotice">
+          ⚠️ {message}
         </div>
       )}
 
-      {/* STEP 2 */}
-      {step === 2 && (
-        <div className="wizardStepSection">
-          <div className="fieldGroup">
-            <label className="fieldTitle">Select Required Supports <span className="helperText">(Select all that apply)</span></label>
-            <div className="serviceCheckGrid">
-              {serviceOptions.map(({ id, title, desc }) => {
-                const isSelected = formData.services.includes(title);
+      {/* ─── STEP 1: CONTACT DETAILS ───────────────────────────────────── */}
+      {step === 1 && (
+        <div className="wizardStepBody">
+          <div className="fieldGroupBlock">
+            <label className="fieldTitleLabel">Who is submitting this referral?</label>
+            <div className="roleSelectionGrid">
+              {roles.map((r) => {
+                const Icon = r.icon;
+                const active = formData.role === r.id;
                 return (
-                  <div
-                    key={id}
-                    className={`serviceCheckCard ${isSelected ? 'serviceSelected' : ''}`}
-                    onClick={() => toggleService(title)}
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setFormData(p => ({ ...p, role: r.id }))}
+                    className={`roleSelectCard ${active ? 'selected' : ''}`}
                   >
-                    <div className="serviceCheckHeader">
-                      <div className={`fakeCheckbox ${isSelected ? 'checked' : ''}`}>
-                        {isSelected && <CheckCircle2 size={16} color="#FFFFFF" />}
-                      </div>
-                      <strong>{title}</strong>
-                    </div>
-                    <p>{desc}</p>
-                  </div>
+                    <Icon size={18} />
+                    <span>{r.label}</span>
+                  </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="fieldGroup">
-            <label className="fieldTitle">NDIS Plan Management Type</label>
-            <div className="fundingSelectorGrid">
-              {fundingTypes.map(({ id, label, desc }) => (
-                <div
-                  key={id}
-                  className={`fundingCard ${formData.funding === id ? 'activeFunding' : ''}`}
-                  onClick={() => setFormData({ ...formData, funding: id })}
-                >
-                  <strong>{label}</strong>
-                  <p>{desc}</p>
-                </div>
-              ))}
+          <div className="formGridRow2">
+            <div className="fieldGroupBlock">
+              <label className="fieldTitleLabel">Your Full Name <span className="req">*</span></label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Sarah Jenkins"
+                value={formData.name}
+                onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
+                className="luxuryInput"
+              />
+            </div>
+
+            <div className="fieldGroupBlock">
+              <label className="fieldTitleLabel">Participant Full Name (if different)</label>
+              <input
+                type="text"
+                placeholder="e.g. Liam Davies"
+                value={formData.participantName}
+                onChange={(e) => setFormData(p => ({ ...p, participantName: e.target.value }))}
+                className="luxuryInput"
+              />
             </div>
           </div>
 
-          <div className="wizardNavActions between">
-            <button type="button" className="button secondary" onClick={() => setStep(1)}>
-              <ArrowLeft size={16} /> Back
-            </button>
+          <div className="formGridRow2">
+            <div className="fieldGroupBlock">
+              <label className="fieldTitleLabel">Contact Phone Number <span className="req">*</span></label>
+              <input
+                type="tel"
+                required
+                placeholder="04xx xxx xxx"
+                value={formData.phone}
+                onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
+                className="luxuryInput"
+              />
+            </div>
+
+            <div className="fieldGroupBlock">
+              <label className="fieldTitleLabel">Email Address <span className="req">*</span></label>
+              <input
+                type="email"
+                required
+                placeholder="name@example.com.au"
+                value={formData.email}
+                onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))}
+                className="luxuryInput"
+              />
+            </div>
+          </div>
+
+          <div className="fieldGroupBlock">
+            <label className="fieldTitleLabel">Participant Town or Suburb</label>
+            <input
+              type="text"
+              placeholder="e.g. Yamba, Maclean, Grafton, New Italy..."
+              value={formData.suburb}
+              onChange={(e) => setFormData(p => ({ ...p, suburb: e.target.value }))}
+              className="luxuryInput"
+            />
+          </div>
+
+          <div className="wizardNavRow rightOnly">
             <button
               type="button"
-              className="button"
-              onClick={() => setStep(3)}
+              onClick={() => {
+                if (!formData.name || !formData.phone || !formData.email) {
+                  alert('Please enter your name, phone number, and email.');
+                  return;
+                }
+                setStep(2);
+              }}
+              className="heroPillBtn filled"
             >
-              Continue to Location &amp; Schedule <ArrowRight size={16} />
+              <span>Continue to Step 2</span>
+              <ArrowRight size={16} />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 3 */}
+      {/* ─── STEP 2: SUPPORT PREFERENCES ───────────────────────────────── */}
+      {step === 2 && (
+        <div className="wizardStepBody">
+          <div className="fieldGroupBlock">
+            <label className="fieldTitleLabel">Which support services are needed?</label>
+            <div className="servicesCardsCheckGrid">
+              {serviceOptions.map((srv) => {
+                const checked = formData.services.includes(srv.title);
+                return (
+                  <button
+                    key={srv.id}
+                    type="button"
+                    onClick={() => toggleService(srv.title)}
+                    className={`serviceSelectCard ${checked ? 'selected' : ''}`}
+                  >
+                    <div className="checkboxDot">{checked ? '✓' : ''}</div>
+                    <div className="serviceSelectText">
+                      <strong>{srv.title}</strong>
+                      <small>{srv.desc}</small>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="fieldGroupBlock">
+            <label className="fieldTitleLabel">NDIS Funding Management Type</label>
+            <div className="fundingTypeSelectGrid">
+              {fundingTypes.map((f) => {
+                const active = formData.funding === f.label;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setFormData(p => ({ ...p, funding: f.label }))}
+                    className={`fundingSelectCard ${active ? 'selected' : ''}`}
+                  >
+                    <strong>{f.label}</strong>
+                    <small>{f.desc}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="wizardNavRow">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="heroPillBtn outline"
+            >
+              <ArrowLeft size={16} />
+              <span>Back</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="heroPillBtn filled"
+            >
+              <span>Continue to Final Step</span>
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── STEP 3: SCHEDULE & SUBMIT ─────────────────────────────────── */}
       {step === 3 && (
-        <div className="wizardStepSection">
-          <div className="twoColumns">
-            <label className="inputLabel">
-              <span>Town / Suburb (Yamba, Grafton, Maclean, New Italy, etc.) <strong className="req">*</strong></span>
-              <input
-                required
-                type="text"
-                className="crispInput"
-                placeholder="e.g. Yamba, Maclean, Grafton, Iluka, New Italy, Evans Head..."
-                value={formData.suburb}
-                onChange={e => setFormData({ ...formData, suburb: e.target.value })}
-              />
-            </label>
-
-            <label className="inputLabel">
-              <span>Preferred Contact Method</span>
-              <select
-                className="crispInput"
-                value={formData.contactPreference}
-                onChange={e => setFormData({ ...formData, contactPreference: e.target.value })}
-              >
-                <option>Phone call</option>
-                <option>Email</option>
-                <option>SMS message first</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="fieldGroup">
-            <label className="fieldTitle">Preferred Days for Support</label>
-            <div className="daysRow">
-              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Flexible'].map(day => (
-                <button
-                  type="button"
-                  key={day}
-                  className={`dayPill ${formData.days.includes(day) ? 'activeDay' : ''}`}
-                  onClick={() => toggleDay(day)}
-                >
-                  {day}
-                </button>
-              ))}
+        <div className="wizardStepBody">
+          <div className="fieldGroupBlock">
+            <label className="fieldTitleLabel">Preferred Support Days (Optional)</label>
+            <div className="daysPillsSelector">
+              {availableDays.map((day) => {
+                const active = formData.days.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleDay(day)}
+                    className={`dayChipBtn ${active ? 'selected' : ''}`}
+                  >
+                    {active ? '✓ ' : '+ '}{day}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <label className="inputLabel">
-            <span>How can we best support you? <span className="helperText">(Goals, hobbies, specific requirements)</span></span>
+          <div className="fieldGroupBlock">
+            <label className="fieldTitleLabel">Additional Notes or Participant Goals</label>
             <textarea
-              className="crispTextarea"
               rows={4}
-              placeholder="Tell us a little about your goals (e.g. looking for someone friendly to help get out into the community on Tuesday mornings, visit local cafes, or assist with weekly meal planning)..."
+              placeholder="Tell us about hobbies, personality, specific shift hours needed, or goals..."
               value={formData.message}
-              onChange={e => setFormData({ ...formData, message: e.target.value })}
+              onChange={(e) => setFormData(p => ({ ...p, message: e.target.value }))}
+              className="luxuryTextarea"
             />
-          </label>
+          </div>
 
-          <label className="consentCheckbox">
-            <input
-              required
-              type="checkbox"
-              checked={formData.consent}
-              onChange={e => setFormData({ ...formData, consent: e.target.checked })}
-            />
-            <span>
-              I consent to Opus Care Support Services contacting me regarding this disability support enquiry. (No sensitive medical documents required now).
-            </span>
-          </label>
+          <div className="consentCheckboxGroup">
+            <label className="consentLabel">
+              <input
+                type="checkbox"
+                checked={formData.consent}
+                onChange={(e) => setFormData(p => ({ ...p, consent: e.target.checked }))}
+                className="customCheckbox"
+              />
+              <span>
+                I confirm the participant or nominee has consented to sharing these details with Opus Care Support Services for NDIS service intake.
+              </span>
+            </label>
+          </div>
 
-          {message && status === 'error' && (
-            <div className="formStatus error">
-              <span>{message}</span>
-            </div>
-          )}
-
-          <div className="wizardNavActions between">
-            <button type="button" className="button secondary" onClick={() => setStep(2)}>
-              <ArrowLeft size={16} /> Back
+          <div className="wizardNavRow">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="heroPillBtn outline"
+            >
+              <ArrowLeft size={16} />
+              <span>Back</span>
             </button>
             <button
               type="submit"
-              className="button submitBtn"
               disabled={status === 'sending'}
+              className="heroPillBtn filled submit"
             >
               {status === 'sending' ? (
                 <>
-                  <Loader2 className="spin" size={18} /> Submitting Referral...
+                  <Loader2 size={18} className="spin" />
+                  <span>Submitting Referral...</span>
                 </>
               ) : (
                 <>
-                  Submit Referral Enquiry <ArrowRight size={18} />
+                  <span>Submit Direct Referral</span>
+                  <ArrowRight size={16} />
                 </>
               )}
             </button>

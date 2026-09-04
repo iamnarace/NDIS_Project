@@ -1,0 +1,28 @@
+[
+  {
+    "id": "PAR-001",
+    "name": "Liam Davies",
+    "ndisNumber": "430987123",
+    "fundingType": "Plan-Managed",
+    "planManager": "MyPlan Australia",
+    "suburb": "Yamba NSW",
+    "allocatedHours": 12,
+    "primaryService": "Community Participation & Daily Living",
+    "status": "active",
+    "workerAssigned": "James Wilson",
+    "contactPerson": "Sarah Jenkins (Coordinator) - 0412 345 678"
+  },
+  {
+    "id": "PAR-002",
+    "name": "Michael Taylor",
+    "ndisNumber": "431876543",
+    "fundingType": "Self-Managed",
+    "planManager": "Self-Managed",
+    "suburb": "Maclean NSW",
+    "allocatedHours": 8,
+    "primaryService": "Transport & In-Home Respite",
+    "status": "active",
+    "workerAssigned": "Sophie Clarke",
+    "contactPerson": "Helen Taylor (Mother) - 0433 888 999"
+  }
+]
