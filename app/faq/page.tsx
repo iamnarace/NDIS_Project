@@ -1,73 +1,137 @@
-import { HelpCircle, Shield, ArrowRight, Phone, Mail, FileText } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { HelpCircle, ChevronDown, Shield, Sparkles, ArrowRight, CheckCircle2, Phone, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
 import { FundingTransparencyCard } from '../../components/FundingTransparencyCard';
 import { ResourceBrochures } from '../../components/ResourceBrochures';
 
+interface FaqItem {
+  id: string;
+  question: string;
+  category: string;
+  answer: string;
+}
+
+const FAQS: FaqItem[] = [
+  {
+    id: 'who-can-use',
+    question: 'Who can use Opus Care Support Services?',
+    category: 'Eligibility & Intake',
+    answer: 'Opus Care provides personalised disability supports for self-managed and plan-managed NDIS participants across Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn, Evans Head, and surrounding Northern Rivers communities. Fit, compatibility, and availability are confirmed during our friendly initial onboarding chat.',
+  },
+  {
+    id: 'provider-status',
+    question: 'Are you a registered or unregistered NDIS provider?',
+    category: 'NDIS Registration',
+    answer: 'Opus Care operates as an unregistered provider under the NDIS framework. We maintain strict compliance with the NDIS Quality and Safeguards Commission and the NDIS Code of Conduct. As an unregistered provider, we work directly with self-managed and plan-managed participants, ensuring personalised matching with zero corporate administrative overhead.',
+  },
+  {
+    id: 'hourly-rates',
+    question: 'How are your hourly rates determined?',
+    category: 'Pricing & Billing',
+    answer: 'All our hourly rates strictly adhere to the official NDIS Pricing Arrangements and Price Limits for standard 1-on-1 Core (Assistance with Daily Living, Social & Community Participation) and Capacity Building supports. All rates, travel, and cancellation terms are documented upfront in your service agreement with zero hidden fees or exit charges.',
+  },
+  {
+    id: 'turnaround-time',
+    question: 'How quickly can support start after making a referral?',
+    category: 'Service Start',
+    answer: 'We review and respond to all referrals within 24 business hours. Following an initial discussion of your needs, confirming support worker availability, and signing an agreed service agreement, support can commence within 3 to 7 business days.',
+  },
+  {
+    id: 'worker-checks',
+    question: 'What qualifications and clearances do your support workers hold?',
+    category: 'Safety & Compliance',
+    answer: 'All Opus Care support workers hold verified NDIS Worker Screening Check (NWSC) clearances, Working With Children Checks (WWCC), current First Aid & CPR certifications, comprehensive vehicle insurance, and adhere strictly to the NDIS Code of Conduct.',
+  },
+  {
+    id: 'cancellation-policy',
+    question: 'What is your cancellation and reschedule policy?',
+    category: 'Policies',
+    answer: 'Our cancellation policy strictly complies with standard NDIS pricing guidelines (at least 2 clear business days notice for short-notice cancellations). We always work flexibly with participants and families to reschedule shifts whenever reasonably possible.',
+  },
+];
+
 export default function FaqPage() {
+  const [openIds, setOpenIds] = useState<string[]>(['who-can-use']);
+
+  const toggleFaq = (id: string) => {
+    setOpenIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
   return (
     <>
       <SiteHeader />
-      <main>
+      <main className="faqMainWrapper">
         {/* Page Hero */}
-        <section className="pageHero">
+        <section className="faqHeroSection">
           <div className="shell">
-            <span className="eyebrow">
-              <HelpCircle size={15} /> Clarity &amp; Transparency
-            </span>
-            <h1>Frequently Asked Questions &amp; Pricing</h1>
-            <p>
-              Find clear answers regarding our NDIS support services, rates, billing, matching process, and service boundaries across Yamba and Northern Rivers NSW.
-            </p>
-          </div>
-        </section>
-
-        {/* FAQ Grid */}
-        <section className="softSection">
-          <div className="shell">
-            <div className="faqGrid">
-              <details open>
-                <summary>Who can use Opus Care Support Services?</summary>
-                <p>Opus Care supports self-managed and plan-managed NDIS participants across Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn, and surrounding Northern Rivers communities. Fit and availability are confirmed during our quick initial onboarding chat.</p>
-              </details>
-
-              <details>
-                <summary>Are you a registered or unregistered NDIS provider?</summary>
-                <p>Opus Care operates as an unregistered provider under the NDIS framework. We do not claim registered status. This means we can work directly with self-managed and plan-managed participants, offering personalised support with zero administrative overhead.</p>
-              </details>
-
-              <details>
-                <summary>How are your hourly rates determined?</summary>
-                <p>All our rates strictly adhere to the official NDIS Pricing Arrangements and Price Limits for standard 1-on-1 Core and Capacity Building supports. All rates, travel, and cancellation terms are documented upfront in your service agreement with zero hidden fees.</p>
-              </details>
-
-              <details>
-                <summary>How quickly can support start after making a referral?</summary>
-                <p>We review and respond to all referrals within 1 business day. After discussing your needs, confirming support worker availability, and signing an agreed service agreement, support can commence within 3–7 business days.</p>
-              </details>
-
-              <details>
-                <summary>What qualifications and checks do your support workers hold?</summary>
-                <p>All Opus Care support workers hold valid NDIS Worker Screening Check clearances, Working With Children Checks (WWCC), Current First Aid &amp; CPR certifications, and adhere strictly to the NDIS Code of Conduct.</p>
-              </details>
-
-              <details>
-                <summary>What is your cancellation and reschedule policy?</summary>
-                <p>Our cancellation policy aligns with the standard NDIS pricing guidelines (giving at least 2 clear business days&apos; notice for short-notice cancellations). We always work with participants to reschedule where reasonably possible.</p>
-              </details>
+            <div className="faqHeroCenter">
+              <span className="greenCategoryTag">
+                <HelpCircle size={14} /> CLARITY &amp; TRANSPARENCY
+              </span>
+              <h1 className="sectionSerifTitle">Frequently Asked Questions &amp; Pricing</h1>
+              <p className="sectionSubDesc">
+                Find clear, straightforward answers regarding our NDIS support services, pricing limits, billing, matching process, and regional coverage across Northern Rivers NSW.
+              </p>
             </div>
           </div>
         </section>
 
-        {/* Funding Transparency Component */}
-        <section className="shell">
-          <FundingTransparencyCard />
+        {/* Controlled Accordion Card Panes */}
+        <section className="faqAccordionSection">
+          <div className="shell">
+            <div className="faqAccordionContainer">
+              {FAQS.map((faq) => {
+                const isOpen = openIds.includes(faq.id);
+                return (
+                  <div
+                    key={faq.id}
+                    className={`controlledCardPane faqAccordionCard ${isOpen ? 'active' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      className="faqQuestionBtn"
+                      onClick={() => toggleFaq(faq.id)}
+                      aria-expanded={isOpen}
+                    >
+                      <div className="faqQuestionContent">
+                        <span className="faqCategoryBadge">{faq.category}</span>
+                        <h3>{faq.question}</h3>
+                      </div>
+                      <div className={`faqChevronIcon ${isOpen ? 'rotated' : ''}`}>
+                        <ChevronDown size={20} />
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="faqAnswerPane">
+                        <p>{faq.answer}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </section>
 
-        {/* Resource Brochures Component */}
-        <section className="shell">
-          <ResourceBrochures />
+        {/* Funding Transparency Controlled Panes */}
+        <section className="fundingSectionWrap">
+          <div className="shell">
+            <FundingTransparencyCard />
+          </div>
+        </section>
+
+        {/* Resource Brochures */}
+        <section className="brochuresSectionWrap">
+          <div className="shell">
+            <ResourceBrochures />
+          </div>
         </section>
       </main>
       <SiteFooter />

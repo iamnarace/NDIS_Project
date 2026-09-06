@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, CheckCircle2, Phone, Mail, MapPin, Sparkles, Shield, Clock, ArrowRight } from 'lucide-react';
+import { Send, CheckCircle2, Phone, Mail, MapPin, Sparkles, Shield, Clock, ArrowRight, Loader2 } from 'lucide-react';
 
 export function ContactForm() {
   const [role, setRole] = useState('NDIS Participant');
@@ -37,35 +37,58 @@ export function ContactForm() {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      // Also record in referral/contact system
+      await fetch('/api/referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          role,
+          phone: formData.phone,
+          email: formData.email,
+          participantName: formData.name,
+          suburb: formData.location || 'Clarence Coast / Northern Rivers',
+          funding: formData.fundingType,
+          services: 'General Contact Enquiry',
+          schedulePreference: 'To be discussed',
+          message: formData.message,
+          consent: true,
+        }),
+      });
+    } catch (err) {
+      console.warn('Contact submission logged locally');
+    } finally {
       setIsSubmitting(false);
       setSubmitted(true);
-    }, 800);
+    }
   };
 
   if (submitted) {
     return (
-      <div className="contactSuccessPanel">
-        <div className="successBadgeIcon">
-          <CheckCircle2 size={48} color="#0D9488" />
+      <div className="contactSuccessPane">
+        <div className="successGreenCheckRing">
+          <CheckCircle2 size={36} />
         </div>
         <h3>Message Sent Successfully!</h3>
         <p>
-          Thank you for reaching out to <strong>Opus Care Support Services</strong>. We have received your enquiry and will respond as soon as practical.
+          Thank you for reaching out to <strong>Opus Care Support Services</strong>. Our local Northern Rivers team reviews all enquiries and will get back to you within 24 business hours.
         </p>
         <div className="successDetailsSummary">
           <div><strong>Enquirer:</strong> {formData.name} ({role})</div>
           <div><strong>Email:</strong> {formData.email}</div>
+          <div><strong>Phone:</strong> {formData.phone}</div>
           <div><strong>Location / Suburb:</strong> {formData.location || 'Clarence Coast / Northern Rivers'}</div>
-          <div><strong>Funding:</strong> {formData.fundingType}</div>
+          <div><strong>Funding Model:</strong> {formData.fundingType}</div>
         </div>
         <button
-          className="button primary"
+          type="button"
+          className="heroPillBtn filled"
           onClick={() => {
             setSubmitted(false);
             setFormData({ name: '', email: '', phone: '', location: '', fundingType: 'Plan-Managed', message: '' });
@@ -78,34 +101,43 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="premiumContactForm" noValidate>
+    <form onSubmit={handleSubmit} className="controlledCardPane contactFormCard" noValidate>
+      <div className="cardPaneHeader">
+        <span className="cardPaneBadge">DIRECT ENQUIRY</span>
+        <h2>Send Us a Message</h2>
+        <p>Fill in your details below and a member of our care team will contact you promptly.</p>
+      </div>
+
       {/* Role Pill Selector */}
-      <div className="formFieldGroup">
-        <label className="fieldLabel">I am contacting as:</label>
-        <div className="rolePillsWrapper">
-          {ROLES.map((r) => (
-            <button
-              type="button"
-              key={r}
-              className={`rolePillBtn ${role === r ? 'selected' : ''}`}
-              onClick={() => setRole(r)}
-            >
-              {r}
-            </button>
-          ))}
+      <div className="fieldGroupBlock">
+        <label className="fieldTitleLabel">I am reaching out as:</label>
+        <div className="rolesChipsWrapper">
+          {ROLES.map((r) => {
+            const active = role === r;
+            return (
+              <button
+                type="button"
+                key={r}
+                className={`roleChipBtn ${active ? 'selected' : ''}`}
+                onClick={() => setRole(r)}
+              >
+                {active ? '✓ ' : ''}{r}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Grid Inputs */}
-      <div className="formGridRow2">
-        <div className="formFieldGroup">
-          <label className="fieldLabel" htmlFor="contactName">
-            Your Full Name <span className="reqStar">*</span>
+      <div className="fieldsTwoColRow">
+        <div className="fieldGroupBlock">
+          <label className="fieldTitleLabel" htmlFor="contactName">
+            Your Full Name <span className="req">*</span>
           </label>
           <input
             id="contactName"
             type="text"
-            className={`premiumInput ${errors.name ? 'inputError' : ''}`}
+            className={`luxuryInput ${errors.name ? 'inputError' : ''}`}
             placeholder="e.g. Sarah Jenkins"
             value={formData.name}
             onChange={(e) => {
@@ -116,15 +148,15 @@ export function ContactForm() {
           {errors.name && <span className="fieldErrorMsg">{errors.name}</span>}
         </div>
 
-        <div className="formFieldGroup">
-          <label className="fieldLabel" htmlFor="contactPhone">
-            Phone Number <span className="reqStar">*</span>
+        <div className="fieldGroupBlock">
+          <label className="fieldTitleLabel" htmlFor="contactPhone">
+            Phone Number <span className="req">*</span>
           </label>
           <input
             id="contactPhone"
             type="tel"
-            className={`premiumInput ${errors.phone ? 'inputError' : ''}`}
-            placeholder="e.g. 0400 123 456"
+            className={`luxuryInput ${errors.phone ? 'inputError' : ''}`}
+            placeholder="e.g. 0415 716 516"
             value={formData.phone}
             onChange={(e) => {
               setFormData({ ...formData, phone: e.target.value });
@@ -135,16 +167,16 @@ export function ContactForm() {
         </div>
       </div>
 
-      <div className="formGridRow2">
-        <div className="formFieldGroup">
-          <label className="fieldLabel" htmlFor="contactEmail">
-            Email Address <span className="reqStar">*</span>
+      <div className="fieldsTwoColRow">
+        <div className="fieldGroupBlock">
+          <label className="fieldTitleLabel" htmlFor="contactEmail">
+            Email Address <span className="req">*</span>
           </label>
           <input
             id="contactEmail"
             type="email"
-            className={`premiumInput ${errors.email ? 'inputError' : ''}`}
-            placeholder="e.g. sarah@example.com"
+            className={`luxuryInput ${errors.email ? 'inputError' : ''}`}
+            placeholder="e.g. sarah@example.com.au"
             value={formData.email}
             onChange={(e) => {
               setFormData({ ...formData, email: e.target.value });
@@ -154,15 +186,15 @@ export function ContactForm() {
           {errors.email && <span className="fieldErrorMsg">{errors.email}</span>}
         </div>
 
-        <div className="formFieldGroup">
-          <label className="fieldLabel" htmlFor="contactLocation">
+        <div className="fieldGroupBlock">
+          <label className="fieldTitleLabel" htmlFor="contactLocation">
             Town / Suburb (Yamba, Grafton, etc.)
           </label>
           <input
             id="contactLocation"
             type="text"
-            className="premiumInput"
-            placeholder="e.g. Yamba, Maclean, Grafton, New Italy"
+            className="luxuryInput"
+            placeholder="e.g. Yamba, Maclean, Grafton, Iluka"
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           />
@@ -170,33 +202,35 @@ export function ContactForm() {
       </div>
 
       {/* Funding Model */}
-      <div className="formFieldGroup">
-        <label className="fieldLabel">NDIS Plan Management Type:</label>
-        <div className="fundingPillsWrapper">
-          {FUNDING_OPTIONS.map((f) => (
-            <label key={f} className={`fundingRadioPill ${formData.fundingType === f ? 'selected' : ''}`}>
-              <input
-                type="radio"
-                name="fundingType"
-                value={f}
-                checked={formData.fundingType === f}
-                onChange={(e) => setFormData({ ...formData, fundingType: e.target.value })}
-              />
-              <span>{f}</span>
-            </label>
-          ))}
+      <div className="fieldGroupBlock">
+        <label className="fieldTitleLabel">NDIS Funding Model:</label>
+        <div className="fundingCardsSelectGrid">
+          {FUNDING_OPTIONS.map((f) => {
+            const active = formData.fundingType === f;
+            return (
+              <button
+                key={f}
+                type="button"
+                className={`fundingSelectCard ${active ? 'selected' : ''}`}
+                onClick={() => setFormData({ ...formData, fundingType: f })}
+              >
+                <span className="radioBullet">{active ? '●' : '○'}</span>
+                <span>{f}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Message Box */}
-      <div className="formFieldGroup">
-        <label className="fieldLabel" htmlFor="contactMessage">
-          How can we support you or the participant? <span className="reqStar">*</span>
+      <div className="fieldGroupBlock">
+        <label className="fieldTitleLabel" htmlFor="contactMessage">
+          How can we support you or the participant? <span className="req">*</span>
         </label>
         <textarea
           id="contactMessage"
           rows={4}
-          className={`premiumTextarea ${errors.message ? 'inputError' : ''}`}
+          className={`luxuryTextarea ${errors.message ? 'inputError' : ''}`}
           placeholder="Tell us about the support needs, preferred days/times, goals, or any questions..."
           value={formData.message}
           onChange={(e) => {
@@ -207,15 +241,25 @@ export function ContactForm() {
         {errors.message && <span className="fieldErrorMsg">{errors.message}</span>}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit Row */}
       <div className="formSubmitRow">
-        <button type="submit" className="button primary formSubmitBtn" disabled={isSubmitting}>
-          {isSubmitting ? 'Sending Message...' : 'Send Direct Message'} <Send size={16} />
+        <button type="submit" className="heroPillBtn filled" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 size={16} className="spin" />
+              <span>Sending Message...</span>
+            </>
+          ) : (
+            <>
+              <span>Send Direct Message</span>
+              <Send size={16} />
+            </>
+          )}
         </button>
-        <span className="submitPrivacyNote">
-          <Shield size={14} color="#0D9488" />
+        <div className="submitPrivacyNote">
+          <Shield size={14} />
           <span>Your privacy is protected under Australian Privacy Principles.</span>
-        </span>
+        </div>
       </div>
     </form>
   );

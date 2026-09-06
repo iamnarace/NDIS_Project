@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Ear, FileHeart, HeartHandshake, Award, Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -10,9 +10,6 @@ interface Step {
   title: string;
   subtitle: string;
   description: string;
-  badgeColor: string;
-  iconBg: string;
-  iconColor: string;
   icon: React.ReactNode;
 }
 
@@ -22,106 +19,84 @@ const STEPS: Step[] = [
     title: 'Listen',
     subtitle: 'Understanding What Matters',
     description: 'We sit down with you and your support circle to listen to your unique goals, daily routines, preferences, and personal vision.',
-    badgeColor: '#0FA3A3',
-    iconBg: 'rgba(15, 163, 163, 0.12)',
-    iconColor: '#0FA3A3',
-    icon: <Ear size={26} />,
+    icon: <Ear size={24} />,
   },
   {
     number: '02',
     title: 'Plan',
     subtitle: 'Tailored Support Matching',
     description: 'Together we design a personalised support schedule aligned with your NDIS budget (Core & Capacity Building) and match you with compatible workers.',
-    badgeColor: '#6D2C91',
-    iconBg: 'rgba(109, 44, 145, 0.12)',
-    iconColor: '#6D2C91',
-    icon: <FileHeart size={26} />,
+    icon: <FileHeart size={24} />,
   },
   {
     number: '03',
     title: 'Support',
     subtitle: 'Reliable, Caring Delivery',
     description: 'Consistent, punctual, respectful support workers arrive on time to assist you at home, in the community, with transport, or building skills.',
-    badgeColor: '#0D3B46',
-    iconBg: 'rgba(13, 59, 70, 0.12)',
-    iconColor: '#0D3B46',
-    icon: <HeartHandshake size={26} />,
+    icon: <HeartHandshake size={24} />,
   },
   {
     number: '04',
     title: 'Achieve',
     subtitle: 'Independence & Confidence',
     description: 'We continuously celebrate your milestones, track progress against your NDIS goals, and adapt supports as your independence grows.',
-    badgeColor: '#6D2C91',
-    iconBg: 'rgba(109, 44, 145, 0.12)',
-    iconColor: '#6D2C91',
-    icon: <Award size={26} />,
+    icon: <Award size={24} />,
   },
 ];
 
 export function OurApproachSection() {
-  const [activeStep, setActiveStep] = useState<number>(0);
-
   return (
-    <section className="approachSection">
+    <section className="approachControlledSection">
       <div className="shell">
         <div className="sectionHead textCenter">
-          <div className="approachBadge">
-            <Sparkles size={14} />
-            <span>Person-Centred · Dignified · Empowering</span>
-          </div>
-          <h2 className="sectionTitle">Our 4-Step Support Approach</h2>
-          <p className="sectionSubtitle">
-            How we partner with NDIS participants, families, and support coordinators across Clarence Coast & Northern Rivers NSW to deliver care you can genuinely rely on.
+          <span className="greenCategoryTag">
+            <Sparkles size={14} /> PERSON-CENTRED · DIGNIFIED · EMPOWERING
+          </span>
+          <h2 className="sectionSerifTitle">Our 4-Step Support Approach</h2>
+          <p className="sectionSubDesc">
+            How we partner with NDIS participants, families, and support coordinators across Clarence Coast &amp; Northern Rivers NSW to deliver care you can genuinely rely on.
           </p>
         </div>
 
-        <div className="approachStepsGrid">
-          {STEPS.map((step, idx) => {
-            const isActive = activeStep === idx;
-            return (
-              <div
-                key={step.number}
-                className={`approachStepCard ${isActive ? 'active' : ''}`}
-                onClick={() => setActiveStep(idx)}
-                onMouseEnter={() => setActiveStep(idx)}
-              >
-                <div className="stepTopRow">
-                  <span className="stepNumber" style={{ backgroundColor: step.badgeColor }}>
-                    {step.number}
-                  </span>
-                  <div className="stepIconBox" style={{ backgroundColor: step.iconBg, color: step.iconColor }}>
-                    {step.icon}
-                  </div>
+        {/* 4 Uniform Step Cards Grid */}
+        <div className="approachStepsGrid4">
+          {STEPS.map((step) => (
+            <div key={step.number} className="controlledCardPane approachStepCard">
+              <div className="stepTopRow">
+                <span className="stepNumberBadge">{step.number}</span>
+                <div className="stepIconCircle">
+                  {step.icon}
                 </div>
-
-                <h3 className="stepTitle">{step.title}</h3>
-                <h4 className="stepSubtitle">{step.subtitle}</h4>
-                <p className="stepDesc">{step.description}</p>
-
-                <div className="stepFooterIndicator" style={{ backgroundColor: isActive ? step.badgeColor : '#E2E8F0' }} />
               </div>
-            );
-          })}
+
+              <span className="stepSubtitleTag">{step.subtitle}</span>
+              <h3 className="stepTitle">{step.title}</h3>
+              <p className="stepDesc">{step.description}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="approachBannerStrip">
+        {/* Bottom Banner Strip */}
+        <div className="controlledCardPane approachBannerStrip">
           <div className="approachBannerLeft">
-            <Image
-              src="/opus-care-logo.svg"
-              alt="Proudly Supporting NDIS Participants"
-              width={56}
-              height={56}
-              style={{ width: '56px', height: '56px', objectFit: 'contain' }}
-            />
+            <div className="bannerMarkIconWrap">
+              <Image
+                src="/brand/Opus_Care_Mark.png"
+                alt="Opus Care"
+                width={52}
+                height={52}
+                className="bannerMarkImg"
+              />
+            </div>
             <div>
               <strong>Supporting Participants Across Regional NSW</strong>
-              <p>Self-Managed &amp; Plan-Managed Participants · Fast Intake Turnaround</p>
+              <p>Self-Managed &amp; Plan-Managed Participants · Immediate Northern Rivers Capacity</p>
             </div>
           </div>
           <div className="approachBannerRight">
-            <Link href="/referral" className="button approachCtaBtn">
-              Start a Referral <ArrowRight size={16} />
+            <Link href="/referral" className="heroPillBtn filled">
+              <span>Start a Direct Referral</span>
+              <ArrowRight size={16} />
             </Link>
           </div>
         </div>

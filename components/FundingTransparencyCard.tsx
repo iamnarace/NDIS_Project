@@ -1,72 +1,100 @@
 'use client';
 
-import { Check, X, Shield, ArrowRight, HelpCircle, Sparkles } from 'lucide-react';
+import { Check, Shield, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export function FundingTransparencyCard() {
   return (
-    <div className="fundingTransparencyContainer">
-      <div className="sectionHead">
-        <span className="eyebrow"><Shield size={16} /> Transparent NDIS Funding</span>
-        <h2>How Your NDIS Plan Works With Opus Care</h2>
-        <p>We believe in total transparency. Opus Care operates as an unregistered NDIS disability support provider focused on personal, high-quality, dependable care.</p>
+    <div className="fundingControlledContainer">
+      <div className="sectionHead textCenter">
+        <span className="greenCategoryTag">
+          <Shield size={14} /> TRANSPARENT NDIS FUNDING
+        </span>
+        <h2 className="sectionSerifTitle">How Your NDIS Plan Works With Opus Care</h2>
+        <p className="sectionSubDesc">
+          We operate with complete financial transparency. We support self-managed and plan-managed participants with zero hidden administrative fees.
+        </p>
       </div>
 
       <div className="fundingComparisonGrid">
-        {/* Plan-Managed (Primary / Most popular) */}
-        <div className="fundingPlanCard featured">
-          <div className="popularBadge">Most Popular &amp; Seamless</div>
+        {/* Plan-Managed Card Pane */}
+        <div className="controlledCardPane fundingPlanCard featured">
           <div className="planHeader">
+            <span className="planPopularTag">Most Popular &amp; Seamless</span>
             <h3>Plan-Managed</h3>
             <span className="statusTag green">Fully Supported ✅</span>
-            <p>Your independent Plan Manager (e.g. Plan Partners, My Plan Manager, Leap in!) pays invoices directly.</p>
+            <p>Your independent Plan Manager (e.g. Plan Partners, My Plan Manager, Leap in!) pays invoices directly on your behalf.</p>
           </div>
+
           <ul className="planFeaturesList">
-            <li><Check size={16} color="#0D9488" /> <strong>Zero out-of-pocket expenses</strong> for agreed support hours</li>
-            <li><Check size={16} color="#0D9488" /> Invoices sent directly to your plan manager</li>
-            <li><Check size={16} color="#0D9488" /> Rates capped strictly at official NDIS price limits</li>
-            <li><Check size={16} color="#0D9488" /> Fast 24–48h invoice turnaround</li>
-            <li><Check size={16} color="#0D9488" /> Full freedom to choose your preferred support worker</li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span><strong>Zero out-of-pocket expenses</strong> for agreed support hours</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Invoices submitted directly to your plan manager</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Rates capped strictly at official NDIS price limits</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Fast 24–48h invoice turnaround guarantee</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Full choice and control over your preferred support worker</span>
+            </li>
           </ul>
-          <Link className="button full" href="/referral">
-            Refer with Plan-Managed Funding <ArrowRight size={16} />
-          </Link>
+
+          <div className="planCardFooter">
+            <Link className="heroPillBtn filled full" href="/referral">
+              <span>Refer with Plan-Managed Funding</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
 
-        {/* Self-Managed */}
-        <div className="fundingPlanCard">
+        {/* Self-Managed Card Pane */}
+        <div className="controlledCardPane fundingPlanCard">
           <div className="planHeader">
+            <span className="planFlexibleTag">Maximum Freedom</span>
             <h3>Self-Managed</h3>
             <span className="statusTag green">Fully Supported ✅</span>
-            <p>You or your nominee manage your own NDIS funding allocations and pay providers directly.</p>
+            <p>You or your nominee manage your own NDIS funding allocations and pay support providers directly.</p>
           </div>
-          <ul className="planFeaturesList">
-            <li><Check size={16} color="#0D9488" /> Maximum flexibility in scheduling and custom goals</li>
-            <li><Check size={16} color="#0D9488" /> Clear, itemised PDF tax invoices for the myplace portal</li>
-            <li><Check size={16} color="#0D9488" /> Standard 14-day payment terms</li>
-            <li><Check size={16} color="#0D9488" /> Transparent service agreement with fixed hourly rates</li>
-            <li><Check size={16} color="#0D9488" /> Direct 1-on-1 communication with your support worker</li>
-          </ul>
-          <Link className="button full secondary" href="/referral">
-            Refer with Self-Managed Funding <ArrowRight size={16} />
-          </Link>
-        </div>
 
-        {/* NDIA / Agency-Managed */}
-        <div className="fundingPlanCard mutedCard">
-          <div className="planHeader">
-            <h3>Agency / NDIA-Managed</h3>
-            <span className="statusTag gray">Not Applicable At Present</span>
-            <p>Funding managed directly by the National Disability Insurance Agency through registered-only portals.</p>
-          </div>
           <ul className="planFeaturesList">
-            <li><X size={16} color="#94A3B8" /> Requires formal NDIS registered provider status</li>
-            <li><Check size={16} color="#0D9488" /> <em>Tip:</em> You can request your NDIS planner or coordinator to switch parts of your plan to Plan-Management at any review for zero cost!</li>
-            <li><Check size={16} color="#0D9488" /> Free advice on how plan-management works</li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Maximum flexibility in scheduling and personal goals</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Clear, itemised PDF tax invoices ready for the myplace portal</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Standard 14-day payment terms</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Transparent service agreement with fixed hourly rates</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} className="featCheck" />
+              <span>Direct 1-on-1 communication with your support worker</span>
+            </li>
           </ul>
-          <Link className="button full secondary" href="/contact">
-            Ask Us About Switching to Plan-Managed <HelpCircle size={16} />
-          </Link>
+
+          <div className="planCardFooter">
+            <Link className="heroPillBtn outline full" href="/referral">
+              <span>Refer with Self-Managed Funding</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

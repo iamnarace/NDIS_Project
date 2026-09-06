@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ArrowRight, Phone, Mail, MapPin, Sparkles } from 'lucide-react';
+import { Menu, X, ArrowRight, Phone, Mail, Sparkles } from 'lucide-react';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      {/* Top Announcement Bar (Compassion360 + NDIS Purple Trust) */}
+      {/* Top Announcement Bar */}
       <div className="topNoticeBar">
         <div className="shell topNoticeContent">
           <div className="noticeLeft">
@@ -31,7 +31,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Main Header with Official Opus Care Logo */}
+      {/* Main Header with Dedicated Spacing */}
       <header className="mainHeader">
         <div className="shell headerContainer">
           <Link href="/" className="brandGroup" aria-label="Opus Care Support Services Home">
@@ -54,13 +54,13 @@ export function SiteHeader() {
             <Link href="/contact" className="navLink">Contact Us</Link>
           </nav>
 
-          {/* Header Action Button */}
+          {/* Header Actions */}
           <div className="headerActionsGroup">
             <a href="tel:0415716516" className="headerPhoneBtn" aria-label="Call Opus Care">
               <Phone size={15} />
               <span>0415 716 516</span>
             </a>
-            <Link href="/referral" className="button primary sm headerCtaBtn">
+            <Link href="/referral" className="headerCtaBtn">
               <span>Make a Referral</span>
               <ArrowRight size={15} />
             </Link>
@@ -101,8 +101,9 @@ export function SiteHeader() {
           <Link href="/faq" onClick={() => setOpen(false)}>Pricing &amp; FAQ</Link>
           <Link href="/contact" onClick={() => setOpen(false)}>Contact Us</Link>
           <div className="mobileDrawerCta">
-            <Link className="button primary full" href="/referral" onClick={() => setOpen(false)}>
-              Make a Direct Referral <ArrowRight size={16} />
+            <Link className="headerCtaBtn full" href="/referral" onClick={() => setOpen(false)}>
+              <span>Make a Direct Referral</span>
+              <ArrowRight size={16} />
             </Link>
           </div>
         </nav>

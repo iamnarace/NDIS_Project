@@ -1,4 +1,4 @@
-import { ArrowRight, Car, CheckCircle2, ClipboardCheck, HeartHandshake, Home, Sparkles, Users, Shield, Calendar, Phone } from 'lucide-react';
+import { ArrowRight, Car, CheckCircle2, ClipboardCheck, HeartHandshake, Home, Sparkles, Users, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
@@ -55,40 +55,58 @@ export default function ServicesPage() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main className="servicesMainWrapper">
         {/* Page Hero */}
-        <section className="pageHero">
+        <section className="servicesHeroSection">
           <div className="shell">
-            <span className="eyebrow">
-              <Sparkles size={15} /> Support Offerings
-            </span>
-            <h1>Comprehensive 1-on-1 NDIS Support</h1>
-            <p>
-              We provide individualized disability supports tailored for self-managed and plan-managed participants across Yamba, Maclean, Grafton, Iluka, New Italy, and Northern Rivers NSW.
-            </p>
+            <div className="servicesHeroCenter">
+              <span className="greenCategoryTag">
+                <Sparkles size={14} /> SUPPORT OFFERINGS
+              </span>
+              <h1 className="sectionSerifTitle">Comprehensive 1-on-1 NDIS Support</h1>
+              <p className="sectionSubDesc">
+                We provide individualized disability supports tailored for self-managed and plan-managed participants across Yamba, Maclean, Grafton, Iluka, New Italy, and Northern Rivers NSW.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Detailed Service Cards Grid */}
-        <section className="softSection">
+        {/* 6 Uniform Controlled Service Cards Grid */}
+        <section className="servicesCardsSection">
           <div className="shell">
-            <div className="serviceDetailGrid">
+            <div className="servicesPanesGrid3">
               {services.map(({ icon: Icon, title, category, text, examples }) => (
-                <article key={title} className="serviceDetail">
-                  <span className="audiencePill">{category}</span>
-                  <h2>{title}</h2>
-                  <p>{text}</p>
-                  <ul>
-                    {examples.map(ex => (
-                      <li key={ex}>
-                        <CheckCircle2 size={16} color="#0D9488" />
-                        <span>{ex}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link className="inlineCta" href="/referral">
-                    Refer for this support <ArrowRight size={15} />
-                  </Link>
+                <article key={title} className="controlledCardPane servicePaneCard">
+                  <div>
+                    <div className="servicePaneTopRow">
+                      <div className="serviceIconCircle">
+                        <Icon size={24} />
+                      </div>
+                      <span className="audiencePill">{category}</span>
+                    </div>
+
+                    <h2 className="servicePaneTitle">{title}</h2>
+                    <p className="servicePaneDesc">{text}</p>
+
+                    <div className="serviceExamplesBlock">
+                      <span className="examplesHeading">Included Supports:</span>
+                      <ul className="serviceExamplesList">
+                        {examples.map((ex) => (
+                          <li key={ex}>
+                            <CheckCircle2 size={16} className="srvCheckIcon" />
+                            <span>{ex}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="servicePaneFooter">
+                    <Link className="serviceReferralLink" href="/referral">
+                      <span>Refer for this support</span>
+                      <ArrowRight size={15} />
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>
@@ -96,18 +114,24 @@ export default function ServicesPage() {
         </section>
 
         {/* Support Estimator Widget */}
-        <section className="shell">
-          <SupportFinderWidget />
+        <section className="estimatorSectionWrap">
+          <div className="shell">
+            <SupportFinderWidget />
+          </div>
         </section>
 
         {/* Regional Coverage Checker */}
-        <section className="shell">
-          <RegionalCoverageChecker />
+        <section className="coverageSectionWrap">
+          <div className="shell">
+            <RegionalCoverageChecker />
+          </div>
         </section>
 
         {/* Resource Brochures */}
-        <section className="shell">
-          <ResourceBrochures />
+        <section className="brochuresSectionWrap">
+          <div className="shell">
+            <ResourceBrochures />
+          </div>
         </section>
       </main>
       <SiteFooter />

@@ -2998,3 +2998,1229 @@ a {
     grid-column: span 1;
   }
 }
+
+
+/* ==========================================================================
+   MASTER CONTROLLED CARD PANE SYSTEM & NAVIGATION ARCHITECTURE
+   ========================================================================== */
+
+/* Main Header Navigation & Brand Spacing */
+.mainHeader {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.headerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  gap: 32px;
+}
+
+.brandGroup {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  margin-right: 16px;
+}
+
+.brandLogoImg {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.desktopNav .navLink {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+}
+
+.desktopNav .navLink:hover {
+  color: #4B2682;
+}
+
+.headerActionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.headerPhoneBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1E293B;
+  text-decoration: none;
+  padding: 9px 18px;
+  border-radius: 9999px;
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.headerPhoneBtn:hover {
+  border-color: #4B2682;
+  color: #4B2682;
+  background: #FAF8FF;
+}
+
+.headerCtaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #FFFFFF !important;
+  background: #4B2682;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+  white-space: nowrap;
+}
+
+.headerCtaBtn:hover {
+  background: #391C63;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(75, 38, 130, 0.25);
+}
+
+.headerCtaBtn.full {
+  width: 100%;
+  justify-content: center;
+}
+
+.mobileMenuToggleBtn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #1E293B;
+  padding: 6px;
+}
+
+/* Mobile Drawer */
+.mobileDrawerContainer {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 85%;
+  max-width: 360px;
+  height: 100vh;
+  background: #FFFFFF;
+  z-index: 100;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  transition: right 0.3s ease;
+}
+
+.mobileDrawerContainer.mobileDrawerOpen {
+  right: 0;
+}
+
+.mobileDrawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.mobileMenuCloseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 4px;
+}
+
+.mobileNavLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.mobileNavLinks a {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1E293B;
+  text-decoration: none;
+}
+
+.mobileDrawerCta {
+  margin-top: 16px;
+}
+
+.mobileDrawerFooter {
+  border-top: 1px solid #E2E8F0;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #64748B;
+}
+
+.mobileBackdropOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 95;
+}
+
+
+/* ==========================================================================
+   GENERIC CONTROLLED CARD PANE FOUNDATION
+   ========================================================================== */
+.controlledCardPane {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
+  padding: 36px 32px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.controlledCardPane:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ==========================================================================
+   CONTACT PAGE CONTROLLED PANES
+   ========================================================================== */
+.contactMainWrapper {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.contactHeroSection {
+  padding: 56px 0 32px;
+  text-align: center;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.contactHeroCenter {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.contactPanesSection {
+  padding: 44px 0 60px;
+}
+
+.contactSplitPanes {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.contactFormCard {
+  padding: 40px;
+}
+
+.cardPaneHeader {
+  margin-bottom: 28px;
+}
+
+.cardPaneBadge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #4B2682;
+  margin-bottom: 8px;
+}
+
+.cardPaneHeader h2 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 6px;
+}
+
+.cardPaneHeader p {
+  font-size: 0.92rem;
+  color: #64748B;
+  margin: 0;
+}
+
+.rolesChipsWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roleChipBtn {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.roleChipBtn:hover {
+  border-color: #94A3B8;
+}
+
+.roleChipBtn.selected {
+  background: #4B2682;
+  color: #FFFFFF;
+  border-color: #4B2682;
+}
+
+.fundingCardsSelectGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.fundingSelectCard {
+  padding: 12px 14px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 12px;
+  background: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.fundingSelectCard:hover {
+  border-color: #DDD6FE;
+  background: #FAF8FF;
+}
+
+.fundingSelectCard.selected {
+  border-color: #4B2682;
+  background: #F5F3FF;
+  color: #4B2682;
+}
+
+.radioBullet {
+  font-size: 1.1rem;
+}
+
+.formSubmitRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.submitPrivacyNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #64748B;
+}
+
+.submitPrivacyNote svg {
+  color: #047857;
+  flex-shrink: 0;
+}
+
+.contactSuccessPane {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 24px;
+  padding: 44px 32px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
+}
+
+.successDetailsSummary {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 24px auto;
+  max-width: 480px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+/* Sidebar Details Cards */
+.contactDetailsSidebarPane {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contactDetailCard {
+  display: flex;
+  gap: 18px;
+  padding: 28px;
+  align-items: flex-start;
+}
+
+.sidebarIconCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #F5F3FF;
+  color: #4B2682;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid #DDD6FE;
+}
+
+.sidebarDetailContent {
+  flex: 1;
+}
+
+.sidebarLabel {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.sidebarDetailContent h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 4px;
+}
+
+.sidebarDetailContent p {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.sidebarActionLink {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4B2682;
+  text-decoration: none;
+}
+
+.sidebarActionLink:hover {
+  text-decoration: underline;
+}
+
+.sidebarBadgeGreen {
+  display: inline-block;
+  background: #ECFDF5;
+  color: #047857;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+}
+
+.sidebarReferralCard {
+  background: linear-gradient(135deg, #FAF8FF 0%, #FFFFFF 100%);
+  border-color: #C4B5FD;
+}
+
+.sidebarReferralCard h4 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin: 8px 0 6px;
+}
+
+.sidebarReferralCard p {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+
+/* ==========================================================================
+   FAQ & FUNDING TRANSPARENCY CONTROLLED PANES
+   ========================================================================== */
+.faqMainWrapper {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.faqHeroSection {
+  padding: 56px 0 32px;
+  text-align: center;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.faqHeroCenter {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.faqAccordionSection {
+  padding: 44px 0;
+}
+
+.faqAccordionContainer {
+  max-width: 940px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.faqAccordionCard {
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.faqAccordionCard.active {
+  border-color: #C4B5FD;
+  box-shadow: 0 6px 20px rgba(75, 38, 130, 0.04);
+}
+
+.faqQuestionBtn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  gap: 16px;
+}
+
+.faqQuestionContent {
+  flex: 1;
+}
+
+.faqCategoryBadge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #4B2682;
+  background: #F5F3FF;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.faqQuestionContent h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.faqChevronIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #F8FAFC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  transition: transform 0.25s ease, background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.faqChevronIcon.rotated {
+  transform: rotate(180deg);
+  background: #EDE9FE;
+  color: #4B2682;
+}
+
+.faqAnswerPane {
+  padding: 0 28px 26px;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 18px;
+}
+
+.faqAnswerPane p {
+  margin: 0;
+}
+
+/* Funding Transparency Comparison */
+.fundingControlledContainer {
+  padding: 50px 0 20px;
+}
+
+.fundingComparisonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 1080px;
+  margin: 36px auto 0;
+}
+
+.fundingPlanCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 36px;
+}
+
+.fundingPlanCard.featured {
+  border: 2px solid #4B2682;
+  box-shadow: 0 8px 30px rgba(75, 38, 130, 0.08);
+}
+
+.planPopularTag {
+  display: inline-block;
+  background: #4B2682;
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.planFlexibleTag {
+  display: inline-block;
+  background: #047857;
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.planHeader h3 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 6px;
+}
+
+.planHeader .statusTag {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #047857;
+  margin-bottom: 10px;
+}
+
+.planHeader p {
+  font-size: 0.9rem;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.planFeaturesList {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.planFeaturesList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.92rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.featCheck {
+  color: #047857;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.planCardFooter {
+  margin-top: auto;
+}
+
+
+/* ==========================================================================
+   ABOUT PAGE & 4-STEP APPROACH CONTROLLED PANES
+   ========================================================================== */
+.aboutMainWrapper {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.aboutHeroSection {
+  padding: 56px 0 32px;
+  text-align: center;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.aboutHeroCenter {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.philosophySectionWrap {
+  padding: 48px 0 60px;
+}
+
+.philosophySplitPanes {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.aboutPhotoCardPane {
+  padding: 16px;
+  overflow: hidden;
+}
+
+.aboutPhotoInner {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  height: 420px;
+}
+
+.aboutPhotoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aboutPhotoBadgeOverlay {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  padding: 14px 18px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.aboutPhotoBadgeOverlay svg {
+  color: #4B2682;
+  flex-shrink: 0;
+}
+
+.aboutPhotoBadgeOverlay strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #1E293B;
+}
+
+.aboutPhotoBadgeOverlay small {
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.aboutCopyCardPane {
+  padding: 40px;
+}
+
+.aboutIntro {
+  font-size: 0.95rem;
+  color: #64748B;
+  line-height: 1.6;
+  margin: 12px 0 24px;
+}
+
+.aboutCheckList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.aboutCheckList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.94rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.aboutCheckIcon {
+  color: #047857;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aboutCtaRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+/* 4-Step Support Approach */
+.approachControlledSection {
+  padding: 60px 0;
+  background: #FAFAFA;
+  border-top: 1px solid #F1F5F9;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.approachStepsGrid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin: 40px 0 32px;
+}
+
+.approachStepCard {
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stepTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.stepNumberBadge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #4B2682;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepIconCircle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #F5F3FF;
+  color: #4B2682;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid #DDD6FE;
+}
+
+.stepSubtitleTag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #047857;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.stepTitle {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin: 0 0 8px;
+}
+
+.stepDesc {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.approachBannerStrip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: #FFFFFF;
+  border-radius: 20px;
+}
+
+.approachBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.bannerMarkIconWrap {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.bannerMarkImg {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.approachBannerLeft strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #1E293B;
+  margin-bottom: 2px;
+}
+
+.approachBannerLeft p {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin: 0;
+}
+
+/* Core Values 3-Col Grid */
+.coreValuesControlledSection {
+  padding: 60px 0;
+}
+
+.valuesControlledGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.valueCardItem {
+  padding: 32px 26px;
+  display: flex;
+  flex-direction: column;
+}
+
+.valueIconCircle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #F5F3FF;
+  color: #4B2682;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  border: 1.5px solid #DDD6FE;
+}
+
+.valueTaglineBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.valueCardItem h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin: 0 0 8px;
+}
+
+.valueCardItem p {
+  font-size: 0.9rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   SERVICES PAGE CONTROLLED PANES
+   ========================================================================== */
+.servicesMainWrapper {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.servicesHeroSection {
+  padding: 56px 0 32px;
+  text-align: center;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.servicesHeroCenter {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.servicesCardsSection {
+  padding: 48px 0 60px;
+}
+
+.servicesPanesGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.servicePaneCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 26px;
+}
+
+.servicePaneTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.serviceIconCircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #F5F3FF;
+  color: #4B2682;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #DDD6FE;
+}
+
+.servicePaneTitle {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 8px;
+}
+
+.servicePaneDesc {
+  font-size: 0.9rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+
+.serviceExamplesBlock {
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.examplesHeading {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #475569;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.serviceExamplesList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serviceExamplesList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.srvCheckIcon {
+  color: #047857;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.servicePaneFooter {
+  padding-top: 16px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.serviceReferralLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4B2682;
+  text-decoration: none;
+  transition: gap 0.15s ease;
+}
+
+.serviceReferralLink:hover {
+  gap: 12px;
+}
+
+
+/* ==========================================================================
+   GLOBAL MOBILE RESPONSIVE OVERRIDES
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .desktopNav {
+    display: none;
+  }
+  .headerPhoneBtn {
+    display: none;
+  }
+  .mobileMenuToggleBtn {
+    display: inline-flex;
+  }
+  .approachStepsGrid4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .servicesPanesGrid3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .valuesControlledGrid3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .philosophySplitPanes {
+    grid-template-columns: 1fr;
+  }
+  .contactSplitPanes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .controlledCardPane {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+  .sectionSerifTitle {
+    font-size: 1.95rem;
+  }
+  .sectionSubDesc {
+    font-size: 0.98rem;
+  }
+  
+  /* Stacking all grids to single column without zig-zag */
+  .approachStepsGrid4,
+  .servicesPanesGrid3,
+  .valuesControlledGrid3,
+  .fundingComparisonGrid,
+  .contactSplitPanes,
+  .philosophySplitPanes,
+  .fieldsTwoColRow,
+  .fundingCardsSelectGrid {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+  }
+
+  .aboutPhotoInner {
+    height: 260px;
+  }
+  .aboutCtaRow {
+    flex-direction: column;
+    width: 100%;
+  }
+  .aboutCtaRow .heroPillBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .formSubmitRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .formSubmitRow .heroPillBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .approachBannerStrip {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+    padding: 24px 20px;
+  }
+  .approachBannerLeft {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .approachBannerRight .heroPillBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .faqQuestionBtn {
+    padding: 18px 20px;
+  }
+  .faqAnswerPane {
+    padding: 0 20px 20px;
+  }
+}
