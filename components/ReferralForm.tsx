@@ -85,7 +85,7 @@ export function ReferralForm() {
       setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you within 24 business hours.');
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please call 0415 716 516.');
+      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please email us at support@opuscare.com.au.');
     }
   }
 

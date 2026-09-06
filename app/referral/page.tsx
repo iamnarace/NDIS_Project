@@ -70,10 +70,6 @@ export default function ReferralPage() {
                   <a href="mailto:support@opuscare.com.au">support@opuscare.com.au</a>
                 </div>
                 <div className="guideContactLine">
-                  <Phone size={16} className="gIcon" />
-                  <a href="tel:0415716516">0415 716 516</a>
-                </div>
-                <div className="guideContactLine">
                   <MapPin size={16} className="gIcon" />
                   <span>Yamba, Grafton &amp; Northern Rivers NSW</span>
                 </div>

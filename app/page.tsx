@@ -4,11 +4,15 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { SupportFinderWidget } from '../components/SupportFinderWidget';
 import { RegionalCoverageChecker } from '../components/RegionalCoverageChecker';
+import { NdisFundingSection } from '../components/NdisFundingSection';
+import { JourneyBeginsSection } from '../components/JourneyBeginsSection';
+import { NdisToolsResourcesSection } from '../components/NdisToolsResourcesSection';
+import { NdisBlogNewsSection } from '../components/NdisBlogNewsSection';
+import { ReadyCtaSection } from '../components/ReadyCtaSection';
 import { 
   Heart, Users, Compass, Clock, ShieldCheck, MapPin, ArrowRight, 
-  CheckCircle2, Star, Sparkles, Newspaper, ExternalLink, Calendar, 
-  Smile, Award, FileText, Check, Phone, PhoneCall, ArrowUpRight,
-  Home, Activity, Briefcase, GraduationCap, Accessibility, HeartHandshake, UserCheck
+  CheckCircle2, Sparkles, FileText, HeartHandshake,
+  Home, Activity, Accessibility, UserCheck, ArrowUpRight, Mail
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -18,7 +22,7 @@ export default function HomePage() {
 
       <main className="mainContentWrap">
         {/* ═══════════════════════════════════════════════════════════════════
-            HERO PANE (Compassion 360 Style) - Clean, Centered, Huge Spacing
+            HERO PANE - Clean, Centered, Huge Spacing
         ═══════════════════════════════════════════════════════════════════ */}
         <section className="heroCleanPaneSection">
           <div className="shell heroCleanPaneContainer">
@@ -38,10 +42,10 @@ export default function HomePage() {
               <Link className="heroPillBtn filled" href="/referral">
                 <span>Check Your Eligibility</span>
               </Link>
-              <a className="heroPillBtn outline" href="tel:0415716516">
-                <span>Call Us Now</span>
-                <ArrowUpRight size={18} />
-              </a>
+              <Link className="heroPillBtn outline" href="/contact">
+                <span>Contact Our Team</span>
+                <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </section>
@@ -76,7 +80,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Blue Trust Band (Compassion 360 Screenshot 4) */}
+            {/* Blue Trust Band */}
             <div className="blueTrustBandPane">
               <div className="ndisBadgeGroup">
                 <div className="ndisCircleIcon">
@@ -93,16 +97,21 @@ export default function HomePage() {
                 <p>Breaking down barriers, matching trusted local support workers, and building inclusive communities.</p>
               </div>
 
-              <a href="tel:0415716516" className="blueTrustCallBtn">
-                <Phone size={18} />
-                <span>Call Now</span>
-              </a>
+              <Link href="/contact" className="blueTrustCallBtn">
+                <Mail size={16} />
+                <span>Contact Us</span>
+              </Link>
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            SERVICES SECTION: Signature Photo Cards (Privilege Care Style)
+            NEW SECTION 1: UNDERSTANDING YOUR NDIS FUNDING (Reference 1)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <NdisFundingSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            SERVICES SECTION: Signature Photo Cards (Compassion 360 Style)
         ═══════════════════════════════════════════════════════════════════ */}
         <section className="cleanSectionPadding">
           <div className="shell">
@@ -126,7 +135,7 @@ export default function HomePage() {
                     className="serviceCardPhoto"
                   />
                   <div className="photoCardCircleBadge purple">
-                    <Home size={28} />
+                    <Home size={26} />
                   </div>
                 </div>
                 <div className="photoCardBottomPane">
@@ -149,7 +158,7 @@ export default function HomePage() {
                     className="serviceCardPhoto"
                   />
                   <div className="photoCardCircleBadge purple">
-                    <Accessibility size={28} />
+                    <Accessibility size={26} />
                   </div>
                 </div>
                 <div className="photoCardBottomPane">
@@ -172,7 +181,7 @@ export default function HomePage() {
                     className="serviceCardPhoto"
                   />
                   <div className="photoCardCircleBadge purple">
-                    <Users size={28} />
+                    <Users size={26} />
                   </div>
                 </div>
                 <div className="photoCardBottomPane">
@@ -195,7 +204,7 @@ export default function HomePage() {
                     className="serviceCardPhoto"
                   />
                   <div className="photoCardCircleBadge purple">
-                    <MapPin size={28} />
+                    <MapPin size={26} />
                   </div>
                 </div>
                 <div className="photoCardBottomPane">
@@ -207,7 +216,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Card 5: Supported Independent Living */}
+              {/* Card 5: In-Home Respite Support */}
               <div className="photoServiceCard">
                 <div className="photoCardImgWrapper">
                   <Image
@@ -218,7 +227,7 @@ export default function HomePage() {
                     className="serviceCardPhoto"
                   />
                   <div className="photoCardCircleBadge purple">
-                    <Clock size={28} />
+                    <Clock size={26} />
                   </div>
                 </div>
                 <div className="photoCardBottomPane">
@@ -241,7 +250,7 @@ export default function HomePage() {
                     className="serviceCardPhoto"
                   />
                   <div className="photoCardCircleBadge purple">
-                    <UserCheck size={28} />
+                    <UserCheck size={26} />
                   </div>
                 </div>
                 <div className="photoCardBottomPane">
@@ -257,7 +266,22 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            INTAKE PROCESS PANE: Simple & Supportive (Privilege Care Style)
+            NEW SECTION 2: YOUR JOURNEY BEGINS HERE (Reference 4)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <JourneyBeginsSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            NEW SECTION 3: FREE NDIS TOOLS & RESOURCES (Reference 3)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <NdisToolsResourcesSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            NEW SECTION 4: NDIS NEWS / BLOG READS (Reference 2)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <NdisBlogNewsSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            INTAKE PROCESS PANE: Simple & Supportive
         ═══════════════════════════════════════════════════════════════════ */}
         <section className="intakeProcessSection">
           <div className="shell">
@@ -284,10 +308,10 @@ export default function HomePage() {
               <div className="intakeProcessCard">
                 <span className="stepWatermarkNum">02</span>
                 <div className="intakeIconBox">
-                  <PhoneCall size={32} />
+                  <Mail size={32} />
                 </div>
                 <h3>Speak With Our Friendly Team</h3>
-                <p>Once we receive your form, our team contacts you to discuss your goals, answer questions, and arrange a personalized care plan.</p>
+                <p>Once we receive your form, our team contacts you promptly to discuss your goals, answer questions, and arrange your care plan.</p>
               </div>
 
               {/* Step 03 */}
@@ -311,7 +335,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            VISION & DIRECT CALL PANE (Privilege Care Screenshot 3)
+            VISION PANE: Empowering Independence
         ═══════════════════════════════════════════════════════════════════ */}
         <section className="cleanSectionPadding">
           <div className="shell">
@@ -345,15 +369,15 @@ export default function HomePage() {
                     <ArrowRight size={16} />
                   </Link>
 
-                  <a href="tel:0415716516" className="directPhoneBlock">
-                    <div className="phoneCircleWrap">
-                      <Phone size={20} />
+                  <Link href="/contact" className="directEmailBlock">
+                    <div className="emailCircleWrap">
+                      <Mail size={18} />
                     </div>
-                    <div className="phoneTextWrap">
-                      <small>Speak to Our Local Team</small>
-                      <strong>0415 716 516</strong>
+                    <div className="emailTextWrap">
+                      <small>Local Support Team</small>
+                      <strong>support@opuscare.com.au</strong>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -373,48 +397,9 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            TESTIMONIALS PANE: Full Purple Band (Privilege Care Screenshot 2)
+            INTERACTIVE ESTIMATOR & COVERAGE CARD PANES (Id: estimator)
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="purpleFeedbackSection">
-          <div className="shell">
-            <div className="feedbackHeader">
-              <span className="feedbackSuperTag">TESTIMONIALS</span>
-              <h2 className="feedbackMainTitle">Our Clients Feedback</h2>
-            </div>
-
-            <div className="feedbackCenterCard">
-              <h3>What our clients say about us</h3>
-              <div className="feedbackBigScore">5.00</div>
-              <div className="feedbackStars">★★★★★</div>
-              <p className="feedbackSummaryText">
-                Based on trusted feedback from local participants, families, and Support Coordinators across Northern Rivers NSW.
-              </p>
-
-              <div className="feedbackQuotesGrid">
-                <div className="singleQuoteBox">
-                  <p>&ldquo;Opus Care matched my son with a support worker who genuinely shares his love for music and outdoor activities. It has transformed his weekly confidence.&rdquo;</p>
-                  <strong>Sarah M. — Parent · Yamba NSW</strong>
-                </div>
-
-                <div className="singleQuoteBox">
-                  <p>&ldquo;As a Support Coordinator, finding reliable workers in Grafton with zero intake delays is hard. Opus Care responded within hours and started supports that week.&rdquo;</p>
-                  <strong>David T. — Support Coordinator · Clarence Valley</strong>
-                </div>
-              </div>
-
-              <div className="feedbackActionRow">
-                <Link href="/contact" className="heroPillBtn filled">
-                  <span>Send Us Your Feedback</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            INTERACTIVE ESTIMATOR & COVERAGE CARD PANES
-        ═══════════════════════════════════════════════════════════════════ */}
-        <section className="cleanSectionPadding">
+        <section className="cleanSectionPadding" id="estimator">
           <div className="shell">
             <div className="sectionHeaderCenter">
               <span className="greenCategoryTag">PLANNING &amp; COVERAGE</span>
@@ -434,15 +419,12 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </main>
 
-      {/* Fixed Bottom Call Now Bar for Mobile */}
-      <div className="fixedMobileCallBar">
-        <a href="tel:0415716516" className="mobileCallInner">
-          <Phone size={18} />
-          <span>Call Now: 0415 716 516</span>
-        </a>
-      </div>
+        {/* ═══════════════════════════════════════════════════════════════════
+            NEW SECTION 5: READY TO GET STARTED CTA BANNER (Reference 4)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <ReadyCtaSection />
+      </main>
 
       <SiteFooter />
     </>

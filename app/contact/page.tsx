@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone, Shield, Clock, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, MapPin, Shield, Clock, Sparkles, ArrowRight, CheckCircle2, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
@@ -41,25 +41,23 @@ export default function ContactPage() {
                 <div className="sidebarDetailContent">
                   <span className="sidebarLabel">DIRECT EMAIL</span>
                   <h3>support@opuscare.com.au</h3>
-                  <p>Send enquiries anytime. We review and respond to all messages within 24 business hours.</p>
+                  <p>Send enquiries anytime. Our local care coordinators review and respond to all messages within 24 business hours.</p>
                   <a href="mailto:support@opuscare.com.au" className="sidebarActionLink">
                     Send an email →
                   </a>
                 </div>
               </div>
 
-              {/* Direct Phone Box */}
+              {/* Fast Response Guarantee Box */}
               <div className="controlledCardPane contactDetailCard">
-                <div className="sidebarIconCircle">
-                  <Phone size={22} />
+                <div className="sidebarIconCircle purpleCircle">
+                  <Clock size={22} />
                 </div>
                 <div className="sidebarDetailContent">
-                  <span className="sidebarLabel">DIRECT PHONE</span>
-                  <h3>0415 716 516</h3>
-                  <p>Speak directly with our local Northern Rivers support team Monday to Friday, 8:30am – 5:30pm.</p>
-                  <a href="tel:0415716516" className="sidebarActionLink">
-                    Call 0415 716 516 →
-                  </a>
+                  <span className="sidebarLabel">INTAKE CAPACITY</span>
+                  <h3>Immediate Availability</h3>
+                  <p>We have active support worker capacity across Lower Clarence and Richmond Valley with zero waitlists for core supports.</p>
+                  <span className="sidebarBadgeGreen">🟢 Taking New Referrals</span>
                 </div>
               </div>
 
@@ -72,7 +70,6 @@ export default function ContactPage() {
                   <span className="sidebarLabel">LOCAL SERVICE REGION</span>
                   <h3>Yamba, Grafton &amp; Northern Rivers</h3>
                   <p>Supporting Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn, Evans Head, and surrounding Clarence communities.</p>
-                  <span className="sidebarBadgeGreen">🟢 Immediate Intake Capacity</span>
                 </div>
               </div>
 

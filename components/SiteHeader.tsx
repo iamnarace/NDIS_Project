@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ArrowRight, Phone, Mail, Sparkles } from 'lucide-react';
+import { Menu, X, ArrowRight, Mail, Sparkles } from 'lucide-react';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -23,9 +23,6 @@ export function SiteHeader() {
             </span>
             <a href="mailto:support@opuscare.com.au" className="noticeContactLink">
               <Mail size={13} /> support@opuscare.com.au
-            </a>
-            <a href="tel:0415716516" className="noticePhoneLink">
-              <Phone size={13} /> 0415 716 516
             </a>
           </div>
         </div>
@@ -56,10 +53,10 @@ export function SiteHeader() {
 
           {/* Header Actions */}
           <div className="headerActionsGroup">
-            <a href="tel:0415716516" className="headerPhoneBtn" aria-label="Call Opus Care">
-              <Phone size={15} />
-              <span>0415 716 516</span>
-            </a>
+            <Link href="/contact" className="headerEmailLink">
+              <Mail size={14} />
+              <span>Contact Us</span>
+            </Link>
             <Link href="/referral" className="headerCtaBtn">
               <span>Make a Referral</span>
               <ArrowRight size={15} />
@@ -110,7 +107,6 @@ export function SiteHeader() {
 
         <div className="mobileDrawerFooter">
           <span>📧 support@opuscare.com.au</span>
-          <span>📞 0415 716 516</span>
           <span>📍 Yamba, Grafton &amp; Northern Rivers, NSW</span>
           <small>Unregistered NDIS Provider · Supporting Self &amp; Plan Managed</small>
         </div>
