@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ArrowRight, Mail } from 'lucide-react';
+import { Menu, X, ArrowRight, Mail, Lock } from 'lucide-react';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -23,6 +23,9 @@ export function SiteHeader() {
               <span className="intakeBadge">
                 <span className="statusDotPulse"></span> Intake Open
               </span>
+              <Link href="/portal" className="noticeContactLink portalTopLink">
+                <Lock size={13} /> Portal Login
+              </Link>
               <a href="mailto:support@opuscare.com.au" className="noticeContactLink">
                 <Mail size={13} /> support@opuscare.com.au
               </a>
@@ -34,6 +37,10 @@ export function SiteHeader() {
             <span className="intakeBadgeSm">
               <span className="statusDotPulse"></span> Intake Open
             </span>
+            <span className="noticeDivider">·</span>
+            <Link href="/portal" className="mobileNoticePortal">
+              <Lock size={12} /> Portal
+            </Link>
             <span className="noticeDivider">·</span>
             <a href="mailto:support@opuscare.com.au" className="mobileNoticeEmail">
               <Mail size={12} /> support@opuscare.com.au
@@ -63,6 +70,9 @@ export function SiteHeader() {
             <Link href="/service-areas" className="navLink">Areas We Serve</Link>
             <Link href="/about" className="navLink">About Opus Care</Link>
             <Link href="/faq" className="navLink">Pricing &amp; FAQ</Link>
+            <Link href="/portal" className="navLink portalHighlight">
+              <Lock size={13} /> Portal
+            </Link>
             <Link href="/contact" className="navLink">Contact Us</Link>
           </nav>
 
@@ -108,6 +118,9 @@ export function SiteHeader() {
 
         <nav className="mobileNavLinks">
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
+          <Link href="/portal" onClick={() => setOpen(false)} className="mobilePortalNav">
+            <Lock size={16} /> <strong>Participant &amp; Staff Portal</strong>
+          </Link>
           <Link href="/services" onClick={() => setOpen(false)}>Services &amp; Supports</Link>
           <Link href="/service-areas" onClick={() => setOpen(false)}>Areas We Serve</Link>
           <Link href="/about" onClick={() => setOpen(false)}>About Opus Care</Link>

@@ -2,12 +2,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   MapPin, Mail, ArrowRight, Heart, Shield, CheckCircle2, 
-  Facebook, Linkedin, Instagram, Sparkles, ExternalLink 
+  Facebook, Linkedin, Instagram, Sparkles, ExternalLink, Lock 
 } from 'lucide-react';
 
 export function SiteFooter() {
   return (
-    <footer className="siteFooterWrapper deepPurpleFooter">
+    <footer className="siteFooterWrapper lightModernFooter">
       {/* Main 4-Column Structured Footer */}
       <div className="mainFooterArea">
         <div className="shell mainFooterGrid">
@@ -20,7 +20,7 @@ export function SiteFooter() {
                 alt="Opus Care Support Services"
                 width={210}
                 height={58}
-                className="footerLogoImg invertLogo"
+                className="footerLogoImg"
               />
             </Link>
             <p className="footerMissionText">
@@ -62,6 +62,8 @@ export function SiteFooter() {
           <div className="footerCol linksCol">
             <h4 className="footerColTitle">Quick Links</h4>
             <ul className="footerBulletList">
+              <li><span className="bulletDot"></span><Link href="/portal"><strong>Participant Portal</strong></Link></li>
+              <li><span className="bulletDot"></span><Link href="/admin">Staff CRM Portal</Link></li>
               <li><span className="bulletDot"></span><Link href="/about">About Opus Care</Link></li>
               <li><span className="bulletDot"></span><Link href="/services">Services &amp; Supports</Link></li>
               <li><span className="bulletDot"></span><Link href="/service-areas">Areas We Serve</Link></li>
@@ -70,8 +72,6 @@ export function SiteFooter() {
               <li><span className="bulletDot"></span><Link href="/contact">Contact Our Team</Link></li>
               <li><span className="bulletDot"></span><Link href="/privacy">Privacy Policy</Link></li>
               <li><span className="bulletDot"></span><Link href="/complaints">Feedback &amp; Complaints</Link></li>
-              <li><span className="bulletDot"></span><Link href="/incident-management">Incident Framework</Link></li>
-              <li><span className="bulletDot"></span><Link href="/code-of-conduct">NDIS Code of Conduct</Link></li>
             </ul>
           </div>
 
@@ -87,7 +87,7 @@ export function SiteFooter() {
               <li><span className="bulletDot"></span><Link href="/services">1-on-1 Mentoring &amp; Coaching</Link></li>
             </ul>
 
-            {/* Clean, Full-Width Funding Badge Box (No awkward text wrapping) */}
+            {/* Clean, Full-Width Funding Badge Box */}
             <div className="fundingBadgeCard">
               <span className="fundingBadgeTitle">NDIS FUNDING MODEL:</span>
               <div className="fundingPillsRow">
@@ -99,7 +99,7 @@ export function SiteFooter() {
 
           {/* Column 4: About Us & Intake CTA */}
           <div className="footerCol recognitionCol">
-            <h4 className="footerColTitle">About Us</h4>
+            <h4 className="footerColTitle">Client Access</h4>
             
             {/* Supporting Self & Plan Managed */}
             <div className="cleanStatusBadgeCard">
@@ -107,10 +107,12 @@ export function SiteFooter() {
               <span>Supporting Self &amp; Plan-Managed</span>
             </div>
 
-            {/* TIS National Card */}
-            <div className="cleanStatusBadgeCard secondary">
-              <Shield size={18} className="badgeShieldIcon" />
-              <span>TIS National Interpreting Available</span>
+            {/* Portal Direct Access */}
+            <div className="cleanStatusBadgeCard">
+              <Lock size={18} className="badgeShieldIcon" />
+              <Link href="/portal" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <span>24/7 Participant Portal Login</span>
+              </Link>
             </div>
 
             <div className="footerIntakeCtaBox">

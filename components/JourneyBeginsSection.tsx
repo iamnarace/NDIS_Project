@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { RefreshCw, MessageSquare, ArrowRight } from 'lucide-react';
+import { RefreshCw, MessageSquare, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export function JourneyBeginsSection() {
   return (
@@ -15,13 +15,13 @@ export function JourneyBeginsSection() {
               Your journey <span className="highlightHandwriting">begins here</span>
             </h2>
             <p className="journeyDescText">
-              Discover how our personalised, person-centred support makes your NDIS and disability journey easier across Yamba, Grafton, Maclean, and Northern Rivers NSW.
+              Discover how our personalised, person-centred support makes your NDIS and disability journey easier across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
             </p>
 
             <div className="journeyPhotoCollageGrid">
               <div className="collagePhotoCard main">
                 <Image
-                  src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=700&q=80"
+                  src="/images/ndis-care-moment.jpg"
                   alt="Support worker assisting participant in home kitchen"
                   width={500}
                   height={380}
@@ -30,8 +30,8 @@ export function JourneyBeginsSection() {
               </div>
               <div className="collagePhotoCard subTop">
                 <Image
-                  src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=400&q=80"
-                  alt="Participants enjoying outdoor community activity"
+                  src="/images/ndis-community-walk.jpg"
+                  alt="Participants enjoying outdoor community walk"
                   width={350}
                   height={220}
                   className="collageImg"
@@ -39,8 +39,8 @@ export function JourneyBeginsSection() {
               </div>
               <div className="collagePhotoCard subBottom">
                 <Image
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
-                  alt="Skill building and mentoring session"
+                  src="/images/ndis-gardening-support.jpg"
+                  alt="Gardening and active outdoor support session"
                   width={350}
                   height={220}
                   className="collageImg"
@@ -49,12 +49,12 @@ export function JourneyBeginsSection() {
             </div>
           </div>
 
-          {/* Right Column: 2 Deep Royal Purple Action Cards */}
+          {/* Right Column: 2 Distinct Color-Coded Action Cards (Enabled4Life Style) */}
           <div className="journeyCardsCol">
-            {/* Action Card 1: Switching Providers */}
-            <div className="journeyActionPurpleCard">
+            {/* Action Card 1: Deep Royal Indigo Card */}
+            <div className="journeyActionCard cardIndigo">
               <div className="actionCardHeader">
-                <div className="actionIconWrap">
+                <div className="actionIconWrap indigoIcon">
                   <RefreshCw size={26} />
                 </div>
                 <span className="actionSuperText">SIMPLE STEPS TO</span>
@@ -63,16 +63,16 @@ export function JourneyBeginsSection() {
               <p className="actionCardBody">
                 Are you ready to switch to a provider that genuinely listens, shows up on time, and values your choices? We handle the transition smoothly with zero paperwork stress.
               </p>
-              <Link href="/contact" className="actionCardLinkBtn">
+              <Link href="/contact" className="actionCardLinkBtn whiteBtn">
                 <span>Start here</span>
                 <ArrowRight size={16} />
               </Link>
             </div>
 
-            {/* Action Card 2: Get Started with Opus Care */}
-            <div className="journeyActionPurpleCard">
+            {/* Action Card 2: Soft Lilac Card */}
+            <div className="journeyActionCard cardLilac">
               <div className="actionCardHeader">
-                <div className="actionIconWrap">
+                <div className="actionIconWrap lilacIcon">
                   <MessageSquare size={26} />
                 </div>
                 <span className="actionSuperText">I&apos;M READY TO</span>
@@ -81,7 +81,7 @@ export function JourneyBeginsSection() {
               <p className="actionCardBody">
                 Are you ready to speak with our local team about your goals and funding? We respond promptly within 24 business hours to organize your support plan.
               </p>
-              <Link href="/referral" className="actionCardLinkBtn">
+              <Link href="/referral" className="actionCardLinkBtn purpleBtn">
                 <span>Enquire now</span>
                 <ArrowRight size={16} />
               </Link>

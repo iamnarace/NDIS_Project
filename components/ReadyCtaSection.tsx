@@ -3,7 +3,7 @@ import { Heart, Home, Sparkles, Users, ArrowRight, Mail } from 'lucide-react';
 
 export function ReadyCtaSection() {
   return (
-    <section className="readyCtaSectionWrap">
+    <section className="readyCtaSectionWrap lightRadiant">
       <div className="shell">
         <div className="readyCtaInnerContainer">
           <span className="readySuperTag">GET STARTED TODAY</span>

@@ -12,6 +12,7 @@ import { ReadyCtaSection } from '../components/ReadyCtaSection';
 import { ILoveNdisBadge } from '../components/ILoveNdisBadge';
 import { SafetyPriorityNote } from '../components/SafetyPriorityNote';
 import { CareSupportReadySection } from '../components/CareSupportReadySection';
+import { ParticipantPortalSection } from '../components/ParticipantPortalSection';
 
 import { 
   Heart, Users, Compass, Clock, ShieldCheck, MapPin, ArrowRight, 
@@ -38,29 +39,35 @@ export default function HomePage() {
                 priority
                 className="unifiedHeroCoverImg"
               />
-              <div className="unifiedHeroOverlay" />
-              <div className="unifiedHeroContentCard">
-                <span className="unifiedHeroBadge">
-                  🌿 PERSON-CENTRED NDIS SUPPORT · NORTHERN NSW
+              <div className="unifiedHeroOverlay lightOverlay" />
+              <div className="unifiedHeroContentCard lightCard">
+                <span className="unifiedHeroBadge lightBadge">
+                  EMPOWER YOUR NDIS JOURNEY · NORTHERN NSW
                 </span>
 
-                <h1 className="unifiedHeroTitle">
+                <h1 className="unifiedHeroTitle lightTitle">
                   Working towards your best life, one step at a time
                 </h1>
 
-                <p className="unifiedHeroDesc">
-                  At Opus Care Support Services, we match you with trusted, compassionate local support workers. Supporting Self-Managed and Plan-Managed Participants with genuine choice, control, and dedicated 1-on-1 care across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
+                <p className="unifiedHeroDesc lightDesc">
+                  At Opus Care Support Services, we match you with trusted, compassionate local support workers. Supporting Self-Managed and Plan-Managed Participants with genuine choice, control, and transparent 1-on-1 care across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
                 </p>
 
                 <div className="unifiedHeroBtnRow">
-                  <Link className="heroPillBtn filled" href="/referral">
-                    <span>Check Your Eligibility</span>
+                  <Link className="heroPillBtn purpleBtn" href="/referral">
+                    <span>Sign Up in a Few Easy Steps</span>
                     <ArrowRight size={16} />
                   </Link>
-                  <Link className="heroPillBtn outlineWhite" href="/services">
+                  <Link className="heroPillBtn outlinePurple" href="/services">
                     <span>View Our Services</span>
                     <ArrowUpRight size={18} />
                   </Link>
+                </div>
+
+                <div className="heroSubtagRow">
+                  <span className="heroSubtagText">
+                    🛡️ UNREGISTERED NDIS PROVIDER · SUPPORTING SELF &amp; PLAN-MANAGED PARTICIPANTS
+                  </span>
                 </div>
               </div>
             </div>
@@ -77,6 +84,11 @@ export default function HomePage() {
             CARE & SUPPORT READY: 8 Circular Activity Badges
         ═══════════════════════════════════════════════════════════════════ */}
         <CareSupportReadySection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            PARTICIPANT & CARER CRM PORTAL SECTION (Careview / Enabled4Life Style)
+        ═══════════════════════════════════════════════════════════════════ */}
+        <ParticipantPortalSection />
 
         {/* ═══════════════════════════════════════════════════════════════════
             NEW SECTION 1: UNDERSTANDING YOUR NDIS FUNDING (Reference 1)
@@ -268,7 +280,7 @@ export default function HomePage() {
 
             <div className="intakeStepsGrid3">
               {/* Step 01 */}
-              <div className="intakeProcessCard">
+              <div className="intakeProcessCard cardTeal">
                 <span className="stepWatermarkNum">01</span>
                 <div className="intakeIconBox">
                   <FileText size={32} />
@@ -278,7 +290,7 @@ export default function HomePage() {
               </div>
 
               {/* Step 02 */}
-              <div className="intakeProcessCard">
+              <div className="intakeProcessCard cardLilac">
                 <span className="stepWatermarkNum">02</span>
                 <div className="intakeIconBox">
                   <Mail size={32} />
@@ -288,7 +300,7 @@ export default function HomePage() {
               </div>
 
               {/* Step 03 */}
-              <div className="intakeProcessCard">
+              <div className="intakeProcessCard cardAmber">
                 <span className="stepWatermarkNum">03</span>
                 <div className="intakeIconBox">
                   <HeartHandshake size={32} />
