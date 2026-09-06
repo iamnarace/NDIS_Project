@@ -1,3 +1,4 @@
+import { sendReferralClientConfirmation, sendReferralAdminAlert } from '@/lib/email';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
@@ -72,39 +73,14 @@ export async function POST(request: Request) {
     referrals.unshift(newReferral);
     saveReferrals(referrals);
 
-    // Optional Email Notification if Resend is configured
-    const apiKey = process.env.RESEND_API_KEY;
-    const to = process.env.REFERRAL_TO_EMAIL;
-    const from = process.env.FROM_EMAIL;
-
-    if (apiKey && to && from) {
-      try {
-        const subject = `New Opus Care Referral: ${newReferral.name} (${newReferral.suburb})`;
-        const lines = [
-          `New NDIS Referral Received`,
-          `-------------------------`,
-          `Referral ID: ${newReferral.id}`,
-          `Contact Name: ${newReferral.name} (${newReferral.role})`,
-          `Participant Name: ${newReferral.participantName}`,
-          `Phone: ${newReferral.phone}`,
-          `Email: ${newReferral.email}`,
-          `Location: ${newReferral.suburb}`,
-          `Funding Model: ${newReferral.funding}`,
-          `Services Requested: ${newReferral.services}`,
-          `Schedule: ${newReferral.schedulePreference}`,
-          ``,
-          `Notes / Goals:`,
-          newReferral.message
-        ];
-
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from, to: [to], reply_to: newReferral.email, subject, text: lines.join('\n') }),
-        });
-      } catch (emailErr) {
-        console.warn('Email notification skipped or failed', emailErr);
-      }
+    // Send Resend notification emails (Client confirmation + Admin lead alert)
+    try {
+      await Promise.allSettled([
+        sendReferralClientConfirmation(newReferral),
+        sendReferralAdminAlert(newReferral),
+      ]);
+    } catch (emailErr) {
+      console.warn('Email dispatch failed or simulated:', emailErr);
     }
 
     return NextResponse.json({ 
