@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ArrowRight, Mail, Sparkles } from 'lucide-react';
+import { Menu, X, ArrowRight, Mail } from 'lucide-react';
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -13,16 +13,30 @@ export function SiteHeader() {
       {/* Top Announcement Bar */}
       <div className="topNoticeBar">
         <div className="shell topNoticeContent">
-          <div className="noticeLeft">
-            <span className="noticeBadge">NDIS Provider</span>
-            <span className="noticeText">Supporting Self &amp; Plan-Managed Participants Across Yamba &amp; Northern Rivers NSW</span>
+          {/* Desktop Full View */}
+          <div className="noticeDesktopView">
+            <div className="noticeLeft">
+              <span className="noticeBadge">NDIS Provider</span>
+              <span className="noticeText">Supporting Self &amp; Plan-Managed Participants Across NSW North Coast &amp; Northern Rivers</span>
+            </div>
+            <div className="noticeRight">
+              <span className="intakeBadge">
+                <span className="statusDotPulse"></span> Intake Open
+              </span>
+              <a href="mailto:support@opuscare.com.au" className="noticeContactLink">
+                <Mail size={13} /> support@opuscare.com.au
+              </a>
+            </div>
           </div>
-          <div className="noticeRight">
-            <span className="intakeBadge">
+
+          {/* Clean, Sleek Mobile View (Single line, zero multi-line wrapping) */}
+          <div className="noticeMobileView">
+            <span className="intakeBadgeSm">
               <span className="statusDotPulse"></span> Intake Open
             </span>
-            <a href="mailto:support@opuscare.com.au" className="noticeContactLink">
-              <Mail size={13} /> support@opuscare.com.au
+            <span className="noticeDivider">·</span>
+            <a href="mailto:support@opuscare.com.au" className="mobileNoticeEmail">
+              <Mail size={12} /> support@opuscare.com.au
             </a>
           </div>
         </div>
@@ -46,6 +60,7 @@ export function SiteHeader() {
           <nav className="desktopNav" aria-label="Main Navigation">
             <Link href="/" className="navLink">Home</Link>
             <Link href="/services" className="navLink">Services &amp; Supports</Link>
+            <Link href="/service-areas" className="navLink">Areas We Serve</Link>
             <Link href="/about" className="navLink">About Opus Care</Link>
             <Link href="/faq" className="navLink">Pricing &amp; FAQ</Link>
             <Link href="/contact" className="navLink">Contact Us</Link>
@@ -94,6 +109,7 @@ export function SiteHeader() {
         <nav className="mobileNavLinks">
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
           <Link href="/services" onClick={() => setOpen(false)}>Services &amp; Supports</Link>
+          <Link href="/service-areas" onClick={() => setOpen(false)}>Areas We Serve</Link>
           <Link href="/about" onClick={() => setOpen(false)}>About Opus Care</Link>
           <Link href="/faq" onClick={() => setOpen(false)}>Pricing &amp; FAQ</Link>
           <Link href="/contact" onClick={() => setOpen(false)}>Contact Us</Link>
@@ -107,7 +123,7 @@ export function SiteHeader() {
 
         <div className="mobileDrawerFooter">
           <span>📧 support@opuscare.com.au</span>
-          <span>📍 Yamba, Grafton &amp; Northern Rivers, NSW</span>
+          <span>📍 NSW North Coast &amp; Northern Rivers</span>
           <small>Unregistered NDIS Provider · Supporting Self &amp; Plan Managed</small>
         </div>
       </div>

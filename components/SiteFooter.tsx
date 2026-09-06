@@ -24,16 +24,16 @@ export function SiteFooter() {
               />
             </Link>
             <p className="footerMissionText">
-              Opus Care Support Services is dedicated to providing specialized, compassionate, and person-centred disability support. We empower self-managed and plan-managed NDIS participants across Yamba, Grafton, Maclean, and Northern Rivers NSW to live with independence and choice.
+              Opus Care Support Services is dedicated to providing specialized, compassionate, and person-centred disability support. We empower self-managed and plan-managed NDIS participants across NSW North Coast and Northern Rivers to live with independence and choice.
             </p>
 
             <div className="footerLocationsList">
-              <span className="locItem"><MapPin size={13} className="locPin" /> Yamba NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Grafton NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Maclean NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Iluka NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> New Italy NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Clarence Valley &amp; Northern Rivers</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Coffs Harbour NSW</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Woolgoolga NSW</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Grafton &amp; Clarence Valley</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Maclean &amp; Yamba</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Casino &amp; Richmond Valley</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Lismore &amp; Ballina</span>
             </div>
 
             <div className="footerDirectContact">
@@ -64,6 +64,7 @@ export function SiteFooter() {
             <ul className="footerBulletList">
               <li><span className="bulletDot"></span><Link href="/about">About Opus Care</Link></li>
               <li><span className="bulletDot"></span><Link href="/services">Services &amp; Supports</Link></li>
+              <li><span className="bulletDot"></span><Link href="/service-areas">Areas We Serve</Link></li>
               <li><span className="bulletDot"></span><Link href="/faq">Pricing &amp; FAQs</Link></li>
               <li><span className="bulletDot"></span><Link href="/referral">Make a Referral</Link></li>
               <li><span className="bulletDot"></span><Link href="/contact">Contact Our Team</Link></li>
@@ -86,8 +87,9 @@ export function SiteFooter() {
               <li><span className="bulletDot"></span><Link href="/services">1-on-1 Mentoring &amp; Coaching</Link></li>
             </ul>
 
+            {/* Clean, Full-Width Funding Badge Box (No awkward text wrapping) */}
             <div className="fundingBadgeCard">
-              <span className="fundingBadgeTitle">Funding Model:</span>
+              <span className="fundingBadgeTitle">NDIS FUNDING MODEL:</span>
               <div className="fundingPillsRow">
                 <span className="fPill">Self-Managed</span>
                 <span className="fPill">Plan-Managed</span>
@@ -122,32 +124,30 @@ export function SiteFooter() {
         </div>
       </div>
 
-      {/* Acknowledgment of Country with Authentic Side-by-Side Flags */}
+      {/* Acknowledgment of Country with Side-by-Side Flags */}
       <div className="countryAckBand">
         <div className="shell">
           <div className="countryAckContent">
             <div className="flagsPairRow">
-              {/* Australian Aboriginal Flag SVG */}
+              {/* Australian Aboriginal Flag */}
               <svg className="flagSvg" viewBox="0 0 60 36" width="48" height="29" aria-label="Australian Aboriginal Flag">
                 <rect width="60" height="18" fill="#000000" />
                 <rect y="18" width="60" height="18" fill="#D9261C" />
                 <circle cx="30" cy="18" r="10" fill="#FBB03B" />
               </svg>
-              {/* Torres Strait Islander Flag SVG */}
+              {/* Torres Strait Islander Flag */}
               <svg className="flagSvg" viewBox="0 0 60 36" width="48" height="29" aria-label="Torres Strait Islander Flag">
                 <rect width="60" height="9" fill="#009944" />
                 <rect y="9" width="60" height="2" fill="#000000" />
                 <rect y="11" width="60" height="14" fill="#0055A5" />
                 <rect y="25" width="60" height="2" fill="#000000" />
                 <rect y="27" width="60" height="9" fill="#009944" />
-                {/* Dhari head-dress white emblem */}
                 <path d="M 24 23 C 24 13 36 13 36 23 C 34 23 34 16 30 16 C 26 16 26 23 24 23 Z" fill="#FFFFFF" />
-                {/* Five-pointed star */}
                 <polygon points="30,17 31,20 34,20 31.5,22 32.5,25 30,23 27.5,25 28.5,22 26,20 29,20" fill="#FFFFFF" />
               </svg>
             </div>
             <p className="countryAckText">
-              Opus Care Support Services acknowledges and pays respect to the Traditional Custodians of the lands on which we live, meet, and provide support across the Clarence Coast, Northern Rivers, and Bundjalung, Yaegl, and Gumbaynggirr Nations. We pay our deepest respects to Elders past, present, and emerging. We extend that respect to all Aboriginal and Torres Strait Islander peoples today.
+              Opus Care Support Services acknowledges and pays respect to the Traditional Custodians of the lands on which we live, meet, and provide support across the NSW North Coast, Clarence Coast, Northern Rivers, and Bundjalung, Yaegl, and Gumbaynggirr Nations. We pay our deepest respects to Elders past, present, and emerging. We extend that respect to all Aboriginal and Torres Strait Islander peoples today.
             </p>
           </div>
         </div>

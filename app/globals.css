@@ -5448,3 +5448,613 @@ a {
     padding: 24px 18px;
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE NOTICE BAR, ROLE SELECTION GRID, SERVICE AREAS & BROCHURES
+═════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. TOP NOTICE BAR (Clean Desktop & Single-Line Mobile) ─────────────── */
+.topNoticeBar {
+  background: #1E0E38;
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.topNoticeContent {
+  padding: 8px 16px;
+}
+
+.noticeDesktopView {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.noticeLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.noticeBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: #F59E0B;
+  color: #1E0E38;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.noticeText {
+  color: #E2E8F0;
+  font-weight: 500;
+}
+
+.noticeRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.intakeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #064E3B;
+  color: #34D399;
+  padding: 3px 9px;
+  border-radius: 9999px;
+}
+
+.statusDotPulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+  animation: pulseDot 1.8s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+.noticeContactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #CBD5E1;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.noticeContactLink:hover {
+  color: #FFFFFF;
+}
+
+.noticeMobileView {
+  display: none;
+}
+
+.intakeBadgeSm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: #064E3B;
+  color: #34D399;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.noticeDivider {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.mobileNoticeEmail {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .noticeDesktopView {
+    display: none !important;
+  }
+  .noticeMobileView {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 4px 0;
+    text-align: center;
+  }
+}
+
+/* ── 2. REFERRAL FORM ROLE SELECTION GRID (Mobile 2x2 Clean Layout) ───────── */
+.roleSelectionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 22px;
+  width: 100%;
+}
+
+.roleSelectCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 10px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.roleSelectCard:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+  transform: translateY(-2px);
+}
+
+.roleSelectCard.selected {
+  border-color: #7C3AED;
+  background: #FAF5FF;
+  color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+@media (max-width: 768px) {
+  .roleSelectionGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .roleSelectCard {
+    padding: 14px 8px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ── 3. MAJOR LOCATIONS FLOW STRIP ──────────────────────────────────────── */
+.majorLocationsStrip {
+  margin-top: 20px;
+  padding: 12px 18px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.majorLocationsStrip.centeredStrip {
+  justify-content: center;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.majorLocationsLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F172A;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.majorLocationsFlow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.locFlowItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: #334155;
+}
+
+.locFlowItem strong {
+  color: #4B2682;
+}
+
+.locArrow {
+  color: #94A3B8;
+  font-size: 0.8rem;
+}
+
+/* ── 4. AREAS WE SERVE DIRECTORY PAGE ───────────────────────────────────── */
+.serviceAreasMainWrap {
+  background: #FFFFFF;
+}
+
+.serviceAreasHero {
+  background: linear-gradient(180deg, #FAF5FF 0%, #FFFFFF 100%);
+  padding: 60px 0 36px 0;
+  text-align: center;
+}
+
+.areasHeroCenter {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.areasDirectoryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+}
+
+.regionDirectoryCard {
+  padding: 36px 32px;
+}
+
+.regionDirHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dirIconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #F3E8FF;
+  color: #7C3AED;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dirSuperBadge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #7C3AED;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.regionDirHeader h2 {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.regionDirDesc {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.keyHubsRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.hubsLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0F172A;
+  text-transform: uppercase;
+}
+
+.hubsPills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hubPill {
+  padding: 4px 10px;
+  background: #F1F5F9;
+  color: #1E293B;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.allSuburbsSection {
+  padding: 18px 0;
+  border-top: 1px solid #F1F5F9;
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: 20px;
+}
+
+.suburbsListLabel {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.suburbsPillsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suburbTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.suburbTag .subCheckIcon {
+  color: #059669;
+}
+
+.dirCardFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.locationEnquiryBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 36px;
+  background: linear-gradient(135deg, #FAF5FF 0%, #FFFFFF 100%);
+  border: 1.5px solid #E9D5FF;
+  margin-top: 40px;
+  gap: 24px;
+}
+
+.enquiryBannerText h3 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1E0E38;
+  margin-bottom: 6px;
+}
+
+.enquiryBannerText p {
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.enquiryBannerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.bannerEmailLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7C3AED;
+  text-decoration: none;
+}
+
+.bannerEmailLink:hover {
+  text-decoration: underline;
+}
+
+.viewAllAreasLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #7C3AED;
+  text-decoration: none;
+}
+
+.viewAllAreasLink:hover {
+  text-decoration: underline;
+}
+
+/* ── 5. RESOURCE BROCHURES STYLING (Fixing unstyled text in media_1788657191747) ── */
+.resourceBrochuresContainer {
+  margin-top: 36px;
+}
+
+.brochuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.brochureCard {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.brochureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+.brochureCoverPreview {
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #1E0E38 0%, #391C63 100%);
+  color: #FFFFFF;
+  position: relative;
+}
+
+.brochureBadge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.coverTitle {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.35;
+  margin-bottom: 16px;
+}
+
+.coverFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #CBD5E1;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 8px;
+}
+
+.brochureCardBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.audiencePill {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  margin-bottom: 8px;
+}
+
+.brochureCardBody h3 {
+  display: none;
+}
+
+.brochureCardBody p {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.highlightsList {
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.highlightsList strong {
+  display: block;
+  font-size: 0.78rem;
+  color: #0F172A;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.highlightsList ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.highlightsList li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.brochureActions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 16px;
+  background: #F1F5F9;
+  color: #0F172A;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.brochureActions .button:hover {
+  background: #391C63;
+  color: #FFFFFF;
+  border-color: #391C63;
+}
+
+@media (max-width: 768px) {
+  .brochuresGrid {
+    grid-template-columns: 1fr;
+  }
+  .locationEnquiryBanner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .enquiryBannerActions {
+    width: 100%;
+  }
+  .enquiryBannerActions .heroPillBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
