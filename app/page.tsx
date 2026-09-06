@@ -9,6 +9,10 @@ import { JourneyBeginsSection } from '../components/JourneyBeginsSection';
 import { NdisToolsResourcesSection } from '../components/NdisToolsResourcesSection';
 import { NdisBlogNewsSection } from '../components/NdisBlogNewsSection';
 import { ReadyCtaSection } from '../components/ReadyCtaSection';
+import { ILoveNdisBadge } from '../components/ILoveNdisBadge';
+import { SafetyPriorityNote } from '../components/SafetyPriorityNote';
+import { CareSupportReadySection } from '../components/CareSupportReadySection';
+
 import { 
   Heart, Users, Compass, Clock, ShieldCheck, MapPin, ArrowRight, 
   CheckCircle2, Sparkles, FileText, HeartHandshake,
@@ -22,55 +26,36 @@ export default function HomePage() {
 
       <main className="mainContentWrap">
         {/* ═══════════════════════════════════════════════════════════════════
-            HERO PANE - Clean, Centered, Huge Spacing
+            UNIFIED HERO SECTION: Authentic Local Care + Direct Actions
         ═══════════════════════════════════════════════════════════════════ */}
-        <section className="heroCleanPaneSection">
-          <div className="shell heroCleanPaneContainer">
-            <span className="heroCleanBadge">
-              🌿 PERSON-CENTRED NDIS SUPPORT
-            </span>
-
-            <h1 className="heroCleanTitle">
-              Working towards your best life, one step at a time
-            </h1>
-
-            <p className="heroCleanDescription">
-              At Opus Care Support Services, we provide tailored, compassionate care to meet your unique needs. From daily living assistance to navigating community life across Yamba, Grafton, Maclean, and Northern Rivers NSW, our dedicated team works closely with you and your family to enhance your independence and achieve your goals.
-            </p>
-
-            <div className="heroCleanButtonRow">
-              <Link className="heroPillBtn filled" href="/referral">
-                <span>Check Your Eligibility</span>
-              </Link>
-              <Link className="heroPillBtn outline" href="/contact">
-                <span>Contact Our Team</span>
-                <ArrowRight size={16} />
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            IMAGE HERO BANNER: Authentic Outdoor Care & Blue NDIS Trust Band
-        ═══════════════════════════════════════════════════════════════════ */}
-        <section className="photoBannerPaneSection">
+        <section className="unifiedHeroSection">
           <div className="shell">
-            <div className="photoBannerBox">
+            <div className="unifiedHeroBox">
               <Image
-                src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1200&q=80"
-                alt="Opus Care Support Worker smiling with participant outdoors"
-                width={1200}
-                height={520}
+                src="/images/ndis-community-walk.jpg"
+                alt="Opus Care Support Worker and participant enjoying a coastal morning walk in Northern NSW"
+                fill
                 priority
-                className="bannerCoverImg"
+                className="unifiedHeroCoverImg"
               />
-              <div className="bannerOverlayText">
-                <span className="bannerSub">Welcome to Opus Care Support Services</span>
-                <h2>Together, Let&apos;s Build Your Independence</h2>
-                <p>Supporting Self-Managed and Plan-Managed Participants with Choice &amp; Control</p>
-                <div className="bannerBtnGroup">
+              <div className="unifiedHeroOverlay" />
+              <div className="unifiedHeroContentCard">
+                <span className="unifiedHeroBadge">
+                  🌿 PERSON-CENTRED NDIS SUPPORT · NORTHERN NSW
+                </span>
+
+                <h1 className="unifiedHeroTitle">
+                  Working towards your best life, one step at a time
+                </h1>
+
+                <p className="unifiedHeroDesc">
+                  At Opus Care Support Services, we match you with trusted, compassionate local support workers. Supporting Self-Managed and Plan-Managed Participants with genuine choice, control, and dedicated 1-on-1 care across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
+                </p>
+
+                <div className="unifiedHeroBtnRow">
                   <Link className="heroPillBtn filled" href="/referral">
                     <span>Check Your Eligibility</span>
+                    <ArrowRight size={16} />
                   </Link>
                   <Link className="heroPillBtn outlineWhite" href="/services">
                     <span>View Our Services</span>
@@ -80,30 +65,18 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Blue Trust Band */}
-            <div className="blueTrustBandPane">
-              <div className="ndisBadgeGroup">
-                <div className="ndisCircleIcon">
-                  <Heart size={24} fill="#FFFFFF" color="#FFFFFF" />
-                </div>
-                <div className="ndisBadgeLabels">
-                  <strong>NDIS PROVIDER</strong>
-                  <span>Supporting Self &amp; Plan-Managed</span>
-                </div>
-              </div>
+            {/* "I 💚 NDIS" Trust Strip */}
+            <ILoveNdisBadge />
 
-              <div className="blueTrustTextGroup">
-                <h3>Dedicated to Enabling Your Independence</h3>
-                <p>Breaking down barriers, matching trusted local support workers, and building inclusive communities.</p>
-              </div>
-
-              <Link href="/contact" className="blueTrustCallBtn">
-                <Mail size={16} />
-                <span>Contact Us</span>
-              </Link>
-            </div>
+            {/* Safety Priority Reassurance Micro-Note */}
+            <SafetyPriorityNote />
           </div>
         </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            CARE & SUPPORT READY: 8 Circular Activity Badges
+        ═══════════════════════════════════════════════════════════════════ */}
+        <CareSupportReadySection />
 
         {/* ═══════════════════════════════════════════════════════════════════
             NEW SECTION 1: UNDERSTANDING YOUR NDIS FUNDING (Reference 1)
@@ -128,7 +101,7 @@ export default function HomePage() {
               <div className="photoServiceCard">
                 <div className="photoCardImgWrapper">
                   <Image
-                    src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=700&q=80"
+                    src="/images/ndis-care-moment.jpg"
                     alt="Home and Living Support"
                     width={600}
                     height={400}
@@ -220,7 +193,7 @@ export default function HomePage() {
               <div className="photoServiceCard">
                 <div className="photoCardImgWrapper">
                   <Image
-                    src="https://images.unsplash.com/photo-1516307365426-bea591f05011?auto=format&fit=crop&w=700&q=80"
+                    src="/images/ndis-gardening-support.jpg"
                     alt="In-Home Respite Support"
                     width={600}
                     height={400}

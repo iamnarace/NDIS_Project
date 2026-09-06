@@ -6058,3 +6058,432 @@ a {
     justify-content: center;
   }
 }
+
+
+/* =============================================================================
+   UNIFIED HERO SECTION
+============================================================================= */
+.unifiedHeroSection {
+  padding: 16px 0 32px;
+}
+
+.unifiedHeroBox {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px -10px rgba(15, 23, 42, 0.12);
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+}
+
+.unifiedHeroCoverImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  z-index: 1;
+}
+
+.unifiedHeroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg, 
+    rgba(15, 23, 42, 0.90) 0%, 
+    rgba(15, 23, 42, 0.78) 45%, 
+    rgba(15, 23, 42, 0.25) 100%
+  );
+  z-index: 2;
+}
+
+.unifiedHeroContentCard {
+  position: relative;
+  z-index: 3;
+  max-width: 680px;
+  padding: 64px 48px;
+  color: #FFFFFF;
+}
+
+.unifiedHeroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #5EEAD4;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.8125rem;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  margin-bottom: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.unifiedHeroTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.18;
+  margin-bottom: 18px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.unifiedHeroDesc {
+  font-size: 1.125rem;
+  color: #F1F5F9;
+  line-height: 1.7;
+  margin-bottom: 32px;
+  max-width: 580px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.unifiedHeroBtnRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* =============================================================================
+   I LOVE NDIS TRUST STRIP
+============================================================================= */
+.iLoveNdisContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 18px 28px;
+  margin-top: 24px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.iLoveNdisIconWrap {
+  flex-shrink: 0;
+}
+
+.iLoveNdisSvg {
+  width: 58px;
+  height: 58px;
+  display: block;
+}
+
+.iLoveNdisTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.iLoveNdisTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.iLoveNdisTitle {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1E1B4B;
+}
+
+.iLoveNdisTag {
+  display: inline-block;
+  background: #F3E8FF;
+  color: #7C3AED;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.iLoveNdisSubtext {
+  font-size: 0.92rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* =============================================================================
+   SAFETY PRIORITY MICRO-NOTE (COMPACT REASSURANCE STRIP)
+============================================================================= */
+.safetyPriorityNoteWrap {
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  border: 1px solid #E2E8F0;
+  border-left: 5px solid #00897B;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin: 28px 0 40px;
+}
+
+.safetyPriorityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+}
+
+.safetyBadgeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #E0F2F1;
+  color: #00796B;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.8125rem;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  letter-spacing: 0.06em;
+}
+
+.safetyTagIcon {
+  color: #00897B;
+}
+
+.safetyHeaderBlurb {
+  font-size: 0.875rem;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.safetyPillGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.safetyPillItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #FFFFFF;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid #EEF2F6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.safetyIconWrap {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: #E0F2F1;
+  color: #00897B;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.safetyTextWrap {
+  flex: 1;
+}
+
+.safetyPillTitle {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 4px;
+}
+
+.safetyPillDesc {
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* =============================================================================
+   CARE AND SUPPORT READY SECTION (8 CIRCLES)
+============================================================================= */
+.careSupportReadySection {
+  padding: 60px 0 70px;
+  background: #FAFBFC;
+}
+
+.careCirclesGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.careCircleCard {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 32px 22px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.careCircleCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  border-color: #CBD5E1;
+}
+
+.careCircleBadge {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  transition: transform 0.25s ease;
+}
+
+.careCircleCard:hover .careCircleBadge {
+  transform: scale(1.08);
+}
+
+.careCircleTitle {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.careCircleDesc {
+  font-size: 0.85rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.careReadyBottomCta {
+  margin-top: 44px;
+}
+
+.careReadyBottomBox {
+  background: #FFFFFF;
+  border: 2px dashed #CBD5E1;
+  border-radius: 18px;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.careReadyBottomText h4 {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px;
+}
+
+.careReadyBottomText p {
+  font-size: 0.92rem;
+  color: #64748B;
+  margin: 0;
+}
+
+/* =============================================================================
+   MOBILE RESPONSIVENESS RULES FOR NEW SECTIONS
+============================================================================= */
+@media (max-width: 992px) {
+  .careCirclesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .safetyPillGrid {
+    grid-template-columns: 1fr;
+  }
+  .unifiedHeroContentCard {
+    padding: 44px 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .unifiedHeroBox {
+    min-height: auto;
+  }
+  .unifiedHeroOverlay {
+    background: linear-gradient(
+      180deg, 
+      rgba(15, 23, 42, 0.85) 0%, 
+      rgba(15, 23, 42, 0.92) 100%
+    );
+  }
+  .unifiedHeroContentCard {
+    padding: 36px 20px;
+  }
+  .unifiedHeroTitle {
+    font-size: 1.85rem;
+  }
+  .unifiedHeroDesc {
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
+  .unifiedHeroBtnRow {
+    flex-direction: column;
+    width: 100%;
+  }
+  .unifiedHeroBtnRow .heroPillBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .iLoveNdisContainer {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px 16px;
+  }
+  .iLoveNdisTitleRow {
+    justify-content: center;
+  }
+  .careCirclesGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .careCircleCard {
+    padding: 20px 12px;
+  }
+  .careCircleBadge {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 12px;
+  }
+  .careCircleTitle {
+    font-size: 0.92rem;
+  }
+  .careCircleDesc {
+    font-size: 0.78rem;
+  }
+  .careReadyBottomBox {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px 16px;
+  }
+  .careReadyBottomActions {
+    width: 100%;
+  }
+  .careReadyBottomActions .heroPillBtn {
+    width: 100%;
+  }
+}
