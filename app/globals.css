@@ -8955,3 +8955,254 @@ a {
   border-radius: 6px;
   border: 1px solid #f1f5f9;
 }
+
+/* ==========================================================================
+   DOCUMENT VAULT & STAFF CLEARANCE COMPLIANCE STYLING
+   ========================================================================== */
+
+.crmDrawerTabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 20px;
+  background: #f8fafc;
+}
+
+.crmDrawerTabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.crmDrawerTabBtn.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+  background: #ffffff;
+}
+
+.crmDocVaultSection {
+  padding: 16px 0;
+}
+
+.crmDocUploadBox {
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  transition: border-color 0.2s;
+}
+
+.crmDocUploadBox:hover {
+  border-color: #0284c7;
+}
+
+.crmUploadFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.crmUploadField label {
+  display: block;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.crmUploadField input[type="text"],
+.crmUploadField input[type="date"],
+.crmUploadField select {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.825rem;
+  background: #ffffff;
+  outline: none;
+}
+
+.crmFileInputWrap {
+  margin-bottom: 10px;
+}
+
+.crmFileInput {
+  font-size: 0.825rem;
+  color: #475569;
+}
+
+.crmUploadSubmitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.crmUploadSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.crmDocsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crmDocCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: box-shadow 0.2s;
+}
+
+.crmDocCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.crmDocCardLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crmDocIconBadge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #f0f9ff;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crmDocMeta h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 3px;
+}
+
+.crmDocMeta p {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crmCategoryBadge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.crmExpiryPill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.crmExpiryPill.valid {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.crmExpiryPill.expiring {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.crmExpiryPill.expired {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.crmDocDownloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #f8fafc;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.crmDocDownloadBtn:hover {
+  background: #e0f2fe;
+}
+
+/* Compliance Grid for Staff */
+.crmComplianceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.crmComplianceCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.crmComplianceCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.crmComplianceTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.crmComplianceVal {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.crmComplianceSub {
+  font-size: 0.725rem;
+  color: #64748b;
+}
