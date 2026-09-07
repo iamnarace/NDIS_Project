@@ -123,6 +123,21 @@ interface TrainingAssignment {
   training_courses?: TrainingCourse;
 }
 
+
+interface ExternalCourse {
+  id: string;
+  title: string;
+  provider: string;
+  category: string;
+  description: string;
+  cost: string;
+  certificate_type: string;
+  target_audience: string;
+  duration_text?: string;
+  url: string;
+  last_verified?: string;
+}
+
 interface TrainingCompletion {
   id: string;
   course_id: string;
@@ -191,7 +206,8 @@ export default function AdminCrmPage() {
   const [trainingAssignments, setTrainingAssignments] = useState<TrainingAssignment[]>([]);
   const [trainingComplianceMap, setTrainingComplianceMap] = useState<Record<string, TrainingCompletion[]>>({});
   const [trainingLoading, setTrainingLoading] = useState(false);
-  const [trainingTab, setTrainingTab] = useState<'courses' | 'assign' | 'report'>('courses');
+  const [trainingTab, setTrainingTab] = useState<'courses' | 'assign' | 'external' | 'report'>('courses');
+  const [externalCourses, setExternalCourses] = useState<ExternalCourse[]>([]);
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [newCourse, setNewCourse] = useState({
     title: '', description: '', course_type: 'read_acknowledge',
@@ -1797,12 +1813,12 @@ export default function AdminCrmPage() {
               </div>
 
               <div style={{ display:'flex', gap:8, borderBottom:'1px solid #EEF2F6', marginBottom:24 }}>
-                {(['courses','assign','report'] as const).map(t => (
+                {(['courses','assign','external','report'] as const).map(t => (
                   <button key={t} onClick={() => setTrainingTab(t)} style={{
                     padding:'10px 18px', border:'none', background:'none', cursor:'pointer',
                     borderBottom: trainingTab===t ? '2px solid #0284C7' : '2px solid transparent',
                     color: trainingTab===t ? '#0284C7' : '#64748B', fontWeight:600, fontSize:'0.85rem' }}>
-                    {t === 'courses' ? 'Course Library' : t === 'assign' ? 'Assign to Staff' : 'Compliance Report'}
+                    {t === 'courses' ? 'Course Library' : t === 'assign' ? 'Assign to Staff' : t === 'external' ? 'External Training Library' : 'Compliance Report'}
                   </button>
                 ))}
               </div>
@@ -2006,6 +2022,75 @@ export default function AdminCrmPage() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+                            {!trainingLoading && trainingTab === 'external' && (
+                <div>
+                  <div className="crmPanelHeader" style={{ marginBottom: 16 }}>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                        Curated Free External Training Directory ({externalCourses.length})
+                      </h3>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                        Authoritative free courses from the NDIS Commission, NSW Ageing &amp; Disability Commission, and universities.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="crmTableWrapper">
+                    <table className="crmTable">
+                      <thead><tr>
+                        <th>Course / Resource</th>
+                        <th>Provider</th>
+                        <th>Category</th>
+                        <th>Target Audience</th>
+                        <th>Certification</th>
+                        <th>Duration</th>
+                        <th>Link</th>
+                      </tr></thead>
+                      <tbody>
+                        {externalCourses.length === 0 && (
+                          <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#94A3B8' }}>
+                            No external training loaded.
+                          </td></tr>
+                        )}
+                        {externalCourses.map(ext => (
+                          <tr key={ext.id}>
+                            <td>
+                              <strong>{ext.title}</strong>
+                              <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>{ext.description}</div>
+                            </td>
+                            <td style={{ fontSize: '0.85rem', fontWeight: 600 }}>{ext.provider}</td>
+                            <td>
+                              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, background: '#F1F5F9', color: '#475569' }}>
+                                {ext.category}
+                              </span>
+                            </td>
+                            <td style={{ fontSize: '0.82rem' }}>{ext.target_audience}</td>
+                            <td>
+                              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, background: '#EDE9FE', color: '#6D28D9' }}>
+                                {ext.certificate_type}
+                              </span>
+                            </td>
+                            <td style={{ fontSize: '0.82rem', color: '#64748B' }}>{ext.duration_text || 'Self-paced'}</td>
+                            <td>
+                              <a
+                                href={ext.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="crmViewBtn"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: '0.78rem' }}
+                              >
+                                <span>Open Course</span>
+                                <ExternalLink size={12}/>
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 

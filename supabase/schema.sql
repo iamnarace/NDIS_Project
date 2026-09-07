@@ -345,3 +345,31 @@ create policy "Staff read own attempts" on public.training_attempts
 create policy "Admin manage attempts" on public.training_attempts
   for all using (public.is_opus_admin());
 
+-- ============================================================================
+-- 14. CURATED FREE EXTERNAL TRAINING LIBRARY
+-- ============================================================================
+create table if not exists public.external_courses (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  provider text not null,
+  category text not null,
+  description text not null,
+  cost text not null default 'Free',
+  certificate_type text not null default 'Official Certificate',
+  target_audience text not null default 'All Workers',
+  duration_text text,
+  url text not null,
+  last_verified date default current_date,
+  is_active boolean not null default true,
+  created_at timestamptz default now()
+);
+
+alter table public.external_courses enable row level security;
+
+create policy "Anyone can read active external courses" on public.external_courses
+  for select using (is_active = true);
+
+create policy "Admin manage external courses" on public.external_courses
+  for all using (public.is_opus_admin());
+
+
