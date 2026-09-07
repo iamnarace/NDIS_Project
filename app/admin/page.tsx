@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -11,7 +11,7 @@ import {
   UploadCloud, FileDown, FolderLock, CalendarClock, AlertTriangle,
   LayoutDashboard, Receipt, Calculator, Award, Settings, ChevronLeft,
   ChevronRight, TrendingUp, DollarSign, Activity, FileSpreadsheet,
-  Layers, ShieldAlert, Sparkle, Eye
+  Layers, ShieldAlert, Sparkle, Eye, BookOpen, GraduationCap, ClipboardCheck, Upload, Trophy
 } from 'lucide-react';
 
 interface Referral {
@@ -90,6 +90,52 @@ interface CrmDocument {
   downloadUrl?: string;
 }
 
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct_index: number;
+}
+
+interface TrainingCourse {
+  id: string;
+  title: string;
+  description?: string;
+  course_type: 'read_acknowledge' | 'read_quiz' | 'external_cert';
+  material_type: string;
+  material_url?: string;
+  quiz_questions?: QuizQuestion[];
+  pass_mark_pct: number;
+  validity_months?: number;
+  is_mandatory: boolean;
+  certificate_enabled: boolean;
+  max_attempts?: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface TrainingAssignment {
+  id: string;
+  course_id: string;
+  staff_id: string;
+  staff_name?: string;
+  due_date?: string;
+  training_courses?: TrainingCourse;
+}
+
+interface TrainingCompletion {
+  id: string;
+  course_id: string;
+  staff_id: string;
+  completed_at: string;
+  quiz_score_pct?: number;
+  passed: boolean;
+  expires_at?: string;
+  certificate_id?: string;
+  cert_download_url?: string;
+}
+
+
 type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'invoicing' | 'quotes' | 'staff' | 'compliance' | 'settings';
 
 const PIPELINE_STAGES = [
@@ -140,9 +186,39 @@ export default function AdminCrmPage() {
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // ── Training & Compliance State ──────────────────────────────────────────
+  const [trainingCourses, setTrainingCourses] = useState<TrainingCourse[]>([]);
+  const [trainingAssignments, setTrainingAssignments] = useState<TrainingAssignment[]>([]);
+  const [trainingComplianceMap, setTrainingComplianceMap] = useState<Record<string, TrainingCompletion[]>>({});
+  const [trainingLoading, setTrainingLoading] = useState(false);
+  const [trainingTab, setTrainingTab] = useState<'courses' | 'assign' | 'report'>('courses');
+  const [showCourseForm, setShowCourseForm] = useState(false);
+  const [newCourse, setNewCourse] = useState({
+    title: '', description: '', course_type: 'read_acknowledge',
+    material_type: 'none', material_url: '', pass_mark_pct: 80,
+    validity_months: '', is_mandatory: false, certificate_enabled: true,
+    max_attempts: '', quiz_questions: [] as QuizQuestion[],
+  });
+  const [savingCourse, setSavingCourse] = useState(false);
+  const [assignCourseId, setAssignCourseId] = useState('');
+  const [assignStaffIds, setAssignStaffIds] = useState<string[]>([]);
+  const [assignDueDate, setAssignDueDate] = useState('');
+  const [assigning, setAssigning] = useState(false);
+
+
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (tab === 'compliance') {
+      loadTrainingData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+
 
   // When selected record changes, load their timeline & documents
   useEffect(() => {
@@ -368,6 +444,127 @@ export default function AdminCrmPage() {
       setConverting(false);
     }
   }
+
+
+  async function loadTrainingData() {
+    setTrainingLoading(true);
+    try {
+      const [coursesRes, assignRes] = await Promise.all([
+        fetch('/api/training/courses?active=false'),
+        fetch('/api/training/assignments'),
+      ]);
+      if (coursesRes.ok) setTrainingCourses(await coursesRes.json());
+      if (assignRes.ok) {
+        const assignments: TrainingAssignment[] = await assignRes.json();
+        setTrainingAssignments(assignments);
+      }
+      // Load completions for compliance map (per staff)
+      const compRes = await fetch('/api/training/completions');
+      if (compRes.ok) {
+        const completions: TrainingCompletion[] = await compRes.json();
+        const map: Record<string, TrainingCompletion[]> = {};
+        completions.forEach((c) => {
+          if (!map[c.staff_id]) map[c.staff_id] = [];
+          map[c.staff_id].push(c);
+        });
+        setTrainingComplianceMap(map);
+      }
+    } catch (err) {
+      console.error('Failed to load training data', err);
+    } finally {
+      setTrainingLoading(false);
+    }
+  }
+
+  async function handleCreateCourse(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingCourse(true);
+    try {
+      const body = {
+        ...newCourse,
+        validity_months: newCourse.validity_months ? Number(newCourse.validity_months) : null,
+        max_attempts: newCourse.max_attempts ? Number(newCourse.max_attempts) : null,
+        quiz_questions: newCourse.course_type === 'read_quiz' ? newCourse.quiz_questions : null,
+      };
+      const res = await fetch('/api/training/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setShowCourseForm(false);
+        setNewCourse({ title: '', description: '', course_type: 'read_acknowledge', material_type: 'none',
+          material_url: '', pass_mark_pct: 80, validity_months: '', is_mandatory: false,
+          certificate_enabled: true, max_attempts: '', quiz_questions: [] });
+        loadTrainingData();
+        setStatusNotice('Course created successfully.');
+        setTimeout(() => setStatusNotice(''), 4000);
+      } else {
+        const err = await res.json();
+        alert(err.message || 'Failed to create course');
+      }
+    } catch (err) {
+      console.error('Create course error:', err);
+    } finally {
+      setSavingCourse(false);
+    }
+  }
+
+  async function handleAssignCourse(e: React.FormEvent) {
+    e.preventDefault();
+    if (!assignCourseId || assignStaffIds.length === 0) {
+      alert('Select a course and at least one staff member.');
+      return;
+    }
+    setAssigning(true);
+    try {
+      const res = await fetch('/api/training/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course_id: assignCourseId, staff_id: assignStaffIds, due_date: assignDueDate || null }),
+      });
+      if (res.ok) {
+        loadTrainingData();
+        setStatusNotice(`Course assigned to ${assignStaffIds.length} worker(s).`);
+        setTimeout(() => setStatusNotice(''), 4000);
+        setAssignStaffIds([]);
+        setAssignDueDate('');
+      } else {
+        const err = await res.json();
+        alert(err.message || 'Failed to assign course');
+      }
+    } catch (err) {
+      console.error('Assign error:', err);
+    } finally {
+      setAssigning(false);
+    }
+  }
+
+  // Compute compliance status for a staff member + course
+  function getTrainingStatus(staffId: string, courseId: string, dueDate?: string): {
+    label: string; color: string; bg: string;
+  } {
+    const completions = trainingComplianceMap[staffId] ?? [];
+    const c = completions.find((x) => x.course_id === courseId);
+    const now = new Date();
+    if (c) {
+      if (c.expires_at) {
+        const exp = new Date(c.expires_at);
+        const daysToExp = Math.ceil((exp.getTime() - now.getTime()) / 86400000);
+        if (daysToExp < 0) return { label: 'Expired', color: '#DC2626', bg: '#FEE2E2' };
+        if (daysToExp <= 30) return { label: 'Expiring Soon', color: '#D97706', bg: '#FEF3C7' };
+      }
+      return { label: 'Complete', color: '#059669', bg: '#D1FAE5' };
+    }
+    if (dueDate) {
+      const due = new Date(dueDate);
+      const daysOverdue = Math.ceil((now.getTime() - due.getTime()) / 86400000);
+      if (daysOverdue > 0) return { label: 'Overdue', color: '#DC2626', bg: '#FEE2E2' };
+      if (daysOverdue > -7) return { label: 'Due Soon', color: '#D97706', bg: '#FEF3C7' };
+    }
+    return { label: 'Not Started', color: '#64748B', bg: '#F1F5F9' };
+  }
+
 
   async function handleStatusChange(id: string, newStatus: Referral['status']) {
     try {
@@ -615,8 +812,8 @@ export default function AdminCrmPage() {
             className={`crmNavItem ${tab === 'compliance' ? 'active' : ''}`}
             title="Compliance & Audit Register"
           >
-            <Award size={18} />
-            {!sidebarCollapsed && <span>Compliance</span>}
+            <GraduationCap size={18} />
+            {!sidebarCollapsed && <span>Training</span>}
           </button>
 
           <button
@@ -1583,56 +1780,286 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* TAB 7: COMPLIANCE & AUDIT */}
+          {/* TAB 7: TRAINING & COMPLIANCE MANAGEMENT */}
           {tab === 'compliance' && (
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">NDIS Quality &amp; Safeguards Compliance Register</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Practice Standards compliance verification, incident reporting register, and feedback logs for NDIS audits.
+                  <h2 className="crmPanelTitle">Training &amp; Compliance Management</h2>
+                  <p style={{ margin:'4px 0 0', fontSize:'0.85rem', color:'#64748B' }}>
+                    Create courses, assign to workers, track quiz results and mandatory compliance percentage.
                   </p>
                 </div>
+                <button onClick={() => { setShowCourseForm(true); setTrainingTab('courses'); }}
+                  className="crmViewBtn" style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <BookOpen size={15}/> <span>New Course</span>
+                </button>
               </div>
 
-              <div className="crmTableWrapper">
-                <table className="crmTable">
-                  <thead>
-                    <tr>
-                      <th>Module / Standard</th>
-                      <th>Requirement Description</th>
-                      <th>Status</th>
-                      <th>Last Audit Review</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><strong>Module 1: Rights &amp; Responsibilities</strong></td>
-                      <td>Person-centred supports, privacy &amp; dignity adherence</td>
-                      <td><span className="checkPassPill">Compliant</span></td>
-                      <td>September 2026</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Module 2: Provider Governance</strong></td>
-                      <td>Operational risk management, conflict of interest, worker registers</td>
-                      <td><span className="checkPassPill">Compliant</span></td>
-                      <td>September 2026</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Module 3: Support Delivery</strong></td>
-                      <td>Collaborative service agreements, responsive support plans</td>
-                      <td><span className="checkPassPill">Compliant</span></td>
-                      <td>September 2026</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Worker Screening Compliance</strong></td>
-                      <td>100% of Northern Rivers active workers cleared with NWSC &amp; WWCC</td>
-                      <td><span className="checkPassPill">100% Clear</span></td>
-                      <td>Weekly Auto-Check</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div style={{ display:'flex', gap:8, borderBottom:'1px solid #EEF2F6', marginBottom:24 }}>
+                {(['courses','assign','report'] as const).map(t => (
+                  <button key={t} onClick={() => setTrainingTab(t)} style={{
+                    padding:'10px 18px', border:'none', background:'none', cursor:'pointer',
+                    borderBottom: trainingTab===t ? '2px solid #0284C7' : '2px solid transparent',
+                    color: trainingTab===t ? '#0284C7' : '#64748B', fontWeight:600, fontSize:'0.85rem' }}>
+                    {t === 'courses' ? 'Course Library' : t === 'assign' ? 'Assign to Staff' : 'Compliance Report'}
+                  </button>
+                ))}
               </div>
+
+              {trainingLoading && <div style={{padding:40,textAlign:'center',color:'#94A3B8'}}>Loading...</div>}
+
+              {!trainingLoading && trainingTab === 'courses' && (
+                <>
+                  {showCourseForm && (
+                    <div style={{background:'#F8FAFC',border:'1px solid #EEF2F6',borderRadius:12,padding:24,marginBottom:24}}>
+                      <h3 style={{fontSize:'1rem',fontWeight:700,color:'#0F172A',marginBottom:16}}>New Course</h3>
+                      <form onSubmit={handleCreateCourse}>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Title *</label>
+                            <input value={newCourse.title} onChange={e=>setNewCourse(p=>({...p,title:e.target.value}))}
+                              placeholder="e.g. NDIS Code of Conduct" required
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
+                          </div>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Type *</label>
+                            <select value={newCourse.course_type}
+                              onChange={e=>setNewCourse(p=>({...p,course_type:e.target.value as "read_acknowledge"|"read_quiz"|"external_cert"}))}
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}>
+                              <option value="read_acknowledge">Read &amp; Acknowledge</option>
+                              <option value="read_quiz">Read + Quiz</option>
+                              <option value="external_cert">External Certificate Upload</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Material</label>
+                            <select value={newCourse.material_type} onChange={e=>setNewCourse(p=>({...p,material_type:e.target.value}))}
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}>
+                              <option value="none">No Material</option>
+                              <option value="pdf">PDF</option>
+                              <option value="ppt">PowerPoint</option>
+                              <option value="link">External Link</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Material URL</label>
+                            <input value={newCourse.material_url} onChange={e=>setNewCourse(p=>({...p,material_url:e.target.value}))}
+                              placeholder="https://..." type="url"
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
+                          </div>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Pass Mark %</label>
+                            <input type="number" min="1" max="100" value={newCourse.pass_mark_pct}
+                              onChange={e=>setNewCourse(p=>({...p,pass_mark_pct:Number(e.target.value)}))}
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
+                          </div>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Validity (months)</label>
+                            <input type="number" min="1" value={newCourse.validity_months}
+                              onChange={e=>setNewCourse(p=>({...p,validity_months:e.target.value}))} placeholder="blank = no expiry"
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
+                          </div>
+                          <div>
+                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Max Attempts</label>
+                            <input type="number" min="1" value={newCourse.max_attempts}
+                              onChange={e=>setNewCourse(p=>({...p,max_attempts:e.target.value}))} placeholder="blank = unlimited"
+                              style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
+                          </div>
+                          <div style={{display:'flex',gap:16,alignItems:'center',paddingTop:22}}>
+                            <label style={{display:'flex',alignItems:'center',gap:6,fontSize:'0.85rem',cursor:'pointer'}}>
+                              <input type="checkbox" checked={newCourse.is_mandatory} onChange={e=>setNewCourse(p=>({...p,is_mandatory:e.target.checked}))}/> Mandatory
+                            </label>
+                            <label style={{display:'flex',alignItems:'center',gap:6,fontSize:'0.85rem',cursor:'pointer'}}>
+                              <input type="checkbox" checked={newCourse.certificate_enabled} onChange={e=>setNewCourse(p=>({...p,certificate_enabled:e.target.checked}))}/> Issue Certificate
+                            </label>
+                          </div>
+                        </div>
+                        <div style={{marginBottom:16}}>
+                          <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Description</label>
+                          <textarea value={newCourse.description} onChange={e=>setNewCourse(p=>({...p,description:e.target.value}))}
+                            rows={2} placeholder="Brief course description..."
+                            style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem',resize:'vertical'}}/>
+                        </div>
+                        {newCourse.course_type === 'read_quiz' && (
+                          <div style={{marginBottom:16}}>
+                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                              <strong style={{fontSize:'0.85rem',color:'#374151'}}>Quiz Questions ({newCourse.quiz_questions.length})</strong>
+                              <button type="button" className="crmViewBtn" style={{fontSize:'0.8rem',padding:'4px 12px'}}
+                                onClick={()=>setNewCourse(p=>({...p,quiz_questions:[...p.quiz_questions,{question:'',options:['','','',''],correct_index:0}]}))}>
+                                + Add Question
+                              </button>
+                            </div>
+                            {newCourse.quiz_questions.map((q,qi)=>(
+                              <div key={qi} style={{background:'#fff',border:'1px solid #E2E8F0',borderRadius:8,padding:16,marginBottom:12}}>
+                                <div style={{display:'flex',gap:8,marginBottom:8}}>
+                                  <span style={{fontWeight:700,color:'#0284C7',minWidth:28}}>Q{qi+1}</span>
+                                  <input value={q.question} placeholder="Question..." style={{flex:1,padding:'6px 10px',border:'1px solid #D1D5DB',borderRadius:4,fontSize:'0.88rem'}}
+                                    onChange={e=>{const qs=[...newCourse.quiz_questions];qs[qi]={...qs[qi],question:e.target.value};setNewCourse(p=>({...p,quiz_questions:qs}));}}/>
+                                  <button type="button" onClick={()=>setNewCourse(p=>({...p,quiz_questions:p.quiz_questions.filter((_,i)=>i!==qi)}))}
+                                    style={{border:'none',background:'#FEE2E2',color:'#DC2626',borderRadius:4,padding:'4px 8px',cursor:'pointer'}}>Remove</button>
+                                </div>
+                                {q.options.map((opt,oi)=>(
+                                  <div key={oi} style={{display:'flex',gap:8,alignItems:'center',marginBottom:6,paddingLeft:36}}>
+                                    <input type="radio" name={'correct-'+qi} checked={q.correct_index===oi} title="Correct answer"
+                                      onChange={()=>{const qs=[...newCourse.quiz_questions];qs[qi]={...qs[qi],correct_index:oi};setNewCourse(p=>({...p,quiz_questions:qs}));}}/>
+                                    <input value={opt} placeholder={'Option '+(oi+1)} style={{flex:1,padding:'5px 8px',border:'1px solid #D1D5DB',borderRadius:4,fontSize:'0.85rem'}}
+                                      onChange={e=>{const qs=[...newCourse.quiz_questions];const opts=[...qs[qi].options];opts[oi]=e.target.value;qs[qi]={...qs[qi],options:opts};setNewCourse(p=>({...p,quiz_questions:qs}));}}/>
+                                    {q.correct_index===oi&&<span style={{fontSize:'0.75rem',color:'#059669',fontWeight:600}}>Correct</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{display:'flex',gap:10}}>
+                          <button type="submit" disabled={savingCourse} className="crmViewBtn" style={{background:'#0284C7',color:'#fff',border:'none'}}>
+                            {savingCourse?'Saving...':'Create Course'}
+                          </button>
+                          <button type="button" onClick={()=>setShowCourseForm(false)} className="crmViewBtn">Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                  <div className="crmTableWrapper">
+                    <table className="crmTable">
+                      <thead><tr><th>Title</th><th>Type</th><th>Material</th><th>Pass Mark</th><th>Validity</th><th>Mandatory</th><th>Status</th></tr></thead>
+                      <tbody>
+                        {trainingCourses.length===0&&(<tr><td colSpan={7} style={{textAlign:'center',padding:40,color:'#94A3B8'}}>No courses yet. Click New Course to get started.</td></tr>)}
+                        {trainingCourses.map(c=>(
+                          <tr key={c.id}>
+                            <td><strong>{c.title}</strong>{c.description&&<div style={{fontSize:'0.8rem',color:'#64748B',marginTop:2}}>{c.description}</div>}</td>
+                            <td><span style={{padding:'3px 10px',borderRadius:20,fontSize:'0.78rem',fontWeight:600,
+                              background:c.course_type==='read_acknowledge'?'#DBEAFE':c.course_type==='read_quiz'?'#EDE9FE':'#D1FAE5',
+                              color:c.course_type==='read_acknowledge'?'#1D4ED8':c.course_type==='read_quiz'?'#7C3AED':'#059669'}}>
+                              {c.course_type==='read_acknowledge'?'Read & Ack':c.course_type==='read_quiz'?'Quiz':'Ext. Cert'}
+                            </span></td>
+                            <td>{c.material_url?(<a href={c.material_url} target="_blank" rel="noopener noreferrer" style={{color:'#0284C7',textDecoration:'underline',fontSize:'0.85rem'}}>{c.material_type.toUpperCase()}</a>):<span style={{color:'#CBD5E1'}}>None</span>}</td>
+                            <td>{c.course_type==='read_quiz'?c.pass_mark_pct+'%':'—'}</td>
+                            <td>{c.validity_months?c.validity_months+' mo':'No expiry'}</td>
+                            <td>{c.is_mandatory?<span style={{color:'#DC2626',fontWeight:700}}>Required</span>:<span style={{color:'#64748B'}}>Optional</span>}</td>
+                            <td><span style={{padding:'3px 10px',borderRadius:20,fontSize:'0.78rem',fontWeight:600,
+                              background:c.is_active?'#D1FAE5':'#F1F5F9',color:c.is_active?'#059669':'#64748B'}}>
+                              {c.is_active?'Active':'Inactive'}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {!trainingLoading && trainingTab === 'assign' && (
+                <div>
+                  <div style={{maxWidth:620,marginBottom:32}}>
+                    <form onSubmit={handleAssignCourse}>
+                      <div style={{marginBottom:16}}>
+                        <label style={{fontSize:'0.85rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Course *</label>
+                        <select value={assignCourseId} onChange={e=>setAssignCourseId(e.target.value)} required
+                          style={{width:'100%',padding:'10px 12px',border:'1px solid #D1D5DB',borderRadius:8,fontSize:'0.9rem'}}>
+                          <option value="">Choose a course</option>
+                          {trainingCourses.filter(c=>c.is_active).map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
+                        </select>
+                      </div>
+                      <div style={{marginBottom:16}}>
+                        <label style={{fontSize:'0.85rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Staff Members *</label>
+                        <div style={{border:'1px solid #D1D5DB',borderRadius:8,maxHeight:220,overflowY:'auto',padding:8}}>
+                          {staff.length===0&&<p style={{color:'#94A3B8',fontSize:'0.85rem',padding:8}}>No staff loaded.</p>}
+                          {staff.map(s=>(
+                            <label key={s.id} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 8px',cursor:'pointer',borderRadius:4,
+                              background:assignStaffIds.includes(s.id)?'#EFF6FF':'transparent'}}>
+                              <input type="checkbox" checked={assignStaffIds.includes(s.id)}
+                                onChange={e=>setAssignStaffIds(p=>e.target.checked?[...p,s.id]:p.filter(id=>id!==s.id))}/>
+                              <span style={{fontWeight:600,fontSize:'0.88rem'}}>{s.name}</span>
+                              <span style={{fontSize:'0.8rem',color:'#64748B'}}>{s.role}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {assignStaffIds.length>0&&<p style={{fontSize:'0.8rem',color:'#0284C7',marginTop:4}}>{assignStaffIds.length} selected</p>}
+                      </div>
+                      <div style={{marginBottom:20}}>
+                        <label style={{fontSize:'0.85rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Due Date</label>
+                        <input type="date" value={assignDueDate} onChange={e=>setAssignDueDate(e.target.value)}
+                          style={{padding:'10px 12px',border:'1px solid #D1D5DB',borderRadius:8,fontSize:'0.9rem'}}/>
+                      </div>
+                      <button type="submit" disabled={assigning} className="crmViewBtn" style={{background:'#059669',color:'#fff',border:'none',padding:'10px 24px'}}>
+                        {assigning?'Assigning...':'Assign to '+(assignStaffIds.length||0)+' Worker(s)'}
+                      </button>
+                    </form>
+                  </div>
+                  {trainingAssignments.length>0&&(
+                    <div>
+                      <h4 style={{fontSize:'0.9rem',fontWeight:700,color:'#0F172A',marginBottom:12}}>All Assignments ({trainingAssignments.length})</h4>
+                      <div className="crmTableWrapper">
+                        <table className="crmTable">
+                          <thead><tr><th>Course</th><th>Staff</th><th>Due Date</th></tr></thead>
+                          <tbody>
+                            {trainingAssignments.map(a=>(
+                              <tr key={a.id}>
+                                <td>{a.training_courses?.title??'Unknown'}</td>
+                                <td style={{fontWeight:600}}>{a.staff_name??a.staff_id}</td>
+                                <td style={{color:'#64748B'}}>{a.due_date??'No due date'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!trainingLoading && trainingTab === 'report' && (
+                <div>
+                  <div className="crmTableWrapper" style={{overflowX:'auto'}}>
+                    <table className="crmTable" style={{minWidth:900}}>
+                      <thead><tr>
+                        <th>Staff Member</th>
+                        {trainingCourses.filter(c=>c.is_active).map(c=>(
+                          <th key={c.id} style={{fontSize:'0.75rem',textAlign:'center'}}>
+                            {c.title}{c.is_mandatory&&<span style={{color:'#DC2626'}}>*</span>}
+                          </th>
+                        ))}
+                        <th>Mandatory %</th>
+                      </tr></thead>
+                      <tbody>
+                        {staff.length===0&&<tr><td colSpan={99} style={{textAlign:'center',padding:40,color:'#94A3B8'}}>No staff records.</td></tr>}
+                        {staff.map(s=>{
+                          const ac=trainingCourses.filter(c=>c.is_active);
+                          const mc=ac.filter(c=>c.is_mandatory);
+                          const done=mc.filter(c=>{
+                            const a=trainingAssignments.find(x=>x.course_id===c.id&&x.staff_id===s.id);
+                            return a&&getTrainingStatus(s.id,c.id,a.due_date).label==='Complete';
+                          }).length;
+                          const pct=mc.length>0?Math.round((done/mc.length)*100):100;
+                          return (
+                            <tr key={s.id}>
+                              <td><strong style={{fontSize:'0.88rem'}}>{s.name}</strong><div style={{fontSize:'0.78rem',color:'#64748B'}}>{s.role}</div></td>
+                              {ac.map(c=>{
+                                const a=trainingAssignments.find(x=>x.course_id===c.id&&x.staff_id===s.id);
+                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'#CBD5E1',fontSize:'0.8rem'}}>—</span></td>;
+                                const st=getTrainingStatus(s.id,c.id,a.due_date);
+                                return <td key={c.id} style={{textAlign:'center'}}>
+                                  <span style={{padding:'2px 8px',borderRadius:20,fontSize:'0.75rem',fontWeight:600,background:st.bg,color:st.color}}>{st.label}</span>
+                                </td>;
+                              })}
+                              <td>
+                                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                                  <div style={{flex:1,height:8,background:'#F1F5F9',borderRadius:4,overflow:'hidden',minWidth:60}}>
+                                    <div style={{width:pct+'%',height:'100%',borderRadius:4,background:pct===100?'#059669':pct>=60?'#D97706':'#DC2626'}}/>
+                                  </div>
+                                  <span style={{fontSize:'0.82rem',fontWeight:700,minWidth:36,color:pct===100?'#059669':pct>=60?'#D97706':'#DC2626'}}>{pct}%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p style={{fontSize:'0.75rem',color:'#94A3B8',marginTop:8}}>* Mandatory. Compliance % counts mandatory courses only.</p>
+                </div>
+              )}
             </div>
           )}
 

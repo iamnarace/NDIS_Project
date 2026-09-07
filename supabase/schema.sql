@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- OPUS CARE SUPPORT SERVICES — NDIS OPERATIONS CRM SCHEMA
 -- Database: PostgreSQL (Supabase Sydney Region: ap-southeast-2)
 -- Architecture: UUID Internal Keys + Human Reference Numbers + Strict Staff RLS
@@ -214,3 +214,134 @@ create policy "Staff manage activities" on public.activities
 
 create policy "Staff manage tasks" on public.tasks
   for all using (public.is_opus_staff());
+
+-- ============================================================================
+-- 9. TRAINING COURSES (Admin-created course library)
+-- ============================================================================
+create table if not exists public.training_courses (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text,
+  course_type text not null default 'read_acknowledge'
+    check (course_type in ('read_acknowledge', 'read_quiz', 'external_cert')),
+  material_type text not null default 'none'
+    check (material_type in ('pdf', 'ppt', 'link', 'none')),
+  material_url text,
+  quiz_questions jsonb,       -- [{question, options:[...], correct_index}, ...]
+  pass_mark_pct integer not null default 80
+    check (pass_mark_pct between 1 and 100),
+  validity_months integer,    -- null = no expiry
+  is_mandatory boolean not null default false,
+  certificate_enabled boolean not null default true,
+  max_attempts integer,       -- null = unlimited
+  is_active boolean not null default true,
+  created_by text not null default 'Admin',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- ============================================================================
+-- 10. TRAINING ASSIGNMENTS (Admin assigns courses to staff)
+-- ============================================================================
+create table if not exists public.training_assignments (
+  id uuid default gen_random_uuid() primary key,
+  course_id uuid references public.training_courses(id) on delete cascade not null,
+  staff_id text not null,     -- references staff.id (UUID or STF-xxx fallback)
+  staff_name text,
+  assigned_by text not null default 'Admin',
+  due_date date,
+  assigned_at timestamptz default now(),
+  unique(course_id, staff_id)
+);
+
+-- ============================================================================
+-- 11. TRAINING COMPLETIONS (Successful completion records with certificates)
+-- ============================================================================
+create table if not exists public.training_completions (
+  id uuid default gen_random_uuid() primary key,
+  course_id uuid references public.training_courses(id) on delete cascade not null,
+  assignment_id uuid references public.training_assignments(id) on delete set null,
+  staff_id text not null,
+  staff_name text,
+  completed_at timestamptz default now(),
+  quiz_score_pct integer,
+  passed boolean not null default true,
+  expires_at timestamptz,     -- null if no validity period
+  -- Internal certificate fields
+  certificate_id text unique, -- e.g. OC-TRN-2026-00142
+  certificate_issue_date date,
+  -- External certificate fields (for accredited/NDIS Commission courses)
+  external_issuer text,
+  external_expiry_date date,
+  cert_file_name text,
+  cert_storage_path text,
+  notes text,
+  created_at timestamptz default now(),
+  unique(course_id, staff_id)
+);
+
+-- Sequence for human-readable certificate IDs
+create sequence if not exists public.training_cert_seq start 1001;
+
+-- ============================================================================
+-- 12. TRAINING ATTEMPTS (Every quiz attempt, pass or fail)
+-- ============================================================================
+create table if not exists public.training_attempts (
+  id uuid default gen_random_uuid() primary key,
+  assignment_id uuid references public.training_assignments(id) on delete cascade,
+  course_id uuid references public.training_courses(id) on delete cascade not null,
+  staff_id text not null,
+  answers jsonb not null default '{}', -- {q_index: chosen_option_index}
+  score_pct integer not null default 0,
+  passed boolean not null default false,
+  attempted_at timestamptz default now()
+);
+
+-- ============================================================================
+-- 13. RLS POLICIES FOR TRAINING TABLES
+-- ============================================================================
+alter table public.training_courses enable row level security;
+alter table public.training_assignments enable row level security;
+alter table public.training_completions enable row level security;
+alter table public.training_attempts enable row level security;
+
+-- Courses: any authenticated staff can read active courses; only admin can manage
+drop policy if exists "Staff read active courses" on public.training_courses;
+drop policy if exists "Admin manage courses" on public.training_courses;
+
+create policy "Staff read active courses" on public.training_courses
+  for select using (is_active = true and public.is_opus_staff());
+
+create policy "Admin manage courses" on public.training_courses
+  for all using (public.is_opus_admin());
+
+-- Assignments: staff can read own; admin can manage all
+drop policy if exists "Staff read own assignments" on public.training_assignments;
+drop policy if exists "Admin manage assignments" on public.training_assignments;
+
+create policy "Staff read own assignments" on public.training_assignments
+  for select using (staff_id = current_setting('request.jwt.claims', true)::json->>'sub' or public.is_opus_admin());
+
+create policy "Admin manage assignments" on public.training_assignments
+  for all using (public.is_opus_admin());
+
+-- Completions: staff can read own; admin can read all; insertions controlled server-side
+drop policy if exists "Staff read own completions" on public.training_completions;
+drop policy if exists "Admin manage completions" on public.training_completions;
+
+create policy "Staff read own completions" on public.training_completions
+  for select using (staff_id = current_setting('request.jwt.claims', true)::json->>'sub' or public.is_opus_admin());
+
+create policy "Admin manage completions" on public.training_completions
+  for all using (public.is_opus_admin());
+
+-- Attempts: staff can read own; admin can read all
+drop policy if exists "Staff read own attempts" on public.training_attempts;
+drop policy if exists "Admin manage attempts" on public.training_attempts;
+
+create policy "Staff read own attempts" on public.training_attempts
+  for select using (staff_id = current_setting('request.jwt.claims', true)::json->>'sub' or public.is_opus_admin());
+
+create policy "Admin manage attempts" on public.training_attempts
+  for all using (public.is_opus_admin());
+

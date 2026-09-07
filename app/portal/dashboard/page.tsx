@@ -103,6 +103,10 @@ export default function ParticipantDashboardPage() {
           </div>
 
           <div className="portalNavActions">
+            <Link href="/staff" className="portalStaffLink">
+              <span>Staff Training</span>
+              <ChevronRight size={14} />
+            </Link>
             <Link href="/admin" className="portalStaffLink">
               <span>Switch to Staff CRM</span>
               <ChevronRight size={14} />
