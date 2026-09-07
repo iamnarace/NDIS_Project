@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,6 +20,38 @@ export async function GET(req: Request) {
   if (!authed) {
     return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
+
+  const supabase = createAdminClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('participants')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        const mapped = data.map((p: any) => ({
+          id: p.id,
+          referenceNumber: p.reference_number || p.id,
+          name: p.full_name,
+          ndisNumber: p.ndis_number || 'Pending NDIS #',
+          fundingType: p.funding_type,
+          planManager: p.plan_manager_name || 'Self-Managed',
+          suburb: p.suburb,
+          allocatedHours: Number(p.allocated_weekly_hours) || 0,
+          primaryService: 'Daily Living & Community Participation',
+          status: p.status,
+          workerAssigned: 'To be assigned',
+          contactPerson: `${p.full_name} (${p.phone || 'No phone'})`,
+          createdAt: p.created_at,
+        }));
+        return NextResponse.json(mapped);
+      }
+    } catch (sbErr) {
+      console.warn('Supabase participants query fallback to JSON:', sbErr);
+    }
+  }
+
   return NextResponse.json(getData());
 }
 
@@ -30,6 +63,34 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+
+    const supabase = createAdminClient();
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('participants')
+          .insert({
+            full_name: body.name,
+            ndis_number: body.ndisNumber || null,
+            suburb: body.suburb || 'Yamba / Northern Rivers',
+            funding_type: body.fundingType || 'Plan-Managed',
+            plan_manager_name: body.planManager || null,
+            allocated_weekly_hours: Number(body.allocatedHours) || 0,
+            phone: body.phone || null,
+            email: body.email || null,
+            status: 'active',
+          })
+          .select()
+          .single();
+
+        if (data && !error) {
+          return NextResponse.json({ ok: true, participant: data });
+        }
+      } catch (sbErr) {
+        console.warn('Supabase participant insert fallback to JSON:', sbErr);
+      }
+    }
+
     const data = getData();
     const newId = `PAR-${String(data.length + 1).padStart(3, '0')}`;
     const newPart = { id: newId, ...body, status: 'active', createdAt: new Date().toISOString() };
