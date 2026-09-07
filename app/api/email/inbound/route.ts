@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Resend webhook verification must use the raw request body.
     const payload = await req.text();
     const id = req.headers.get('svix-id');
     const timestamp = req.headers.get('svix-timestamp');
@@ -64,7 +63,6 @@ export async function POST(req: NextRequest) {
       allowedRecipients.has(recipient),
     );
 
-    // Do not forward messages sent to unexpected aliases.
     if (!acceptedRecipient) {
       console.warn('Inbound email ignored for unexpected recipient.', {
         recipients: inboundRecipients,
@@ -129,13 +127,16 @@ export async function POST(req: NextRequest) {
       ? originalSubject
       : `Fwd: ${originalSubject}`;
 
+    const body = email.html
+      ? { html: email.html }
+      : { text: email.text || 'This forwarded message did not contain a text or HTML body.' };
+
     const { data: forwarded, error: sendError } = await resend.emails.send({
       from: forwardFrom,
       to: [forwardTo],
       replyTo: email.from,
       subject,
-      html: email.html || undefined,
-      text: email.text || undefined,
+      ...body,
       attachments: attachments.length ? attachments : undefined,
       headers: {
         'X-OpusCare-Original-To': acceptedRecipient,
