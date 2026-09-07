@@ -111,6 +111,53 @@ export default function PortalLoginPage() {
             </div>
           )}
 
+          {/* Quick Demo Access Bar */}
+          <div style={{
+            background: '#F0FDF4',
+            border: '1px solid #BBF7D0',
+            borderRadius: 10,
+            padding: '12px 14px',
+            marginBottom: 16,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', fontWeight: 700, color: '#166534' }}>
+              <Sparkles size={15} style={{ color: '#16A34A' }} />
+              <span>Demo / Test Account Access</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: '#15803D', lineHeight: 1.4 }}>
+              Click below to jump straight in with demo participant credentials:
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('sarah.mitchell@opuscare.com.au');
+                setPassword('OpusCare2026!');
+                setTimeout(() => router.push('/portal/dashboard'), 200);
+              }}
+              style={{
+                background: '#16A34A',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 8,
+                padding: '8px 12px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'background 0.15s'
+              }}
+            >
+              <span>1-Click Login (Sarah M. - Demo Participant)</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="portalLoginForm">
             <div className="portalFormGroup">
               <label htmlFor="portalEmail" className="portalInputLabel">
