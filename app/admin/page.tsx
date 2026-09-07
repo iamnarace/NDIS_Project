@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { 
   Users, UserCheck, FileText, Phone, Mail, MapPin, Calendar, 
   CheckCircle2, Clock, AlertCircle, ArrowRight, Search, Filter, 
-  Plus, Shield, Sparkles, RefreshCw, ExternalLink 
+  Plus, Shield, Sparkles, RefreshCw, ExternalLink, Lock, LogOut 
 } from 'lucide-react';
 
 interface Referral {
@@ -53,6 +53,12 @@ interface Staff {
 }
 
 export default function AdminCrmPage() {
+  const [isAuth, setIsAuth] = useState<boolean | null>(null);
+  const [adminKey, setAdminKey] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [statusNotice, setStatusNotice] = useState('');
+
   const [tab, setTab] = useState<'referrals' | 'participants' | 'staff'>('referrals');
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -63,8 +69,64 @@ export default function AdminCrmPage() {
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
 
   useEffect(() => {
-    loadAllData();
+    checkAuth();
   }, []);
+
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/admin/auth');
+      const data = await res.json();
+      if (data.authenticated) {
+        setIsAuth(true);
+        loadAllData();
+      } else {
+        setIsAuth(false);
+        setLoading(false);
+      }
+    } catch {
+      setIsAuth(false);
+      setLoading(false);
+    }
+  }
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!adminKey.trim()) {
+      setAuthError('Please enter the Admin Access Key.');
+      return;
+    }
+    setAuthSubmitting(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminKey.trim() })
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setIsAuth(true);
+        setAuthError('');
+        loadAllData();
+      } else {
+        setAuthError(data.message || 'Incorrect Admin Access Key.');
+      }
+    } catch {
+      setAuthError('Failed to connect to authentication service.');
+    } finally {
+      setAuthSubmitting(false);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+    } catch {}
+    setIsAuth(false);
+    setReferrals([]);
+    setParticipants([]);
+    setStaff([]);
+  }
 
   async function loadAllData() {
     setLoading(true);
@@ -85,6 +147,7 @@ export default function AdminCrmPage() {
   }
 
   async function handleStatusChange(id: string, newStatus: Referral['status']) {
+    setStatusNotice('');
     try {
       const res = await fetch('/api/referral', {
         method: 'PATCH',
@@ -98,9 +161,13 @@ export default function AdminCrmPage() {
         if (selectedReferral?.id === id) {
           setSelectedReferral(prev => prev ? { ...prev, status: newStatus } : null);
         }
+        setStatusNotice('Referral status updated.');
+        setTimeout(() => setStatusNotice(''), 3000);
+      } else {
+        setStatusNotice('Failed to update referral status.');
       }
     } catch (err) {
-      alert('Failed to update referral status');
+      setStatusNotice('Connection error while updating status.');
     }
   }
 
@@ -115,6 +182,98 @@ export default function AdminCrmPage() {
   });
 
   const countNew = referrals.filter(r => r.status === 'new').length;
+
+  if (isAuth === null) {
+    return (
+      <div className="crmLoginWrap">
+        <div className="crmLoginCard">
+          <RefreshCw size={32} className="spin" style={{ color: '#0284c7', margin: '0 auto 16px', display: 'block' }} />
+          <p style={{ color: '#64748b', fontSize: '15px', fontWeight: 500 }}>Verifying secure administrator session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuth) {
+    return (
+      <div className="crmLoginWrap">
+        <div className="crmLoginCard">
+          <div className="crmLoginBrand">
+            <Link href="/">
+              <Image
+                src="/brand/Opus_Care_Logo_Transparent.png"
+                alt="Opus Care Support Services"
+                width={190}
+                height={50}
+                className="crmLogo"
+                style={{ margin: '0 auto 16px', display: 'block' }}
+              />
+            </Link>
+            <div className="crmLoginBadge">
+              <Shield size={14} />
+              <span>Restricted Admin Portal</span>
+            </div>
+            <h2 className="crmLoginTitle">NDIS Operations Login</h2>
+            <p className="crmLoginSub">
+              Authorized Opus Care staff & management access only. Participant PII & records are protected under the Australian Privacy Act.
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="crmLoginForm">
+            {authError && (
+              <div className="crmLoginError">
+                <AlertCircle size={16} />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <div className="crmLoginField">
+              <label htmlFor="adminKey">Admin Access Key</label>
+              <div className="crmInputWithIcon">
+                <Lock size={16} className="crmFieldIcon" />
+                <input
+                  id="adminKey"
+                  type="password"
+                  placeholder="Enter Opus Admin Access Key..."
+                  value={adminKey}
+                  onChange={(e) => {
+                    setAdminKey(e.target.value);
+                    if (authError) setAuthError('');
+                  }}
+                  className="crmKeyInput"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={authSubmitting}
+              className="crmLoginSubmitBtn"
+            >
+              {authSubmitting ? (
+                <>
+                  <RefreshCw size={16} className="spin" />
+                  <span>Verifying Key...</span>
+                </>
+              ) : (
+                <>
+                  <span>Unlock Admin CRM</span>
+                  <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="crmLoginFooter">
+            <Link href="/" className="crmBackHomeLink">
+              ← Return to Public Website
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="crmRoot">
@@ -141,9 +300,26 @@ export default function AdminCrmPage() {
             <Link href="/" className="crmPublicSiteBtn">
               <span>View Public Website</span> <ExternalLink size={14} />
             </Link>
+            <button onClick={handleLogout} className="crmSignOutBtn" title="Sign out of Admin CRM">
+              <LogOut size={15} /> <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </header>
+
+      {statusNotice && (
+        <div style={{
+          background: '#ecfdf5',
+          color: '#065f46',
+          borderBottom: '1px solid #a7f3d0',
+          padding: '10px 24px',
+          textAlign: 'center',
+          fontSize: '0.875rem',
+          fontWeight: 600
+        }}>
+          ✓ {statusNotice}
+        </div>
+      )}
 
       {/* Main CRM Body */}
       <main className="crmMainContainer">

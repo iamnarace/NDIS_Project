@@ -1,4 +1,5 @@
 import { sendReferralClientConfirmation, sendReferralAdminAlert } from '@/lib/email';
+import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
@@ -36,7 +37,11 @@ function saveReferrals(items: any[]) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authed = await isAuthenticatedAdmin(request);
+  if (!authed) {
+    return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
   const referrals = getReferrals();
   return NextResponse.json(referrals);
 }
@@ -95,6 +100,11 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const authed = await isAuthenticatedAdmin(request);
+  if (!authed) {
+    return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { id, status, notes } = body;

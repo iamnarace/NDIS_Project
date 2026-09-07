@@ -31,6 +31,7 @@ export function ReferralForm() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [stepError, setStepError] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -85,7 +86,7 @@ export function ReferralForm() {
       setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you within 24 business hours.');
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please email us at support@opuscare.com.au.');
+      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please email us at referrals@opuscare.com.au.');
     }
   }
 
@@ -107,6 +108,7 @@ export function ReferralForm() {
           type="button"
           onClick={() => {
             setStatus('idle');
+            setStepError('');
             setStep(1);
             setFormData({
               role: 'participant',
@@ -242,14 +244,21 @@ export function ReferralForm() {
             />
           </div>
 
+          {stepError && (
+            <div className="formErrorNotice" style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+              ⚠️ {stepError}
+            </div>
+          )}
+
           <div className="wizardNavRow rightOnly">
             <button
               type="button"
               onClick={() => {
-                if (!formData.name || !formData.phone || !formData.email) {
-                  alert('Please enter your name, phone number, and email.');
+                if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim()) {
+                  setStepError('Please enter your full name, phone number, and email address before proceeding.');
                   return;
                 }
+                setStepError('');
                 setStep(2);
               }}
               className="heroPillBtn filled"

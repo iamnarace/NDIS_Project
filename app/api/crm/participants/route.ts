@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import fs from 'fs';
 import path from 'path';
 
@@ -13,11 +14,20 @@ function getData() {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const authed = await isAuthenticatedAdmin(req);
+  if (!authed) {
+    return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
   return NextResponse.json(getData());
 }
 
 export async function POST(req: Request) {
+  const authed = await isAuthenticatedAdmin(req);
+  if (!authed) {
+    return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const data = getData();
