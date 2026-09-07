@@ -110,13 +110,13 @@ export async function POST(req: NextRequest) {
 
         if (!response.ok) {
           throw new Error(
-            `Failed to download attachment ${attachment.filename}: ${response.status}`,
+            `Failed to download attachment ${attachment.filename || 'attachment'}: ${response.status}`,
           );
         }
 
         const buffer = Buffer.from(await response.arrayBuffer());
         attachments.push({
-          filename: attachment.filename,
+          filename: attachment.filename || 'attachment',
           content: buffer.toString('base64'),
           contentType: attachment.content_type,
           contentId: attachment.content_id || undefined,
