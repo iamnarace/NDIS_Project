@@ -23,6 +23,7 @@ import {
   RefreshCw,
   Star,
   BookOpen,
+  DollarSign,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -92,7 +93,7 @@ interface ActiveSupportPlan {
   review_date?: string;
 }
 
-type TabType = 'overview' | 'goals' | 'schedule' | 'documents' | 'support';
+type TabType = 'overview' | 'goals' | 'funding' | 'schedule' | 'documents' | 'support';
 
 const GOAL_CATEGORY_COLOURS: Record<string, string> = {
   'Daily Living': '#3B82F6',
@@ -121,6 +122,7 @@ export default function ParticipantDashboardPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [activePlan, setActivePlan] = useState<ActiveSupportPlan | null>(null);
   const [upcomingShifts, setUpcomingShifts] = useState<UpcomingShift[]>([]);
+  const [fundingPeriods, setFundingPeriods] = useState<any[]>([]);
   const [error, setError] = useState('');
 
   /* --─ Load Data --─ */
@@ -143,7 +145,7 @@ export default function ParticipantDashboardPage() {
       setProfileName(meData.profile?.full_name || meData.user?.email || 'Participant');
       setParticipant(meData.participant || null);
 
-      // Load goals
+      // Load goals, shifts, support plans, and funding
       if (meData.participant?.id) {
         const goalsRes = await fetch(`/api/portal/participant/goals?participant_id=${meData.participant.id}`);
         if (goalsRes.ok) {
@@ -164,6 +166,13 @@ export default function ParticipantDashboardPage() {
           const plansData = await plansRes.json();
           const active = (plansData.plans || []).find((p: any) => p.status === 'active') || plansData.plans?.[0] || null;
           setActivePlan(active);
+        }
+
+        // Load live tracked funding
+        const fundingRes = await fetch(`/api/portal/participant/funding?participant_id=${meData.participant.id}`);
+        if (fundingRes.ok) {
+          const fundingData = await fundingRes.json();
+          setFundingPeriods(fundingData.periods || []);
         }
       }
     } catch (err) {
@@ -420,6 +429,7 @@ export default function ParticipantDashboardPage() {
         }}>
           {([
             { id: 'overview', label: 'Overview', icon: <User size={15} /> },
+            { id: 'funding', label: 'Funding & Budgets', icon: <DollarSign size={15} /> },
             { id: 'goals', label: `Goals (${goals.length})`, icon: <Target size={15} /> },
             { id: 'schedule', label: 'Schedule', icon: <Calendar size={15} /> },
             { id: 'documents', label: 'Documents', icon: <FileText size={15} /> },
@@ -528,10 +538,176 @@ export default function ParticipantDashboardPage() {
                 </p>
               )}
             </div>
+
+            {/* Live Tracked Funding Utilisation Card */}
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', gridColumn: '1 / -1' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 8, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
+                    <DollarSign size={18} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                      Opus Care Tracked Budget Utilisation
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748B' }}>
+                      Delivered services and invoiced supports tracked against your active NDIS agreement
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('funding')}
+                  style={{
+                    background: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE',
+                    borderRadius: 6, padding: '5px 12px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  View Breakdown &rarr;
+                </button>
+              </div>
+
+              {fundingPeriods.length === 0 ? (
+                <div style={{ background: '#F8FAFC', borderRadius: 8, padding: 16, textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
+                  No active funding period allocated yet. Once your Service Agreement and Support Schedule are sealed, tracked utilisation will be displayed here.
+                </div>
+              ) : (
+                fundingPeriods.map((period: any) => (
+                  <div key={period.id} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Total Budget</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                          ${(period.total_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Delivered to Date</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0284C7', marginTop: 2 }}>
+                          ${(period.total_delivered || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Invoiced</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#16A34A', marginTop: 2 }}>
+                          ${(period.total_invoiced || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
+                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Remaining Tracked</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#059669', marginTop: 2 }}>
+                          ${(period.total_remaining || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Overall Progress Bar */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: 4 }}>
+                        <span>Overall Opus Care Utilisation</span>
+                        <span>{(period.overall_pct || 0).toFixed(1)}%</span>
+                      </div>
+                      <div style={{ height: 8, background: '#E2E8F0', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${Math.min(period.overall_pct || 0, 100)}%`,
+                            background: period.overall_pct > 90 ? '#E11D48' : period.overall_pct > 75 ? '#F59E0B' : '#2563EB',
+                            borderRadius: 9999,
+                            transition: 'width 0.3s ease',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 
-        {/* -- Tab: Goals -- */}
+        {/* -- Tab: Funding & Budgets -- */}
+        {activeTab === 'funding' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div>
+                  <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>
+                    Funding Tracking & Budgets
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B' }}>
+                    Live visibility into Core, Capacity Building, and Capital budgets delivered by Opus Care.
+                  </p>
+                </div>
+              </div>
+
+              {fundingPeriods.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>
+                  <DollarSign size={40} style={{ color: '#CBD5E1', marginBottom: 10 }} />
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748B' }}>
+                    No active funding periods recorded yet. Please contact your Opus Care coordinator.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  {fundingPeriods.map((period: any) => (
+                    <div key={period.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 18, background: '#FAFAFA' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+                        <div>
+                          <strong style={{ fontSize: '1rem', color: '#0F172A' }}>
+                            Plan Period: {new Date(period.plan_start).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })} – {new Date(period.plan_end).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </strong>
+                          <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>
+                            Total Agreement Value: ${(period.total_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                        <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '3px 12px', borderRadius: 9999, fontSize: '0.78rem', fontWeight: 700 }}>
+                          {(period.overall_pct || 0).toFixed(1)}% Utilised
+                        </span>
+                      </div>
+
+                      {/* Category Breakdown */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {(period.budgets || []).map((b: any) => {
+                          const catColors: Record<string, string> = {
+                            Core: '#2563EB',
+                            'Capacity Building': '#7C3AED',
+                            Capital: '#0D9488',
+                          };
+                          const barColor = catColors[b.support_category] || '#2563EB';
+                          return (
+                            <div key={b.id || b.support_category} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, padding: '12px 14px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0F172A' }}>
+                                  {b.support_category} Supports
+                                </span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                                  ${(b.delivered_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} / ${(b.budget_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              <div style={{ height: 6, background: '#F1F5F9', borderRadius: 9999, overflow: 'hidden', marginBottom: 6 }}>
+                                <div style={{ height: '100%', width: `${Math.min(b.utilised_pct || 0, 100)}%`, background: barColor, borderRadius: 9999 }} />
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748B' }}>
+                                <span>Invoiced: ${(b.invoiced_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                <span>Remaining: ${(b.remaining_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} ({(b.utilised_pct || 0).toFixed(1)}%)</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Informative Note */}
+              <div style={{ marginTop: 18, background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '12px 16px', fontSize: '0.8rem', color: '#1E40AF', lineHeight: 1.5 }}>
+                <strong>Opus Care Tracked Utilisation Notice:</strong> This breakdown reflects support delivered and invoiced directly through Opus Care. Official overall NDIS plan balances (including services provided by third parties or plan management fees) are maintained within the NDIA myplace / PACE portal.
+              </div>
+            </div>
+          </div>
+        )}
         {activeTab === 'goals' && (
           <div>
             {goals.length === 0 ? (

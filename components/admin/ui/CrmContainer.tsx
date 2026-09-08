@@ -24,6 +24,8 @@ import {
   Target,
   ClipboardList,
   ShieldCheck,
+  Calculator,
+  Receipt,
 } from 'lucide-react';
 import CrmNotificationItem from './CrmNotificationItem';
 
@@ -36,8 +38,10 @@ export type CrmTab =
   | 'support_plans'
   | 'risk_assessments'
   | 'safeguarding'
-  | 'invoicing'
+  | 'timesheets'
+  | 'progress_notes'
   | 'quotes'
+  | 'invoicing'
   | 'staff'
   | 'workforce'
   | 'compliance'
@@ -94,6 +98,10 @@ export default function CrmContainer({
     { id: 'support_plans', label: 'Support Plans', icon: <ClipboardList size={16} /> },
     { id: 'risk_assessments', label: 'Risk', icon: <ShieldCheck size={16} /> },
     { id: 'workforce', label: 'Roster', icon: <CalendarClock size={16} /> },
+    { id: 'timesheets', label: 'Timesheets', icon: <Clock size={16} /> },
+    { id: 'progress_notes', label: 'Progress Notes', icon: <FileCheck size={16} /> },
+    { id: 'quotes', label: 'Quotes & Budgets', icon: <Calculator size={16} /> },
+    { id: 'invoicing', label: 'Invoicing & Claims', icon: <Receipt size={16} /> },
     { id: 'agreements', label: 'Agreements', icon: <FileText size={16} /> },
     { id: 'safeguarding', label: 'Safeguarding', icon: <ShieldAlert size={16} /> },
     {

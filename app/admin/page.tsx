@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import WorkforceRosterTab from '@/components/WorkforceRosterTab';
@@ -8,6 +8,10 @@ import AddParticipantModal from '@/components/admin/AddParticipantModal';
 import AddWorkerModal from '@/components/admin/AddWorkerModal';
 import AgreementGeneratorModal from '@/components/admin/AgreementGeneratorModal';
 import AgreementViewerModal from '@/components/admin/AgreementViewerModal';
+import InvoicingTab from '@/components/admin/InvoicingTab';
+import QuotesTab from '@/components/admin/QuotesTab';
+import TimesheetsTab from '@/components/admin/TimesheetsTab';
+import ProgressNotesTab from '@/components/admin/ProgressNotesTab';
 import CrmContainer, { CrmTab } from '@/components/admin/ui/CrmContainer';
 import CrmPillBar from '@/components/admin/ui/CrmPillBar';
 import CrmSquircleCard from '@/components/admin/ui/CrmSquircleCard';
@@ -170,7 +174,7 @@ interface TrainingCompletion {
 }
 
 
-type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
+type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'timesheets' | 'progress_notes' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
 
 const PIPELINE_STAGES = [
   { id: 'new', label: 'New Inbound', color: '#0284C7', bg: '#E0F2FE' },
@@ -344,13 +348,38 @@ export default function AdminCrmPage() {
     description: '',
   });
 
+  // -- Phase C: Live Financial Metrics --------------------------------------
+  const [financeMetrics, setFinanceMetrics] = useState<{
+    delivered_hours_mtd: number;
+    gross_invoiced_mtd: number;
+    paid_claims_mtd: number;
+    outstanding_claims: number;
+    unbilled_hours: number;
+    unbilled_amount: number;
+  } | null>(null);
+
+  const loadFinanceMetrics = useCallback(async () => {
+    try {
+      const res = await fetch('/api/billing/finance-metrics');
+      if (res.ok) {
+        const data = await res.json();
+        setFinanceMetrics(data);
+      }
+    } catch (err) {
+      console.error('Error loading finance metrics:', err);
+    }
+  }, []);
+
   useEffect(() => {
     checkAuth();
+    loadFinanceMetrics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (tab === 'compliance') {
+    if (tab === 'dashboard') {
+      loadFinanceMetrics();
+    } else if (tab === 'compliance') {
       loadTrainingData();
     } else if (tab === 'agreements') {
       loadAgreements();
@@ -365,7 +394,7 @@ export default function AdminCrmPage() {
     } else if (tab === 'risk_assessments' && selectedRiskParticipant) {
       loadRiskAssessments(selectedRiskParticipant);
     }
-  }, [tab, selectedGoalParticipant, selectedPlanParticipant, selectedRiskParticipant]);
+  }, [tab, selectedGoalParticipant, selectedPlanParticipant, selectedRiskParticipant, loadFinanceMetrics]);
 
 
 
@@ -1446,6 +1475,77 @@ export default function AdminCrmPage() {
 
             {/* Right Column: Quick Operations & Recent Activity */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Live Service Delivery & Financial Overview */}
+              <CrmBentoPane
+                title="Service Delivery & Financial Velocity"
+                subtitle="Live metrics derived from verified service records & invoices"
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setTab('invoicing')}
+                    className="vsBtnOutline"
+                    style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                  >
+                    Invoicing &rarr;
+                  </button>
+                }
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Delivered Hours (MTD)</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', marginTop: 4 }}>
+                      {(financeMetrics?.delivered_hours_mtd || 0).toFixed(1)} hrs
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#0D9488', marginTop: 2 }}>Verified by completed shifts</div>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Gross Invoiced (MTD)</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#16A34A', marginTop: 4 }}>
+                      ${(financeMetrics?.gross_invoiced_mtd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: 2 }}>NDIS tax invoices issued</div>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Paid Claims</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0284C7', marginTop: 4 }}>
+                      ${(financeMetrics?.paid_claims_mtd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: 2 }}>Remittance confirmed</div>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Unbilled Service Hours</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#E11D48', marginTop: 4 }}>
+                      ${(financeMetrics?.unbilled_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#E11D48', marginTop: 2 }}>
+                      {(financeMetrics?.unbilled_hours || 0).toFixed(1)} hrs awaiting billing
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => setTab('timesheets')}
+                    className="vsBtnBlack"
+                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.78rem', justifyContent: 'center' }}
+                  >
+                    Timesheets & Approval
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab('invoicing')}
+                    className="vsBtnOutline"
+                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.78rem', justifyContent: 'center' }}
+                  >
+                    Generate Invoices
+                  </button>
+                </div>
+              </CrmBentoPane>
+
               {/* Pinned Quick Intake Controls */}
               <CrmBentoPane
                 title="Quick Operations Hub"
@@ -3640,79 +3740,24 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* TAB 4: INVOICING & PACE CLAIMS */}
+          {/* TAB: INVOICING & CLAIMS */}
           {tab === 'invoicing' && (
-            <div className="crmTabPanel">
-              <div className="crmPanelHeader">
-                <div>
-                  <h2 className="crmPanelTitle">NDIS PACE Invoicing & Line Items</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Generate compliant NDIS tax invoices with verified support catalogue line items ready for Plan Managers or PACE self-claims.
-                  </p>
-                </div>
-                <button
-                  onClick={() => alert('Batch export CSV generated.')}
-                  className="crmViewBtn"
-                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                  <FileSpreadsheet size={15} /> <span>Export PACE Batch</span>
-                </button>
-              </div>
-
-              <div className="crmIdurarCardsGrid" style={{ marginBottom: 20 }}>
-                <div className="crmIdurarCard">
-                  <h3 className="crmIdurarCardTitle">Delivered Hours (Sept)</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">Total Service Delivered</span>
-                    <span className="crmIdurarPill teal">1,850.00 hrs</span>
-                  </div>
-                </div>
-                <div className="crmIdurarCard">
-                  <h3 className="crmIdurarCardTitle">Gross Invoiced</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">NDIS Rate Limit $67.56/hr</span>
-                    <span className="crmIdurarPill green">$ 48,250.00</span>
-                  </div>
-                </div>
-                <div className="crmIdurarCard">
-                  <h3 className="crmIdurarCardTitle">Paid Claims</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">Processed by Plan Managers</span>
-                    <span className="crmIdurarPill green">$ 44,600.00</span>
-                  </div>
-                </div>
-                <div className="crmIdurarCard">
-                  <h3 className="crmIdurarCardTitle">Outstanding</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">Awaiting remittance</span>
-                    <span className="crmIdurarPill coral">$ 3,650.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <InvoicingTab participants={participants} />
           )}
 
-          {/* TAB 5: QUOTES & BUDGETS */}
+          {/* TAB: QUOTES & BUDGETS */}
           {tab === 'quotes' && (
-            <div className="crmTabPanel">
-              <div className="crmPanelHeader">
-                <div>
-                  <h2 className="crmPanelTitle">Quotes & Service Plan Estimator</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Calculate estimated weekly and annual funding burn rates based on participant support schedules.
-                  </p>
-                </div>
-              </div>
-              <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F6', borderRadius: 12, padding: 24 }}>
-                <h4 style={{ margin: '0 0 12px', fontSize: '1rem', color: '#0F172A' }}>Service Budget Formula</h4>
-                <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.6 }}>
-                  NDIS Standard Core Hourly Rate (NSW/QLD Non-Remote): <strong>$67.56 / hr</strong>.<br />
-                  For a participant requiring <strong>15 hours / week</strong> of standard weekday assistance:<br />
-                  &bull; Weekly Budget: 15 hrs &times; $67.56 = <strong>$1,013.40 / week</strong><br />
-                  &bull; 12-Month Plan Budget: 52 weeks &times; $1,013.40 = <strong>$52,696.80</strong>
-                </p>
-              </div>
-            </div>
+            <QuotesTab participants={participants} />
+          )}
+
+          {/* TAB: TIMESHEETS & SERVICE RECORDS */}
+          {tab === 'timesheets' && (
+            <TimesheetsTab />
+          )}
+
+          {/* TAB: PROGRESS NOTES */}
+          {tab === 'progress_notes' && (
+            <ProgressNotesTab />
           )}
 
           {/* TAB 6: SUPPORT WORKERS & CLEARANCES */}
