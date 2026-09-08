@@ -668,6 +668,16 @@ export default function AdminCrmPage() {
       <div className="crmLoginWrap">
         <div className="crmLoginCard">
           <div className="crmLoginBrand">
+            <Link href="/" title="Return to Opus Care Website" style={{ display: 'inline-block', marginBottom: 16 }}>
+              <Image
+                src="/brand/Opus_Care_Logo_Transparent.png"
+                alt="Opus Care Support Services"
+                width={200}
+                height={55}
+                priority
+                style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+              />
+            </Link>
             <span className="crmLoginBadge">
               <Shield size={14} /> Operations Security Gate
             </span>
@@ -737,14 +747,31 @@ export default function AdminCrmPage() {
     <div className="crmAppContainer">
       {/* Permanent Left Sidebar (IDURAR Style) */}
       <aside className={`crmSidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <Link href="/" className="crmSidebarHeader" title="Return to Opus Care Home">
-          <div className="crmBrandCrest">
-            <Shield size={20} />
-          </div>
-          {!sidebarCollapsed && (
-            <div className="crmBrandMeta">
-              <span className="crmBrandMetaTitle">OPUS CARE</span>
-              <span className="crmBrandMetaSub">CRM / ERP</span>
+        <Link href="/" className="crmSidebarHeader" title="Return to Opus Care Home" style={{ padding: sidebarCollapsed ? '16px 8px' : '16px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {sidebarCollapsed ? (
+            <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+              <Image
+                src="/brand/Opus_Care_Mark.png"
+                alt="Opus Care"
+                width={32}
+                height={32}
+                priority
+                style={{ objectFit: 'contain' }}
+              />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Image
+                src="/brand/Opus_Care_Logo_Transparent.png"
+                alt="Opus Care Support Services"
+                width={130}
+                height={36}
+                priority
+                style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+              />
+              <span className="crmVersionTag" style={{ background: '#EDE9FE', color: '#7C3AED', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
+                CRM
+              </span>
             </div>
           )}
         </Link>

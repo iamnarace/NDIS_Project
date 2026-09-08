@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -53,9 +53,8 @@ export async function GET(req: Request) {
     body { background: #f4f1ec; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px; font-family: 'Inter', sans-serif; }
     .cert { background: #fff; border: 1px solid #d4c5a9; border-radius: 4px; max-width: 800px; width: 100%; padding: 64px 72px; text-align: center; position: relative; box-shadow: 0 4px 32px rgba(0,0,0,0.08); }
     .cert::before { content: ''; position: absolute; inset: 12px; border: 1.5px solid #c9a96e; border-radius: 2px; pointer-events: none; }
-    .logo-line { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 40px; }
-    .logo-mark { width: 48px; height: 48px; background: #1a3a6b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 700; letter-spacing: -1px; }
-    .org-name { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; color: #1a3a6b; letter-spacing: 0.05em; text-transform: uppercase; }
+    .logo-line { display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+    .cert-logo { height: 52px; width: auto; max-width: 220px; object-fit: contain; }
     .rule { width: 80px; height: 2px; background: #c9a96e; margin: 0 auto 24px; }
     .cert-label { font-family: 'Playfair Display', serif; font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; color: #8a7560; margin-bottom: 12px; }
     h1 { font-family: 'Playfair Display', serif; font-size: 36px; color: #1a1a1a; line-height: 1.2; margin-bottom: 28px; }
@@ -82,8 +81,7 @@ export async function GET(req: Request) {
 <body>
   <div class="cert">
     <div class="logo-line">
-      <div class="logo-mark">OC</div>
-      <span class="org-name">Opus Care Support Services</span>
+      <img src="/brand/Opus_Care_Logo_Transparent.png" alt="Opus Care Support Services" class="cert-logo" />
     </div>
     <div class="rule"></div>
     <p class="cert-label">Certificate of Completion</p>
