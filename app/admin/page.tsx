@@ -8,6 +8,12 @@ import AddParticipantModal from '@/components/admin/AddParticipantModal';
 import AddWorkerModal from '@/components/admin/AddWorkerModal';
 import AgreementGeneratorModal from '@/components/admin/AgreementGeneratorModal';
 import AgreementViewerModal from '@/components/admin/AgreementViewerModal';
+import CrmContainer, { CrmTab } from '@/components/admin/ui/CrmContainer';
+import CrmPillBar from '@/components/admin/ui/CrmPillBar';
+import CrmSquircleCard from '@/components/admin/ui/CrmSquircleCard';
+import CrmBentoPane from '@/components/admin/ui/CrmBentoPane';
+import CrmSettingRow from '@/components/admin/ui/CrmSettingRow';
+
 import { 
   Users, UserCheck, FileText, Phone, Mail, MapPin, Calendar, 
   CheckCircle2, Clock, AlertCircle, ArrowRight, Search, Filter, 
@@ -693,40 +699,44 @@ export default function AdminCrmPage() {
 
   if (isAuth === false) {
     return (
-      <div className="crmLoginWrap">
-        <div className="crmLoginCard">
-          <div className="crmLoginBrand">
-            <Link href="/" title="Return to Opus Care Website" style={{ display: 'inline-block', marginBottom: 16 }}>
+      <div className="vsCanvas" style={{ justifyContent: 'center', minHeight: '100vh', padding: 20 }}>
+        <div className="vsCard" style={{ maxWidth: 440, width: '100%', padding: '36px 32px', textAlign: 'center', boxShadow: '0 24px 60px rgba(15, 23, 42, 0.12)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
+            <Link href="/" title="Return to Opus Care Website" style={{ display: 'inline-block', marginBottom: 18 }}>
               <Image
                 src="/brand/Opus_Care_Logo_Transparent.png"
                 alt="Opus Care Support Services"
-                width={200}
-                height={55}
+                width={180}
+                height={50}
                 priority
-                style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+                style={{ height: 42, width: 'auto', objectFit: 'contain' }}
               />
             </Link>
-            <span className="crmLoginBadge">
-              <Shield size={14} /> Operations Security Gate
-            </span>
-            <h1 className="crmLoginTitle">Opus Care CRM/ERP</h1>
-            <p className="crmLoginSub">
+            <div className="vsSquircle indigo" style={{ width: 52, height: 52, borderRadius: 16, marginBottom: 14 }}>
+              <Shield size={24} />
+            </div>
+            <h1 style={{ margin: '0 0 6px', fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+              Opus Care CRM / ERP
+            </h1>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B', lineHeight: 1.5 }}>
               Enter authorized administrator access key to open the operations management dashboard.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="crmLoginForm">
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {authError && (
-              <div className="crmLoginError">
-                <AlertCircle size={16} />
+              <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
                 <span>{authError}</span>
               </div>
             )}
 
-            <div className="crmLoginField">
-              <label htmlFor="adminKey">Admin Access Key</label>
-              <div className="crmInputWithIcon">
-                <Lock size={16} className="crmFieldIcon" />
+            <div style={{ textAlign: 'left' }}>
+              <label htmlFor="adminKey" style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: 6 }}>
+                Admin Access Key
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                 <input
                   id="adminKey"
                   type="password"
@@ -737,6 +747,7 @@ export default function AdminCrmPage() {
                     if (authError) setAuthError('');
                   }}
                   className="crmKeyInput"
+                  style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 9999, border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: '0.88rem', outline: 'none' }}
                   autoFocus
                 />
               </div>
@@ -745,7 +756,8 @@ export default function AdminCrmPage() {
             <button
               type="submit"
               disabled={authSubmitting}
-              className="crmLoginSubmitBtn"
+              className="vsBtnBlack"
+              style={{ width: '100%', padding: '12px 20px', borderRadius: 9999, fontSize: '0.9rem', marginTop: 8 }}
             >
               {authSubmitting ? (
                 <>
@@ -761,9 +773,9 @@ export default function AdminCrmPage() {
             </button>
           </form>
 
-          <div className="crmLoginFooter">
-            <Link href="/" className="crmBackHomeLink">
-              ← Return to Public Website
+          <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #F1F5F9' }}>
+            <Link href="/" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B', textDecoration: 'none' }}>
+              &larr; Return to Public Website
             </Link>
           </div>
         </div>
@@ -772,579 +784,351 @@ export default function AdminCrmPage() {
   }
 
   return (
-    <div className="crmAppContainer">
-      {/* Permanent Left Sidebar (IDURAR Style) */}
-      <aside className={`crmSidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <Link href="/" className="crmSidebarHeader" title="Return to Opus Care Home" style={{ padding: sidebarCollapsed ? '16px 8px' : '16px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          {sidebarCollapsed ? (
-            <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-              <Image
-                src="/brand/Opus_Care_Mark.png"
-                alt="Opus Care"
-                width={32}
-                height={32}
-                priority
-                style={{ objectFit: 'contain' }}
-              />
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Image
-                src="/brand/Opus_Care_Logo_Transparent.png"
-                alt="Opus Care Support Services"
-                width={130}
-                height={36}
-                priority
-                style={{ height: 32, width: 'auto', objectFit: 'contain' }}
-              />
-              <span className="crmVersionTag" style={{ background: '#EDE9FE', color: '#7C3AED', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>
-                CRM
-              </span>
-            </div>
-          )}
-        </Link>
-
-        {/* Sidebar Navigation */}
-        <nav className="crmSidebarNav">
-          <button
-            onClick={() => setTab('dashboard')}
-            className={`crmNavItem ${tab === 'dashboard' ? 'active' : ''}`}
-            title="Dashboard Overview"
-          >
-            <LayoutDashboard size={18} />
-            {!sidebarCollapsed && <span>Dashboard</span>}
-          </button>
-
-          <button
-            onClick={() => setTab('referrals')}
-            className={`crmNavItem ${tab === 'referrals' ? 'active' : ''}`}
-            title="Inbound Referrals & Leads"
-          >
-            <UserPlus size={18} />
-            {!sidebarCollapsed && <span>Referrals</span>}
-            {!sidebarCollapsed && countNew > 0 && (
-              <span className="crmNavBadge">{countNew}</span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setTab('agreements')}
-            className={`crmNavItem ${tab === 'agreements' ? 'active' : ''}`}
-            title="Service Agreements & Offers"
-          >
-            <FileText size={18} />
-            {!sidebarCollapsed && <span>Agreements</span>}
-          </button>
-
-          <button
-            onClick={() => setTab('participants')}
-            className={`crmNavItem ${tab === 'participants' ? 'active' : ''}`}
-            title="Participants & Customers"
-          >
-            <Users size={18} />
-            {!sidebarCollapsed && <span>Participants</span>}
-            {!sidebarCollapsed && (
-              <span className="crmNavCountPill">{participants.length}</span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setTab('invoicing')}
-            className={`crmNavItem ${tab === 'invoicing' ? 'active' : ''}`}
-            title="Invoicing & PACE Claims"
-          >
-            <Receipt size={18} />
-            {!sidebarCollapsed && <span>Invoicing</span>}
-          </button>
-
-          <button
-            onClick={() => setTab('quotes')}
-            className={`crmNavItem ${tab === 'quotes' ? 'active' : ''}`}
-            title="Quotes & Service Plans"
-          >
-            <Calculator size={18} />
-            {!sidebarCollapsed && <span>Quotes</span>}
-          </button>
-
-          <button
-            onClick={() => setTab('staff')}
-            className={`crmNavItem ${tab === 'staff' ? 'active' : ''}`}
-            title="Support Workers & Clearances"
-          >
-            <UserCheck size={18} />
-            {!sidebarCollapsed && <span>Workers</span>}
-            {!sidebarCollapsed && (
-              <span className="crmNavCountPill">{staff.length}</span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setTab('workforce')}
-            className={`crmNavItem ${tab === 'workforce' ? 'active' : ''}`}
-            title="Workforce Rostering & Shift Scheduling"
-          >
-            <CalendarClock size={18} />
-            {!sidebarCollapsed && <span>Roster</span>}
-          </button>
-
-          <button
-            onClick={() => setTab('compliance')}
-            className={`crmNavItem ${tab === 'compliance' ? 'active' : ''}`}
-            title="Compliance & Audit Register"
-          >
-            <GraduationCap size={18} />
-            {!sidebarCollapsed && <span>Training</span>}
-          </button>
-
-          <button
-            onClick={() => setTab('settings')}
-            className={`crmNavItem ${tab === 'settings' ? 'active' : ''}`}
-            title="Settings & System Diagnostics"
-          >
-            <Settings size={18} />
-            {!sidebarCollapsed && <span>Settings</span>}
-          </button>
-        </nav>
-
-        {/* Sidebar Footer with Collapse Toggle */}
-        <div className="crmSidebarFooter">
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="crmCollapseBtn"
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-          {!sidebarCollapsed && (
-            <span className="crmVersionTag">v2.4 Enterprise</span>
-          )}
+    <CrmContainer
+      currentTab={tab}
+      onSelectTab={(newTab) => setTab(newTab)}
+      searchQuery={searchQuery}
+      onSearchChange={(q) => setSearchQuery(q)}
+      referralsCount={countNew}
+      participantsCount={participants.length}
+      staffCount={staff.length}
+      onOpenAddParticipant={() => setShowAddParticipant(true)}
+      onOpenAddWorker={() => setShowAddWorker(true)}
+      onOpenNewAgreement={() => setShowAgreementGenerator(true)}
+    >
+      {statusNotice && (
+        <div style={{
+          background: '#ECFDF5',
+          color: '#065F46',
+          border: '1px solid #A7F3D0',
+          borderRadius: 14,
+          padding: '10px 18px',
+          fontSize: '0.85rem',
+          fontWeight: 700,
+          marginBottom: 18,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}>
+          <CheckCircle2 size={16} color="#059669" />
+          <span>{statusNotice}</span>
         </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <div className="crmMainWrapper">
-        {/* Top Header Bar */}
-        <header className="crmTopBar">
-          <div className="crmTopBarLeft">
-            <div>
-              <div className="crmBreadcrumb">
-                Opus Operations / {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </div>
-              <h1 className="crmPageTitle">
-                {tab === 'dashboard' && 'Operations Overview'}
-                {tab === 'referrals' && 'Referrals & Intake Pipeline'}
-                {tab === 'agreements' && 'Service Agreements & Onboarding'}
-                {tab === 'participants' && 'Participants 360° Directory'}
-                {tab === 'invoicing' && 'NDIS PACE Invoicing & Line Items'}
-                {tab === 'quotes' && 'Quotes & Budget Estimator'}
-                {tab === 'staff' && 'Support Workers & Compliance Register'}
-                {tab === 'workforce' && 'Workforce Rostering & Shift Scheduling'}
-                {tab === 'compliance' && 'NDIS Practice Standards & Safeguards'}
-                {tab === 'settings' && 'System Health & Security Gate'}
-              </h1>
-            </div>
-          </div>
-
-          <div className="crmTopBarRight">
-            <div className="crmLiveSyncPill" title="Connected to Supabase Sydney (ap-southeast-2)">
-              <span className="crmLiveDot" />
-              <span>Supabase Live</span>
-            </div>
-
-            <div className="crmRegionPill">
-              <span>🇦🇺</span>
-              <span>English (NDIS)</span>
-            </div>
-
-            <div className="crmUserPill">
-              <div className="crmUserAvatar">OA</div>
-              <span>Opus Admin</span>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="crmTopSignOutBtn"
-              title="Sign Out of Operations CRM"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </header>
-
-        {/* Status Notice Banner */}
-        {statusNotice && (
-          <div style={{
-            background: '#ECFDF5',
-            color: '#065F46',
-            borderBottom: '1px solid #A7F3D0',
-            padding: '10px 32px',
-            fontSize: '0.85rem',
-            fontWeight: 600
-          }}>
-            {statusNotice}
-          </div>
-        )}
-
-        {/* Main Body */}
-        <main className="crmBody">
+      )}
           {/* TAB 0: DASHBOARD (IDURAR STYLE) */}
           {tab === 'dashboard' && (
-            <div>
-              {/* Row 1: Top 4 KPI Metric Cards */}
-              <div className="crmIdurarCardsGrid">
-                {/* Card 1: Invoicing */}
-                <div className="crmIdurarCard" onClick={() => setTab('invoicing')} style={{ cursor: 'pointer' }}>
-                  <h3 className="crmIdurarCardTitle">Invoice</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">This Month</span>
-                    <span className="crmIdurarPill teal">$ 48,250.00</span>
+        <div>
+          {/* Sub-view Filter Pills */}
+          <CrmPillBar
+            items={[
+              { id: 'all', label: 'All Operations', count: participants.length + referrals.length },
+              { id: 'urgent', label: 'Urgent Actions', count: countNew },
+              { id: 'intake', label: 'Intake Pipeline', count: referrals.length },
+              { id: 'participants', label: 'Active Participants', count: participants.length },
+              { id: 'roster', label: 'Workforce Roster', count: staff.length },
+            ]}
+            selectedId={filterStatus === 'all' ? 'all' : filterStatus}
+            onSelect={(id) => {
+              if (id === 'intake' || id === 'urgent') setTab('referrals');
+              else if (id === 'participants') setTab('participants');
+              else if (id === 'roster') setTab('workforce');
+            }}
+            className="mb-4"
+          />
+
+          {/* Row 1: Top 4 Squircle KPI Cards (VibeStore Screen 1 Style) */}
+          <div className="vsGrid4">
+            <CrmSquircleCard
+              title="Active Participants"
+              value={participants.length}
+              subtitle="Enrolled in Clarence Valley & Northern Rivers NSW"
+              meta="Plan-Managed & Self-Managed"
+              icon={<Users size={24} />}
+              tint="sky"
+              actionLabel="Directory"
+              onAction={() => setTab('participants')}
+            />
+
+            <CrmSquircleCard
+              title="Inbound Referrals"
+              value={referrals.length}
+              subtitle={`${countNew} new referrals awaiting intake review`}
+              meta="Intake pipeline active"
+              icon={<UserPlus size={24} />}
+              tint="emerald"
+              actionLabel="Review"
+              badge={countNew > 0 ? `${countNew} New` : undefined}
+              onAction={() => setTab('referrals')}
+            />
+
+            <CrmSquircleCard
+              title="Workforce & Staff"
+              value={staff.length}
+              subtitle="Support workers & verified clearances"
+              meta="NDISWC & WWCC active"
+              icon={<UserCheck size={24} />}
+              tint="amber"
+              actionLabel="Manage"
+              onAction={() => setTab('staff')}
+            />
+
+            <CrmSquircleCard
+              title="Service Agreements"
+              value={agreements.length}
+              subtitle="Legally sealed & SHA-256 verified contracts"
+              meta="Turnkey onboarding packs"
+              icon={<FileText size={24} />}
+              tint="indigo"
+              actionLabel="Agreements"
+              badge="Immutable"
+              onAction={() => setTab('agreements')}
+            />
+          </div>
+
+          {/* Row 2: Two-Column Bento Layout */}
+          <div className="vsGrid2ColBento">
+            {/* Left Column: Hero Callouts & Intake Funnel */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Feature Hero 1: Agreement Engine Callout (Matching Screen 1 Huppy Box) */}
+              <div className="vsHeroCard lavender">
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <span className="vsTagCrm">CONTRACT ENGINE</span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#4F46E5' }}>Updated v2.4</span>
+                    </div>
+                    <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
+                      Australian NDIS Service Agreement Engine
+                    </h3>
+                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: '#475569', lineHeight: 1.5, maxWidth: 520 }}>
+                      Generate turnkey participant packs (PACK-PART-01), schedules of supports, and SCHADS employment contracts with automated sham-contracting compliance guards and SHA-256 digital seals.
+                    </p>
+                  </div>
+                  <div className="vsSquircle indigo" style={{ width: 56, height: 56, borderRadius: 18 }}>
+                    <FileText size={28} />
                   </div>
                 </div>
-
-                {/* Card 2: Intake Leads */}
-                <div className="crmIdurarCard" onClick={() => setTab('referrals')} style={{ cursor: 'pointer' }}>
-                  <h3 className="crmIdurarCardTitle">Quote / Leads</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">This Month</span>
-                    <span className="crmIdurarPill purple">{referrals.length} Referrals</span>
-                  </div>
-                </div>
-
-                {/* Card 3: Delivered Hours */}
-                <div className="crmIdurarCard" onClick={() => setTab('participants')} style={{ cursor: 'pointer' }}>
-                  <h3 className="crmIdurarCardTitle">Payment / Hours</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">This Month</span>
-                    <span className="crmIdurarPill green">1,850.00 hrs</span>
-                  </div>
-                </div>
-
-                {/* Card 4: Action Items */}
-                <div className="crmIdurarCard" onClick={() => setTab('referrals')} style={{ cursor: 'pointer' }}>
-                  <h3 className="crmIdurarCardTitle">Due Balance</h3>
-                  <div className="crmIdurarCardBottom">
-                    <span className="crmIdurarCardSub">Action Needed</span>
-                    <span className="crmIdurarPill coral">{countNew} Pending</span>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAgreementGenerator(true)}
+                    className="vsBtnBlack"
+                    style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+                  >
+                    + New Agreement / Pack
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab('agreements')}
+                    className="vsBtnOutline"
+                    style={{ padding: '8px 18px', fontSize: '0.82rem' }}
+                  >
+                    View All ({agreements.length})
+                  </button>
                 </div>
               </div>
 
-              {/* Row 2: IDURAR Previews Grid (3 Previews + 1 Donut Gauge) */}
-              <div className="crmIdurarPreviewGrid">
-                {/* 3 Status Columns in One Multi-Card */}
-                <div className="crmPreviewMultiCard">
-                  {/* Column 1: Invoices / Referrals Preview */}
-                  <div className="crmPreviewColumn">
-                    <h4 className="crmPreviewColumnTitle">Referrals Preview</h4>
-                    <div className="crmPreviewList">
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">New Intake</span>
-                          <span className="crmPreviewPct">{pctNew}%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill slate" style={{ width: `${pctNew}%` }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Contacted</span>
-                          <span className="crmPreviewPct">{pctContacted}%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill amber" style={{ width: `${pctContacted}%` }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Assessment</span>
-                          <span className="crmPreviewPct">{pctAssessment}%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill blue" style={{ width: `${pctAssessment}%` }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Agreement Sent</span>
-                          <span className="crmPreviewPct">{pctAgreements}%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill teal" style={{ width: `${pctAgreements}%` }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Active / Enrolled</span>
-                          <span className="crmPreviewPct">{pctActive}%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill green" style={{ width: `${pctActive}%` }} />
-                        </div>
-                      </div>
+              {/* Feature Hero 2: Workforce Roster Callout */}
+              <div className="vsHeroCard teal">
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <span style={{ background: '#CCFBF1', color: '#0F766E', fontSize: '0.65rem', fontWeight: 800, padding: '2px 7px', borderRadius: 9999 }}>
+                        WORKFORCE HUB
+                      </span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0D9488' }}>Live Roster</span>
                     </div>
+                    <h3 style={{ margin: '0 0 6px', fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>
+                      Workforce Rostering & Shift Management
+                    </h3>
+                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: '#334155', lineHeight: 1.5, maxWidth: 520 }}>
+                      Roster support shifts across Yamba, Maclean, Grafton, and Iluka with instant conflict checks and compliance clearance validation.
+                    </p>
                   </div>
-
-                  {/* Column 2: Service Agreements Preview */}
-                  <div className="crmPreviewColumn">
-                    <h4 className="crmPreviewColumnTitle">Quotes Preview</h4>
-                    <div className="crmPreviewList">
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Draft</span>
-                          <span className="crmPreviewPct">25%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill slate" style={{ width: '25%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Pending Review</span>
-                          <span className="crmPreviewPct">20%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill amber" style={{ width: '20%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Sent to Client</span>
-                          <span className="crmPreviewPct">40%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill blue" style={{ width: '40%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Declined</span>
-                          <span className="crmPreviewPct">0%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill coral" style={{ width: '0%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Accepted</span>
-                          <span className="crmPreviewPct">15%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill green" style={{ width: '15%' }} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Column 3: Worker Compliance Preview */}
-                  <div className="crmPreviewColumn">
-                    <h4 className="crmPreviewColumnTitle">Offers Preview</h4>
-                    <div className="crmPreviewList">
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">NDIS Screening</span>
-                          <span className="crmPreviewPct">100%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill green" style={{ width: '100%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">WWCC Verified</span>
-                          <span className="crmPreviewPct">100%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill green" style={{ width: '100%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">First Aid &amp; CPR</span>
-                          <span className="crmPreviewPct">90%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill blue" style={{ width: '90%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Police Clearance</span>
-                          <span className="crmPreviewPct">100%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill green" style={{ width: '100%' }} />
-                        </div>
-                      </div>
-
-                      <div className="crmPreviewRow">
-                        <div className="crmPreviewRowMeta">
-                          <span className="crmPreviewLabel">Fully Compliant</span>
-                          <span className="crmPreviewPct">95%</span>
-                        </div>
-                        <div className="crmProgressBarTrack">
-                          <div className="crmProgressBarFill green" style={{ width: '95%' }} />
-                        </div>
-                      </div>
-                    </div>
+                  <div className="vsSquircle teal" style={{ width: 56, height: 56, borderRadius: 18 }}>
+                    <CalendarClock size={28} />
                   </div>
                 </div>
-
-                {/* Circular Gauge Card (Right) */}
-                <div className="crmGaugeCard">
-                  <h4 className="crmGaugeTitle">Customer Preview</h4>
-                  <div className="crmGaugeSvgWrap">
-                    <svg width="130" height="130" viewBox="0 0 120 120">
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="50"
-                        stroke="#EEF2F6"
-                        strokeWidth="10"
-                        fill="none"
-                      />
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="50"
-                        stroke="#0284C7"
-                        strokeWidth="10"
-                        fill="none"
-                        strokeDasharray="314"
-                        strokeDashoffset={strokeDashoffset}
-                        strokeLinecap="round"
-                        transform="rotate(-90 60 60)"
-                        style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-                      />
-                    </svg>
-                    <span className="crmGaugeNumber">{gaugePercent}%</span>
-                  </div>
-                  <span className="crmGaugeSubtitle">New Customer This Month</span>
-                  <div className="crmGaugeGrowth">
-                    <TrendingUp size={14} />
-                    <span>Active Customer &uarr; 45.00%</span>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setTab('workforce')}
+                    className="vsBtnBlack"
+                    style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+                  >
+                    Open Shift Roster
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddWorker(true)}
+                    className="vsBtnOutline"
+                    style={{ padding: '8px 18px', fontSize: '0.82rem' }}
+                  >
+                    + Register Worker
+                  </button>
                 </div>
               </div>
 
-              {/* Row 3: Quick Actions & Live Feed */}
-              <div className="crmDashboardLowerGrid">
-                {/* Fast Action Shortcuts */}
-                <div className="crmCardSection">
-                  <h3 className="crmSectionTitle">
-                    <Sparkles size={16} style={{ color: '#0284C7' }} />
-                    <span>Quick Operations Actions</span>
-                  </h3>
-                  <div className="crmQuickActionsGrid">
-                    <button
-                      onClick={() => setTab('referrals')}
-                      className="crmQuickActionBtn"
-                    >
-                      <div className="crmQuickActionIconWrap">
-                        <UserPlus size={18} />
-                      </div>
-                      <div>
-                        <div>New Intake Referral</div>
-                        <small style={{ color: '#64748B', fontWeight: 400 }}>Review incoming submissions</small>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setTab('agreements')}
-                      className="crmQuickActionBtn"
-                    >
-                      <div className="crmQuickActionIconWrap">
-                        <FileText size={18} />
-                      </div>
-                      <div>
-                        <div>Create Service Agreement</div>
-                        <small style={{ color: '#64748B', fontWeight: 400 }}>Pre-fill NDIS 2024/25 rates</small>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setTab('staff')}
-                      className="crmQuickActionBtn"
-                    >
-                      <div className="crmQuickActionIconWrap">
-                        <UserCheck size={18} />
-                      </div>
-                      <div>
-                        <div>Verify Worker Clearance</div>
-                        <small style={{ color: '#64748B', fontWeight: 400 }}>NWSC, WWCC &amp; First Aid</small>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setTab('invoicing')}
-                      className="crmQuickActionBtn"
-                    >
-                      <div className="crmQuickActionIconWrap">
-                        <Receipt size={18} />
-                      </div>
-                      <div>
-                        <div>Generate PACE Claim</div>
-                        <small style={{ color: '#64748B', fontWeight: 400 }}>Export line items batch</small>
-                      </div>
-                    </button>
+              {/* Pipeline Funnel Bento Pane */}
+              <CrmBentoPane
+                title="Intake & Conversion Pipeline"
+                subtitle="Live status distribution across all inbound referrals"
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setTab('referrals')}
+                    className="vsBtnOutline"
+                    style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                  >
+                    Manage Pipeline &rarr;
+                  </button>
+                }
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div className="crmPreviewRow">
+                    <div className="crmPreviewRowMeta">
+                      <span className="crmPreviewLabel">1. New Inbound Intake</span>
+                      <span className="crmPreviewPct">{pctNew}% ({countNew})</span>
+                    </div>
+                    <div className="crmProgressBarTrack">
+                      <div className="crmProgressBarFill slate" style={{ width: `${pctNew}%` }} />
+                    </div>
                   </div>
-                </div>
 
-                {/* Live Activity Stream */}
-                <div className="crmCardSection">
-                  <h3 className="crmSectionTitle">
-                    <History size={16} style={{ color: '#0284C7' }} />
-                    <span>Operations Timeline</span>
-                  </h3>
-                  <div className="crmLiveFeedList">
-                    <div className="crmLiveFeedItem">
-                      <div className="crmFeedIconBadge">
-                        <CheckCircle2 size={14} style={{ color: '#10B981' }} />
-                      </div>
-                      <div className="crmFeedContent">
-                        <p className="crmFeedTitle">Supabase Sydney Connected</p>
-                        <span className="crmFeedTime">Cloud database active • ap-southeast-2</span>
-                      </div>
+                  <div className="crmPreviewRow">
+                    <div className="crmPreviewRowMeta">
+                      <span className="crmPreviewLabel">2. Contacted & Initial Consult</span>
+                      <span className="crmPreviewPct">{pctContacted}% ({countContacted})</span>
                     </div>
-
-                    <div className="crmLiveFeedItem">
-                      <div className="crmFeedIconBadge">
-                        <FolderLock size={14} style={{ color: '#0284C7' }} />
-                      </div>
-                      <div className="crmFeedContent">
-                        <p className="crmFeedTitle">Document Vault Ready</p>
-                        <span className="crmFeedTime">AES-256 private bucket crm-documents</span>
-                      </div>
+                    <div className="crmProgressBarTrack">
+                      <div className="crmProgressBarFill amber" style={{ width: `${pctContacted}%` }} />
                     </div>
+                  </div>
 
-                    <div className="crmLiveFeedItem">
-                      <div className="crmFeedIconBadge">
-                        <Mail size={14} style={{ color: '#F59E0B' }} />
-                      </div>
-                      <div className="crmFeedContent">
-                        <p className="crmFeedTitle">Resend Inbound Webhook</p>
-                        <span className="crmFeedTime">Forwarding to owner email active</span>
-                      </div>
+                  <div className="crmPreviewRow">
+                    <div className="crmPreviewRowMeta">
+                      <span className="crmPreviewLabel">3. Participant Assessment & Goals</span>
+                      <span className="crmPreviewPct">{pctAssessment}% ({countAssessment})</span>
+                    </div>
+                    <div className="crmProgressBarTrack">
+                      <div className="crmProgressBarFill blue" style={{ width: `${pctAssessment}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="crmPreviewRow">
+                    <div className="crmPreviewRowMeta">
+                      <span className="crmPreviewLabel">4. Service Agreement Sent</span>
+                      <span className="crmPreviewPct">{pctAgreements}% ({countAgreements})</span>
+                    </div>
+                    <div className="crmProgressBarTrack">
+                      <div className="crmProgressBarFill teal" style={{ width: `${pctAgreements}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="crmPreviewRow">
+                    <div className="crmPreviewRowMeta">
+                      <span className="crmPreviewLabel">5. Active / Enrolled Participant</span>
+                      <span className="crmPreviewPct">{pctActive}% ({countActive})</span>
+                    </div>
+                    <div className="crmProgressBarTrack">
+                      <div className="crmProgressBarFill green" style={{ width: `${pctActive}%` }} />
                     </div>
                   </div>
                 </div>
-              </div>
+              </CrmBentoPane>
             </div>
-          )}
 
-          {/* TAB 1: REFERRALS PIPELINE */}
+            {/* Right Column: Quick Operations & Recent Activity */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Pinned Quick Intake Controls */}
+              <CrmBentoPane
+                title="Quick Operations Hub"
+                subtitle="Direct intake & registration actions"
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddParticipant(true)}
+                    className="vsBtnOutline"
+                    style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 14 }}
+                  >
+                    <div className="vsSquircle sky" style={{ width: 32, height: 32, borderRadius: 10, marginRight: 8 }}>
+                      <UserPlus size={16} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A' }}>+ Add New Participant</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Register participant & plan details</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAddWorker(true)}
+                    className="vsBtnOutline"
+                    style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 14 }}
+                  >
+                    <div className="vsSquircle amber" style={{ width: 32, height: 32, borderRadius: 10, marginRight: 8 }}>
+                      <UserCheck size={16} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A' }}>+ Register Support Worker</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Add staff member & clearances</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAgreementGenerator(true)}
+                    className="vsBtnOutline"
+                    style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 14 }}
+                  >
+                    <div className="vsSquircle indigo" style={{ width: 32, height: 32, borderRadius: 10, marginRight: 8 }}>
+                      <FileText size={16} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A' }}>+ Generate Agreement Pack</strong>
+                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Turnkey contract generator wizard</span>
+                    </div>
+                  </button>
+                </div>
+              </CrmBentoPane>
+
+              {/* Supabase Live Infrastructure Card */}
+              <CrmBentoPane
+                title="System Health & Infrastructure"
+                subtitle="High-availability database connectivity"
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className="vsLiveDot" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A' }}>Supabase PostgreSQL 17</span>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669' }}>Sydney ap-southeast-2</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <FolderLock size={14} color="#0284C7" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A' }}>Private Vault (AES-256)</span>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0284C7' }}>crm-documents</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Shield size={14} color="#7C3AED" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A' }}>NDIS Commission Rules</span>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7C3AED' }}>Compliant</span>
+                  </div>
+                </div>
+              </CrmBentoPane>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 1: REFERRALS PIPELINE */}
           {tab === 'referrals' && (
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
@@ -2377,57 +2161,202 @@ export default function AdminCrmPage() {
 
           {/* TAB 8: SETTINGS */}
           {tab === 'settings' && (
-            <div className="crmTabPanel">
-              <div className="crmPanelHeader">
-                <div>
-                  <h2 className="crmPanelTitle">System Settings &amp; Diagnostics</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Infrastructure connectivity, database security status, and operations keys.
-                  </p>
+        <div>
+          <div style={{ marginBottom: 20 }}>
+            <h2 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+              Settings &amp; Preferences
+            </h2>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
+              Manage your administrator account, provider legal configuration, and system preferences.
+            </p>
+          </div>
+
+          {/* 3-Column Bento Grid matching VibeStore Screen 4 */}
+          <div className="vsSettingsGrid">
+            {/* Column 1: Profile Card & Plan Card */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Profile Card (VibeStore Large Avatar Card) */}
+              <div className="vsCard" style={{ alignItems: 'center', textAlign: 'center', padding: '28px 20px' }}>
+                <div
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: '50%',
+                    background: '#0F172A',
+                    color: '#FFFFFF',
+                    fontSize: '2rem',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                    marginBottom: 14,
+                  }}
+                >
+                  OA
+                </div>
+                <h3 style={{ margin: '0 0 2px', fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
+                  Opus Admin
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: '#64748B', marginBottom: 10 }}>
+                  support@opuscare.com.au
+                </span>
+                <span className="vsTagCrm" style={{ marginBottom: 18 }}>
+                  Administrator
+                </span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => alert('Admin Key is managed via ADMIN_ACCESS_KEY environment secret.')}
+                    className="vsBtnBlack"
+                    style={{ flex: 1, padding: '7px 12px', fontSize: '0.75rem' }}
+                  >
+                    Change Key
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => alert('Audit logs are synchronized in private Supabase bucket.')}
+                    className="vsBtnOutline"
+                    style={{ flex: 1, padding: '7px 12px', fontSize: '0.75rem' }}
+                  >
+                    Export Log
+                  </button>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F6', borderRadius: 12, padding: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span className="crmLiveDot" />
-                    <strong style={{ fontSize: '0.95rem', color: '#0F172A' }}>Supabase PostgreSQL 17</strong>
-                  </div>
-                  <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '0 0 12px' }}>
-                    Host: Sydney (ap-southeast-2)<br />
-                    Tables: 9 initialized with RLS
-                  </p>
-                  <span className="crmLiveSyncPill">Connected Live</span>
-                </div>
-
-                <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F6', borderRadius: 12, padding: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <FolderLock size={16} style={{ color: '#0284C7' }} />
-                    <strong style={{ fontSize: '0.95rem', color: '#0F172A' }}>Private Document Vault</strong>
-                  </div>
-                  <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '0 0 12px' }}>
-                    Bucket: crm-documents<br />
-                    Security: AES-256 with signed URLs
-                  </p>
-                  <span className="crmLiveSyncPill">Encrypted &amp; Ready</span>
-                </div>
-
-                <div style={{ background: '#F8FAFC', border: '1px solid #EEF2F6', borderRadius: 12, padding: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <Mail size={16} style={{ color: '#0284C7' }} />
-                    <strong style={{ fontSize: '0.95rem', color: '#0F172A' }}>Resend Inbound Webhook</strong>
-                  </div>
-                  <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '0 0 12px' }}>
-                    Route: /api/email/inbound<br />
-                    Status: Verified &amp; Forwarding
-                  </p>
-                  <span className="crmLiveSyncPill">Active</span>
-                </div>
+              {/* Provider Legal Entity Card (Screen 4 Plan Box) */}
+              <div className="vsHeroCard lavender">
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#4F46E5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  REGISTERED PROVIDER
+                </span>
+                <h4 style={{ margin: '4px 0 2px', fontSize: '0.98rem', fontWeight: 800, color: '#0F172A' }}>
+                  Opus Care Support Services
+                </h4>
+                <p style={{ margin: '0 0 10px', fontSize: '0.75rem', color: '#475569' }}>
+                  ABN: 89 654 321 098 &bull; Yamba NSW
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowAgreementGenerator(true)}
+                  style={{ background: 'none', border: 'none', padding: 0, color: '#4F46E5', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', textAlign: 'left' }}
+                >
+                  Configure provider details &rarr;
+                </button>
               </div>
             </div>
-          )}
-        </main>
-      </div>
+
+            {/* Column 2: Account & NDIS Arrangements */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Account Details Bento Card */}
+              <CrmBentoPane
+                title="Account & Security"
+                subtitle="Your credentials & administrative access"
+                noPadding
+              >
+                <CrmSettingRow
+                  title="Provider Legal Configuration"
+                  description="Trading name, ABN, ACN & registered address"
+                  icon={<Shield size={18} />}
+                  tint="indigo"
+                  onClick={() => alert('Provider Legal Configuration is loaded dynamically from public.provider_config.')}
+                />
+                <CrmSettingRow
+                  title="Password & Security"
+                  description="7-day HttpOnly cookie session active"
+                  icon={<Lock size={18} />}
+                  tint="teal"
+                  onClick={() => alert('Session token is cryptographically signed with HMAC-SHA256.')}
+                />
+                <CrmSettingRow
+                  title="Private Document Vault"
+                  description="AES-256 encrypted Supabase Storage"
+                  icon={<FolderLock size={18} />}
+                  tint="sky"
+                  badge="Encrypted"
+                />
+              </CrmBentoPane>
+
+              {/* NDIS Arrangements Bento Card */}
+              <CrmBentoPane
+                title="NDIS Pricing Reference"
+                subtitle="Support catalogue & hourly price caps"
+                noPadding
+              >
+                <CrmSettingRow
+                  title="NDIA Arrangements 2025/2026"
+                  description="Current national price limits reference active"
+                  icon={<Sparkles size={18} />}
+                  tint="amber"
+                  badge="Active"
+                />
+                <CrmSettingRow
+                  title="Cancellation Policy Rules"
+                  description="Customizable cancellation windows (2 to 7 days)"
+                  icon={<Clock size={18} />}
+                  tint="emerald"
+                />
+              </CrmBentoPane>
+            </div>
+
+            {/* Column 3: Preferences & Diagnostics */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {/* Preferences Bento Card */}
+              <CrmBentoPane
+                title="Preferences"
+                subtitle="Appearance & notifications"
+                noPadding
+              >
+                <CrmSettingRow
+                  title="Dark Mode"
+                  description="Theme appearance"
+                  icon={<Sparkles size={18} />}
+                  tint="slate"
+                  toggle={{
+                    checked: false,
+                    onChange: () => alert('Dark mode preference will be persisted.'),
+                  }}
+                />
+                <CrmSettingRow
+                  title="Language & Region"
+                  description="English (Australia - NDIS NSW)"
+                  icon={<MapPin size={18} />}
+                  tint="slate"
+                />
+              </CrmBentoPane>
+
+              {/* About & Sign Out Bento Card */}
+              <CrmBentoPane
+                title="About & System"
+                subtitle="System information and security"
+                noPadding
+              >
+                <CrmSettingRow
+                  title="About Opus Care CRM"
+                  description="Version 2.5 Enterprise Edition"
+                  icon={<Sparkles size={18} />}
+                  tint="indigo"
+                  badge="v2.5"
+                />
+                <CrmSettingRow
+                  title="Supabase Sydney Connection"
+                  description="Connected live to ap-southeast-2"
+                  icon={<Activity size={18} />}
+                  tint="emerald"
+                  badge="Live"
+                />
+                <CrmSettingRow
+                  title="Sign Out"
+                  description="Sign out of your operations admin account"
+                  icon={<LogOut size={18} />}
+                  isDestructive
+                  onClick={handleLogout}
+                />
+              </CrmBentoPane>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DETAIL MODAL / DRAWER (Referral, Participant, or Staff) */}
       {(selectedReferral || selectedParticipant || selectedStaff) && (
@@ -2926,6 +2855,6 @@ export default function AdminCrmPage() {
           }}
         />
       )}
-    </div>
+    </CrmContainer>
   );
 }

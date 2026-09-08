@@ -9707,3 +9707,583 @@ a {
   font-size: 0.725rem;
   color: #64748b;
 }
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   VIBESTORE-INSPIRED OPUS CARE CRM LUXURY DESIGN SYSTEM
+   Visual Hierarchy: Floating Canvas, Squircles, Restrained Pastels, Bottom Dock
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.vsCanvas {
+  min-height: 100vh;
+  background: #ECEEF2;
+  color: #0F172A;
+  padding: 24px 16px 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-source-sans), 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.011em;
+}
+
+@media (max-width: 640px) {
+  .vsCanvas {
+    padding: 12px 8px 90px;
+  }
+}
+
+.vsWindow {
+  max-width: 1360px;
+  width: 100%;
+  background: #F8F9FB;
+  border-radius: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.07);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 88vh;
+  padding-bottom: 30px;
+}
+
+@media (max-width: 640px) {
+  .vsWindow {
+    border-radius: 20px;
+  }
+}
+
+.vsTopBar {
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .vsTopBar {
+    padding: 16px 14px 12px;
+  }
+}
+
+.vsTopBarRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.vsBrandLogoBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.vsLogoIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.vsBrandName {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.vsTagCrm {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid #C7D2FE;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.vsTopActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vsLivePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #059669;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.vsLiveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+}
+
+.vsBellBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.vsBellBtn:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+
+.vsBellBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.6rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vsAvatarBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0F172A;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.vsAvatarBtn:hover {
+  transform: scale(1.05);
+}
+
+/* Full Width Search Pill */
+.vsSearchWrap {
+  width: 100%;
+  position: relative;
+}
+
+.vsSearchBar {
+  width: 100%;
+  height: 42px;
+  border-radius: 9999px;
+  background: #ECEEF2;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.vsSearchBar:focus-within {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.4);
+}
+
+.vsSearchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 0.88rem;
+  color: #0F172A;
+  font-family: inherit;
+}
+
+.vsSearchInput::placeholder {
+  color: #94A3B8;
+}
+
+/* Horizontal Filter Pills */
+.vsPillBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0 16px;
+  scrollbar-width: none;
+}
+
+.vsPillBar::-webkit-scrollbar {
+  display: none;
+}
+
+.vsPill {
+  border-radius: 9999px;
+  padding: 7px 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vsPill.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+}
+
+.vsPill.inactive {
+  background: #ECEEF2;
+  color: #475569;
+}
+
+.vsPill.inactive:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.vsPillCount {
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-weight: 800;
+}
+
+.vsPill.active .vsPillCount {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.vsPill.inactive .vsPillCount {
+  background: #CBD5E1;
+  color: #334155;
+}
+
+/* Floating Bottom Navigation Dock */
+.vsBottomDock {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 9999px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 95vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.vsBottomDock::-webkit-scrollbar {
+  display: none;
+}
+
+.vsDockBtn {
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  color: #475569;
+  background: transparent;
+}
+
+.vsDockBtn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.vsDockBtn.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.22);
+}
+
+.vsDockBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 9999px;
+}
+
+.vsDockBtn.active .vsDockBadge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.vsDockBtn:not(.active) .vsDockBadge {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+/* Squircles with Restrained Pastel Tints */
+.vsSquircle {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  border: 1px solid transparent;
+}
+
+.vsSquircle.teal {
+  background: #E6F7F5;
+  color: #0D9488;
+  border-color: #B2EBF2;
+}
+
+.vsSquircle.indigo {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border-color: #C7D2FE;
+}
+
+.vsSquircle.sky {
+  background: #E0F2FE;
+  color: #0284C7;
+  border-color: #BAE6FD;
+}
+
+.vsSquircle.amber {
+  background: #FEF3C7;
+  color: #D97706;
+  border-color: #FDE68A;
+}
+
+.vsSquircle.emerald {
+  background: #ECFDF5;
+  color: #059669;
+  border-color: #A7F3D0;
+}
+
+.vsSquircle.rose {
+  background: #FFF1F2;
+  color: #E11D48;
+  border-color: #FECDD3;
+}
+
+.vsSquircle.slate {
+  background: #F1F5F9;
+  color: #475569;
+  border-color: #E2E8F0;
+}
+
+/* Luxury Cards & Panels */
+.vsCard {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03);
+  padding: 22px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.vsCard:hover {
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  transform: translateY(-2px);
+}
+
+.vsHeroCard {
+  border-radius: 20px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.vsHeroCard.lavender {
+  background: #EEF2FF;
+  border: 1px solid #C7D2FE;
+  color: #1E1B4B;
+}
+
+.vsHeroCard.teal {
+  background: #E6F7F5;
+  border: 1px solid #B2EBF2;
+  color: #134E4A;
+}
+
+/* Button Pills */
+.vsBtnBlack {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 7px 18px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+  transition: all 0.18s;
+  text-decoration: none;
+}
+
+.vsBtnBlack:hover {
+  background: #000000;
+  transform: translateY(-1px);
+}
+
+.vsBtnOutline {
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s;
+  text-decoration: none;
+}
+
+.vsBtnOutline:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+}
+
+.vsBtnTinted {
+  background: #E6F7F5;
+  color: #0D9488;
+  border: 1px solid #B2EBF2;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s;
+}
+
+.vsBtnTinted:hover {
+  background: #CCFBF1;
+}
+
+/* Bento Grid Layouts */
+.vsGrid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .vsGrid4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .vsGrid4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vsGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .vsGrid3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vsGrid2ColBento {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .vsGrid2ColBento {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Settings Bento 3 Columns */
+.vsSettingsGrid {
+  display: grid;
+  grid-template-columns: 320px 1fr 1fr;
+  gap: 22px;
+}
+
+@media (max-width: 1100px) {
+  .vsSettingsGrid {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .vsSettingsGrid {
+    grid-template-columns: 1fr;
+  }
+}
