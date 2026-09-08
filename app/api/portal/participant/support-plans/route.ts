@@ -1,19 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 
 /**
  * GET /api/portal/participant/support-plans?participant_id=xxx
- * POST — create new versioned support plan (staff only)
- * PATCH — update plan
+ * POST - create new versioned support plan
+ * PATCH - update plan and handle activation (superseding older active plans)
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) return NextResponse.json({ plans: [] });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      }
     }
 
     const { searchParams } = new URL(request.url);
@@ -52,11 +64,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+    let userId: string | null = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      userId = user.id;
+    }
 
     const body = await request.json();
     const { participant_id, ...planData } = body;
@@ -75,8 +99,8 @@ export async function POST(request: NextRequest) {
 
     const nextVersion = existing && existing.length > 0 ? existing[0].version + 1 : 1;
 
-    // Supersede any currently active plan
-    if (nextVersion > 1) {
+    // Supersede any currently active plan if new plan is submitted as active
+    if (planData.status === 'active') {
       await supabase
         .from('participant_support_plans')
         .update({ status: 'superseded', updated_at: new Date().toISOString() })
@@ -89,7 +113,8 @@ export async function POST(request: NextRequest) {
       .insert({
         participant_id,
         version: nextVersion,
-        created_by: user.id,
+        status: planData.status || 'draft',
+        created_by: userId,
         ...planData,
       })
       .select()
@@ -108,20 +133,49 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+    let userId: string | null = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      userId = user.id;
+    }
 
     const body = await request.json();
     const { id, ...updates } = body;
 
     if (!id) return NextResponse.json({ error: 'Plan id is required' }, { status: 400 });
 
-    // If activating, check for approved_by
-    if (updates.status === 'active' && !updates.approved_by) {
-      updates.approved_by = user.id;
+    // If activating this version, supersede all other active plans for this participant
+    if (updates.status === 'active') {
+      const { data: current } = await supabase
+        .from('participant_support_plans')
+        .select('participant_id')
+        .eq('id', id)
+        .single();
+
+      if (current?.participant_id) {
+        await supabase
+          .from('participant_support_plans')
+          .update({ status: 'superseded', updated_at: new Date().toISOString() })
+          .eq('participant_id', current.participant_id)
+          .eq('status', 'active')
+          .neq('id', id);
+      }
+
+      if (!updates.approved_by && userId) {
+        updates.approved_by = userId;
+      }
       updates.approved_at = new Date().toISOString();
     }
 

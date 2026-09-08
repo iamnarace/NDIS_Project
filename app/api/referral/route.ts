@@ -1,4 +1,4 @@
-﻿import { sendReferralClientConfirmation, sendReferralAdminAlert } from '@/lib/email';
+import { sendReferralClientConfirmation, sendReferralAdminAlert } from '@/lib/email';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';

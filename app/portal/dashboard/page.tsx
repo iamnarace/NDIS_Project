@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-/* ─── Types ─── */
+/* --─ Types --─ */
 interface ParticipantProfile {
   id: string;
   reference_number: string;
@@ -74,6 +74,24 @@ interface UpcomingShift {
   location?: string;
 }
 
+interface ActiveSupportPlan {
+  id: string;
+  plan_title: string;
+  version: number;
+  status: string;
+  primary_disability?: string;
+  secondary_conditions?: string;
+  communication_method?: string;
+  language_preference?: string;
+  morning_routine?: string;
+  personal_care_needs?: string;
+  mobility_aids?: string;
+  dietary_requirements?: string;
+  plan_start_date?: string;
+  plan_end_date?: string;
+  review_date?: string;
+}
+
 type TabType = 'overview' | 'goals' | 'schedule' | 'documents' | 'support';
 
 const GOAL_CATEGORY_COLOURS: Record<string, string> = {
@@ -93,7 +111,7 @@ const GOAL_STATUS_LABELS: Record<string, { label: string; colour: string }> = {
   discontinued: { label: 'Discontinued', colour: '#9CA3AF' },
 };
 
-/* ─── Component ─── */
+/* --─ Component --─ */
 export default function ParticipantDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -101,10 +119,11 @@ export default function ParticipantDashboardPage() {
   const [participant, setParticipant] = useState<ParticipantProfile | null>(null);
   const [profileName, setProfileName] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [activePlan, setActivePlan] = useState<ActiveSupportPlan | null>(null);
   const [upcomingShifts, setUpcomingShifts] = useState<UpcomingShift[]>([]);
   const [error, setError] = useState('');
 
-  /* ─── Load Data ─── */
+  /* --─ Load Data --─ */
   const loadPortalData = useCallback(async () => {
     setIsLoading(true);
     setError('');
@@ -138,6 +157,14 @@ export default function ParticipantDashboardPage() {
           const shiftsData = await shiftsRes.json();
           setUpcomingShifts(shiftsData.shifts || []);
         }
+
+        // Load active support plan
+        const plansRes = await fetch(`/api/portal/participant/support-plans?participant_id=${meData.participant.id}`);
+        if (plansRes.ok) {
+          const plansData = await plansRes.json();
+          const active = (plansData.plans || []).find((p: any) => p.status === 'active') || plansData.plans?.[0] || null;
+          setActivePlan(active);
+        }
       }
     } catch (err) {
       console.error('Portal dashboard load error:', err);
@@ -151,7 +178,7 @@ export default function ParticipantDashboardPage() {
     loadPortalData();
   }, [loadPortalData]);
 
-  /* ─── Sign Out ─── */
+  /* --─ Sign Out --─ */
   const handleSignOut = async () => {
     const supabase = createClient();
     if (supabase) {
@@ -160,12 +187,12 @@ export default function ParticipantDashboardPage() {
     router.push('/portal');
   };
 
-  /* ─── Derived Stats ─── */
+  /* --─ Derived Stats --─ */
   const activeGoals = goals.filter((g) => g.status === 'active').length;
   const achievedGoals = goals.filter((g) => g.status === 'achieved').length;
   const nextShift = upcomingShifts[0] ?? null;
 
-  /* ─── Loading State ─── */
+  /* --─ Loading State --─ */
   if (isLoading) {
     return (
       <div style={{
@@ -184,7 +211,7 @@ export default function ParticipantDashboardPage() {
     );
   }
 
-  /* ─── Error State ─── */
+  /* --─ Error State --─ */
   if (error && !participant) {
     return (
       <div style={{
@@ -225,7 +252,7 @@ export default function ParticipantDashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#F1F5F9', fontFamily: 'var(--font-source-sans)' }}>
-      {/* ── Top Header ── */}
+      {/* -- Top Header -- */}
       <header style={{
         background: '#FFFFFF',
         borderBottom: '1px solid #E2E8F0',
@@ -285,7 +312,7 @@ export default function ParticipantDashboardPage() {
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
 
-        {/* ── Welcome Banner ── */}
+        {/* -- Welcome Banner -- */}
         <div style={{
           background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
           borderRadius: 16,
@@ -327,7 +354,7 @@ export default function ParticipantDashboardPage() {
           )}
         </div>
 
-        {/* ── Emergency Alert (if medical_alert set) ── */}
+        {/* -- Emergency Alert (if medical_alert set) -- */}
         {participant?.medical_alert && (
           <div style={{
             background: '#FEF2F2',
@@ -349,7 +376,7 @@ export default function ParticipantDashboardPage() {
           </div>
         )}
 
-        {/* ── KPI Strip ── */}
+        {/* -- KPI Strip -- */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
@@ -384,7 +411,7 @@ export default function ParticipantDashboardPage() {
           ))}
         </div>
 
-        {/* ── Tab Navigation ── */}
+        {/* -- Tab Navigation -- */}
         <div style={{
           display: 'flex', gap: 4, background: '#FFFFFF',
           borderRadius: 10, padding: 4, marginBottom: 20,
@@ -416,7 +443,7 @@ export default function ParticipantDashboardPage() {
           ))}
         </div>
 
-        {/* ── Tab: Overview ── */}
+        {/* -- Tab: Overview -- */}
         {activeTab === 'overview' && (
           <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
             {/* Profile Card */}
@@ -504,7 +531,7 @@ export default function ParticipantDashboardPage() {
           </div>
         )}
 
-        {/* ── Tab: Goals ── */}
+        {/* -- Tab: Goals -- */}
         {activeTab === 'goals' && (
           <div>
             {goals.length === 0 ? (
@@ -578,7 +605,7 @@ export default function ParticipantDashboardPage() {
           </div>
         )}
 
-        {/* ── Tab: Schedule ── */}
+        {/* -- Tab: Schedule -- */}
         {activeTab === 'schedule' && (
           <div>
             {upcomingShifts.length === 0 ? (
@@ -645,7 +672,7 @@ export default function ParticipantDashboardPage() {
           </div>
         )}
 
-        {/* ── Tab: Documents ── */}
+        {/* -- Tab: Documents -- */}
         {activeTab === 'documents' && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '32px 24px', textAlign: 'center', border: '1px solid #F1F5F9' }}>
             <FileText size={40} style={{ color: '#CBD5E1', marginBottom: 12 }} />
@@ -664,9 +691,68 @@ export default function ParticipantDashboardPage() {
           </div>
         )}
 
-        {/* ── Tab: Support Info ── */}
+        {/* -- Tab: Support Info -- */}
         {activeTab === 'support' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Active Support Plan Card */}
+            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ fontWeight: 600, fontSize: '0.98rem', color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={18} style={{ color: '#16A34A' }} /> Active Support Plan
+                </div>
+                {activePlan && (
+                  <span style={{ background: '#F0FDF4', color: '#16A34A', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700 }}>
+                    Version {activePlan.version} &bull; Active
+                  </span>
+                )}
+              </div>
+
+              {activePlan ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Plan Title</div>
+                    <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.plan_title}</div>
+                  </div>
+                  {activePlan.primary_disability && (
+                    <div>
+                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Primary Disability</div>
+                      <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.primary_disability}</div>
+                    </div>
+                  )}
+                  {activePlan.communication_method && (
+                    <div>
+                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Communication Method</div>
+                      <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.communication_method}</div>
+                    </div>
+                  )}
+                  {activePlan.dietary_requirements && (
+                    <div>
+                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Dietary Requirements</div>
+                      <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.dietary_requirements}</div>
+                    </div>
+                  )}
+                  {activePlan.mobility_aids && (
+                    <div>
+                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Mobility Aids</div>
+                      <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.mobility_aids}</div>
+                    </div>
+                  )}
+                  {activePlan.review_date && (
+                    <div>
+                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Next Plan Review</div>
+                      <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>
+                        {new Date(activePlan.review_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p style={{ color: '#6B7280', fontSize: '0.88rem', margin: 0 }}>
+                  Your active support plan is currently being finalised by your Opus Care coordinator.
+                </p>
+              )}
+            </div>
+
             {/* Communication preferences */}
             {participant?.communication_preferences && (
               <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
@@ -727,7 +813,7 @@ export default function ParticipantDashboardPage() {
           </div>
         )}
 
-        {/* ── Footer ── */}
+        {/* -- Footer -- */}
         <div style={{
           marginTop: 32, paddingTop: 16, borderTop: '1px solid #E2E8F0',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',

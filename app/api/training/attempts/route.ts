@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 

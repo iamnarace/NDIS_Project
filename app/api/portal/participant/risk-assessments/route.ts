@@ -1,18 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 
 /**
  * GET /api/portal/participant/risk-assessments?participant_id=xxx
- * POST — create new risk assessment (staff only)
- * PATCH — update risk assessment
+ * POST - create new risk assessment
+ * PATCH - update assessment and handle activation (superseding older active assessments)
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) return NextResponse.json({ assessments: [] });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
     const participantId = searchParams.get('participant_id');
@@ -47,11 +59,23 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+    let userId: string | null = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      userId = user.id;
+    }
 
     const body = await request.json();
     const { participant_id, ...assessmentData } = body;
@@ -60,7 +84,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'participant_id is required' }, { status: 400 });
     }
 
-    // Get next version
+    // Get next version number
     const { data: existing } = await supabase
       .from('risk_assessments')
       .select('version')
@@ -70,8 +94,8 @@ export async function POST(request: NextRequest) {
 
     const nextVersion = existing && existing.length > 0 ? existing[0].version + 1 : 1;
 
-    // Supersede previous active
-    if (nextVersion > 1) {
+    // Supersede previous active if submitted as active
+    if (assessmentData.status === 'active') {
       await supabase
         .from('risk_assessments')
         .update({ status: 'superseded', updated_at: new Date().toISOString() })
@@ -84,7 +108,8 @@ export async function POST(request: NextRequest) {
       .insert({
         participant_id,
         version: nextVersion,
-        created_by: user.id,
+        status: assessmentData.status || 'draft',
+        created_by: userId,
         ...assessmentData,
       })
       .select()
@@ -101,19 +126,49 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+    let userId: string | null = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      userId = user.id;
+    }
 
     const body = await request.json();
     const { id, ...updates } = body;
 
     if (!id) return NextResponse.json({ error: 'Assessment id is required' }, { status: 400 });
 
-    if (updates.status === 'active' && !updates.approved_by) {
-      updates.approved_by = user.id;
+    // If activating, supersede all other active assessments for this participant
+    if (updates.status === 'active') {
+      const { data: current } = await supabase
+        .from('risk_assessments')
+        .select('participant_id')
+        .eq('id', id)
+        .single();
+
+      if (current?.participant_id) {
+        await supabase
+          .from('risk_assessments')
+          .update({ status: 'superseded', updated_at: new Date().toISOString() })
+          .eq('participant_id', current.participant_id)
+          .eq('status', 'active')
+          .neq('id', id);
+      }
+
+      if (!updates.approved_by && userId) {
+        updates.approved_by = userId;
+      }
       updates.approved_at = new Date().toISOString();
     }
 

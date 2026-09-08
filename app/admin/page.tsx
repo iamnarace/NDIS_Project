@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -56,6 +56,13 @@ interface Participant {
   status: string;
   workerAssigned: string;
   contactPerson: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  medicalAlert?: string;
+  allergies?: string;
+  workerInstructions?: string;
+  communicationPreferences?: string;
 }
 
 interface Staff {
@@ -202,6 +209,7 @@ export default function AdminCrmPage() {
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [drawerTab, setDrawerTab] = useState<'overview' | 'documents' | 'timeline'>('overview');
+  const [showEditEmergency, setShowEditEmergency] = useState(false);
 
   // Activity Timeline State
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -220,7 +228,7 @@ export default function AdminCrmPage() {
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // â”€â”€ Training & Compliance State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Training & Compliance State ------------------------------------------
   const [trainingCourses, setTrainingCourses] = useState<TrainingCourse[]>([]);
   const [trainingAssignments, setTrainingAssignments] = useState<TrainingAssignment[]>([]);
   const [trainingComplianceMap, setTrainingComplianceMap] = useState<Record<string, TrainingCompletion[]>>({});
@@ -240,7 +248,7 @@ export default function AdminCrmPage() {
   const [assignDueDate, setAssignDueDate] = useState('');
   const [assigning, setAssigning] = useState(false);
 
-  // â”€â”€ Phase A: Goals, Support Plans, Risk Assessments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Phase A: Goals, Support Plans, Risk Assessments ----------------------
   const [goals, setGoals] = useState<any[]>([]);
   const [goalsLoading, setGoalsLoading] = useState(false);
   const [selectedGoalParticipant, setSelectedGoalParticipant] = useState('');
@@ -256,14 +264,44 @@ export default function AdminCrmPage() {
   const [selectedPlanParticipant, setSelectedPlanParticipant] = useState('');
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any | null>(null);
+  const [newPlan, setNewPlan] = useState({
+    plan_title: 'Support Plan',
+    primary_disability: '',
+    secondary_conditions: '',
+    communication_method: 'Verbal',
+    language_preference: 'English',
+    morning_routine: '',
+    personal_care_needs: '',
+    mobility_aids: '',
+    dietary_requirements: '',
+    triggers_and_responses: '',
+    plan_start_date: '',
+    plan_end_date: '',
+    review_date: '',
+  });
+  const [savingPlan, setSavingPlan] = useState(false);
 
   const [riskAssessments, setRiskAssessments] = useState<any[]>([]);
   const [risksLoading, setRisksLoading] = useState(false);
   const [selectedRiskParticipant, setSelectedRiskParticipant] = useState('');
   const [showRiskForm, setShowRiskForm] = useState(false);
   const [editingRisk, setEditingRisk] = useState<any | null>(null);
+  const [newRisk, setNewRisk] = useState({
+    assessment_title: 'Risk Assessment',
+    overall_risk_rating: 'Low',
+    review_date: '',
+    falls_risk: 'Low risk of falls',
+    falls_controls: 'Non-slip mats, grab rails in bathroom',
+    medication_risk: 'Medication management',
+    medication_controls: 'Worker prompts at scheduled medication times; blister packs',
+    behaviour_risk: 'Low behavioural risk',
+    behaviour_controls: 'Provide quiet environment if overwhelmed',
+    community_risk: 'Community access safety',
+    community_controls: 'Worker accompanied, pedestrian awareness',
+  });
+  const [savingRisk, setSavingRisk] = useState(false);
 
-  // â”€â”€ Phase A: Portal User Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Phase A: Portal User Management --------------------------------------
   const [showPortalUserModal, setShowPortalUserModal] = useState(false);
   const [portalUserParticipantId, setPortalUserParticipantId] = useState('');
   const [portalUserEmail, setPortalUserEmail] = useState('');
@@ -326,7 +364,7 @@ export default function AdminCrmPage() {
     }
   }
 
-  // â”€â”€ Phase A: Goals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Phase A: Goals --------------------------------------------------------
   async function loadGoals(participantId: string) {
     setGoalsLoading(true);
     try {
@@ -370,7 +408,7 @@ export default function AdminCrmPage() {
     } catch { setStatusNotice('Failed to update goal status.'); }
   }
 
-  // â”€â”€ Phase A: Support Plans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Phase A: Support Plans ------------------------------------------------
   async function loadSupportPlans(participantId: string) {
     setPlansLoading(true);
     try {
@@ -383,6 +421,29 @@ export default function AdminCrmPage() {
     setPlansLoading(false);
   }
 
+  async function createSupportPlan() {
+    if (!selectedPlanParticipant || !newPlan.plan_title.trim()) return;
+    setSavingPlan(true);
+    try {
+      const res = await fetch('/api/portal/participant/support-plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({
+          participant_id: selectedPlanParticipant,
+          ...newPlan,
+          status: 'draft',
+        }),
+      });
+      const data = await res.json();
+      if (data.plan) {
+        setShowPlanForm(false);
+        loadSupportPlans(selectedPlanParticipant);
+        setStatusNotice('Support plan created successfully.');
+      }
+    } catch { setStatusNotice('Failed to create support plan.'); }
+    setSavingPlan(false);
+  }
+
   async function activatePlan(planId: string) {
     try {
       await fetch('/api/portal/participant/support-plans', {
@@ -391,11 +452,11 @@ export default function AdminCrmPage() {
         body: JSON.stringify({ id: planId, status: 'active' }),
       });
       if (selectedPlanParticipant) loadSupportPlans(selectedPlanParticipant);
-      setStatusNotice('Support plan activated.');
+      setStatusNotice('Support plan activated. Previous active versions superseded.');
     } catch { setStatusNotice('Failed to activate plan.'); }
   }
 
-  // â”€â”€ Phase A: Risk Assessments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // -- Phase A: Risk Assessments ---------------------------------------------
   async function loadRiskAssessments(participantId: string) {
     setRisksLoading(true);
     try {
@@ -408,6 +469,35 @@ export default function AdminCrmPage() {
     setRisksLoading(false);
   }
 
+  async function createRiskAssessment() {
+    if (!selectedRiskParticipant || !newRisk.assessment_title.trim()) return;
+    setSavingRisk(true);
+    try {
+      const res = await fetch('/api/portal/participant/risk-assessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({
+          participant_id: selectedRiskParticipant,
+          assessment_title: newRisk.assessment_title,
+          status: 'draft',
+          overall_risk_rating: newRisk.overall_risk_rating,
+          review_date: newRisk.review_date || null,
+          falls_and_mobility: { risk: newRisk.falls_risk, likelihood: 1, consequence: 2, controls: newRisk.falls_controls, residual_risk: 'Low' },
+          medication_risks: { risk: newRisk.medication_risk, likelihood: 2, consequence: 3, controls: newRisk.medication_controls, residual_risk: 'Low' },
+          behaviour_and_mental_health: { risk: newRisk.behaviour_risk, likelihood: 1, consequence: 2, controls: newRisk.behaviour_controls, residual_risk: 'Low' },
+          community_access_risks: { risk: newRisk.community_risk, likelihood: 1, consequence: 2, controls: newRisk.community_controls, residual_risk: 'Low' },
+        }),
+      });
+      const data = await res.json();
+      if (data.assessment) {
+        setShowRiskForm(false);
+        loadRiskAssessments(selectedRiskParticipant);
+        setStatusNotice('Risk assessment created successfully.');
+      }
+    } catch { setStatusNotice('Failed to create risk assessment.'); }
+    setSavingRisk(false);
+  }
+
   async function activateRiskAssessment(assessmentId: string) {
     try {
       await fetch('/api/portal/participant/risk-assessments', {
@@ -416,7 +506,7 @@ export default function AdminCrmPage() {
         body: JSON.stringify({ id: assessmentId, status: 'active' }),
       });
       if (selectedRiskParticipant) loadRiskAssessments(selectedRiskParticipant);
-      setStatusNotice('Risk assessment activated.');
+      setStatusNotice('Risk assessment activated. Previous active versions superseded.');
     } catch { setStatusNotice('Failed to activate risk assessment.'); }
   }
 
@@ -1568,7 +1658,7 @@ export default function AdminCrmPage() {
                                   ${Number(agr.estimated_budget).toLocaleString('en-AU', { minimumFractionDigits: 2 })}
                                 </strong>
                               ) : (
-                                <span style={{ color: '#94A3B8' }}>â€”</span>
+                                <span style={{ color: '#94A3B8' }}>—</span>
                               )}
                             </td>
                             <td>
@@ -1674,7 +1764,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Participants 360Â° Directory</h2>
+                  <h2 className="crmPanelTitle">Participants 360° Directory</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Comprehensive participant profiles, NDIS numbers, funding models, assigned support workers, and document vault.
                   </p>
@@ -1750,9 +1840,9 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* =============================================================== */}
           {/* PHASE A TAB: PARTICIPANT GOALS                                  */}
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* =============================================================== */}
           {tab === 'goals' && (
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
@@ -1771,7 +1861,7 @@ export default function AdminCrmPage() {
                     }}
                     style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
                   >
-                    <option value="">â€” Select Participant â€”</option>
+                    <option value="">— Select Participant —</option>
                     {participants.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
@@ -1869,7 +1959,7 @@ export default function AdminCrmPage() {
                       disabled={savingGoal || !newGoal.goal_title.trim()}
                       style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
-                      {savingGoal ? 'Savingâ€¦' : 'Save Goal'}
+                      {savingGoal ? 'Saving…' : 'Save Goal'}
                     </button>
                     <button
                       onClick={() => setShowGoalForm(false)}
@@ -1888,7 +1978,7 @@ export default function AdminCrmPage() {
                   <p style={{ margin: 0 }}>Select a participant above to view their goals.</p>
                 </div>
               ) : goalsLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading goalsâ€¦</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading goals…</div>
               ) : goals.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
                   <p>No goals recorded for this participant yet.</p>
@@ -1918,7 +2008,7 @@ export default function AdminCrmPage() {
                           background: goal.status === 'active' ? '#EFF6FF' : goal.status === 'achieved' ? '#F0FDF4' : '#FFF7ED',
                           color: goal.status === 'active' ? '#3B82F6' : goal.status === 'achieved' ? '#16A34A' : '#D97706',
                         }}>
-                          {goal.status === 'active' ? 'In Progress' : goal.status === 'achieved' ? 'âœ“ Achieved' : goal.status === 'paused' ? 'On Hold' : 'Discontinued'}
+                          {goal.status === 'active' ? 'In Progress' : goal.status === 'achieved' ? '✓ Achieved' : goal.status === 'paused' ? 'On Hold' : 'Discontinued'}
                         </span>
                         <select
                           value={goal.status}
@@ -1938,16 +2028,16 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* =============================================================== */}
           {/* PHASE A TAB: SUPPORT PLANS                                       */}
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* =============================================================== */}
           {tab === 'support_plans' && (
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Support Plans</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Versioned participant support plans â€” draft, activate, and supersede as plans evolve.
+                    Versioned participant support plans — draft, activate, and supersede as plans evolve.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -1959,14 +2049,14 @@ export default function AdminCrmPage() {
                     }}
                     style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
                   >
-                    <option value="">â€” Select Participant â€”</option>
+                    <option value="">— Select Participant —</option>
                     {participants.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
                   {selectedPlanParticipant && (
                     <button
-                      onClick={() => setShowPlanForm(true)}
+                      onClick={() => setShowPlanForm(!showPlanForm)}
                       style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                     >
                       <Plus size={15} /> New Plan Version
@@ -1975,13 +2065,105 @@ export default function AdminCrmPage() {
                 </div>
               </div>
 
+              {/* Support Plan Form */}
+              {showPlanForm && (
+                <div style={{ background: '#F8FAFF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: '#1E40AF' }}>New Support Plan Version</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Plan Title *</label>
+                      <input
+                        type="text"
+                        value={newPlan.plan_title}
+                        onChange={e => setNewPlan(prev => ({ ...prev, plan_title: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Primary Disability</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Autism Spectrum Disorder"
+                        value={newPlan.primary_disability}
+                        onChange={e => setNewPlan(prev => ({ ...prev, primary_disability: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Communication Method</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Verbal, AAC device, Pictograms"
+                        value={newPlan.communication_method}
+                        onChange={e => setNewPlan(prev => ({ ...prev, communication_method: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Dietary Requirements</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Gluten-free, soft textures, nut allergy"
+                        value={newPlan.dietary_requirements}
+                        onChange={e => setNewPlan(prev => ({ ...prev, dietary_requirements: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Mobility Aids</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Walking frame, wheelchair"
+                        value={newPlan.mobility_aids}
+                        onChange={e => setNewPlan(prev => ({ ...prev, mobility_aids: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
+                      <input
+                        type="date"
+                        value={newPlan.review_date}
+                        onChange={e => setNewPlan(prev => ({ ...prev, review_date: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      />
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Triggers & De-escalation Responses</label>
+                      <textarea
+                        placeholder="Describe sensory triggers, environmental factors, and calming routines..."
+                        value={newPlan.triggers_and_responses}
+                        onChange={e => setNewPlan(prev => ({ ...prev, triggers_and_responses: e.target.value }))}
+                        rows={3}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                    <button
+                      onClick={createSupportPlan}
+                      disabled={savingPlan || !newPlan.plan_title.trim()}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                    >
+                      {savingPlan ? 'Saving…' : 'Save Support Plan Version'}
+                    </button>
+                    <button
+                      onClick={() => setShowPlanForm(false)}
+                      style={{ background: '#F1F5F9', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {!selectedPlanParticipant ? (
                 <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
                   <ClipboardList size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
                   <p style={{ margin: 0 }}>Select a participant to view their support plans.</p>
                 </div>
               ) : plansLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading plansâ€¦</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading plans…</div>
               ) : supportPlans.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
                   <p>No support plans yet. Click &ldquo;New Plan Version&rdquo; to create the first one.</p>
@@ -1996,10 +2178,10 @@ export default function AdminCrmPage() {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 12 }}>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{plan.plan_title} â€” v{plan.version}</div>
+                          <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{plan.plan_title} — v{plan.version}</div>
                           <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 2 }}>
                             Created {new Date(plan.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            {plan.plan_start_date && ` Â· Plan period: ${new Date(plan.plan_start_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })} â€“ ${plan.plan_end_date ? new Date(plan.plan_end_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'ongoing'}`}
+                            {plan.plan_start_date && ` · Plan period: ${new Date(plan.plan_start_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })} – ${plan.plan_end_date ? new Date(plan.plan_end_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'ongoing'}`}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -2008,7 +2190,7 @@ export default function AdminCrmPage() {
                             background: plan.status === 'active' ? '#F0FDF4' : plan.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
                             color: plan.status === 'active' ? '#16A34A' : plan.status === 'draft' ? '#D97706' : '#6B7280',
                           }}>
-                            {plan.status === 'active' ? 'âœ“ Active' : plan.status === 'draft' ? 'Draft' : plan.status === 'superseded' ? 'Superseded' : 'Archived'}
+                            {plan.status === 'active' ? '✓ Active' : plan.status === 'draft' ? 'Draft' : plan.status === 'superseded' ? 'Superseded' : 'Archived'}
                           </span>
                           {plan.status === 'draft' && (
                             <button
@@ -2048,16 +2230,16 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* =============================================================== */}
           {/* PHASE A TAB: RISK ASSESSMENTS                                   */}
-          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* =============================================================== */}
           {tab === 'risk_assessments' && (
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Risk Assessments</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Structured participant risk assessments â€” versioned, activated, and shared with assigned workers.
+                    Structured participant risk assessments — versioned, activated, and shared with assigned workers.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
@@ -2069,13 +2251,103 @@ export default function AdminCrmPage() {
                     }}
                     style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
                   >
-                    <option value="">â€” Select Participant â€”</option>
+                    <option value="">— Select Participant —</option>
                     {participants.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
+                  {selectedRiskParticipant && (
+                    <button
+                      onClick={() => setShowRiskForm(!showRiskForm)}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <Plus size={15} /> New Assessment Version
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Risk Assessment Form */}
+              {showRiskForm && (
+                <div style={{ background: '#F8FAFF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: '#1E40AF' }}>New Risk Assessment Version</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Assessment Title *</label>
+                      <input
+                        type="text"
+                        value={newRisk.assessment_title}
+                        onChange={e => setNewRisk(prev => ({ ...prev, assessment_title: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Overall Risk Rating</label>
+                      <select
+                        value={newRisk.overall_risk_rating}
+                        onChange={e => setNewRisk(prev => ({ ...prev, overall_risk_rating: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      >
+                        <option value="Low">Low Risk</option>
+                        <option value="Medium">Medium Risk</option>
+                        <option value="High">High Risk</option>
+                        <option value="Extreme">Extreme Risk</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Falls & Mobility Risk Description</label>
+                      <input
+                        type="text"
+                        value={newRisk.falls_risk}
+                        onChange={e => setNewRisk(prev => ({ ...prev, falls_risk: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Falls & Mobility Controls</label>
+                      <input
+                        type="text"
+                        value={newRisk.falls_controls}
+                        onChange={e => setNewRisk(prev => ({ ...prev, falls_controls: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Medication Controls</label>
+                      <input
+                        type="text"
+                        value={newRisk.medication_controls}
+                        onChange={e => setNewRisk(prev => ({ ...prev, medication_controls: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
+                      <input
+                        type="date"
+                        value={newRisk.review_date}
+                        onChange={e => setNewRisk(prev => ({ ...prev, review_date: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                    <button
+                      onClick={createRiskAssessment}
+                      disabled={savingRisk || !newRisk.assessment_title.trim()}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                    >
+                      {savingRisk ? 'Saving…' : 'Save Risk Assessment Version'}
+                    </button>
+                    <button
+                      onClick={() => setShowRiskForm(false)}
+                      style={{ background: '#F1F5F9', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {!selectedRiskParticipant ? (
                 <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
@@ -2083,7 +2355,7 @@ export default function AdminCrmPage() {
                   <p style={{ margin: 0 }}>Select a participant to view their risk assessments.</p>
                 </div>
               ) : risksLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading risk assessmentsâ€¦</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading risk assessments…</div>
               ) : riskAssessments.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
                   <p style={{ margin: '0 0 12px' }}>No risk assessments for this participant yet.</p>
@@ -2124,10 +2396,10 @@ export default function AdminCrmPage() {
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 14 }}>
                           <div>
-                            <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{ra.assessment_title} â€” v{ra.version}</div>
+                            <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{ra.assessment_title} — v{ra.version}</div>
                             <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 2 }}>
                               Created {new Date(ra.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              {ra.review_date && ` Â· Review: ${new Date(ra.review_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                              {ra.review_date && ` · Review: ${new Date(ra.review_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -2141,7 +2413,7 @@ export default function AdminCrmPage() {
                               background: ra.status === 'active' ? '#F0FDF4' : ra.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
                               color: ra.status === 'active' ? '#16A34A' : ra.status === 'draft' ? '#D97706' : '#6B7280',
                             }}>
-                              {ra.status === 'active' ? 'âœ“ Active' : ra.status === 'draft' ? 'Draft' : 'Superseded'}
+                              {ra.status === 'active' ? '✓ Active' : ra.status === 'draft' ? 'Draft' : 'Superseded'}
                             </span>
                             {ra.status === 'draft' && (
                               <button
@@ -2521,7 +2793,7 @@ export default function AdminCrmPage() {
                               {c.course_type==='read_acknowledge'?'Read & Ack':c.course_type==='read_quiz'?'Quiz':'Ext. Cert'}
                             </span></td>
                             <td>{c.material_url?(<a href={c.material_url} target="_blank" rel="noopener noreferrer" style={{color:'#0284C7',textDecoration:'underline',fontSize:'0.85rem'}}>{c.material_type.toUpperCase()}</a>):<span style={{color:'#CBD5E1'}}>None</span>}</td>
-                            <td>{c.course_type==='read_quiz'?c.pass_mark_pct+'%':'â€”'}</td>
+                            <td>{c.course_type==='read_quiz'?c.pass_mark_pct+'%':'—'}</td>
                             <td>{c.validity_months?c.validity_months+' mo':'No expiry'}</td>
                             <td>{c.is_mandatory?<span style={{color:'#DC2626',fontWeight:700}}>Required</span>:<span style={{color:'#64748B'}}>Optional</span>}</td>
                             <td><span style={{padding:'3px 10px',borderRadius:20,fontSize:'0.78rem',fontWeight:600,
@@ -2692,7 +2964,7 @@ export default function AdminCrmPage() {
                               <td><strong style={{fontSize:'0.88rem'}}>{s.name}</strong><div style={{fontSize:'0.78rem',color:'#64748B'}}>{s.role}</div></td>
                               {ac.map(c=>{
                                 const a=trainingAssignments.find(x=>x.course_id===c.id&&x.staff_id===s.id);
-                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'#CBD5E1',fontSize:'0.8rem'}}>â€”</span></td>;
+                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'#CBD5E1',fontSize:'0.8rem'}}>—</span></td>;
                                 const st=getTrainingStatus(s.id,c.id,a.due_date);
                                 return <td key={c.id} style={{textAlign:'center'}}>
                                   <span style={{padding:'2px 8px',borderRadius:20,fontSize:'0.75rem',fontWeight:600,background:st.bg,color:st.color}}>{st.label}</span>
@@ -3125,6 +3397,122 @@ export default function AdminCrmPage() {
                       <div className="fullCol">
                         <label>Assigned Support Worker</label>
                         <p>{selectedParticipant.workerAssigned || 'Unassigned - assign in roster'}</p>
+                      </div>
+                      <div className="fullCol" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <strong style={{ fontSize: '0.88rem', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Shield size={15} /> Emergency &amp; Worker Instructions
+                          </strong>
+                          <button
+                            onClick={() => setShowEditEmergency(!showEditEmergency)}
+                            style={{ background: 'none', border: '1px solid #CBD5E1', borderRadius: 6, padding: '3px 8px', fontSize: '0.78rem', color: '#374151', cursor: 'pointer' }}
+                          >
+                            {showEditEmergency ? 'Close' : 'Edit'}
+                          </button>
+                        </div>
+                        {showEditEmergency ? (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: '#F8FAFC', padding: 12, borderRadius: 8 }}>
+                            <div>
+                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Emergency Contact Name</label>
+                              <input
+                                type="text"
+                                defaultValue={selectedParticipant.emergencyContactName || ''}
+                                id="edit_emergency_name"
+                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Emergency Contact Phone</label>
+                              <input
+                                type="text"
+                                defaultValue={selectedParticipant.emergencyContactPhone || ''}
+                                id="edit_emergency_phone"
+                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            <div className="fullCol">
+                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Medical Alert / Allergies</label>
+                              <input
+                                type="text"
+                                defaultValue={selectedParticipant.medicalAlert || ''}
+                                id="edit_medical_alert"
+                                placeholder="e.g. Severe peanut allergy - carries EpiPen"
+                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            <div className="fullCol">
+                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Worker Instructions</label>
+                              <textarea
+                                defaultValue={selectedParticipant.workerInstructions || ''}
+                                id="edit_worker_instructions"
+                                rows={2}
+                                placeholder="e.g. Ring bell twice, prompt to take morning medication"
+                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', resize: 'vertical', boxSizing: 'border-box' }}
+                              />
+                            </div>
+                            <div className="fullCol">
+                              <button
+                                onClick={async () => {
+                                  const name = (document.getElementById('edit_emergency_name') as HTMLInputElement)?.value;
+                                  const phone = (document.getElementById('edit_emergency_phone') as HTMLInputElement)?.value;
+                                  const alert = (document.getElementById('edit_medical_alert') as HTMLInputElement)?.value;
+                                  const instructions = (document.getElementById('edit_worker_instructions') as HTMLTextAreaElement)?.value;
+                                  try {
+                                    const res = await fetch('/api/crm/participants', {
+                                      method: 'PATCH',
+                                      headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+                                      body: JSON.stringify({
+                                        id: selectedParticipant.id,
+                                        emergencyContactName: name,
+                                        emergencyContactPhone: phone,
+                                        medicalAlert: alert,
+                                        workerInstructions: instructions,
+                                      }),
+                                    });
+                                    if (res.ok) {
+                                      setSelectedParticipant(prev => prev ? ({
+                                        ...prev,
+                                        emergencyContactName: name,
+                                        emergencyContactPhone: phone,
+                                        medicalAlert: alert,
+                                        workerInstructions: instructions,
+                                      }) : null);
+                                      setShowEditEmergency(false);
+                                      setStatusNotice('Emergency information saved successfully.');
+                                    }
+                                  } catch {
+                                    setStatusNotice('Failed to save emergency info.');
+                                  }
+                                }}
+                                style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                              >
+                                Save Emergency Info
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: '0.83rem', color: '#374151' }}>
+                            <div>
+                              <span style={{ color: '#94A3B8', fontSize: '0.75rem', display: 'block' }}>Emergency Contact</span>
+                              <strong>{selectedParticipant.emergencyContactName || 'Not recorded'}</strong>
+                              {selectedParticipant.emergencyContactPhone && (
+                                <span style={{ display: 'block', color: '#0284C7' }}>{selectedParticipant.emergencyContactPhone}</span>
+                              )}
+                            </div>
+                            <div>
+                              <span style={{ color: '#94A3B8', fontSize: '0.75rem', display: 'block' }}>Medical Alert</span>
+                              <span style={{ color: selectedParticipant.medicalAlert ? '#DC2626' : '#64748B', fontWeight: selectedParticipant.medicalAlert ? 600 : 400 }}>
+                                {selectedParticipant.medicalAlert || 'None'}
+                              </span>
+                            </div>
+                            {selectedParticipant.workerInstructions && (
+                              <div className="fullCol" style={{ background: '#FFFBEB', padding: 8, borderRadius: 6, border: '1px solid #FEF3C7' }}>
+                                <span style={{ color: '#B45309', fontSize: '0.75rem', fontWeight: 600, display: 'block' }}>Worker Instructions</span>
+                                {selectedParticipant.workerInstructions}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

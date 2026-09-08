@@ -1,4 +1,4 @@
-﻿import crypto from 'crypto';
+import crypto from 'crypto';
 import { cookies } from 'next/headers';
 
 export const ADMIN_COOKIE_NAME = 'opus_admin_session';

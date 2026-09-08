@@ -1,20 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 
 /**
  * GET /api/portal/participant/goals?participant_id=xxx
- * POST /api/portal/participant/goals — create a new goal (admin/staff only)
+ * POST /api/portal/participant/goals - create a new goal
+ * PATCH /api/portal/participant/goals - update goal status or details
+ * DELETE /api/portal/participant/goals?id=xxx - delete goal
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) {
       return NextResponse.json({ goals: [] }, { status: 200 });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      }
     }
 
     const { searchParams } = new URL(request.url);
@@ -49,14 +63,26 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+    let userId: string | null = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      }
+      userId = user.id;
     }
 
     const body = await request.json();
@@ -81,7 +107,7 @@ export async function POST(request: NextRequest) {
         review_date: review_date || null,
         priority: priority || 3,
         ndis_domain: ndis_domain || null,
-        created_by: user.id,
+        created_by: userId,
       })
       .select()
       .single();
@@ -100,14 +126,24 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      }
     }
 
     const body = await request.json();
@@ -137,14 +173,24 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+    }
+
     if (!supabase) {
       return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    if (!isAdmin) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      }
     }
 
     const { searchParams } = new URL(request.url);
