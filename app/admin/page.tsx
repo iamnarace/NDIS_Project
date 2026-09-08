@@ -320,6 +320,7 @@ export default function AdminCrmPage() {
   const [complaintsLoading, setComplaintsLoading] = useState(false);
   const [complaintStatusFilter, setComplaintStatusFilter] = useState('all');
   const [selectedComplaint, setSelectedComplaint] = useState<any | null>(null);
+  const [complaintAckTargetDays, setComplaintAckTargetDays] = useState<number>(2);
 
   const [actionsList, setActionsList] = useState<any[]>([]);
   const [actionsLoading, setActionsLoading] = useState(false);
@@ -2682,7 +2683,12 @@ export default function AdminCrmPage() {
                 const pendingComplaints = complaintsList.filter(c => c.status !== 'Closed' && c.status !== 'Resolved');
                 const nowStr = new Date().toISOString().split('T')[0];
                 const overdueActions = actionsList.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled' && a.due_date < nowStr);
-                const reportableReview = openIncidents.filter(i => i.reportable_assessment === 'Pending Review' || i.reportable_assessment === 'Potentially Reportable');
+                const reportableReview = openIncidents.filter(i => 
+                  !i.reportable_assessment || 
+                  i.reportable_assessment === 'Pending Review' || 
+                  i.reportable_assessment.includes('Escalate') ||
+                  i.reportable_assessment.includes('Potentially')
+                );
 
                 return (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
@@ -2717,10 +2723,10 @@ export default function AdminCrmPage() {
                     </div>
 
                     <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NDIS Reportable Reviews</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reportability Assessments</div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
                         <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#2563EB' }}>{reportableReview.length}</span>
-                        <span style={{ fontSize: '0.78rem', color: '#64748B' }}>manager assessment pending</span>
+                        <span style={{ fontSize: '0.78rem', color: '#64748B' }}>pending manager evaluation</span>
                       </div>
                     </div>
                   </div>
@@ -2867,8 +2873,8 @@ export default function AdminCrmPage() {
               {/* SUBTAB 2: COMPLAINTS */}
               {safeguardingSubTab === 'complaints' && (
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                    <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                       <select
                         value={complaintStatusFilter}
                         onChange={e => setComplaintStatusFilter(e.target.value)}
@@ -2881,6 +2887,19 @@ export default function AdminCrmPage() {
                         <option value="Action Required">Action Required</option>
                         <option value="Resolved">Resolved</option>
                         <option value="Closed">Closed</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: '#64748B' }}>
+                      <span>Target Acknowledgement:</span>
+                      <select
+                        value={complaintAckTargetDays}
+                        onChange={e => setComplaintAckTargetDays(Number(e.target.value))}
+                        style={{ border: '1px solid #CBD5E1', borderRadius: 6, padding: '5px 10px', fontSize: '0.8rem', color: '#1E293B', background: '#F8FAFC' }}
+                      >
+                        <option value={1}>1 Business Day (Prompt: 24h)</option>
+                        <option value={2}>2 Business Days (Prompt: 48h)</option>
+                        <option value={3}>3 Business Days</option>
+                        <option value={5}>5 Business Days</option>
                       </select>
                     </div>
                   </div>
@@ -2929,10 +2948,26 @@ export default function AdminCrmPage() {
                               <div style={{ fontSize: '0.84rem', color: '#475569', marginBottom: 4 }}>
                                 {comp.details.length > 120 ? `${comp.details.slice(0, 120)}…` : comp.details}
                               </div>
-                              <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14 }}>
+                              <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
                                 <span>From: <strong>{comp.complainant_name}</strong></span>
                                 <span>Received: {comp.received_date}</span>
                                 <span>Status: <strong>{comp.status}</strong></span>
+                                {comp.acknowledgement_date ? (
+                                  <span style={{ color: '#16A34A', fontWeight: 600 }}>
+                                    ✓ Acknowledged ({comp.acknowledgement_date})
+                                  </span>
+                                ) : (
+                                  (() => {
+                                    const rec = new Date(comp.received_date || comp.created_at);
+                                    const target = new Date(rec.getTime() + complaintAckTargetDays * 86400000);
+                                    const isDue = new Date() > target;
+                                    return (
+                                      <span style={{ color: isDue ? '#DC2626' : '#D97706', fontWeight: 600 }}>
+                                        {isDue ? '⚠️ Ack Overdue' : 'Prompt Ack Due'}: {target.toISOString().split('T')[0]}
+                                      </span>
+                                    );
+                                  })()
+                                )}
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: 8 }}>
@@ -3141,17 +3176,21 @@ export default function AdminCrmPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
                       <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
-                        NDIS Commission Reportability Assessment
+                        Reportability Assessment
                       </label>
                       <select
                         id="incident_reportable_assessment"
                         defaultValue={selectedIncident.reportable_assessment || 'Pending Review'}
                         style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
                       >
-                        <option value="Not Reportable">Not Reportable (Internal Management Only)</option>
-                        <option value="Potentially Reportable">Potentially Reportable (Requires Further Evidence)</option>
-                        <option value="NDIS Commission Reportable">NDIS Commission Reportable (Part 6 NDIS Act)</option>
+                        <option value="Pending Review">Pending Review</option>
+                        <option value="Not Reportable / No External Notification Required">Not Reportable / No External Notification Required</option>
+                        <option value="Potentially Reportable / Escalate for Review">Potentially Reportable / Escalate for Review</option>
+                        <option value="Reportable where applicable">Reportable where applicable</option>
                       </select>
+                      <span style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 4, display: 'block' }}>
+                        Opus Care operates as an unregistered provider. Formal notification obligations apply only where specifically mandated for the service or participant.
+                      </span>
                     </div>
 
                     <div>
@@ -3165,9 +3204,9 @@ export default function AdminCrmPage() {
                       >
                         <option value="Not Required">Not Required</option>
                         <option value="Pending Review">Pending Review</option>
-                        <option value="Reported to NDIS Commission (24-Hour)">Reported to NDIS Commission (24-Hour Notice)</option>
-                        <option value="Reported to NDIS Commission (5-Day)">Reported to NDIS Commission (5-Day Report)</option>
-                        <option value="Reported to Police">Reported to Police</option>
+                        <option value="Escalated for Internal Governance Review">Escalated for Internal Governance Review</option>
+                        <option value="Notified to NDIS Commission (where applicable)">Notified to NDIS Commission (where applicable)</option>
+                        <option value="Reported to Police / Emergency Services">Reported to Police / Emergency Services</option>
                       </select>
                     </div>
                   </div>
@@ -3180,7 +3219,7 @@ export default function AdminCrmPage() {
                       type="text"
                       id="incident_reportable_rationale"
                       defaultValue={selectedIncident.reportable_rationale || ''}
-                      placeholder="Explain why the incident is or is not reportable under NDIS rules..."
+                      placeholder="Explain assessment rationale and whether external notification applies..."
                       style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
@@ -3330,7 +3369,7 @@ export default function AdminCrmPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
                       <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
-                        Acknowledgement Date
+                        Target Acknowledgement Date / Prompt Acknowledgement
                       </label>
                       <input
                         type="date"
@@ -3338,6 +3377,9 @@ export default function AdminCrmPage() {
                         defaultValue={selectedComplaint.acknowledgement_date || ''}
                         style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem' }}
                       />
+                      <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginTop: 2 }}>
+                        Target: prompt acknowledgement within {complaintAckTargetDays} business day{complaintAckTargetDays > 1 ? 's' : ''} of receipt
+                      </span>
                     </div>
                     <div>
                       <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
