@@ -1,5 +1,11 @@
 'use client';
 
+import LoadingRows from '@/components/ui/LoadingRows';
+
+import DialogPanel from '@/components/ui/DialogPanel';
+
+import { notify } from '@/components/ui/ProductFeedback';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Receipt, Plus, Printer, Send, CheckCircle2, 
@@ -64,6 +70,7 @@ interface InvoicingTabProps {
 export default function InvoicingTab({ participants }: InvoicingTabProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showGenModal, setShowGenModal] = useState(false);
   const [selectedParticipantId, setSelectedParticipantId] = useState('');
@@ -77,15 +84,18 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
 
   const loadInvoices = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       let url = '/api/billing/invoices?';
       if (statusFilter !== 'all') url += `status=${statusFilter}&`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error('Unable to load records');
       if (res.ok) {
         const data = await res.json();
         setInvoices(data.invoices || []);
       }
     } catch (err) {
+      setLoadError(true);
       console.error('Failed to load invoices:', err);
     } finally {
       setLoading(false);
@@ -127,11 +137,11 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
   async function handleGenerateInvoice(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedParticipantId) {
-      alert('Please select a participant.');
+      notify('Please select a participant.');
       return;
     }
     if (selectedRecordIds.length === 0) {
-      alert('Please select at least one approved service record to bill.');
+      notify('Please select at least one approved service record to bill.');
       return;
     }
 
@@ -154,10 +164,10 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         setShowGenModal(false);
         loadInvoices();
       } else {
-        alert('Error: ' + (data.error || 'Failed to generate invoice'));
+        notify('Error: ' + (data.error || 'Failed to generate invoice'));
       }
     } catch {
-      alert('Network error while generating invoice.');
+      notify('Network error while generating invoice.');
     } finally {
       setGenerating(false);
     }
@@ -176,7 +186,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         loadInvoices();
       }
     } catch {
-      alert('Network error.');
+      notify('Network error.');
     }
   }
 
@@ -188,21 +198,21 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         setNotice('Invoice dispatched via email to billing contact.');
         loadInvoices();
       } else {
-        alert('Notice: ' + (data.error || 'Could not send invoice'));
+        notify('Notice: ' + (data.error || 'Could not send invoice'));
       }
     } catch {
-      alert('Network error sending invoice.');
+      notify('Network error sending invoice.');
     }
   }
 
   const statusColors: Record<string, { bg: string; text: string }> = {
-    Draft: { bg: '#F1F5F9', text: '#475569' },
+    Draft: { bg: 'var(--oc-subtle)', text: 'var(--oc-secondary)' },
     Ready: { bg: '#FEF3C7', text: '#B45309' },
-    Sent: { bg: '#EFF6FF', text: '#1E40AF' },
+    Sent: { bg: 'var(--oc-info-soft)', text: 'var(--oc-accent)' },
     Paid: { bg: '#ECFDF5', text: '#065F46' },
-    'Partially Paid': { bg: '#FFFBEB', text: '#B45309' },
-    Rejected: { bg: '#FEF2F2', text: '#DC2626' },
-    Cancelled: { bg: '#F1F5F9', text: '#64748B' },
+    'Partially Paid': { bg: 'var(--oc-warning-soft)', text: '#B45309' },
+    Rejected: { bg: 'var(--oc-danger-soft)', text: 'var(--oc-danger)' },
+    Cancelled: { bg: 'var(--oc-subtle)', text: 'var(--oc-muted)' },
   };
 
   const selectedTotal = readyRecords
@@ -213,8 +223,8 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
     <div className="crmTabPanel">
       <div className="crmPanelHeader">
         <div>
-          <h2 className="crmPanelTitle">Invoicing & Billing Foundation</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+          <h2 className="crmPanelTitle">Invoices</h2>
+          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
             Generate NDIS-compliant tax invoices from verified, manager-approved service delivery records.
           </p>
         </div>
@@ -248,53 +258,53 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
               <th>Funding Type / Contact</th>
               <th>Date</th>
               <th>Due Date</th>
-              <th>Amount (AUD)</th>
+              <th className="ocNumeric">Amount (AUD)</th>
               <th>Status</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30, color: '#64748B' }}>Loading invoices...</td></tr>
+            {loadError ? (<tr><td colSpan={8}><div className="ocEmpty" role="alert"><strong>Unable to load invoices</strong><p>Check your connection and try again.</p><button type="button" className="ocTextButton" onClick={loadInvoices}>Try again</button></div></td></tr>) : loading ? (
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30, color: 'var(--oc-muted)' }}><LoadingRows label="Loading invoices" /></td></tr>
             ) : invoices.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#94A3B8' }}>No invoices generated yet. Click &quot;Generate Invoice&quot; to bill approved shifts.</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--oc-muted)' }}><div className="ocEmpty"><strong>Your invoice register is clear</strong><p>Generate an invoice when approved service records are ready to bill.</p></div></td></tr>
             ) : (
               invoices.map((inv) => {
-                const st = statusColors[inv.status] || { bg: '#F1F5F9', text: '#475569' };
+                const st = statusColors[inv.status] || { bg: 'var(--oc-subtle)', text: 'var(--oc-secondary)' };
                 return (
                   <tr key={inv.id}>
                     <td>
-                      <strong style={{ fontFamily: 'monospace', color: '#0F172A', fontSize: '0.88rem' }}>{inv.invoice_reference}</strong>
+                      <strong style={{ fontFamily: 'monospace', color: 'var(--oc-text)', fontSize: '0.88rem' }}>{inv.invoice_reference}</strong>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '0.88rem' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--oc-text)', fontSize: '0.88rem' }}>
                         {inv.participant?.full_name || 'Participant'}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                         {inv.participant?.reference_number || ''}
                       </div>
                     </td>
                     <td>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-secondary)' }}>
                         {inv.funding_type}
                       </div>
                       {inv.plan_manager_name && (
-                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                        <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                           PM: {inv.plan_manager_name}
                         </div>
                       )}
                     </td>
-                    <td style={{ fontSize: '0.82rem', color: '#475569' }}>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--oc-secondary)' }}>
                       {new Date(inv.invoice_date).toLocaleDateString('en-AU')}
                     </td>
-                    <td style={{ fontSize: '0.82rem', fontWeight: 600, color: '#DC2626' }}>
+                    <td style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-danger)' }}>
                       {new Date(inv.due_date).toLocaleDateString('en-AU')}
                     </td>
-                    <td>
-                      <strong style={{ fontSize: '0.92rem', color: '#0F172A' }}>${Number(inv.total).toFixed(2)}</strong>
+                    <td className="ocNumeric">
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--oc-text)' }}>${Number(inv.total).toFixed(2)}</strong>
                     </td>
                     <td>
-                      <span style={{ background: st.bg, color: st.text, padding: '3px 10px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
+                      <span style={{ background: st.bg, color: st.text, padding: '3px 10px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                         {inv.status}
                       </span>
                     </td>
@@ -305,14 +315,14 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Print / Save PDF"
-                          style={{ background: '#F1F5F9', textDecoration: 'none', borderRadius: 6, padding: '6px 10px', color: '#334155', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          style={{ background: 'var(--oc-subtle)', textDecoration: 'none', borderRadius: 6, padding: '6px 10px', color: 'var(--oc-secondary)', fontSize: '0.8125rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
                           <Printer size={13} /> PDF
                         </a>
                         <button
                           onClick={() => handleSendInvoice(inv.id)}
                           title="Send Invoice to Billing Contact"
-                          style={{ background: '#EFF6FF', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#1E40AF', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          style={{ background: 'var(--oc-info-soft)', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: 'var(--oc-accent)', fontSize: '0.8125rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
                           <Send size={12} /> Send
                         </button>
@@ -320,7 +330,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                           <button
                             onClick={() => handleMarkPaid(inv.id)}
                             title="Mark as Paid"
-                            style={{ background: '#ECFDF5', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#065F46', fontSize: '0.78rem', fontWeight: 700 }}
+                            style={{ background: '#ECFDF5', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#065F46', fontSize: '0.8125rem', fontWeight: 600 }}
                           >
                             Mark Paid
                           </button>
@@ -338,29 +348,29 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
       {/* Generate Invoice Modal */}
       {showGenModal && (
         <div className="crmModalBackdrop" onClick={() => setShowGenModal(false)}>
-          <div className="crmModalCard" style={{ maxWidth: 740 }} onClick={(e) => e.stopPropagation()}>
+          <DialogPanel onClose={() => setShowGenModal(false)} label="Generate Tax Invoice" className="crmModalCard" style={{ maxWidth: 740 }} onClick={(e) => e.stopPropagation()}>
             <div className="crmModalHeader">
               <div>
                 <h3 className="crmModalTitle">Generate Tax Invoice</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748B' }}>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                   Billing is created exclusively from approved service delivery records.
                 </p>
               </div>
-              <button className="crmModalCloseBtn" onClick={() => setShowGenModal(false)}>&times;</button>
+              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setShowGenModal(false)}>&times;</button>
             </div>
 
             <form onSubmit={handleGenerateInvoice}>
               <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
                       Select Participant *
                     </label>
-                    <select
+                    <select className="ocField" aria-label="Select Participant *"
                       value={selectedParticipantId}
                       onChange={(e) => setSelectedParticipantId(e.target.value)}
                       required
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid #CBD5E1', padding: '0 10px', fontSize: '0.85rem', background: '#FFF' }}
+                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem', background: '#FFF' }}
                     >
                       <option value="">Select participant...</option>
                       {participants.map((p) => (
@@ -371,39 +381,39 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
                       Payment Terms (Due in Days)
                     </label>
-                    <input
+                    <input className="ocField" aria-label="Payment Terms (Due in Days)"
                       type="number"
                       value={dueDays}
                       onChange={(e) => setDueDays(Number(e.target.value))}
                       min="1"
                       max="60"
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid #CBD5E1', padding: '0 10px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem' }}
                     />
                   </div>
                 </div>
 
                 {/* Approved Service Records to Bill */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#0F172A', marginBottom: 8 }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 8 }}>
                     Approved Shifts Ready to Bill ({readyRecords.length})
                   </label>
 
                   {loadingRecords ? (
-                    <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
+                    <div style={{ padding: 20, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
                       Querying approved service records...
                     </div>
                   ) : readyRecords.length === 0 ? (
-                    <div style={{ background: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: 8, padding: 24, textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
+                    <div style={{ background: 'var(--oc-background)', border: '1px dashed var(--oc-border)', borderRadius: 8, padding: 24, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
                       No approved service records are currently ready for billing for this participant.
-                      <div style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: 4 }}>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 4 }}>
                         (Tip: Check Workforce &gt; Timesheets and approve completed shifts first.)
                       </div>
                     </div>
                   ) : (
-                    <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+                    <div style={{ border: '1px solid var(--oc-border)', borderRadius: 8, overflow: 'hidden' }}>
                       <table className="crmTable" style={{ margin: 0 }}>
                         <thead>
                           <tr>
@@ -420,8 +430,8 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                             <th>Service Date</th>
                             <th>Support Description</th>
                             <th>Quantity (hrs)</th>
-                            <th>Unit Rate</th>
-                            <th style={{ textAlign: 'right' }}>Line Total</th>
+                            <th className="ocNumeric">Unit Rate</th>
+                            <th className="ocNumeric" style={{ textAlign: 'right' }}>Line Total</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -440,8 +450,8 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                               <td style={{ fontSize: '0.82rem' }}>{new Date(rec.service_date).toLocaleDateString('en-AU')}</td>
                               <td style={{ fontSize: '0.82rem', fontWeight: 600 }}>{rec.support_item_name}</td>
                               <td>{rec.quantity} hrs</td>
-                              <td>${Number(rec.unit_rate).toFixed(2)}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 700 }}>
+                              <td className="ocNumeric">${Number(rec.unit_rate).toFixed(2)}</td>
+                              <td className="ocNumeric" style={{ textAlign: 'right', fontWeight: 600 }}>
                                 ${(Number(rec.subtotal) + Number(rec.travel_amount || 0)).toFixed(2)}
                               </td>
                             </tr>
@@ -453,8 +463,8 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                 </div>
 
                 {readyRecords.length > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, padding: '12px 18px' }}>
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#166534' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--oc-success-soft)', border: '1px solid #BBF7D0', borderRadius: 8, padding: '12px 18px' }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--oc-success)' }}>
                       Selected ({selectedRecordIds.length} of {readyRecords.length} records)
                     </span>
                     <strong style={{ fontSize: '1.15rem', color: '#15803D' }}>
@@ -464,15 +474,15 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                 )}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 4 }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
                     Invoice Notes / Remittance Reference
                   </label>
-                  <input
+                  <input className="ocField" aria-label="Invoice Notes / Remittance Reference"
                     type="text"
                     placeholder="e.g. Fortnightly personal care and community access"
                     value={invoiceNotes}
                     onChange={(e) => setInvoiceNotes(e.target.value)}
-                    style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid #CBD5E1', padding: '0 10px', fontSize: '0.85rem' }}
+                    style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
@@ -481,20 +491,20 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                 <button
                   type="button"
                   onClick={() => setShowGenModal(false)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
+                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={generating || selectedRecordIds.length === 0}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#0F766E', color: '#FFF', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'var(--oc-accent)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
                 >
                   {generating ? 'Generating...' : `Generate Invoice ($${selectedTotal.toFixed(2)})`}
                 </button>
               </div>
             </form>
-          </div>
+          </DialogPanel>
         </div>
       )}
     </div>

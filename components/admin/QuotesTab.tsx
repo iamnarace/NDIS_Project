@@ -1,5 +1,11 @@
 'use client';
 
+import LoadingRows from '@/components/ui/LoadingRows';
+
+import DialogPanel from '@/components/ui/DialogPanel';
+
+import { notify } from '@/components/ui/ProductFeedback';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FileText, Plus, Calculator, CheckCircle2, Send, 
@@ -56,6 +62,7 @@ interface QuotesTabProps {
 export default function QuotesTab({ participants }: QuotesTabProps) {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [supportItems, setSupportItems] = useState<NdisItem[]>([]);
   const [showBuilder, setShowBuilder] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -83,13 +90,16 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
 
   const loadQuotes = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch('/api/billing/quotes');
+      if (!res.ok) throw new Error('Unable to load records');
       if (res.ok) {
         const data = await res.json();
         setQuotes(data.quotes || []);
       }
     } catch (err) {
+      setLoadError(true);
       console.error('Failed to load quotes:', err);
     } finally {
       setLoading(false);
@@ -162,7 +172,7 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
   async function handleSaveQuote(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedParticipantId) {
-      alert('Please select a participant.');
+      notify('Please select a participant.');
       return;
     }
 
@@ -185,10 +195,10 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
         loadQuotes();
       } else {
         const d = await res.json();
-        alert('Error: ' + (d.error || 'Failed to create quote'));
+        notify('Error: ' + (d.error || 'Failed to create quote'));
       }
     } catch {
-      alert('Network error while saving quote.');
+      notify('Network error while saving quote.');
     } finally {
       setSaving(false);
     }
@@ -211,10 +221,10 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
         setNotice(data.message || 'Quote converted successfully.');
         loadQuotes();
       } else {
-        alert('Error: ' + (data.error || 'Conversion failed'));
+        notify('Error: ' + (data.error || 'Conversion failed'));
       }
     } catch {
-      alert('Network error during quote conversion.');
+      notify('Network error during quote conversion.');
     }
   }
 
@@ -226,19 +236,19 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
         setNotice('Quote email sent to participant.');
         loadQuotes();
       } else {
-        alert('Notice: ' + (data.error || 'Could not send email'));
+        notify('Notice: ' + (data.error || 'Could not send email'));
       }
     } catch {
-      alert('Network error sending quote.');
+      notify('Network error sending quote.');
     }
   }
 
   const statusBadges: Record<string, { bg: string; text: string }> = {
-    Draft: { bg: '#F1F5F9', text: '#475569' },
-    Sent: { bg: '#EFF6FF', text: '#1E40AF' },
+    Draft: { bg: 'var(--oc-subtle)', text: 'var(--oc-secondary)' },
+    Sent: { bg: 'var(--oc-info-soft)', text: 'var(--oc-accent)' },
     Accepted: { bg: '#ECFDF5', text: '#065F46' },
-    Declined: { bg: '#FEF2F2', text: '#DC2626' },
-    Expired: { bg: '#FFFBEB', text: '#B45309' },
+    Declined: { bg: 'var(--oc-danger-soft)', text: 'var(--oc-danger)' },
+    Expired: { bg: 'var(--oc-warning-soft)', text: '#B45309' },
     Converted: { bg: '#FAF5FF', text: '#6B21A8' },
   };
 
@@ -246,8 +256,8 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
     <div className="crmTabPanel">
       <div className="crmPanelHeader">
         <div>
-          <h2 className="crmPanelTitle">Quotes & Schedule of Supports Builder</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+          <h2 className="crmPanelTitle">Quotes & budgets</h2>
+          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
             Calculate weekly, monthly, and annual support estimates directly linked to NDIS pricing catalog items.
           </p>
         </div>
@@ -278,51 +288,51 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
             <tr>
               <th>Quote Ref</th>
               <th>Participant</th>
-              <th>Total Estimate</th>
-              <th>Weekly Burn</th>
-              <th>Monthly Burn</th>
+              <th className="ocNumeric">Total Estimate</th>
+              <th className="ocNumeric">Weekly estimate</th>
+              <th className="ocNumeric">Monthly estimate</th>
               <th>Valid Until</th>
               <th>Status</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30, color: '#64748B' }}>Loading quotes...</td></tr>
+            {loadError ? (<tr><td colSpan={8}><div className="ocEmpty" role="alert"><strong>Unable to load quotes</strong><p>Check your connection and try again.</p><button type="button" className="ocTextButton" onClick={loadQuotes}>Try again</button></div></td></tr>) : loading ? (
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30, color: 'var(--oc-muted)' }}><LoadingRows label="Loading quotes" /></td></tr>
             ) : quotes.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#94A3B8' }}>No quotes generated yet. Click &quot;New Service Quote&quot; to build one.</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--oc-muted)' }}><div className="ocEmpty"><strong>Prepare your first service quote</strong><p>Choose New Service Quote to estimate support hours and costs.</p></div></td></tr>
             ) : (
               quotes.map((q) => {
                 const weekly = Number(q.total) / 52;
                 const monthly = weekly * 4.33;
-                const st = statusBadges[q.status] || { bg: '#F1F5F9', text: '#475569' };
+                const st = statusBadges[q.status] || { bg: 'var(--oc-subtle)', text: 'var(--oc-secondary)' };
 
                 return (
                   <tr key={q.id}>
                     <td>
-                      <strong style={{ fontFamily: 'monospace', color: '#0F172A', fontSize: '0.85rem' }}>{q.quote_reference}</strong>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                      <strong style={{ fontFamily: 'monospace', color: 'var(--oc-text)', fontSize: '0.85rem' }}>{q.quote_reference}</strong>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                         {new Date(q.created_at).toLocaleDateString('en-AU')}
                       </div>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '0.88rem' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--oc-text)', fontSize: '0.88rem' }}>
                         {q.participant?.full_name || 'Participant'}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                         {q.participant?.reference_number || ''}
                       </div>
                     </td>
-                    <td>
-                      <strong style={{ fontSize: '0.92rem', color: '#0F172A' }}>${Number(q.total).toFixed(2)}</strong>
+                    <td className="ocNumeric">
+                      <strong style={{ fontSize: '0.92rem', color: 'var(--oc-text)' }}>${Number(q.total).toFixed(2)}</strong>
                     </td>
-                    <td style={{ fontSize: '0.85rem', color: '#475569' }}>${weekly.toFixed(2)} / wk</td>
-                    <td style={{ fontSize: '0.85rem', color: '#475569' }}>${monthly.toFixed(2)} / mo</td>
-                    <td style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                    <td className="ocNumeric" style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>${weekly.toFixed(2)} / wk</td>
+                    <td className="ocNumeric" style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>${monthly.toFixed(2)} / mo</td>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                       {q.valid_until ? new Date(q.valid_until).toLocaleDateString('en-AU') : '-'}
                     </td>
                     <td>
-                      <span style={{ background: st.bg, color: st.text, padding: '3px 10px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
+                      <span style={{ background: st.bg, color: st.text, padding: '3px 10px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                         {q.status}
                       </span>
                     </td>
@@ -333,14 +343,14 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                           target="_blank"
                           rel="noopener noreferrer"
                           title="View / Print PDF"
-                          style={{ background: '#F1F5F9', textDecoration: 'none', borderRadius: 6, padding: '6px 10px', color: '#334155', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          style={{ background: 'var(--oc-subtle)', textDecoration: 'none', borderRadius: 6, padding: '6px 10px', color: 'var(--oc-secondary)', fontSize: '0.8125rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
                           <Printer size={13} /> PDF
                         </a>
                         <button
                           onClick={() => handleSendQuote(q.id)}
                           title="Email Quote"
-                          style={{ background: '#EFF6FF', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#1E40AF', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          style={{ background: 'var(--oc-info-soft)', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: 'var(--oc-accent)', fontSize: '0.8125rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
                           <Send size={12} /> Send
                         </button>
@@ -349,14 +359,14 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                             <button
                               onClick={() => handleConvert(q.id, 'convert_to_schedule')}
                               title="Convert to Schedule of Supports"
-                              style={{ background: '#ECFDF5', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#065F46', fontSize: '0.78rem', fontWeight: 700 }}
+                              style={{ background: '#ECFDF5', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#065F46', fontSize: '0.8125rem', fontWeight: 600 }}
                             >
                               ? Schedule
                             </button>
                             <button
                               onClick={() => handleConvert(q.id, 'convert_to_agreement')}
                               title="Convert to Agreement"
-                              style={{ background: '#FAF5FF', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#6D28D9', fontSize: '0.78rem', fontWeight: 700 }}
+                              style={{ background: '#FAF5FF', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#6D28D9', fontSize: '0.8125rem', fontWeight: 600 }}
                             >
                               ? Contract
                             </button>
@@ -375,29 +385,29 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
       {/* Quote Builder Modal */}
       {showBuilder && (
         <div className="crmModalBackdrop" onClick={() => setShowBuilder(false)}>
-          <div className="crmModalCard" style={{ maxWidth: 840 }} onClick={(e) => e.stopPropagation()}>
+          <DialogPanel onClose={() => setShowBuilder(false)} label="Create a service quote" className="crmModalCard" style={{ maxWidth: 840 }} onClick={(e) => e.stopPropagation()}>
             <div className="crmModalHeader">
               <div>
-                <h3 className="crmModalTitle">Service Quote & Support Plan Estimator</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#64748B' }}>
+                <h3 className="crmModalTitle">Create a service quote</h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                   Select NDIS support items, weekly hours, and agreement duration to generate an authoritative quote.
                 </p>
               </div>
-              <button className="crmModalCloseBtn" onClick={() => setShowBuilder(false)}>&times;</button>
+              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setShowBuilder(false)}>&times;</button>
             </div>
 
             <form onSubmit={handleSaveQuote}>
               <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
                       Participant *
                     </label>
-                    <select
+                    <select className="ocField" aria-label="Participant *"
                       value={selectedParticipantId}
                       onChange={(e) => setSelectedParticipantId(e.target.value)}
                       required
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid #CBD5E1', padding: '0 10px', fontSize: '0.85rem', background: '#FFF' }}
+                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem', background: '#FFF' }}
                     >
                       <option value="">Select a participant...</option>
                       {participants.map((p) => (
@@ -408,14 +418,14 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
                       Valid Until
                     </label>
-                    <input
+                    <input className="ocField" aria-label="Valid Until"
                       type="date"
                       value={validUntil}
                       onChange={(e) => setValidUntil(e.target.value)}
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid #CBD5E1', padding: '0 10px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem' }}
                     />
                   </div>
                 </div>
@@ -423,13 +433,13 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                 {/* Line Items Builder */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                       Support Schedule Items ({builderItems.length})
                     </label>
                     <button
                       type="button"
                       onClick={handleAddItem}
-                      style={{ background: '#EFF6FF', color: '#1E40AF', border: 'none', padding: '5px 12px', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', border: 'none', padding: '5px 12px', borderRadius: 6, fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
                     >
                       + Add Item
                     </button>
@@ -437,14 +447,14 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {builderItems.map((item, idx) => (
-                      <div key={idx} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 12 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 40px', gap: 10, alignItems: 'center' }}>
+                      <div key={idx} style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: 12 }}>
+                        <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 40px', gap: 10, alignItems: 'center' }}>
                           <div>
-                            <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginBottom: 2 }}>NDIS Support Item</span>
-                            <select
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>NDIS Support Item</span>
+                            <select className="ocField"
                               value={item.support_item_id || ''}
                               onChange={(e) => handleItemChange(idx, 'support_item_id', e.target.value)}
-                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid #CBD5E1', fontSize: '0.8rem', background: '#FFF' }}
+                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid var(--oc-border)', fontSize: '0.8125rem', background: '#FFF' }}
                             >
                               {supportItems.map((si) => (
                                 <option key={si.id} value={si.id}>
@@ -455,31 +465,31 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginBottom: 2 }}>Hours / Wk</span>
-                            <input
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>Hours / Wk</span>
+                            <input className="ocField"
                               type="number"
                               step="0.5"
                               min="0.5"
                               value={item.quantity}
                               onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
-                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid #CBD5E1', padding: '0 8px', fontSize: '0.82rem' }}
+                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid var(--oc-border)', padding: '0 8px', fontSize: '0.82rem' }}
                             />
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginBottom: 2 }}>Agreed Rate ($)</span>
-                            <input
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>Agreed Rate ($)</span>
+                            <input className="ocField"
                               type="number"
                               step="0.01"
                               value={item.unit_rate}
                               onChange={(e) => handleItemChange(idx, 'unit_rate', Number(e.target.value))}
-                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid #CBD5E1', padding: '0 8px', fontSize: '0.82rem' }}
+                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid var(--oc-border)', padding: '0 8px', fontSize: '0.82rem' }}
                             />
                           </div>
 
                           <div>
-                            <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginBottom: 2 }}>Line Total</span>
-                            <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0F172A', display: 'block', marginTop: 6 }}>
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>Line Total</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--oc-text)', display: 'block', marginTop: 6 }}>
                               ${item.line_total.toFixed(2)}
                             </span>
                           </div>
@@ -489,7 +499,7 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                               type="button"
                               onClick={() => handleRemoveItem(idx)}
                               disabled={builderItems.length <= 1}
-                              style={{ background: 'none', border: 'none', cursor: builderItems.length <= 1 ? 'not-allowed' : 'pointer', color: '#EF4444', marginTop: 12 }}
+                              style={{ background: 'none', border: 'none', cursor: builderItems.length <= 1 ? 'not-allowed' : 'pointer', color: 'var(--oc-danger)', marginTop: 12 }}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -501,37 +511,37 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                 </div>
 
                 {/* Estimate Summary Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 10, padding: 14 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 10, padding: 14 }}>
                   <div>
-                    <div style={{ fontSize: '0.75rem', color: '#0369A1', fontWeight: 600 }}>WEEKLY ESTIMATE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.8125rem', color: '#0369A1', fontWeight: 600 }}>WEEKLY ESTIMATE</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
                       ${weeklyEstimate.toFixed(2)}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.75rem', color: '#0369A1', fontWeight: 600 }}>MONTHLY ESTIMATE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.8125rem', color: '#0369A1', fontWeight: 600 }}>MONTHLY ESTIMATE</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
                       ${monthlyEstimate.toFixed(2)}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.75rem', color: '#0369A1', fontWeight: 600 }}>12-MONTH PLAN TOTAL</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0284C7', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.8125rem', color: '#0369A1', fontWeight: 600 }}>12-MONTH PLAN TOTAL</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-info)', marginTop: 2 }}>
                       ${builderTotal.toFixed(2)}
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: 4 }}>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
                     Notes & Assumptions
                   </label>
-                  <textarea
+                  <textarea className="ocField" aria-label="Notes & Assumptions"
                     rows={2}
                     placeholder="e.g. Rate based on weekday non-remote schedule, includes community access"
                     value={quoteNotes}
                     onChange={(e) => setQuoteNotes(e.target.value)}
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid #CBD5E1', padding: 8, fontSize: '0.85rem' }}
+                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
@@ -540,20 +550,20 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
                 <button
                   type="button"
                   onClick={() => setShowBuilder(false)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
+                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#0284C7', color: '#FFF', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'var(--oc-info)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
                 >
                   {saving ? 'Creating...' : 'Save Draft Quote'}
                 </button>
               </div>
             </form>
-          </div>
+          </DialogPanel>
         </div>
       )}
     </div>

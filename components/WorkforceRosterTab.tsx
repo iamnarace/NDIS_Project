@@ -1,10 +1,12 @@
 'use client';
 
+import DialogPanel from '@/components/ui/DialogPanel';
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Calendar as CalendarIcon, Clock, UserCheck, AlertCircle, AlertTriangle, 
-  CheckCircle2, Plus, ChevronLeft, ChevronRight, Filter, Search, 
-  MapPin, DollarSign, ShieldAlert, Sparkles, RefreshCw, X, Trash2, 
+import {
+  Calendar as CalendarIcon, Clock, UserCheck, AlertCircle, AlertTriangle,
+  CheckCircle2, Plus, ChevronLeft, ChevronRight, Filter, Search,
+  MapPin, DollarSign, ShieldAlert, Sparkles, RefreshCw, X, Trash2,
   Edit3, FileText, Check, MoreVertical, Layers, ArrowRight, User
 } from 'lucide-react';
 
@@ -432,23 +434,23 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <span style={{ 
-              background: '#E0F2FE', 
-              color: '#0284C7', 
-              fontSize: '0.75rem', 
-              fontWeight: 700, 
-              padding: '3px 10px', 
-              borderRadius: 20, 
-              letterSpacing: '0.06em', 
-              textTransform: 'uppercase' 
+            <span style={{
+              background: '#E0F2FE',
+              color: 'var(--oc-info)',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              padding: '3px 10px',
+              borderRadius: 20,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase'
             }}>
               NDIS Workforce Hub
             </span>
-            <span style={{ fontSize: '0.85rem', color: '#64748B' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
               Clarence Valley & Northern Rivers
             </span>
           </div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 600, color: 'var(--oc-text)', margin: 0, letterSpacing: '-0.02em' }}>
             Rostering & Shift Scheduling
           </h2>
         </div>
@@ -476,99 +478,97 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
       </div>
 
       {/* 2. STATS CARDS */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: 16, 
-        marginBottom: 24 
+      <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: 16,
+        marginBottom: 24
       }}>
-        <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 10px rgba(15,23,42,0.03)' }}>
-          <div style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+        <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 10px rgba(15,23,42,0.03)' }}>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
             Total Rostered Hours
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 600, color: 'var(--oc-text)', display: 'flex', alignItems: 'baseline', gap: 6 }}>
             {stats.totalHours.toFixed(1)}
-            <span style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500 }}>hrs this week</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--oc-muted)', fontWeight: 500 }}>hrs this week</span>
           </div>
         </div>
 
-        <div style={{ 
-          background: stats.unassignedCount > 0 ? '#FFFBEB' : '#FFFFFF', 
-          border: stats.unassignedCount > 0 ? '1.5px solid #FCD34D' : '1px solid #E2E8F0', 
-          borderRadius: 14, 
+        <div style={{
+          background: stats.unassignedCount > 0 ? 'var(--oc-warning-soft)' : 'var(--oc-surface)',
+          border: stats.unassignedCount > 0 ? '1.5px solid #FCD34D' : '1px solid var(--oc-border)',
+          borderRadius: 14,
           padding: '16px 20px',
           boxShadow: '0 2px 10px rgba(15,23,42,0.03)'
         }}>
-          <div style={{ fontSize: '0.8rem', color: stats.unassignedCount > 0 ? '#B45309' : '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-            {stats.unassignedCount > 0 && <AlertTriangle size={14} style={{ color: '#D97706' }} />}
+          <div style={{ fontSize: '0.8125rem', color: stats.unassignedCount > 0 ? '#B45309' : 'var(--oc-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {stats.unassignedCount > 0 && <AlertTriangle size={14} style={{ color: 'var(--oc-warning)' }} />}
             Unassigned Shifts
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: stats.unassignedCount > 0 ? '#B45309' : '#0F172A' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 600, color: stats.unassignedCount > 0 ? '#B45309' : 'var(--oc-text)' }}>
             {stats.unassignedCount}
-            <span style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500, marginLeft: 6 }}>needs coverage</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--oc-muted)', fontWeight: 500, marginLeft: 6 }}>needs coverage</span>
           </div>
         </div>
 
-        <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 10px rgba(15,23,42,0.03)' }}>
-          <div style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+        <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 10px rgba(15,23,42,0.03)' }}>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
             Active Workers
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 600, color: 'var(--oc-text)', display: 'flex', alignItems: 'baseline', gap: 6 }}>
             {stats.activeWorkers}
-            <span style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500 }}>of {staff.length} rostered</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--oc-muted)', fontWeight: 500 }}>of {staff.length} rostered</span>
           </div>
         </div>
 
-        <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 10px rgba(15,23,42,0.03)' }}>
-          <div style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+        <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 14, padding: '16px 20px', boxShadow: '0 2px 10px rgba(15,23,42,0.03)' }}>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
             Est. NDIS Claim Value
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#059669', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 600, color: '#059669', display: 'flex', alignItems: 'baseline', gap: 4 }}>
             ${stats.estBilling.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-            <span style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500 }}>AUD</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--oc-muted)', fontWeight: 500 }}>AUD</span>
           </div>
         </div>
       </div>
 
       {/* 3. ROSTER NAVIGATION & FILTER CONTROLS */}
-      <div style={{ 
-        background: '#FFFFFF', 
-        border: '1px solid #E2E8F0', 
-        borderRadius: 14, 
-        padding: '14px 20px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        flexWrap: 'wrap', 
-        gap: 16, 
-        marginBottom: 20 
+      <div style={{
+        background: 'var(--oc-surface)',
+        border: '1px solid var(--oc-border)',
+        borderRadius: 14,
+        padding: '14px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 16,
+        marginBottom: 20
       }}>
         {/* Week Selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ display: 'inline-flex', border: '1.5px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ display: 'inline-flex', border: '1.5px solid var(--oc-border)', borderRadius: 8, overflow: 'hidden' }}>
             <button
               onClick={prevWeek}
-              style={{ background: '#FFFFFF', border: 'none', padding: '7px 12px', cursor: 'pointer', borderRight: '1px solid #E2E8F0' }}
+              style={{ background: 'var(--oc-surface)', border: 'none', padding: '7px 12px', cursor: 'pointer', borderRight: '1px solid var(--oc-border)' }}
               title="Previous Week"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={goToToday}
-              style={{ background: '#F8FAFC', border: 'none', padding: '7px 14px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#162E56' }}
+              style={{ background: 'var(--oc-background)', border: 'none', padding: '7px 14px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: '#162E56' }}
             >
               Today
             </button>
             <button
               onClick={nextWeek}
-              style={{ background: '#FFFFFF', border: 'none', padding: '7px 12px', cursor: 'pointer', borderLeft: '1px solid #E2E8F0' }}
+              style={{ background: 'var(--oc-surface)', border: 'none', padding: '7px 12px', cursor: 'pointer', borderLeft: '1px solid var(--oc-border)' }}
               title="Next Week"
             >
               <ChevronRight size={16} />
             </button>
           </div>
 
-          <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+          <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--oc-text)', letterSpacing: '-0.01em' }}>
             {currentWeekStart.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {currentWeekEnd.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
         </div>
@@ -576,7 +576,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
         {/* Filters */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {/* Suburb Filter */}
-          <select
+          <select aria-label="All Suburbs"
             value={suburbFilter}
             onChange={(e) => setSuburbFilter(e.target.value)}
             className="crmFormInput"
@@ -589,7 +589,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
           </select>
 
           {/* Participant Filter */}
-          <select
+          <select aria-label="All Participants"
             value={participantFilter}
             onChange={(e) => setParticipantFilter(e.target.value)}
             className="crmFormInput"
@@ -602,7 +602,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
           </select>
 
           {/* Worker Filter */}
-          <select
+          <select aria-label="All Workers"
             value={staffFilter}
             onChange={(e) => setStaffFilter(e.target.value)}
             className="crmFormInput"
@@ -616,15 +616,15 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
           </select>
 
           {/* View Toggle */}
-          <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: 3, borderRadius: 8 }}>
+          <div style={{ display: 'inline-flex', background: 'var(--oc-subtle)', padding: 3, borderRadius: 8 }}>
             <button
               onClick={() => setViewMode('matrix')}
               style={{
                 border: 'none',
-                background: viewMode === 'matrix' ? '#FFFFFF' : 'transparent',
-                color: viewMode === 'matrix' ? '#0F172A' : '#64748B',
-                fontWeight: 700,
-                fontSize: '0.8rem',
+                background: viewMode === 'matrix' ? 'var(--oc-surface)' : 'transparent',
+                color: viewMode === 'matrix' ? 'var(--oc-text)' : 'var(--oc-muted)',
+                fontWeight: 600,
+                fontSize: '0.8125rem',
                 padding: '5px 12px',
                 borderRadius: 6,
                 cursor: 'pointer',
@@ -637,10 +637,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               onClick={() => setViewMode('list')}
               style={{
                 border: 'none',
-                background: viewMode === 'list' ? '#FFFFFF' : 'transparent',
-                color: viewMode === 'list' ? '#0F172A' : '#64748B',
-                fontWeight: 700,
-                fontSize: '0.8rem',
+                background: viewMode === 'list' ? 'var(--oc-surface)' : 'transparent',
+                color: viewMode === 'list' ? 'var(--oc-text)' : 'var(--oc-muted)',
+                fontWeight: 600,
+                fontSize: '0.8125rem',
                 padding: '5px 12px',
                 borderRadius: 6,
                 cursor: 'pointer',
@@ -655,12 +655,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
       {/* 4. MAIN VIEW: WEEKLY GRID MATRIX */}
       {viewMode === 'matrix' ? (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(7, minmax(160px, 1fr))', 
-          gap: 12, 
+        <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(160px, 1fr))',
+          gap: 12,
           overflowX: 'auto',
-          paddingBottom: 20 
+          paddingBottom: 20
         }}>
           {weekDays.map((dayDate, dayIdx) => {
             const dateIsoStr = dayDate.toISOString().split('T')[0];
@@ -676,8 +674,8 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               <div
                 key={dateIsoStr}
                 style={{
-                  background: isToday ? '#F8FAFC' : '#FFFFFF',
-                  border: isToday ? '2px solid #0284C7' : '1px solid #E2E8F0',
+                  background: isToday ? 'var(--oc-background)' : 'var(--oc-surface)',
+                  border: isToday ? '2px solid var(--oc-info)' : '1px solid var(--oc-border)',
                   borderRadius: 14,
                   minHeight: 460,
                   display: 'flex',
@@ -689,31 +687,31 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 {/* Column Day Header */}
                 <div style={{
                   padding: '12px 14px',
-                  background: isToday ? '#0284C7' : '#F8FAFC',
-                  color: isToday ? '#FFFFFF' : '#0F172A',
-                  borderBottom: '1px solid #E2E8F0',
+                  background: isToday ? 'var(--oc-info)' : 'var(--oc-background)',
+                  color: isToday ? 'var(--oc-surface)' : 'var(--oc-text)',
+                  borderBottom: '1px solid var(--oc-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: isToday ? 0.9 : 0.6 }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: isToday ? 0.9 : 0.6 }}>
                       {dayDate.toLocaleDateString('en-AU', { weekday: 'short' })}
                     </div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800 }}>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 600 }}>
                       {dayDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                     </div>
                   </div>
 
                   {isToday && (
-                    <span style={{ 
-                      background: '#FFFFFF', 
-                      color: '#0284C7', 
-                      fontSize: '0.65rem', 
-                      fontWeight: 800, 
-                      padding: '2px 6px', 
-                      borderRadius: 4, 
-                      textTransform: 'uppercase' 
+                    <span style={{
+                      background: 'var(--oc-surface)',
+                      color: 'var(--oc-info)',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      textTransform: 'uppercase'
                     }}>
                       Today
                     </span>
@@ -723,29 +721,29 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 {/* Shift Cards Container */}
                 <div style={{ padding: 10, flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {dayShifts.length === 0 ? (
-                    <div style={{ 
-                      flex: 1, 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       padding: '20px 10px',
-                      border: '1.5px dashed #E2E8F0',
+                      border: '1.5px dashed var(--oc-border)',
                       borderRadius: 10,
-                      color: '#94A3B8',
+                      color: 'var(--oc-muted)',
                       textAlign: 'center'
                     }}>
                       <Clock size={20} style={{ opacity: 0.4, marginBottom: 6 }} />
-                      <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>No shifts</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 500 }}>No shifts</span>
                       <button
                         onClick={() => handleOpenSchedule(dateIsoStr)}
                         style={{
                           marginTop: 10,
-                          background: '#F1F5F9',
+                          background: 'var(--oc-subtle)',
                           border: 'none',
-                          color: '#0F172A',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
+                          color: 'var(--oc-text)',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
                           padding: '4px 10px',
                           borderRadius: 6,
                           cursor: 'pointer'
@@ -767,13 +765,13 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                           key={shift.id}
                           onClick={() => setSelectedShift(shift)}
                           style={{
-                            background: '#FFFFFF',
-                            border: isUnassigned ? '1.5px dashed #F59E0B' : '1px solid #E2E8F0',
-                            borderLeft: isUnassigned 
-                              ? '4px solid #F59E0B' 
-                              : isCompleted 
-                              ? '4px solid #10B981' 
-                              : '4px solid #0284C7',
+                            background: 'var(--oc-surface)',
+                            border: isUnassigned ? '1.5px dashed var(--oc-warning)' : '1px solid var(--oc-border)',
+                            borderLeft: isUnassigned
+                              ? '4px solid var(--oc-warning)'
+                              : isCompleted
+                              ? '4px solid #10B981'
+                              : '4px solid var(--oc-info)',
                             borderRadius: 10,
                             padding: 10,
                             cursor: 'pointer',
@@ -785,41 +783,41 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                         >
                           {/* Time & Duration */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0F172A' }}>
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                               {startTimeStr} – {endTimeStr}
                             </span>
-                            <span style={{ 
-                              fontSize: '0.7rem', 
-                              fontWeight: 700, 
-                              background: '#F1F5F9', 
-                              color: '#475569', 
-                              padding: '1px 6px', 
-                              borderRadius: 4 
+                            <span style={{
+                              fontSize: '0.8125rem',
+                              fontWeight: 600,
+                              background: 'var(--oc-subtle)',
+                              color: 'var(--oc-secondary)',
+                              padding: '1px 6px',
+                              borderRadius: 4
                             }}>
                               {shift.hours}h
                             </span>
                           </div>
 
                           {/* Participant Name */}
-                          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#162E56', marginBottom: 4, lineHeight: 1.2 }}>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#162E56', marginBottom: 4, lineHeight: 1.2 }}>
                             {shift.participant?.full_name || 'Participant'}
                           </div>
 
                           {/* Service Type */}
-                          <div style={{ 
-                            fontSize: '0.72rem', 
-                            color: '#64748B', 
-                            marginBottom: 8, 
-                            whiteSpace: 'nowrap', 
-                            overflow: 'hidden', 
-                            textOverflow: 'ellipsis' 
+                          <div style={{
+                            fontSize: '0.8125rem',
+                            color: 'var(--oc-muted)',
+                            marginBottom: 8,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
                           }}>
                             {shift.service_type}
                           </div>
 
                           {/* Location Suburb */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', color: '#475569', marginBottom: 8 }}>
-                            <MapPin size={12} style={{ color: '#0284C7' }} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8125rem', color: 'var(--oc-secondary)', marginBottom: 8 }}>
+                            <MapPin size={12} style={{ color: 'var(--oc-info)' }} />
                             <span>{shift.location_suburb}</span>
                           </div>
 
@@ -827,8 +825,8 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                           <div style={{
                             padding: '4px 8px',
                             borderRadius: 6,
-                            background: isUnassigned ? '#FFFBEB' : '#F8FAFC',
-                            border: isUnassigned ? '1px solid #FEF3C7' : '1px solid #E2E8F0',
+                            background: isUnassigned ? 'var(--oc-warning-soft)' : 'var(--oc-background)',
+                            border: isUnassigned ? '1px solid #FEF3C7' : '1px solid var(--oc-border)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
@@ -839,13 +837,13 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                                 width: 8,
                                 height: 8,
                                 borderRadius: '50%',
-                                background: isUnassigned ? '#F59E0B' : '#10B981',
+                                background: isUnassigned ? 'var(--oc-warning)' : '#10B981',
                                 flexShrink: 0
                               }} />
-                              <span style={{ 
-                                fontSize: '0.75rem', 
-                                fontWeight: 700, 
-                                color: isUnassigned ? '#B45309' : '#0F172A',
+                              <span style={{
+                                fontSize: '0.8125rem',
+                                fontWeight: 600,
+                                color: isUnassigned ? '#B45309' : 'var(--oc-text)',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
@@ -871,11 +869,11 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                       onClick={() => handleOpenSchedule(dateIsoStr)}
                       style={{
                         background: 'transparent',
-                        border: '1px dashed #CBD5E1',
+                        border: '1px dashed var(--oc-border)',
                         borderRadius: 8,
                         padding: 6,
-                        color: '#64748B',
-                        fontSize: '0.75rem',
+                        color: 'var(--oc-muted)',
+                        fontSize: '0.8125rem',
                         fontWeight: 600,
                         cursor: 'pointer',
                         display: 'flex',
@@ -895,10 +893,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
         </div>
       ) : (
         /* 5. LIST VIEW TABLE */
-        <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 14, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
             <thead>
-              <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <tr style={{ background: 'var(--oc-background)', borderBottom: '1px solid var(--oc-border)', color: 'var(--oc-muted)', fontSize: '0.8125rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 <th style={{ padding: '12px 16px' }}>Ref / Date</th>
                 <th style={{ padding: '12px 16px' }}>Participant</th>
                 <th style={{ padding: '12px 16px' }}>Service & Line Item</th>
@@ -912,7 +910,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
             <tbody>
               {filteredShifts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#94A3B8' }}>
+                  <td colSpan={8} style={{ padding: 40, textAlign: 'center', color: 'var(--oc-muted)' }}>
                     No shifts match your filter criteria for this week.
                   </td>
                 </tr>
@@ -924,38 +922,38 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                   const worker = shift.assignments?.[0]?.staff;
 
                   return (
-                    <tr key={shift.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <tr key={shift.id} style={{ borderBottom: '1px solid var(--oc-subtle)' }}>
                       <td style={{ padding: '14px 16px' }}>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284C7', fontSize: '0.82rem' }}>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--oc-info)', fontSize: '0.82rem' }}>
                           {shift.shift_reference}
                         </span>
-                        <div style={{ fontSize: '0.82rem', color: '#0F172A', fontWeight: 600 }}>{sDate}</div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--oc-text)', fontWeight: 600 }}>{sDate}</div>
                       </td>
-                      <td style={{ padding: '14px 16px', fontWeight: 700, color: '#162E56' }}>
+                      <td style={{ padding: '14px 16px', fontWeight: 600, color: '#162E56' }}>
                         {shift.participant?.full_name}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
-                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{shift.service_type}</div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748B', fontFamily: 'monospace' }}>{shift.ndis_support_item_code}</span>
+                        <div style={{ fontWeight: 600, color: 'var(--oc-text)' }}>{shift.service_type}</div>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontFamily: 'monospace' }}>{shift.ndis_support_item_code}</span>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <div>{sTime} – {eTime}</div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B' }}>{shift.hours} hrs</span>
+                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>{shift.hours} hrs</span>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          <MapPin size={13} style={{ color: '#0284C7' }} />
+                          <MapPin size={13} style={{ color: 'var(--oc-info)' }} />
                           {shift.location_suburb}
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         {worker ? (
-                          <span style={{ fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 600, color: 'var(--oc-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
                             {worker.full_name}
                           </span>
                         ) : (
-                          <span style={{ color: '#D97706', fontWeight: 700, background: '#FEF3C7', padding: '3px 8px', borderRadius: 6, fontSize: '0.75rem' }}>
+                          <span style={{ color: 'var(--oc-warning)', fontWeight: 600, background: '#FEF3C7', padding: '3px 8px', borderRadius: 6, fontSize: '0.8125rem' }}>
                             Unassigned
                           </span>
                         )}
@@ -965,11 +963,11 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                           display: 'inline-block',
                           padding: '3px 10px',
                           borderRadius: 20,
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
                           textTransform: 'capitalize',
-                          background: shift.status === 'completed' ? '#ECFDF5' : shift.status === 'confirmed' ? '#E0F2FE' : '#F8FAFC',
-                          color: shift.status === 'completed' ? '#059669' : shift.status === 'confirmed' ? '#0284C7' : '#64748B'
+                          background: shift.status === 'completed' ? '#ECFDF5' : shift.status === 'confirmed' ? '#E0F2FE' : 'var(--oc-background)',
+                          color: shift.status === 'completed' ? '#059669' : shift.status === 'confirmed' ? 'var(--oc-info)' : 'var(--oc-muted)'
                         }}>
                           {shift.status}
                         </span>
@@ -978,7 +976,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                         <button
                           onClick={() => setSelectedShift(shift)}
                           className="crmSecondaryBtn"
-                          style={{ padding: '5px 10px', fontSize: '0.8rem' }}
+                          style={{ padding: '5px 10px', fontSize: '0.8125rem' }}
                         >
                           Manage
                         </button>
@@ -995,11 +993,11 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
       {/* 6. MODAL: SCHEDULE NEW SHIFT */}
       {showScheduleModal && (
         <div className="crmModalOverlay" onClick={() => setShowScheduleModal(false)}>
-          <div className="crmModalBox" style={{ maxWidth: 620 }} onClick={(e) => e.stopPropagation()}>
+          <DialogPanel onClose={() => setShowScheduleModal(false)} label="Schedule NDIS Shift" className="crmModalBox" style={{ maxWidth: 620 }} onClick={(e) => e.stopPropagation()}>
             <div className="crmModalHeader">
               <div>
                 <span className="refIdTag">NEW SHIFT ROSTER</span>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>Schedule NDIS Shift</h3>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-text)' }}>Schedule NDIS Shift</h3>
               </div>
               <button onClick={() => setShowScheduleModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <X size={20} />
@@ -1008,7 +1006,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
             <form onSubmit={handleScheduleSubmit} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               {formError && (
-                <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '12px 16px', borderRadius: 8, fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--oc-danger-soft)', border: '1px solid #FCA5A5', color: '#991B1B', padding: '12px 16px', borderRadius: 8, fontSize: '0.85rem' }}>
                   {formError}
                 </div>
               )}
@@ -1016,7 +1014,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               {/* Participant Selection */}
               <div>
                 <label className="crmFormLabel">Participant *</label>
-                <select
+                <select aria-label="Participant *"
                   value={formParticipantId}
                   onChange={(e) => handleParticipantChange(e.target.value)}
                   className="crmFormInput"
@@ -1029,10 +1027,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               </div>
 
               {/* Service Type & Item Code */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label className="crmFormLabel">Service Type *</label>
-                  <select
+                  <select aria-label="Service Type *"
                     value={formServiceType}
                     onChange={(e) => handleServiceChange(e.target.value)}
                     className="crmFormInput"
@@ -1045,7 +1043,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 </div>
                 <div>
                   <label className="crmFormLabel">NDIS Line Item Code</label>
-                  <input
+                  <input aria-label="NDIS Line Item Code"
                     type="text"
                     value={formItemCode}
                     onChange={(e) => setFormItemCode(e.target.value)}
@@ -1056,10 +1054,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               </div>
 
               {/* Date & Time Pickers */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 <div>
                   <label className="crmFormLabel">Date *</label>
-                  <input
+                  <input aria-label="Date *"
                     type="date"
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
@@ -1069,7 +1067,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 </div>
                 <div>
                   <label className="crmFormLabel">Start Time *</label>
-                  <input
+                  <input aria-label="Start Time *"
                     type="time"
                     value={formStartTime}
                     onChange={(e) => setFormStartTime(e.target.value)}
@@ -1079,7 +1077,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 </div>
                 <div>
                   <label className="crmFormLabel">End Time *</label>
-                  <input
+                  <input aria-label="End Time *"
                     type="time"
                     value={formEndTime}
                     onChange={(e) => setFormEndTime(e.target.value)}
@@ -1090,10 +1088,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               </div>
 
               {/* Suburb & Address */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
                 <div>
                   <label className="crmFormLabel">Suburb *</label>
-                  <input
+                  <input aria-label="Suburb *"
                     type="text"
                     value={formSuburb}
                     onChange={(e) => setFormSuburb(e.target.value)}
@@ -1103,7 +1101,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 </div>
                 <div>
                   <label className="crmFormLabel">Street Address / Venue</label>
-                  <input
+                  <input aria-label="Street Address / Venue"
                     type="text"
                     value={formAddress}
                     onChange={(e) => setFormAddress(e.target.value)}
@@ -1116,7 +1114,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               {/* Worker Assignment Selector with Live Guard */}
               <div>
                 <label className="crmFormLabel">Assign Support Worker (Optional)</label>
-                <select
+                <select aria-label="Assign Support Worker (Optional)"
                   value={formStaffId}
                   onChange={(e) => setFormStaffId(e.target.value)}
                   className="crmFormInput"
@@ -1132,14 +1130,14 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 {/* Worker Conflict Banner */}
                 {workerConflict && (
                   <div style={{ marginTop: 8, background: '#FEF3C7', border: '1px solid #FCD34D', padding: '10px 14px', borderRadius: 8, fontSize: '0.82rem', color: '#92400E' }}>
-                    <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <AlertTriangle size={15} style={{ color: '#D97706' }} />
+                    <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <AlertTriangle size={15} style={{ color: 'var(--oc-warning)' }} />
                       Warning: Schedule Overlap Detected
                     </div>
                     <span>{selectedStaffRecord?.name} is already assigned to {workerConflict.shift_reference} on this date.</span>
                     <div style={{ marginTop: 8 }}>
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 700 }}>
-                        <input
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 600 }}>
+                        <input aria-label="Allow double-booking override"
                           type="checkbox"
                           checked={conflictOverride}
                           onChange={(e) => setConflictOverride(e.target.checked)}
@@ -1152,7 +1150,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
                 {/* Worker Compliance Verification Pill */}
                 {selectedStaffRecord && !workerConflict && (
-                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: '#059669', background: '#ECFDF5', padding: '6px 12px', borderRadius: 8 }}>
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8125rem', color: '#059669', background: '#ECFDF5', padding: '6px 12px', borderRadius: 8 }}>
                     <CheckCircle2 size={15} />
                     <span>Compliance Verified: NDIS Screening & First Aid Active</span>
                   </div>
@@ -1160,9 +1158,9 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               </div>
 
               {/* Repeat Shift Option */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#F8FAFC', padding: '12px 16px', borderRadius: 8 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>Repeat weekly:</span>
-                <select
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--oc-background)', padding: '12px 16px', borderRadius: 8 }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)' }}>Repeat weekly:</span>
+                <select aria-label="Single Shift (No Repeat)"
                   value={formRepeatWeeks}
                   onChange={(e) => setFormRepeatWeeks(Number(e.target.value))}
                   className="crmFormInput"
@@ -1178,7 +1176,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               {/* Special Instructions */}
               <div>
                 <label className="crmFormLabel">Care Notes & Special Instructions</label>
-                <textarea
+                <textarea aria-label="Care Notes & Special Instructions"
                   value={formInstructions}
                   onChange={(e) => setFormInstructions(e.target.value)}
                   className="crmFormInput"
@@ -1205,18 +1203,18 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 </button>
               </div>
             </form>
-          </div>
+          </DialogPanel>
         </div>
       )}
 
       {/* 7. MODAL: SHIFT DETAIL & REASSIGNMENT */}
       {selectedShift && (
         <div className="crmModalOverlay" onClick={() => setSelectedShift(null)}>
-          <div className="crmModalBox" style={{ maxWidth: 580 }} onClick={(e) => e.stopPropagation()}>
+          <DialogPanel onClose={() => setSelectedShift(null)} label="Record details" className="crmModalBox" style={{ maxWidth: 580 }} onClick={(e) => e.stopPropagation()}>
             <div className="crmModalHeader">
               <div>
                 <span className="refIdTag">{selectedShift.shift_reference}</span>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                   {selectedShift.participant?.full_name}
                 </h3>
               </div>
@@ -1227,31 +1225,31 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
             <div style={{ padding: 24 }}>
               {/* Date & Location summary */}
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
+              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', fontWeight: 700 }}>Date & Time</span>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Date & Time</span>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                       {new Date(selectedShift.start_time).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>
                       {new Date(selectedShift.start_time).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true })} – {new Date(selectedShift.end_time).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true })} ({selectedShift.hours} hrs)
                     </div>
                   </div>
 
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', fontWeight: 700 }}>Location</span>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Location</span>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                       {selectedShift.location_suburb}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>
                       {selectedShift.location_address || 'Address on file'}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid #EEF2F6', paddingTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#64748B' }}>
-                  <span>Service: <strong style={{ color: '#0F172A' }}>{selectedShift.service_type}</strong></span>
+                <div style={{ borderTop: '1px solid #EEF2F6', paddingTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
+                  <span>Service: <strong style={{ color: 'var(--oc-text)' }}>{selectedShift.service_type}</strong></span>
                   <span style={{ fontFamily: 'monospace' }}>Code: {selectedShift.ndis_support_item_code}</span>
                 </div>
               </div>
@@ -1260,42 +1258,42 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               <div style={{ marginBottom: 20 }}>
                 <span className="crmFormLabel">Assigned Support Worker</span>
                 {selectedShift.assignments && selectedShift.assignments.length > 0 && selectedShift.assignments[0].staff ? (
-                  <div style={{ 
-                    background: '#ECFDF5', 
-                    border: '1px solid #A7F3D0', 
-                    borderRadius: 10, 
+                  <div style={{
+                    background: '#ECFDF5',
+                    border: '1px solid #A7F3D0',
+                    borderRadius: 10,
                     padding: '12px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}>
                     <div>
-                      <div style={{ fontWeight: 800, color: '#065F46', fontSize: '0.95rem' }}>
+                      <div style={{ fontWeight: 600, color: '#065F46', fontSize: '0.95rem' }}>
                         {selectedShift.assignments[0].staff.full_name}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#047857' }}>
+                      <div style={{ fontSize: '0.8125rem', color: '#047857' }}>
                         {selectedShift.assignments[0].staff.role} • {selectedShift.assignments[0].staff.phone}
                       </div>
                     </div>
                     <button
                       onClick={() => handleUnassignShift(selectedShift.id)}
                       className="crmSecondaryBtn"
-                      style={{ padding: '4px 10px', fontSize: '0.78rem', color: '#B91C1C' }}
+                      style={{ padding: '4px 10px', fontSize: '0.8125rem', color: '#B91C1C' }}
                     >
                       Unassign
                     </button>
                   </div>
                 ) : (
-                  <div style={{ 
-                    background: '#FFFBEB', 
-                    border: '1.5px dashed #FCD34D', 
-                    borderRadius: 10, 
+                  <div style={{
+                    background: 'var(--oc-warning-soft)',
+                    border: '1.5px dashed #FCD34D',
+                    borderRadius: 10,
                     padding: '12px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}>
-                    <span style={{ color: '#B45309', fontWeight: 700, fontSize: '0.88rem' }}>
+                    <span style={{ color: '#B45309', fontWeight: 600, fontSize: '0.88rem' }}>
                       ⚠️ No worker currently assigned to this shift
                     </span>
                   </div>
@@ -1303,10 +1301,10 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
                 {/* Quick Reassign Dropdown */}
                 <div style={{ marginTop: 12 }}>
-                  <label style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
                     Reassign to another worker:
                   </label>
-                  <select
+                  <select aria-label="Reassign to another worker:"
                     onChange={(e) => {
                       if (e.target.value) handleReassignWorker(selectedShift.id, e.target.value);
                     }}
@@ -1324,25 +1322,25 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               {/* Progress Note if exists */}
               {selectedShift.progress_notes && selectedShift.progress_notes.length > 0 && (
                 <div style={{
-                  background: selectedShift.progress_notes[0].incident_occurred ? '#FEF2F2' : '#F8FAFC',
-                  border: selectedShift.progress_notes[0].incident_occurred ? '1px solid #FECACA' : '1px solid #E2E8F0',
+                  background: selectedShift.progress_notes[0].incident_occurred ? 'var(--oc-danger-soft)' : 'var(--oc-background)',
+                  border: selectedShift.progress_notes[0].incident_occurred ? '1px solid #FECACA' : '1px solid var(--oc-border)',
                   borderRadius: 10,
                   padding: 14,
                   marginBottom: 20
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#0F172A', fontWeight: 800, fontSize: '0.88rem' }}>
-                      <FileText size={15} style={{ color: selectedShift.progress_notes[0].incident_occurred ? '#DC2626' : '#0284C7' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--oc-text)', fontWeight: 600, fontSize: '0.88rem' }}>
+                      <FileText size={15} style={{ color: selectedShift.progress_notes[0].incident_occurred ? 'var(--oc-danger)' : 'var(--oc-info)' }} />
                       <span>Shift Progress Note Logged</span>
                     </div>
                     {selectedShift.progress_notes[0].incident_occurred && (
                       <span style={{
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
                         padding: '2px 8px',
                         borderRadius: 6,
                         background: '#FEE2E2',
-                        color: '#DC2626',
+                        color: 'var(--oc-danger)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 4
@@ -1352,19 +1350,19 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: '0.85rem', color: '#334155', lineHeight: 1.5, margin: '0 0 8px' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)', lineHeight: 1.5, margin: '0 0 8px' }}>
                     &ldquo;{selectedShift.progress_notes[0].note_text}&rdquo;
                   </p>
                   {selectedShift.progress_notes[0].goals_supported && (
-                    <div style={{ fontSize: '0.78rem', color: '#64748B', marginBottom: 4 }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginBottom: 4 }}>
                       <strong>NDIS Goals:</strong> {selectedShift.progress_notes[0].goals_supported}
                     </div>
                   )}
                   {(selectedShift.progress_notes[0].incident || selectedShift.progress_notes[0].incident_id) && (
                     <div style={{
-                      fontSize: '0.78rem',
+                      fontSize: '0.8125rem',
                       color: '#B91C1C',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       marginTop: 8,
                       padding: '6px 10px',
                       borderRadius: 6,
@@ -1379,7 +1377,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                         <span>Linked Incident: <strong>{selectedShift.progress_notes[0].incident?.incident_reference || selectedShift.progress_notes[0].incident_id}</strong></span>
                       </div>
                       {selectedShift.progress_notes[0].incident?.status && (
-                        <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: 4, background: '#FEE2E2' }}>
+                        <span style={{ fontSize: '0.8125rem', padding: '1px 6px', borderRadius: 4, background: '#FEE2E2' }}>
                           {selectedShift.progress_notes[0].incident.status}
                         </span>
                       )}
@@ -1389,15 +1387,15 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               )}
 
               {/* Actions: Cancel Shift */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--oc-border)', paddingTop: 16 }}>
                 <button
                   onClick={() => handleDeleteShift(selectedShift.id)}
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#DC2626',
+                    color: 'var(--oc-danger)',
                     fontSize: '0.85rem',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
@@ -1417,7 +1415,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 </button>
               </div>
             </div>
-          </div>
+          </DialogPanel>
         </div>
       )}
     </div>

@@ -1,5 +1,7 @@
 'use client';
 
+import { useFieldControl } from './FieldContext';
+
 import React, { forwardRef } from 'react';
 import { Calendar } from 'lucide-react';
 
@@ -11,9 +13,11 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
   { className = '', error, ...props },
   ref
 ) {
+  const field = useFieldControl();
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       <input
+        {...field}
         ref={ref}
         type="date"
         className={`crmFormInput ${error ? 'hasError' : ''} ${className}`}
@@ -27,7 +31,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
           right: 12,
           top: '50%',
           transform: 'translateY(-50%)',
-          color: '#64748B',
+          color: 'var(--oc-muted)',
           pointerEvents: 'none',
         }}
       />

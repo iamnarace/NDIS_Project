@@ -1,5 +1,7 @@
 'use client';
 
+import { useFieldControl } from './FieldContext';
+
 import React, { forwardRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 
@@ -20,9 +22,11 @@ export const SmartSelect = forwardRef<HTMLSelectElement, SmartSelectProps>(funct
   { options, error, placeholder, className = '', ...props },
   ref
 ) {
+  const field = useFieldControl();
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       <select
+        {...field}
         ref={ref}
         className={`crmFormSelect ${error ? 'hasError' : ''} ${className}`}
         style={{
@@ -47,7 +51,7 @@ export const SmartSelect = forwardRef<HTMLSelectElement, SmartSelectProps>(funct
           right: 12,
           top: '50%',
           transform: 'translateY(-50%)',
-          color: '#64748B',
+          color: 'var(--oc-muted)',
           pointerEvents: 'none',
         }}
       />

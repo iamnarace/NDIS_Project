@@ -1,5 +1,7 @@
 'use client';
 
+import useDialogFocus from '@/components/ui/useDialogFocus';
+
 import React, { useState } from 'react';
 import { X, UserCheck, ArrowRight, ArrowLeft, Check, ShieldCheck, Briefcase } from 'lucide-react';
 import {
@@ -32,6 +34,7 @@ const HUB_SUBURBS = [
 ];
 
 export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalProps) {
+  const dialogRef = useDialogFocus(onClose);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -159,7 +162,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
   return (
     <div className="crmModalOverlay" onClick={onClose}>
       <div
-        className="crmModalBox"
+        className="crmModalBox" ref={dialogRef} role="dialog" aria-modal="true" aria-label="Add worker" tabIndex={-1}
         style={{ maxWidth: 740, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -181,15 +184,14 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
               <UserCheck size={20} />
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 WORKFORCE ONBOARDING
               </span>
               <h3 className="crmSectionTitle" style={{ margin: 0 }}>Register Support Worker</h3>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 4 }}
+          <button type="button" aria-label="Close dialog" onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', padding: 4 }}
           >
             <X size={20} />
           </button>
@@ -217,7 +219,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 1: Personal Details</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Basic identity and contact information for roster communications and emergency contacts.
                 </p>
               </div>
@@ -232,7 +234,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
                 />
               </FormField>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <FormField label="Mobile Phone" required id="wPhone">
                   <TextInput
                     id="wPhone"
@@ -269,12 +271,12 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 2: Engagement Type</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Select whether the worker is engaged as an employee or independent subcontractor.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <RadioCard
                   selected={engagementType === 'employee'}
                   onSelect={() => setEngagementType('employee')}
@@ -312,12 +314,12 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 3: Role & Rates</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Define position classification, agreed base hourly billing rate, and operational coverage areas.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 14 }}>
                 <FormField label="Position / Role" required>
                   <SmartSelect
                     value={role}
@@ -359,9 +361,9 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
                         style={{
                           padding: '6px 12px',
                           borderRadius: 20,
-                          border: active ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
-                          background: active ? '#F0F9FF' : '#FFFFFF',
-                          color: active ? '#0284C7' : '#475569',
+                          border: active ? '1.5px solid var(--oc-info)' : '1px solid var(--oc-border)',
+                          background: active ? '#F0F9FF' : 'var(--oc-surface)',
+                          color: active ? 'var(--oc-info)' : 'var(--oc-secondary)',
                           fontWeight: active ? 600 : 500,
                           fontSize: '0.8125rem',
                           cursor: 'pointer',
@@ -382,7 +384,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Compliance Credentials & Clearances</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Record mandatory safeguarding clearances with expiry tracking for automated roster compliance checks.
                 </p>
               </div>
@@ -428,7 +430,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 5: Review & Register Support Worker</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Confirm worker profile and credentials before registering into the active roster.
                 </p>
               </div>
@@ -485,8 +487,8 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
         <div
           style={{
             padding: '14px 24px',
-            borderTop: '1px solid #E2E8F0',
-            background: '#F8FAFC',
+            borderTop: '1px solid var(--oc-border)',
+            background: 'var(--oc-background)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

@@ -21,7 +21,7 @@ export default function CrmPillButton({
   }[size];
 
   const variantClasses = {
-    primary: 'bg-[#0F172A] text-white hover:bg-black shadow-sm active:scale-95',
+    primary: 'bg-[var(--oc-text)] text-white hover:bg-black shadow-sm active:scale-95',
     outline: 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:scale-95',
     secondary: 'bg-[#ECEEF2] text-slate-800 hover:bg-slate-200 active:scale-95',
     tinted: 'bg-teal-50 text-teal-700 border border-teal-200/80 hover:bg-teal-100 active:scale-95',

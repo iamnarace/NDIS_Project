@@ -11,8 +11,8 @@ export interface InlineValidationProps {
 
 export function InlineValidation({ type = 'error', message, description }: InlineValidationProps) {
   const styles = {
-    error: { bg: '#FEF2F2', border: '#FCA5A5', color: '#991B1B', icon: <AlertCircle size={16} /> },
-    warning: { bg: '#FFFBEB', border: '#FDE68A', color: '#92400E', icon: <AlertTriangle size={16} /> },
+    error: { bg: 'var(--oc-danger-soft)', border: '#FCA5A5', color: '#991B1B', icon: <AlertCircle size={16} /> },
+    warning: { bg: 'var(--oc-warning-soft)', border: '#FDE68A', color: '#92400E', icon: <AlertTriangle size={16} /> },
     success: { bg: '#ECFDF5', border: '#A7F3D0', color: '#065F46', icon: <CheckCircle2 size={16} /> },
     info: { bg: '#F0F9FF', border: '#BAE6FD', color: '#0369A1', icon: <Info size={16} /> },
   }[type];

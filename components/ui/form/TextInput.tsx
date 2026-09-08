@@ -1,5 +1,7 @@
 'use client';
 
+import { useFieldControl } from './FieldContext';
+
 import React, { forwardRef } from 'react';
 
 export interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -12,6 +14,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
   { className = '', error, leftIcon, rightIcon, ...props },
   ref
 ) {
+  const field = useFieldControl();
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
       {leftIcon && (
@@ -21,7 +24,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
             left: 14,
             display: 'flex',
             alignItems: 'center',
-            color: '#64748B',
+            color: 'var(--oc-muted)',
             pointerEvents: 'none',
           }}
         >
@@ -29,6 +32,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
         </span>
       )}
       <input
+        {...field}
         ref={ref}
         className={`crmFormInput ${error ? 'hasError' : ''} ${className}`}
         style={{
@@ -44,7 +48,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
             right: 14,
             display: 'flex',
             alignItems: 'center',
-            color: '#64748B',
+            color: 'var(--oc-muted)',
           }}
         >
           {rightIcon}

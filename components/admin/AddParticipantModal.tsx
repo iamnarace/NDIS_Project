@@ -1,5 +1,7 @@
 'use client';
 
+import useDialogFocus from '@/components/ui/useDialogFocus';
+
 import React, { useState } from 'react';
 import { X, UserPlus, ArrowRight, ArrowLeft, Check, CheckCircle2 } from 'lucide-react';
 import {
@@ -28,6 +30,7 @@ const WIZARD_STEPS = [
 ];
 
 export default function AddParticipantModal({ onClose, onCreated }: AddParticipantModalProps) {
+  const dialogRef = useDialogFocus(onClose);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -142,7 +145,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
   return (
     <div className="crmModalOverlay" onClick={onClose}>
       <div
-        className="crmModalBox"
+        className="crmModalBox" ref={dialogRef} role="dialog" aria-modal="true" aria-label="Add participant" tabIndex={-1}
         style={{ maxWidth: 740, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -158,21 +161,20 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#0284C7',
+                color: 'var(--oc-info)',
               }}
             >
               <UserPlus size={20} />
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 INTAKE & ONBOARDING
               </span>
               <h3 className="crmSectionTitle" style={{ margin: 0 }}>Add NDIS Participant</h3>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 4 }}
+          <button type="button" aria-label="Close dialog" onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', padding: 4 }}
           >
             <X size={20} />
           </button>
@@ -200,12 +202,12 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 1: Personal Details</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Enter the participant legal identification and direct contact details.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <FormField label="Full Legal Name" required id="pName">
                   <TextInput
                     id="pName"
@@ -226,7 +228,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 </FormField>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
                 <FormField label="Date of Birth" id="pDob">
                   <DatePicker
                     id="pDob"
@@ -263,7 +265,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 2: Service Area & Location</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Verify whether the participant resides within Opus Care primary support coverage (Clarence Valley, Coffs Coast, Richmond Valley, Ballina).
                 </p>
               </div>
@@ -298,14 +300,14 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 3: NDIS Funding & Plan Management</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Opus Care supports Plan-Managed and Self-Managed participants with immediate capacity.
                 </p>
               </div>
 
               <div>
                 <label className="crmFormLabel">NDIS Management Model *</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                   <RadioCard
                     selected={fundingType === 'Plan-Managed'}
                     onSelect={() => setFundingType('Plan-Managed')}
@@ -344,7 +346,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0369A1' }}>
                     Plan Management Provider Invoicing Details
                   </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <FormField label="Plan Manager Organization / Contact">
                       <TextInput
                         value={planManagerName}
@@ -364,7 +366,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <FormField label="Allocated Weekly Hours" hint="Target scheduled hours per week">
                   <TextInput
                     type="number"
@@ -392,7 +394,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Primary Contact & Nominee</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Key stakeholders, emergency contacts, or Support Coordinator for rostering and care coordination.
                 </p>
               </div>
@@ -405,7 +407,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 />
               </FormField>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 <FormField label="Emergency Contact Name">
                   <TextInput
                     value={emergencyContactName}
@@ -439,7 +441,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 5: Review & Create Participant</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Confirm participant profile details before provisioning into the Opus Care CRM.
                 </p>
               </div>
@@ -479,7 +481,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 ]}
               />
 
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 14 }}>
+              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: 14 }}>
                 <Checkbox
                   checked={completeProfileLater}
                   onChange={setCompleteProfileLater}
@@ -495,8 +497,8 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
         <div
           style={{
             padding: '14px 24px',
-            borderTop: '1px solid #E2E8F0',
-            background: '#F8FAFC',
+            borderTop: '1px solid var(--oc-border)',
+            background: 'var(--oc-background)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

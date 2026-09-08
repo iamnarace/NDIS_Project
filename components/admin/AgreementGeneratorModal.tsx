@@ -1,5 +1,7 @@
 'use client';
 
+import useDialogFocus from '@/components/ui/useDialogFocus';
+
 import React, { useState, useMemo, useRef } from 'react';
 import { 
   X, Check, AlertTriangle, Shield, FileText, ArrowRight, ArrowLeft, 
@@ -41,6 +43,7 @@ export default function AgreementGeneratorModal({
   initialTemplateCode = 'PACK-PART-01',
   variationOf = null,
 }: AgreementGeneratorModalProps) {
+  const dialogRef = useDialogFocus(onClose);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(variationOf ? 3 : 1);
   const [selectedTemplate, setSelectedTemplate] = useState<string>(
     variationOf ? variationOf.template?.template_code || 'DOC-PART-01' : initialTemplateCode
@@ -369,14 +372,14 @@ export default function AgreementGeneratorModal({
   return (
     <div className="crmModalOverlay" onClick={onClose}>
       <div
-        className="crmModalBox"
+        className="crmModalBox" ref={dialogRef} role="dialog" aria-modal="true" aria-label="New agreement" tabIndex={-1}
         style={{ maxWidth: 840, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="crmModalHeader" style={{ flexShrink: 0 }}>
           <div>
-            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {variationOf ? `AGREEMENT VARIATION (v${variationOf.version_number + 1})` : 'OPUS CARE AGREEMENT ENGINE'}
             </span>
             <h3 className="crmSectionTitle" style={{ margin: 0 }}>
@@ -386,7 +389,7 @@ export default function AgreementGeneratorModal({
               {step === 4 && 'Step 4: Review & Sign'}
             </h3>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 4 }}>
+          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', padding: 4 }}>
             <X size={20} />
           </button>
         </div>
@@ -418,12 +421,12 @@ export default function AgreementGeneratorModal({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>All-in-One Onboarding Packs</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Recommended: Generate a comprehensive compliance pack bundled with all statutory consents.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <RadioCard
                   selected={selectedTemplate === 'PACK-PART-01'}
                   onSelect={() => {
@@ -451,12 +454,12 @@ export default function AgreementGeneratorModal({
 
               <div style={{ marginTop: 6 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Standalone Contracts & Schedules</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Generate individual legally binding schedules or employment agreements.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
                 {[
                   { code: 'DOC-PART-01', title: 'NDIS Service Agreement', cat: 'participant', desc: 'Standard terms, rights, cancellations' },
                   { code: 'DOC-PART-02', title: 'Schedule of Supports', cat: 'participant', desc: 'Itemised lines, agreed prices, hours' },
@@ -472,17 +475,17 @@ export default function AgreementGeneratorModal({
                         setOwnerType(item.cat as any);
                       }}
                       style={{
-                        border: active ? '2px solid #0284C7' : '1.5px solid #E2E8F0',
-                        background: active ? '#F0F9FF' : '#FFFFFF',
+                        border: active ? '2px solid var(--oc-info)' : '1.5px solid var(--oc-border)',
+                        background: active ? '#F0F9FF' : 'var(--oc-surface)',
                         borderRadius: 8,
                         padding: 12,
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#0284C7' }}>{item.code}</span>
-                      <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0F172A', margin: '2px 0' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{item.desc}</div>
+                      <span style={{ fontSize: '0.8125rem', fontFamily: 'monospace', fontWeight: 600, color: 'var(--oc-info)' }}>{item.code}</span>
+                      <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--oc-text)', margin: '2px 0' }}>{item.title}</div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>{item.desc}</div>
                     </div>
                   );
                 })}
@@ -497,7 +500,7 @@ export default function AgreementGeneratorModal({
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>
                   Select {ownerType === 'participant' ? 'Participant' : 'Support Worker / Contractor'}
                 </h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Selecting a registered record pulls their verified database UUID, contact info, and pricing profile.
                 </p>
               </div>
@@ -505,7 +508,7 @@ export default function AgreementGeneratorModal({
               {ownerType === 'participant' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <FormField label="Choose Registered Participant from Directory *" hint="Populates official NDIS numbers and funding details">
-                    <select
+                    <select aria-label="-- Select Participant from Directory --"
                       value={selectedOwnerId}
                       onChange={(e) => handleOwnerChange(e.target.value)}
                       className="crmFormSelect"
@@ -519,7 +522,7 @@ export default function AgreementGeneratorModal({
                     </select>
                   </FormField>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <FormField label="Participant Legal Full Name *" required>
                       <TextInput
                         value={recipientName}
@@ -540,7 +543,7 @@ export default function AgreementGeneratorModal({
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <FormField label="Choose Support Worker from Team *" hint="Guarantees valid worker UUID foreign key binding">
-                    <select
+                    <select aria-label="-- Select Worker from Register --"
                       value={selectedOwnerId}
                       onChange={(e) => handleOwnerChange(e.target.value)}
                       className="crmFormSelect"
@@ -572,9 +575,9 @@ export default function AgreementGeneratorModal({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* SHAM CONTRACTING WARNING GATE FOR CONTRACTORS */}
               {selectedTemplate === 'DOC-CTR-01' && (
-                <div style={{ background: '#FEF2F2', border: '1.5px solid #F87171', borderRadius: 10, padding: 16 }}>
+                <div style={{ background: 'var(--oc-danger-soft)', border: '1.5px solid #F87171', borderRadius: 10, padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <AlertTriangle size={18} style={{ color: '#DC2626' }} />
+                    <AlertTriangle size={18} style={{ color: 'var(--oc-danger)' }} />
                     <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#991B1B' }}>
                       Independent Contractor Verification Gate
                     </span>
@@ -582,7 +585,7 @@ export default function AgreementGeneratorModal({
                   <p style={{ fontSize: '0.8125rem', color: '#7F1D1D', margin: '0 0 12px', lineHeight: 1.45 }}>
                     To prevent sham contracting under the Fair Work Act, verify all 4 criteria before issuing a subcontractor agreement:
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <Checkbox
                       checked={contractorChecks.independentBiz}
                       onChange={(v) => setContractorChecks({ ...contractorChecks, independentBiz: v })}
@@ -618,16 +621,16 @@ export default function AgreementGeneratorModal({
                       type="button"
                       onClick={addScheduleRow}
                       className="crmSecondaryBtn"
-                      style={{ minHeight: 34, padding: '4px 12px', fontSize: '0.8rem' }}
+                      style={{ minHeight: 34, padding: '4px 12px', fontSize: '0.8125rem' }}
                     >
                       + Add Service Line
                     </button>
                   </div>
 
-                  <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden', marginBottom: 14 }}>
+                  <div style={{ border: '1px solid var(--oc-border)', borderRadius: 8, overflow: 'hidden', marginBottom: 14 }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
                       <thead>
-                        <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#64748B' }}>
+                        <tr style={{ background: 'var(--oc-background)', borderBottom: '1px solid var(--oc-border)', textAlign: 'left', color: 'var(--oc-muted)' }}>
                           <th style={{ padding: '8px 12px' }}>NDIS Support Item</th>
                           <th style={{ padding: '8px 12px', width: 100 }}>Hours/Wk</th>
                           <th style={{ padding: '8px 12px', width: 110 }}>Agreed Rate</th>
@@ -683,7 +686,7 @@ export default function AgreementGeneratorModal({
                                   style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
                                 />
                               </td>
-                              <td style={{ padding: '6px 12px', fontWeight: 600, color: '#0F172A' }}>
+                              <td style={{ padding: '6px 12px', fontWeight: 600, color: 'var(--oc-text)' }}>
                                 ${weeklyTotal}
                               </td>
                               <td style={{ padding: '6px 12px' }}>
@@ -691,7 +694,7 @@ export default function AgreementGeneratorModal({
                                   <button
                                     type="button"
                                     onClick={() => removeScheduleRow(idx)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)' }}
                                   >
                                     <X size={14} />
                                   </button>
@@ -704,9 +707,9 @@ export default function AgreementGeneratorModal({
                     </table>
                   </div>
 
-                  <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Estimated Annual Budget Commitment (52 Weeks):</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>${totalAnnualBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <div style={{ background: 'var(--oc-background)', padding: '10px 14px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--oc-muted)' }}>Estimated Annual Budget Commitment (52 Weeks):</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-text)' }}>${totalAnnualBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   {/* Consents */}
@@ -730,7 +733,7 @@ export default function AgreementGeneratorModal({
               {/* WORKER / CONTRACTOR TERMS */}
               {ownerType !== 'participant' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <FormField label="Classification / Award Level">
                       <TextInput
                         value={workerClassification}
@@ -740,7 +743,7 @@ export default function AgreementGeneratorModal({
                     </FormField>
 
                     <FormField label="Employment Basis">
-                      <select
+                      <select aria-label="Casual (25% loading included)"
                         value={workerBasis}
                         onChange={(e) => setWorkerBasis(e.target.value as any)}
                         className="crmFormSelect"
@@ -752,7 +755,7 @@ export default function AgreementGeneratorModal({
                     </FormField>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <FormField label="Base Hourly Rate ($ AUD)" required>
                       <TextInput
                         type="number"
@@ -782,7 +785,7 @@ export default function AgreementGeneratorModal({
               )}
 
               {/* Dates */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 10 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 10 }}>
                 <FormField label="Commencement Date" required>
                   <DatePicker
                     value={commencementDate}
@@ -812,7 +815,7 @@ export default function AgreementGeneratorModal({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Review & Sign</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
                   Review agreement terms and complete execution with compliant digital signature.
                 </p>
               </div>
@@ -837,8 +840,8 @@ export default function AgreementGeneratorModal({
               {/* Digital Signature Canvas */}
               <div
                 style={{
-                  background: '#F8FAFC',
-                  border: '1.5px solid #CBD5E1',
+                  background: 'var(--oc-background)',
+                  border: '1.5px solid var(--oc-border)',
                   borderRadius: 10,
                   padding: 16,
                   display: 'flex',
@@ -848,8 +851,8 @@ export default function AgreementGeneratorModal({
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <PenTool size={18} style={{ color: '#0284C7' }} />
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0F172A' }}>
+                    <PenTool size={18} style={{ color: 'var(--oc-info)' }} />
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>
                       Digital Signature Canvas ({ownerType === 'participant' ? 'Participant / Guardian' : 'Support Worker'})
                     </span>
                   </div>
@@ -857,7 +860,7 @@ export default function AgreementGeneratorModal({
                     <button
                       type="button"
                       onClick={clearCanvas}
-                      style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '0.78rem', cursor: 'pointer' }}
+                      style={{ background: 'none', border: 'none', color: 'var(--oc-danger)', fontSize: '0.8125rem', cursor: 'pointer' }}
                     >
                       Clear Canvas
                     </button>
@@ -866,8 +869,8 @@ export default function AgreementGeneratorModal({
 
                 <div
                   style={{
-                    background: '#FFFFFF',
-                    border: '1.5px dashed #CBD5E1',
+                    background: 'var(--oc-surface)',
+                    border: '1.5px dashed var(--oc-border)',
                     borderRadius: 8,
                     overflow: 'hidden',
                     height: 140,
@@ -889,7 +892,7 @@ export default function AgreementGeneratorModal({
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <FormField label="Signatory Name">
                     <TextInput
                       value={signerName || recipientName}
@@ -914,8 +917,8 @@ export default function AgreementGeneratorModal({
         <div
           style={{
             padding: '14px 24px',
-            borderTop: '1px solid #E2E8F0',
-            background: '#F8FAFC',
+            borderTop: '1px solid var(--oc-border)',
+            background: 'var(--oc-background)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',

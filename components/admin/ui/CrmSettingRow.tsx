@@ -45,7 +45,7 @@ export default function CrmSettingRow({
         transition: 'background 0.15s ease',
       }}
       onMouseEnter={(e) => {
-        if (onClick) e.currentTarget.style.background = isDestructive ? '#FEF2F2' : '#F8FAFC';
+        if (onClick) e.currentTarget.style.background = isDestructive ? 'var(--oc-danger-soft)' : 'var(--oc-background)';
       }}
       onMouseLeave={(e) => {
         if (onClick) e.currentTarget.style.background = 'transparent';
@@ -58,9 +58,9 @@ export default function CrmSettingRow({
             width: 38,
             height: 38,
             borderRadius: 12,
-            background: isDestructive ? '#EF4444' : undefined,
-            color: isDestructive ? '#FFFFFF' : undefined,
-            borderColor: isDestructive ? '#DC2626' : undefined,
+            background: isDestructive ? 'var(--oc-danger)' : undefined,
+            color: isDestructive ? 'var(--oc-surface)' : undefined,
+            borderColor: isDestructive ? 'var(--oc-danger)' : undefined,
           }}
         >
           {icon}
@@ -70,8 +70,8 @@ export default function CrmSettingRow({
             style={{
               margin: 0,
               fontSize: '0.85rem',
-              fontWeight: 700,
-              color: isDestructive ? '#DC2626' : '#0F172A',
+              fontWeight: 600,
+              color: isDestructive ? 'var(--oc-danger)' : 'var(--oc-text)',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -83,8 +83,8 @@ export default function CrmSettingRow({
             <p
               style={{
                 margin: '1px 0 0',
-                fontSize: '0.72rem',
-                color: '#64748B',
+                fontSize: '0.8125rem',
+                color: 'var(--oc-muted)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -98,7 +98,7 @@ export default function CrmSettingRow({
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         {badge && (
-          <span style={{ padding: '2px 8px', borderRadius: 9999, fontSize: '0.7rem', fontWeight: 800, background: '#F1F5F9', color: '#475569' }}>
+          <span style={{ padding: '2px 8px', borderRadius: 9999, fontSize: '0.8125rem', fontWeight: 600, background: 'var(--oc-subtle)', color: 'var(--oc-secondary)' }}>
             {badge}
           </span>
         )}
@@ -117,7 +117,7 @@ export default function CrmSettingRow({
               width: 38,
               height: 22,
               borderRadius: 9999,
-              background: toggle.checked ? '#0F172A' : '#CBD5E1',
+              background: toggle.checked ? 'var(--oc-text)' : 'var(--oc-border)',
               border: 'none',
               cursor: 'pointer',
               transition: 'background 0.2s',
@@ -130,7 +130,7 @@ export default function CrmSettingRow({
                 width: 18,
                 height: 18,
                 borderRadius: '50%',
-                background: '#FFFFFF',
+                background: 'var(--oc-surface)',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                 transform: toggle.checked ? 'translateX(16px)' : 'translateX(0)',
                 transition: 'transform 0.2s',
@@ -142,7 +142,7 @@ export default function CrmSettingRow({
         {action}
 
         {onClick && !toggle && !action && (
-          <ChevronRight size={16} color="#94A3B8" />
+          <ChevronRight size={16} color="var(--oc-muted)" />
         )}
       </div>
     </div>

@@ -98,7 +98,7 @@ type TabType = 'overview' | 'goals' | 'funding' | 'schedule' | 'documents' | 'su
 const GOAL_CATEGORY_COLOURS: Record<string, string> = {
   'Daily Living': '#3B82F6',
   'Community Participation': '#8B5CF6',
-  'Employment': '#F59E0B',
+  'Employment': 'var(--oc-warning)',
   'Health & Wellbeing': '#10B981',
   'Social': '#EC4899',
   'Capacity Building': '#6366F1',
@@ -108,7 +108,7 @@ const GOAL_CATEGORY_COLOURS: Record<string, string> = {
 const GOAL_STATUS_LABELS: Record<string, { label: string; colour: string }> = {
   active: { label: 'In Progress', colour: '#3B82F6' },
   achieved: { label: 'Achieved ✓', colour: '#10B981' },
-  paused: { label: 'On Hold', colour: '#F59E0B' },
+  paused: { label: 'On Hold', colour: 'var(--oc-warning)' },
   discontinued: { label: 'Discontinued', colour: '#9CA3AF' },
 };
 
@@ -210,11 +210,11 @@ export default function ParticipantDashboardPage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#F1F5F9',
+        background: 'var(--oc-subtle)',
         gap: 16,
       }}>
         <RefreshCw size={32} style={{ color: '#3B82F6', animation: 'spin 1s linear infinite' }} />
-        <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>Loading your dashboard…</p>
+        <p style={{ color: 'var(--oc-muted)', fontSize: '0.95rem', margin: 0 }}>Loading your dashboard…</p>
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -229,12 +229,12 @@ export default function ParticipantDashboardPage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#F1F5F9',
+        background: 'var(--oc-subtle)',
         gap: 16,
         padding: '0 16px',
         textAlign: 'center',
       }}>
-        <AlertTriangle size={40} style={{ color: '#EF4444' }} />
+        <AlertTriangle size={40} style={{ color: 'var(--oc-danger)' }} />
         <p style={{ color: '#374151', fontSize: '1rem', margin: 0 }}>{error}</p>
         <button
           onClick={loadPortalData}
@@ -260,11 +260,11 @@ export default function ParticipantDashboardPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F1F5F9', fontFamily: 'var(--font-source-sans)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--oc-subtle)', fontFamily: 'var(--font-source-sans)' }}>
       {/* -- Top Header -- */}
-      <header style={{
-        background: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
+      <header className="ocPortalHeader" style={{
+        background: 'var(--oc-surface)',
+        borderBottom: '1px solid var(--oc-border)',
         padding: '0 20px',
         height: 60,
         display: 'flex',
@@ -287,12 +287,12 @@ export default function ParticipantDashboardPage() {
             />
           </Link>
           <span style={{
-            background: '#EFF6FF',
+            background: 'var(--oc-info-soft)',
             color: '#3B82F6',
             borderRadius: 20,
             padding: '2px 10px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
+            fontSize: '0.8125rem',
+            fontWeight: 600,
             letterSpacing: '0.04em',
           }}>
             PARTICIPANT PORTAL
@@ -307,7 +307,7 @@ export default function ParticipantDashboardPage() {
             title="Sign out"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: '1px solid #E2E8F0',
+              background: 'none', border: '1px solid var(--oc-border)',
               borderRadius: 8, padding: '6px 12px',
               cursor: 'pointer', color: '#6B7280', fontSize: '0.82rem',
               fontWeight: 500, transition: 'all 0.15s',
@@ -323,10 +323,10 @@ export default function ParticipantDashboardPage() {
 
         {/* -- Welcome Banner -- */}
         <div style={{
-          background: 'linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%)',
+          background: 'var(--oc-accent-hover)',
           borderRadius: 16,
           padding: '24px 28px',
-          color: '#FFFFFF',
+          color: 'var(--oc-surface)',
           marginBottom: 24,
           display: 'flex',
           justifyContent: 'space-between',
@@ -335,7 +335,7 @@ export default function ParticipantDashboardPage() {
           gap: 16,
         }}>
           <div>
-            <h1 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 700 }}>
+            <h1 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 600 }}>
               Welcome back, {participant?.full_name?.split(' ')[0] || profileName}
             </h1>
             <p style={{ margin: 0, opacity: 0.85, fontSize: '0.9rem' }}>
@@ -352,10 +352,10 @@ export default function ParticipantDashboardPage() {
               textAlign: 'center',
               backdropFilter: 'blur(4px)',
             }}>
-              <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: 2 }}>NDIS Plan</div>
-              <div style={{ fontSize: '1rem', fontWeight: 700 }}>Active</div>
+              <div style={{ fontSize: '0.8125rem', opacity: 0.8, marginBottom: 2 }}>NDIS Plan</div>
+              <div style={{ fontSize: '1rem', fontWeight: 600 }}>Active</div>
               {participant?.allocated_weekly_hours && (
-                <div style={{ fontSize: '0.78rem', opacity: 0.85 }}>
+                <div style={{ fontSize: '0.8125rem', opacity: 0.85 }}>
                   {participant.allocated_weekly_hours} hrs/week
                 </div>
               )}
@@ -366,7 +366,7 @@ export default function ParticipantDashboardPage() {
         {/* -- Emergency Alert (if medical_alert set) -- */}
         {participant?.medical_alert && (
           <div style={{
-            background: '#FEF2F2',
+            background: 'var(--oc-danger-soft)',
             border: '1px solid #FCA5A5',
             borderRadius: 10,
             padding: '12px 16px',
@@ -375,9 +375,9 @@ export default function ParticipantDashboardPage() {
             alignItems: 'flex-start',
             gap: 10,
           }}>
-            <AlertTriangle size={18} style={{ color: '#EF4444', flexShrink: 0, marginTop: 1 }} />
+            <AlertTriangle size={18} style={{ color: 'var(--oc-danger)', flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#991B1B', marginBottom: 2 }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#991B1B', marginBottom: 2 }}>
                 Medical Alert
               </div>
               <div style={{ fontSize: '0.85rem', color: '#B91C1C' }}>{participant.medical_alert}</div>
@@ -386,23 +386,23 @@ export default function ParticipantDashboardPage() {
         )}
 
         {/* -- KPI Strip -- */}
-        <div style={{
+        <div className="ocFormGrid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
           gap: 12,
           marginBottom: 24,
         }}>
           {[
-            { icon: <Target size={20} />, label: 'Active Goals', value: activeGoals, colour: '#3B82F6', bg: '#EFF6FF' },
-            { icon: <Star size={20} />, label: 'Goals Achieved', value: achievedGoals, colour: '#10B981', bg: '#F0FDF4' },
+            { icon: <Target size={20} />, label: 'Active Goals', value: activeGoals, colour: '#3B82F6', bg: 'var(--oc-info-soft)' },
+            { icon: <Star size={20} />, label: 'Goals Achieved', value: achievedGoals, colour: '#10B981', bg: 'var(--oc-success-soft)' },
             { icon: <Calendar size={20} />, label: 'Upcoming Shifts', value: upcomingShifts.length, colour: '#8B5CF6', bg: '#F5F3FF' },
-            { icon: <Clock size={20} />, label: 'Weekly Hours', value: participant?.allocated_weekly_hours ?? '—', colour: '#F59E0B', bg: '#FFFBEB' },
+            { icon: <Clock size={20} />, label: 'Weekly Hours', value: participant?.allocated_weekly_hours ?? '—', colour: 'var(--oc-warning)', bg: 'var(--oc-warning-soft)' },
           ].map((kpi, idx) => (
             <div key={idx} style={{
-              background: '#FFFFFF',
+              background: 'var(--oc-surface)',
               borderRadius: 12,
               padding: '16px',
-              border: '1px solid #F1F5F9',
+              border: '1px solid var(--oc-subtle)',
               boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
             }}>
               <div style={{
@@ -412,19 +412,19 @@ export default function ParticipantDashboardPage() {
               }}>
                 {kpi.icon}
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827', lineHeight: 1 }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111827', lineHeight: 1 }}>
                 {kpi.value}
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: 4 }}>{kpi.label}</div>
+              <div style={{ fontSize: '0.8125rem', color: '#6B7280', marginTop: 4 }}>{kpi.label}</div>
             </div>
           ))}
         </div>
 
         {/* -- Tab Navigation -- */}
         <div style={{
-          display: 'flex', gap: 4, background: '#FFFFFF',
+          display: 'flex', gap: 4, background: 'var(--oc-surface)',
           borderRadius: 10, padding: 4, marginBottom: 20,
-          border: '1px solid #E2E8F0',
+          border: '1px solid var(--oc-border)',
           overflowX: 'auto',
         }}>
           {([
@@ -443,8 +443,8 @@ export default function ParticipantDashboardPage() {
                 padding: '8px 16px', borderRadius: 7, border: 'none',
                 cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
                 transition: 'all 0.15s', whiteSpace: 'nowrap',
-                background: activeTab === tab.id ? '#1E40AF' : 'transparent',
-                color: activeTab === tab.id ? '#FFFFFF' : '#6B7280',
+                background: activeTab === tab.id ? 'var(--oc-accent)' : 'transparent',
+                color: activeTab === tab.id ? 'var(--oc-surface)' : '#6B7280',
               }}
             >
               {tab.icon}
@@ -455,13 +455,13 @@ export default function ParticipantDashboardPage() {
 
         {/* -- Tab: Overview -- */}
         {activeTab === 'overview' && (
-          <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
+          <div className="ocFormGrid" style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
             {/* Profile Card */}
-            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', gridColumn: '1 / -1' }}>
+            <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 20, border: '1px solid var(--oc-subtle)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, fontWeight: 600, fontSize: '0.95rem', color: '#111827' }}>
                 <User size={18} style={{ color: '#3B82F6' }} /> My Details
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                 {[
                   { label: 'Full Name', value: participant?.full_name },
                   { label: 'NDIS Number', value: participant?.ndis_number || 'Not recorded' },
@@ -473,7 +473,7 @@ export default function ParticipantDashboardPage() {
                   { label: 'Support Coordinator', value: participant?.support_coordinator_name || 'Not assigned' },
                 ].map((field, idx) => field.value ? (
                   <div key={idx}>
-                    <div style={{ fontSize: '0.73rem', color: '#9CA3AF', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       {field.label}
                     </div>
                     <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{field.value}</div>
@@ -485,7 +485,7 @@ export default function ParticipantDashboardPage() {
             {/* Emergency Contact */}
             <div style={{ background: '#FFF7ED', borderRadius: 12, padding: 20, border: '1px solid #FED7AA', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, fontWeight: 600, fontSize: '0.95rem', color: '#92400E' }}>
-                <AlertTriangle size={18} style={{ color: '#F59E0B' }} /> Emergency Contact
+                <AlertTriangle size={18} style={{ color: 'var(--oc-warning)' }} /> Emergency Contact
               </div>
               {participant?.emergency_contact_name ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -498,7 +498,7 @@ export default function ParticipantDashboardPage() {
                     )}
                   </div>
                   {participant.emergency_contact_phone && (
-                    <a href={`tel:${participant.emergency_contact_phone}`} style={{ color: '#1E40AF', fontWeight: 600, textDecoration: 'none', fontSize: '1rem' }}>
+                    <a href={`tel:${participant.emergency_contact_phone}`} style={{ color: 'var(--oc-accent)', fontWeight: 600, textDecoration: 'none', fontSize: '1rem' }}>
                       📞 {participant.emergency_contact_phone}
                     </a>
                   )}
@@ -540,17 +540,17 @@ export default function ParticipantDashboardPage() {
             </div>
 
             {/* Live Tracked Funding Utilisation Card */}
-            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', gridColumn: '1 / -1' }}>
+            <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 20, border: '1px solid var(--oc-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', gridColumn: '1 / -1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 8, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--oc-info-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--oc-info)' }}>
                     <DollarSign size={18} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                       Opus Care Tracked Budget Utilisation
                     </h3>
-                    <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748B' }}>
+                    <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                       Delivered services and invoiced supports tracked against your active NDIS agreement
                     </p>
                   </div>
@@ -559,8 +559,8 @@ export default function ParticipantDashboardPage() {
                   type="button"
                   onClick={() => setActiveTab('funding')}
                   style={{
-                    background: '#EFF6FF', color: '#1E40AF', border: '1px solid #BFDBFE',
-                    borderRadius: 6, padding: '5px 12px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                    background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', border: '1px solid #BFDBFE',
+                    borderRadius: 6, padding: '5px 12px', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
                   }}
                 >
                   View Breakdown &rarr;
@@ -568,34 +568,34 @@ export default function ParticipantDashboardPage() {
               </div>
 
               {fundingPeriods.length === 0 ? (
-                <div style={{ background: '#F8FAFC', borderRadius: 8, padding: 16, textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--oc-background)', borderRadius: 8, padding: 16, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
                   No active funding period allocated yet. Once your Service Agreement and Support Schedule are sealed, tracked utilisation will be displayed here.
                 </div>
               ) : (
                 fundingPeriods.map((period: any) => (
                   <div key={period.id} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Total Budget</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', marginTop: 2 }}>
+                    <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                      <div style={{ background: 'var(--oc-background)', borderRadius: 8, padding: '10px 12px', border: '1px solid var(--oc-subtle)' }}>
+                        <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600 }}>Total Budget</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
                           ${(period.total_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                       </div>
-                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Delivered to Date</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0284C7', marginTop: 2 }}>
+                      <div style={{ background: 'var(--oc-background)', borderRadius: 8, padding: '10px 12px', border: '1px solid var(--oc-subtle)' }}>
+                        <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600 }}>Delivered to Date</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-info)', marginTop: 2 }}>
                           ${(period.total_delivered || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                       </div>
-                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Invoiced</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#16A34A', marginTop: 2 }}>
+                      <div style={{ background: 'var(--oc-background)', borderRadius: 8, padding: '10px 12px', border: '1px solid var(--oc-subtle)' }}>
+                        <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600 }}>Invoiced</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-success)', marginTop: 2 }}>
                           ${(period.total_invoiced || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                       </div>
-                      <div style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 12px', border: '1px solid #F1F5F9' }}>
-                        <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Remaining Tracked</div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#059669', marginTop: 2 }}>
+                      <div style={{ background: 'var(--oc-background)', borderRadius: 8, padding: '10px 12px', border: '1px solid var(--oc-subtle)' }}>
+                        <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600 }}>Remaining Tracked</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#059669', marginTop: 2 }}>
                           ${(period.total_remaining || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                       </div>
@@ -603,16 +603,16 @@ export default function ParticipantDashboardPage() {
 
                     {/* Overall Progress Bar */}
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', marginBottom: 4 }}>
                         <span>Overall Opus Care Utilisation</span>
                         <span>{(period.overall_pct || 0).toFixed(1)}%</span>
                       </div>
-                      <div style={{ height: 8, background: '#E2E8F0', borderRadius: 9999, overflow: 'hidden' }}>
+                      <div style={{ height: 8, background: 'var(--oc-border)', borderRadius: 9999, overflow: 'hidden' }}>
                         <div
                           style={{
                             height: '100%',
                             width: `${Math.min(period.overall_pct || 0, 100)}%`,
-                            background: period.overall_pct > 90 ? '#E11D48' : period.overall_pct > 75 ? '#F59E0B' : '#2563EB',
+                            background: period.overall_pct > 90 ? '#E11D48' : period.overall_pct > 75 ? 'var(--oc-warning)' : 'var(--oc-info)',
                             borderRadius: 9999,
                             transition: 'width 0.3s ease',
                           }}
@@ -629,39 +629,39 @@ export default function ParticipantDashboardPage() {
         {/* -- Tab: Funding & Budgets -- */}
         {activeTab === 'funding' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 20, border: '1px solid var(--oc-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
-                  <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>
+                  <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                     Funding Tracking & Budgets
                   </h2>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B' }}>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                     Live visibility into Core, Capacity Building, and Capital budgets delivered by Opus Care.
                   </p>
                 </div>
               </div>
 
               {fundingPeriods.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>
-                  <DollarSign size={40} style={{ color: '#CBD5E1', marginBottom: 10 }} />
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748B' }}>
+                <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--oc-muted)' }}>
+                  <DollarSign size={40} style={{ color: 'var(--oc-border)', marginBottom: 10 }} />
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--oc-muted)' }}>
                     No active funding periods recorded yet. Please contact your Opus Care coordinator.
                   </p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   {fundingPeriods.map((period: any) => (
-                    <div key={period.id} style={{ border: '1px solid #E2E8F0', borderRadius: 10, padding: 18, background: '#FAFAFA' }}>
+                    <div key={period.id} style={{ border: '1px solid var(--oc-border)', borderRadius: 10, padding: 18, background: '#FAFAFA' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
                         <div>
-                          <strong style={{ fontSize: '1rem', color: '#0F172A' }}>
+                          <strong style={{ fontSize: '1rem', color: 'var(--oc-text)' }}>
                             Plan Period: {new Date(period.plan_start).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })} – {new Date(period.plan_end).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </strong>
-                          <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>
                             Total Agreement Value: ${(period.total_budget || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </div>
                         </div>
-                        <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '3px 12px', borderRadius: 9999, fontSize: '0.78rem', fontWeight: 700 }}>
+                        <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '3px 12px', borderRadius: 9999, fontSize: '0.8125rem', fontWeight: 600 }}>
                           {(period.overall_pct || 0).toFixed(1)}% Utilised
                         </span>
                       </div>
@@ -670,25 +670,25 @@ export default function ParticipantDashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {(period.budgets || []).map((b: any) => {
                           const catColors: Record<string, string> = {
-                            Core: '#2563EB',
+                            Core: 'var(--oc-info)',
                             'Capacity Building': '#7C3AED',
-                            Capital: '#0D9488',
+                            Capital: 'var(--oc-accent)',
                           };
-                          const barColor = catColors[b.support_category] || '#2563EB';
+                          const barColor = catColors[b.support_category] || 'var(--oc-info)';
                           return (
-                            <div key={b.id || b.support_category} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, padding: '12px 14px' }}>
+                            <div key={b.id || b.support_category} style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '12px 14px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                                <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0F172A' }}>
+                                <span style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--oc-text)' }}>
                                   {b.support_category} Supports
                                 </span>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)' }}>
                                   ${(b.delivered_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} / ${(b.budget_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                 </span>
                               </div>
-                              <div style={{ height: 6, background: '#F1F5F9', borderRadius: 9999, overflow: 'hidden', marginBottom: 6 }}>
+                              <div style={{ height: 6, background: 'var(--oc-subtle)', borderRadius: 9999, overflow: 'hidden', marginBottom: 6 }}>
                                 <div style={{ height: '100%', width: `${Math.min(b.utilised_pct || 0, 100)}%`, background: barColor, borderRadius: 9999 }} />
                               </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748B' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                                 <span>Invoiced: ${(b.invoiced_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 <span>Remaining: ${(b.remaining_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} ({(b.utilised_pct || 0).toFixed(1)}%)</span>
                               </div>
@@ -702,7 +702,7 @@ export default function ParticipantDashboardPage() {
               )}
 
               {/* Informative Note */}
-              <div style={{ marginTop: 18, background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '12px 16px', fontSize: '0.8rem', color: '#1E40AF', lineHeight: 1.5 }}>
+              <div style={{ marginTop: 18, background: 'var(--oc-info-soft)', border: '1px solid #BFDBFE', borderRadius: 8, padding: '12px 16px', fontSize: '0.8125rem', color: 'var(--oc-accent)', lineHeight: 1.5 }}>
                 <strong>Opus Care Tracked Utilisation Notice:</strong> This breakdown reflects support delivered and invoiced directly through Opus Care. Official overall NDIS plan balances (including services provided by third parties or plan management fees) are maintained within the NDIA myplace / PACE portal.
               </div>
             </div>
@@ -712,11 +712,11 @@ export default function ParticipantDashboardPage() {
           <div>
             {goals.length === 0 ? (
               <div style={{
-                background: '#FFFFFF', borderRadius: 12, padding: '48px 24px',
-                textAlign: 'center', border: '1px solid #F1F5F9',
+                background: 'var(--oc-surface)', borderRadius: 12, padding: '48px 24px',
+                textAlign: 'center', border: '1px solid var(--oc-subtle)',
               }}>
-                <Target size={40} style={{ color: '#CBD5E1', marginBottom: 12 }} />
-                <p style={{ color: '#94A3B8', margin: 0, fontSize: '0.95rem' }}>
+                <Target size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
+                <p style={{ color: 'var(--oc-muted)', margin: 0, fontSize: '0.95rem' }}>
                   No goals have been added yet. Your support team will add goals to your plan.
                 </p>
               </div>
@@ -727,8 +727,8 @@ export default function ParticipantDashboardPage() {
                   const catColour = GOAL_CATEGORY_COLOURS[goal.category] || '#6B7280';
                   return (
                     <div key={goal.id} style={{
-                      background: '#FFFFFF', borderRadius: 12, padding: 20,
-                      border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                      background: 'var(--oc-surface)', borderRadius: 12, padding: 20,
+                      border: '1px solid var(--oc-subtle)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                       borderLeft: `4px solid ${catColour}`,
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
@@ -744,14 +744,14 @@ export default function ParticipantDashboardPage() {
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                             <span style={{
                               display: 'inline-block', borderRadius: 20, padding: '2px 10px',
-                              fontSize: '0.75rem', fontWeight: 600, background: `${catColour}18`, color: catColour,
+                              fontSize: '0.8125rem', fontWeight: 600, background: `${catColour}18`, color: catColour,
                             }}>
                               {goal.category}
                             </span>
                             {goal.ndis_domain && (
                               <span style={{
                                 display: 'inline-block', borderRadius: 20, padding: '2px 10px',
-                                fontSize: '0.75rem', fontWeight: 500, background: '#F3F4F6', color: '#6B7280',
+                                fontSize: '0.8125rem', fontWeight: 500, background: '#F3F4F6', color: '#6B7280',
                               }}>
                                 {goal.ndis_domain}
                               </span>
@@ -761,13 +761,13 @@ export default function ParticipantDashboardPage() {
                         <div style={{ textAlign: 'right' }}>
                           <span style={{
                             display: 'inline-block', borderRadius: 20, padding: '4px 12px',
-                            fontSize: '0.78rem', fontWeight: 700,
+                            fontSize: '0.8125rem', fontWeight: 600,
                             background: `${statusInfo.colour}18`, color: statusInfo.colour,
                           }}>
                             {statusInfo.label}
                           </span>
                           {goal.target_date && (
-                            <div style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: 6 }}>
+                            <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', marginTop: 6 }}>
                               Target: {new Date(goal.target_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </div>
                           )}
@@ -786,12 +786,12 @@ export default function ParticipantDashboardPage() {
           <div>
             {upcomingShifts.length === 0 ? (
               <div style={{
-                background: '#FFFFFF', borderRadius: 12, padding: '48px 24px',
-                textAlign: 'center', border: '1px solid #F1F5F9',
+                background: 'var(--oc-surface)', borderRadius: 12, padding: '48px 24px',
+                textAlign: 'center', border: '1px solid var(--oc-subtle)',
               }}>
-                <Calendar size={40} style={{ color: '#CBD5E1', marginBottom: 12 }} />
-                <p style={{ color: '#94A3B8', margin: 0 }}>No upcoming scheduled supports.</p>
-                <p style={{ color: '#94A3B8', margin: '8px 0 0', fontSize: '0.85rem' }}>
+                <Calendar size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
+                <p style={{ color: 'var(--oc-muted)', margin: 0 }}>No upcoming scheduled supports.</p>
+                <p style={{ color: 'var(--oc-muted)', margin: '8px 0 0', fontSize: '0.85rem' }}>
                   Contact Opus Care at{' '}
                   <a href="mailto:support@opuscare.com.au" style={{ color: '#3B82F6' }}>
                     support@opuscare.com.au
@@ -803,8 +803,8 @@ export default function ParticipantDashboardPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {upcomingShifts.map((shift) => (
                   <div key={shift.id} style={{
-                    background: '#FFFFFF', borderRadius: 12, padding: '16px 20px',
-                    border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                    background: 'var(--oc-surface)', borderRadius: 12, padding: '16px 20px',
+                    border: '1px solid var(--oc-subtle)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
                   }}>
                     <div>
@@ -835,9 +835,9 @@ export default function ParticipantDashboardPage() {
                       )}
                     </div>
                     <span style={{
-                      padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
-                      background: shift.status === 'confirmed' ? '#F0FDF4' : '#FFF7ED',
-                      color: shift.status === 'confirmed' ? '#16A34A' : '#D97706',
+                      padding: '4px 12px', borderRadius: 20, fontSize: '0.8125rem', fontWeight: 600,
+                      background: shift.status === 'confirmed' ? 'var(--oc-success-soft)' : '#FFF7ED',
+                      color: shift.status === 'confirmed' ? 'var(--oc-success)' : 'var(--oc-warning)',
                     }}>
                       {shift.status === 'confirmed' ? '✓ Confirmed' : shift.status || 'Scheduled'}
                     </span>
@@ -850,10 +850,10 @@ export default function ParticipantDashboardPage() {
 
         {/* -- Tab: Documents -- */}
         {activeTab === 'documents' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: '32px 24px', textAlign: 'center', border: '1px solid #F1F5F9' }}>
-            <FileText size={40} style={{ color: '#CBD5E1', marginBottom: 12 }} />
+          <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: '32px 24px', textAlign: 'center', border: '1px solid var(--oc-subtle)' }}>
+            <FileText size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
             <h3 style={{ color: '#374151', margin: '0 0 8px', fontSize: '1rem' }}>Document access coming soon</h3>
-            <p style={{ color: '#94A3B8', fontSize: '0.88rem', margin: '0 0 16px' }}>
+            <p style={{ color: 'var(--oc-muted)', fontSize: '0.88rem', margin: '0 0 16px' }}>
               Your service agreements, progress notes and plans will appear here.
             </p>
             <a href="mailto:support@opuscare.com.au?subject=Document Request" style={{
@@ -871,51 +871,51 @@ export default function ParticipantDashboardPage() {
         {activeTab === 'support' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Active Support Plan Card */}
-            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 20, border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div style={{ fontWeight: 600, fontSize: '0.98rem', color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <FileText size={18} style={{ color: '#16A34A' }} /> Active Support Plan
+                  <FileText size={18} style={{ color: 'var(--oc-success)' }} /> Active Support Plan
                 </div>
                 {activePlan && (
-                  <span style={{ background: '#F0FDF4', color: '#16A34A', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <span style={{ background: 'var(--oc-success-soft)', color: 'var(--oc-success)', borderRadius: 20, padding: '2px 10px', fontSize: '0.8125rem', fontWeight: 600 }}>
                     Version {activePlan.version} &bull; Active
                   </span>
                 )}
               </div>
 
               {activePlan ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                   <div>
-                    <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Plan Title</div>
+                    <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Plan Title</div>
                     <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.plan_title}</div>
                   </div>
                   {activePlan.primary_disability && (
                     <div>
-                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Primary Disability</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Primary Disability</div>
                       <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.primary_disability}</div>
                     </div>
                   )}
                   {activePlan.communication_method && (
                     <div>
-                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Communication Method</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Communication Method</div>
                       <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.communication_method}</div>
                     </div>
                   )}
                   {activePlan.dietary_requirements && (
                     <div>
-                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Dietary Requirements</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Dietary Requirements</div>
                       <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.dietary_requirements}</div>
                     </div>
                   )}
                   {activePlan.mobility_aids && (
                     <div>
-                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Mobility Aids</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Mobility Aids</div>
                       <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>{activePlan.mobility_aids}</div>
                     </div>
                   )}
                   {activePlan.review_date && (
                     <div>
-                      <div style={{ fontSize: '0.73rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Next Plan Review</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Next Plan Review</div>
                       <div style={{ fontSize: '0.88rem', color: '#374151', fontWeight: 500 }}>
                         {new Date(activePlan.review_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </div>
@@ -931,7 +931,7 @@ export default function ParticipantDashboardPage() {
 
             {/* Communication preferences */}
             {participant?.communication_preferences && (
-              <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+              <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 20, border: '1px solid var(--oc-subtle)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <div style={{ fontWeight: 600, marginBottom: 8, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <BookOpen size={18} style={{ color: '#3B82F6' }} /> Communication Preferences
                 </div>
@@ -942,13 +942,13 @@ export default function ParticipantDashboardPage() {
             )}
 
             {/* Support Coordinator */}
-            <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 20, border: '1px solid #F1F5F9', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 20, border: '1px solid var(--oc-subtle)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <div style={{ fontWeight: 600, marginBottom: 12, color: '#111827', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShieldCheck size={18} style={{ color: '#10B981' }} /> Your Support Team
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Support Coordinator</div>
+                  <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Support Coordinator</div>
                   <div style={{ fontWeight: 500, color: '#374151' }}>{participant?.support_coordinator_name || 'Not assigned'}</div>
                   {participant?.support_coordinator_phone && (
                     <a href={`tel:${participant.support_coordinator_phone}`} style={{ color: '#3B82F6', fontSize: '0.88rem' }}>
@@ -956,29 +956,29 @@ export default function ParticipantDashboardPage() {
                     </a>
                   )}
                 </div>
-                <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 10 }}>
-                  <div style={{ fontSize: '0.75rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Plan Manager</div>
+                <div style={{ borderTop: '1px solid var(--oc-subtle)', paddingTop: 10 }}>
+                  <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Plan Manager</div>
                   <div style={{ fontWeight: 500, color: '#374151' }}>{participant?.plan_manager_name || 'Not assigned'}</div>
                 </div>
               </div>
             </div>
 
             {/* Help / Contact */}
-            <div style={{ background: '#EFF6FF', borderRadius: 12, padding: 20, border: '1px solid #BFDBFE' }}>
-              <div style={{ fontWeight: 600, marginBottom: 8, color: '#1E40AF' }}>Need help?</div>
+            <div style={{ background: 'var(--oc-info-soft)', borderRadius: 12, padding: 20, border: '1px solid #BFDBFE' }}>
+              <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--oc-accent)' }}>Need help?</div>
               <p style={{ color: '#374151', fontSize: '0.88rem', margin: '0 0 12px' }}>
                 Contact Opus Care for any questions about your supports, schedule, or plan.
               </p>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <a href="tel:1800OPUSCARE" style={{
-                  background: '#1E40AF', color: '#fff', borderRadius: 8,
+                  background: 'var(--oc-accent)', color: '#fff', borderRadius: 8,
                   padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600,
                   textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
                 }}>
                   📞 Call us
                 </a>
                 <a href="mailto:support@opuscare.com.au" style={{
-                  background: '#FFFFFF', color: '#1E40AF', border: '1px solid #BFDBFE',
+                  background: 'var(--oc-surface)', color: 'var(--oc-accent)', border: '1px solid #BFDBFE',
                   borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600,
                   textDecoration: 'none',
                 }}>
@@ -991,17 +991,17 @@ export default function ParticipantDashboardPage() {
 
         {/* -- Footer -- */}
         <div style={{
-          marginTop: 32, paddingTop: 16, borderTop: '1px solid #E2E8F0',
+          marginTop: 32, paddingTop: 16, borderTop: '1px solid var(--oc-border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           flexWrap: 'wrap', gap: 8,
-          fontSize: '0.78rem', color: '#94A3B8',
+          fontSize: '0.8125rem', color: 'var(--oc-muted)',
         }}>
           <span>© 2026 Opus Care Support Services. Australian Privacy Act compliant.</span>
           <button
             onClick={handleSignOut}
             style={{
-              background: 'none', border: 'none', color: '#94A3B8',
-              cursor: 'pointer', fontSize: '0.78rem', display: 'flex',
+              background: 'none', border: 'none', color: 'var(--oc-muted)',
+              cursor: 'pointer', fontSize: '0.8125rem', display: 'flex',
               alignItems: 'center', gap: 4,
             }}
           >

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import DialogPanel from '@/components/ui/DialogPanel';
 import { AlertTriangle, X } from 'lucide-react';
 
 export interface ConfirmationDialogProps {
@@ -28,7 +29,7 @@ export function ConfirmationDialog({
 
   return (
     <div className="crmModalOverlay" onClick={onClose}>
-      <div className="crmModalBox" style={{ maxWidth: 440, padding: 24 }} onClick={(e) => e.stopPropagation()}>
+      <DialogPanel onClose={onClose} label={title} className="crmModalBox" style={{ maxWidth: 440, padding: 24 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
           <div
             style={{
@@ -36,7 +37,7 @@ export function ConfirmationDialog({
               height: 40,
               borderRadius: '50%',
               background: danger ? '#FEE2E2' : '#E0F2FE',
-              color: danger ? '#DC2626' : '#0284C7',
+              color: danger ? 'var(--oc-danger)' : 'var(--oc-info)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -46,10 +47,10 @@ export function ConfirmationDialog({
             <AlertTriangle size={20} />
           </div>
           <div style={{ flex: 1 }}>
-            <h4 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 600, color: '#0F172A' }}>
+            <h4 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-text)' }}>
               {title}
             </h4>
-            <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748B', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)', lineHeight: 1.5 }}>
               {message}
             </p>
           </div>
@@ -68,13 +69,13 @@ export function ConfirmationDialog({
             className="crmActionBtnPrimary"
             style={{
               minHeight: 40,
-              background: danger ? '#DC2626' : '#0284C7',
+              background: danger ? 'var(--oc-danger)' : 'var(--oc-info)',
             }}
           >
             {confirmText}
           </button>
         </div>
-      </div>
+      </DialogPanel>
     </div>
   );
 }

@@ -29,8 +29,8 @@ export function CredentialUpload({
   return (
     <div
       style={{
-        background: '#FFFFFF',
-        border: '1.5px solid #E2E8F0',
+        background: 'var(--oc-surface)',
+        border: '1.5px solid var(--oc-border)',
         borderRadius: 10,
         padding: 16,
         display: 'flex',
@@ -49,23 +49,23 @@ export function CredentialUpload({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#0284C7',
+              color: 'var(--oc-info)',
             }}
           >
             <ShieldCheck size={18} />
           </div>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--oc-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>{title}</span>
               {required && <span style={{ color: '#E11D48', fontWeight: 600 }}>*</span>}
             </div>
-            {subtitle && <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{subtitle}</div>}
+            {subtitle && <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>{subtitle}</div>}
           </div>
         </div>
         {expiryDate && (
           <span
             style={{
-              fontSize: '0.75rem',
+              fontSize: '0.8125rem',
               fontWeight: 600,
               padding: '2px 8px',
               borderRadius: 6,
@@ -85,7 +85,7 @@ export function CredentialUpload({
       <div style={{ display: 'grid', gridTemplateColumns: onReferenceChange ? '1.2fr 1fr' : '1fr', gap: 10 }}>
         {onReferenceChange && (
           <div>
-            <label className="crmFormLabel" style={{ fontSize: '0.78rem' }}>Number / Ref</label>
+            <label className="crmFormLabel" style={{ fontSize: '0.8125rem' }}>Number / Ref</label>
             <input
               type="text"
               value={referenceNumber}
@@ -98,7 +98,7 @@ export function CredentialUpload({
         )}
         {onExpiryChange && (
           <div>
-            <label className="crmFormLabel" style={{ fontSize: '0.78rem' }}>Expiry Date</label>
+            <label className="crmFormLabel" style={{ fontSize: '0.8125rem' }}>Expiry Date</label>
             <input
               type="date"
               value={expiryDate}

@@ -1,5 +1,9 @@
 'use client';
 
+import DialogPanel from '@/components/ui/DialogPanel';
+
+import { notify } from '@/components/ui/ProductFeedback';
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -177,10 +181,10 @@ interface TrainingCompletion {
 type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'timesheets' | 'progress_notes' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
 
 const PIPELINE_STAGES = [
-  { id: 'new', label: 'New Inbound', color: '#0284C7', bg: '#E0F2FE' },
-  { id: 'contacted', label: 'Contacted', color: '#D97706', bg: '#FEF3C7' },
+  { id: 'new', label: 'New Inbound', color: 'var(--oc-info)', bg: '#E0F2FE' },
+  { id: 'contacted', label: 'Contacted', color: 'var(--oc-warning)', bg: '#FEF3C7' },
   { id: 'assessment', label: 'Assessment', color: '#7C3AED', bg: '#EDE9FE' },
-  { id: 'agreement_sent', label: 'Agreement Sent', color: '#2563EB', bg: '#DBEAFE' },
+  { id: 'agreement_sent', label: 'Agreement Sent', color: 'var(--oc-info)', bg: '#DBEAFE' },
   { id: 'accepted', label: 'Active / Enrolled', color: '#059669', bg: '#D1FAE5' },
 ] as const;
 
@@ -888,11 +892,11 @@ export default function AdminCrmPage() {
         setTimeout(() => setStatusNotice(''), 4000);
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to upload document');
+        notify(err.error || 'Failed to upload document');
       }
     } catch (err) {
       console.error('Failed to upload file', err);
-      alert('Upload error');
+      notify('Upload error');
     } finally {
       setUploadingDoc(false);
     }
@@ -916,11 +920,11 @@ export default function AdminCrmPage() {
         setTab('participants');
         setTimeout(() => setStatusNotice(''), 5000);
       } else {
-        alert(data.error || 'Failed to convert referral');
+        notify(data.error || 'Failed to convert referral');
       }
     } catch (err) {
       console.error('Failed conversion', err);
-      alert('Network error during conversion');
+      notify('Network error during conversion');
     } finally {
       setConverting(false);
     }
@@ -987,7 +991,7 @@ export default function AdminCrmPage() {
         setTimeout(() => setStatusNotice(''), 4000);
       } else {
         const err = await res.json();
-        alert(err.message || 'Failed to create course');
+        notify(err.message || 'Failed to create course');
       }
     } catch (err) {
       console.error('Create course error:', err);
@@ -999,7 +1003,7 @@ export default function AdminCrmPage() {
   async function handleAssignCourse(e: React.FormEvent) {
     e.preventDefault();
     if (!assignCourseId || assignStaffIds.length === 0) {
-      alert('Select a course and at least one staff member.');
+      notify('Select a course and at least one staff member.');
       return;
     }
     setAssigning(true);
@@ -1017,7 +1021,7 @@ export default function AdminCrmPage() {
         setAssignDueDate('');
       } else {
         const err = await res.json();
-        alert(err.message || 'Failed to assign course');
+        notify(err.message || 'Failed to assign course');
       }
     } catch (err) {
       console.error('Assign error:', err);
@@ -1037,18 +1041,18 @@ export default function AdminCrmPage() {
       if (c.expires_at) {
         const exp = new Date(c.expires_at);
         const daysToExp = Math.ceil((exp.getTime() - now.getTime()) / 86400000);
-        if (daysToExp < 0) return { label: 'Expired', color: '#DC2626', bg: '#FEE2E2' };
-        if (daysToExp <= 30) return { label: 'Expiring Soon', color: '#D97706', bg: '#FEF3C7' };
+        if (daysToExp < 0) return { label: 'Expired', color: 'var(--oc-danger)', bg: '#FEE2E2' };
+        if (daysToExp <= 30) return { label: 'Expiring Soon', color: 'var(--oc-warning)', bg: '#FEF3C7' };
       }
       return { label: 'Complete', color: '#059669', bg: '#D1FAE5' };
     }
     if (dueDate) {
       const due = new Date(dueDate);
       const daysOverdue = Math.ceil((now.getTime() - due.getTime()) / 86400000);
-      if (daysOverdue > 0) return { label: 'Overdue', color: '#DC2626', bg: '#FEE2E2' };
-      if (daysOverdue > -7) return { label: 'Due Soon', color: '#D97706', bg: '#FEF3C7' };
+      if (daysOverdue > 0) return { label: 'Overdue', color: 'var(--oc-danger)', bg: '#FEE2E2' };
+      if (daysOverdue > -7) return { label: 'Due Soon', color: 'var(--oc-warning)', bg: '#FEF3C7' };
     }
-    return { label: 'Not Started', color: '#64748B', bg: '#F1F5F9' };
+    return { label: 'Not Started', color: 'var(--oc-muted)', bg: 'var(--oc-subtle)' };
   }
 
 
@@ -1124,8 +1128,8 @@ export default function AdminCrmPage() {
     return (
       <div className="crmLoginWrap">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <RefreshCw size={28} className="spin" style={{ color: '#0284C7' }} />
-          <span style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 600 }}>
+          <RefreshCw size={28} className="spin" style={{ color: 'var(--oc-info)' }} />
+          <span style={{ fontSize: '0.9rem', color: 'var(--oc-muted)', fontWeight: 600 }}>
             Verifying Opus Admin Security Session...
           </span>
         </div>
@@ -1151,28 +1155,28 @@ export default function AdminCrmPage() {
             <div className="vsSquircle indigo" style={{ width: 52, height: 52, borderRadius: 16, marginBottom: 14 }}>
               <Shield size={24} />
             </div>
-            <h1 style={{ margin: '0 0 6px', fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+            <h1 style={{ margin: '0 0 6px', fontSize: '1.35rem', fontWeight: 600, color: 'var(--oc-text)', letterSpacing: '-0.02em' }}>
               Opus Care CRM / ERP
             </h1>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--oc-muted)', lineHeight: 1.5 }}>
               Enter authorized administrator access key to open the operations management dashboard.
             </p>
           </div>
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {authError && (
-              <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
+              <div style={{ background: 'var(--oc-danger-soft)', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px 14px', borderRadius: 12, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}>
                 <AlertCircle size={16} style={{ flexShrink: 0 }} />
                 <span>{authError}</span>
               </div>
             )}
 
             <div style={{ textAlign: 'left' }}>
-              <label htmlFor="adminKey" style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: 6 }}>
+              <label htmlFor="adminKey" style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', marginBottom: 6 }}>
                 Admin Access Key
               </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--oc-muted)' }} />
                 <input
                   id="adminKey"
                   type="password"
@@ -1183,7 +1187,7 @@ export default function AdminCrmPage() {
                     if (authError) setAuthError('');
                   }}
                   className="crmKeyInput"
-                  style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 9999, border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: '0.88rem', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px 14px 10px 38px', borderRadius: 9999, border: '1px solid var(--oc-border)', background: 'var(--oc-background)', fontSize: '0.88rem', outline: 'none' }}
                   autoFocus
                 />
               </div>
@@ -1209,8 +1213,8 @@ export default function AdminCrmPage() {
             </button>
           </form>
 
-          <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #F1F5F9' }}>
-            <Link href="/" style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B', textDecoration: 'none' }}>
+          <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid var(--oc-subtle)' }}>
+            <Link href="/" style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textDecoration: 'none' }}>
               &larr; Return to Public Website
             </Link>
           </div>
@@ -1240,7 +1244,7 @@ export default function AdminCrmPage() {
           borderRadius: 14,
           padding: '10px 18px',
           fontSize: '0.85rem',
-          fontWeight: 700,
+          fontWeight: 600,
           marginBottom: 18,
           display: 'flex',
           alignItems: 'center',
@@ -1253,7 +1257,9 @@ export default function AdminCrmPage() {
           {/* TAB 0: DASHBOARD (IDURAR STYLE) */}
           {tab === 'dashboard' && (
         <div>
-          {/* Sub-view Filter Pills */}
+          <header className="ocPageHeading"><div><span className="ocEyebrow">OPUS CARE · OPERATIONS</span><h1>Your care operations, at a glance</h1><p>Review incoming referrals, coordinate your team, and keep participant support moving.</p></div></header>
+          <section className="ocAttention" aria-label="Intake attention"><div><strong>{countNew > 0 ? `${countNew} new referral${countNew === 1 ? '' : 's'} to review` : 'Your intake review is up to date'}</strong><p>Start with the people waiting to take their next step.</p></div><button type="button" className="vsBtnBlack" onClick={() => setTab('referrals')}>Review intake <ArrowRight size={16} /></button></section>
+          {/* Operational shortcuts */}
           <CrmPillBar
             items={[
               { id: 'all', label: 'All Operations', count: participants.length + referrals.length },
@@ -1276,7 +1282,7 @@ export default function AdminCrmPage() {
             <CrmSquircleCard
               title="Active Participants"
               value={participants.length}
-              subtitle="Enrolled in Clarence Valley & Northern Rivers NSW"
+              subtitle="People receiving support"
               meta="Plan-Managed & Self-Managed"
               icon={<Users size={24} />}
               tint="sky"
@@ -1310,12 +1316,12 @@ export default function AdminCrmPage() {
             <CrmSquircleCard
               title="Service Agreements"
               value={agreements.length}
-              subtitle="Legally sealed & SHA-256 verified contracts"
-              meta="Turnkey onboarding packs"
+              subtitle="Participant and workforce agreements"
+              meta="Document packs"
               icon={<FileText size={24} />}
               tint="indigo"
               actionLabel="Agreements"
-              badge="Immutable"
+              badge="Documents"
               onAction={() => setTab('agreements')}
             />
           </div>
@@ -1329,14 +1335,14 @@ export default function AdminCrmPage() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span className="vsTagCrm">CONTRACT ENGINE</span>
-                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#4F46E5' }}>Updated v2.4</span>
+                      <span className="vsTagCrm">AGREEMENTS</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4F46E5' }}>Participant onboarding</span>
                     </div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
-                      Australian NDIS Service Agreement Engine
+                    <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                      Prepare a service agreement
                     </h3>
-                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: '#475569', lineHeight: 1.5, maxWidth: 520 }}>
-                      Generate turnkey participant packs (PACK-PART-01), schedules of supports, and SCHADS employment contracts with automated sham-contracting compliance guards and SHA-256 digital seals.
+                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--oc-secondary)', lineHeight: 1.5, maxWidth: 520 }}>
+                      Prepare participant agreements, schedules of supports, and worker contracts in one guided workflow.
                     </p>
                   </div>
                   <div className="vsSquircle indigo" style={{ width: 56, height: 56, borderRadius: 18 }}>
@@ -1368,15 +1374,15 @@ export default function AdminCrmPage() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span style={{ background: '#CCFBF1', color: '#0F766E', fontSize: '0.65rem', fontWeight: 800, padding: '2px 7px', borderRadius: 9999 }}>
-                        WORKFORCE HUB
+                      <span style={{ background: '#CCFBF1', color: 'var(--oc-accent)', fontSize: '0.8125rem', fontWeight: 600, padding: '2px 7px', borderRadius: 9999 }}>
+                        ROSTER
                       </span>
-                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0D9488' }}>Live Roster</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-accent)' }}>Live Roster</span>
                     </div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: '1.15rem', fontWeight: 800, color: '#0F172A' }}>
-                      Workforce Rostering & Shift Management
+                    <h3 style={{ margin: '0 0 6px', fontSize: '1.15rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                      Plan the week ahead
                     </h3>
-                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: '#334155', lineHeight: 1.5, maxWidth: 520 }}>
+                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--oc-secondary)', lineHeight: 1.5, maxWidth: 520 }}>
                       Roster support shifts across Yamba, Maclean, Grafton, and Iluka with instant conflict checks and compliance clearance validation.
                     </p>
                   </div>
@@ -1413,7 +1419,7 @@ export default function AdminCrmPage() {
                     type="button"
                     onClick={() => setTab('referrals')}
                     className="vsBtnOutline"
-                    style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                    style={{ padding: '4px 12px', fontSize: '0.8125rem' }}
                   >
                     Manage Pipeline &rarr;
                   </button>
@@ -1477,50 +1483,50 @@ export default function AdminCrmPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {/* Live Service Delivery & Financial Overview */}
               <CrmBentoPane
-                title="Service Delivery & Financial Velocity"
+                title="Delivery & billing"
                 subtitle="Live metrics derived from verified service records & invoices"
                 action={
                   <button
                     type="button"
                     onClick={() => setTab('invoicing')}
                     className="vsBtnOutline"
-                    style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                    style={{ padding: '4px 12px', fontSize: '0.8125rem' }}
                   >
                     Invoicing &rarr;
                   </button>
                 }
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Delivered Hours (MTD)</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', marginTop: 4 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Delivered Hours (MTD)</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 4 }}>
                       {(financeMetrics?.delivered_hours_mtd || 0).toFixed(1)} hrs
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: '#0D9488', marginTop: 2 }}>Verified by completed shifts</div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-accent)', marginTop: 2 }}>Verified by completed shifts</div>
                   </div>
 
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Gross Invoiced (MTD)</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#16A34A', marginTop: 4 }}>
+                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Gross Invoiced (MTD)</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-success)', marginTop: 4 }}>
                       ${(financeMetrics?.gross_invoiced_mtd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: 2 }}>NDIS tax invoices issued</div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>NDIS tax invoices issued</div>
                   </div>
 
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Paid Claims</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0284C7', marginTop: 4 }}>
+                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Paid Claims</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-info)', marginTop: 4 }}>
                       ${(financeMetrics?.paid_claims_mtd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748B', marginTop: 2 }}>Remittance confirmed</div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>Remittance confirmed</div>
                   </div>
 
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748B' }}>Unbilled Service Hours</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#E11D48', marginTop: 4 }}>
+                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Unbilled support value</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#E11D48', marginTop: 4 }}>
                       ${(financeMetrics?.unbilled_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: '#E11D48', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.8125rem', color: '#E11D48', marginTop: 2 }}>
                       {(financeMetrics?.unbilled_hours || 0).toFixed(1)} hrs awaiting billing
                     </div>
                   </div>
@@ -1531,7 +1537,7 @@ export default function AdminCrmPage() {
                     type="button"
                     onClick={() => setTab('timesheets')}
                     className="vsBtnBlack"
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.78rem', justifyContent: 'center' }}
+                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.8125rem', justifyContent: 'center' }}
                   >
                     Timesheets & Approval
                   </button>
@@ -1539,7 +1545,7 @@ export default function AdminCrmPage() {
                     type="button"
                     onClick={() => setTab('invoicing')}
                     className="vsBtnOutline"
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.78rem', justifyContent: 'center' }}
+                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.8125rem', justifyContent: 'center' }}
                   >
                     Generate Invoices
                   </button>
@@ -1548,7 +1554,7 @@ export default function AdminCrmPage() {
 
               {/* Pinned Quick Intake Controls */}
               <CrmBentoPane
-                title="Quick Operations Hub"
+                title="Quick actions"
                 subtitle="Direct intake & registration actions"
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1562,8 +1568,8 @@ export default function AdminCrmPage() {
                       <UserPlus size={16} />
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                      <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A' }}>+ Add New Participant</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Register participant & plan details</span>
+                      <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--oc-text)' }}>+ Add New Participant</strong>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Register participant & plan details</span>
                     </div>
                   </button>
 
@@ -1577,8 +1583,8 @@ export default function AdminCrmPage() {
                       <UserCheck size={16} />
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                      <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A' }}>+ Register Support Worker</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Add staff member & clearances</span>
+                      <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--oc-text)' }}>+ Add worker</strong>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Add staff member & clearances</span>
                     </div>
                   </button>
 
@@ -1592,8 +1598,8 @@ export default function AdminCrmPage() {
                       <FileText size={16} />
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                      <strong style={{ display: 'block', fontSize: '0.82rem', color: '#0F172A' }}>+ Generate Agreement Pack</strong>
-                      <span style={{ fontSize: '0.72rem', color: '#64748B' }}>Turnkey contract generator wizard</span>
+                      <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--oc-text)' }}>+ Generate Agreement Pack</strong>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Guided agreement preparation</span>
                     </div>
                   </button>
                 </div>
@@ -1601,32 +1607,32 @@ export default function AdminCrmPage() {
 
               {/* Supabase Live Infrastructure Card */}
               <CrmBentoPane
-                title="System Health & Infrastructure"
-                subtitle="High-availability database connectivity"
+                title="Workspace information"
+                subtitle="Data and document services"
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span className="vsLiveDot" />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A' }}>Supabase PostgreSQL 17</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Supabase PostgreSQL 17</span>
                     </div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669' }}>Sydney ap-southeast-2</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#059669' }}>Sydney ap-southeast-2</span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <FolderLock size={14} color="#0284C7" />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A' }}>Private Vault (AES-256)</span>
+                      <FolderLock size={14} color="var(--oc-info)" />
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Private Vault (AES-256)</span>
                     </div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0284C7' }}>crm-documents</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)' }}>crm-documents</span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Shield size={14} color="#7C3AED" />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A' }}>NDIS Commission Rules</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>NDIS Commission Rules</span>
                     </div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7C3AED' }}>Compliant</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#7C3AED' }}>Compliant</span>
                   </div>
                 </div>
               </CrmBentoPane>
@@ -1641,7 +1647,7 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Referrals & Intake Pipeline</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                     Track incoming NDIS participant referrals through the stages of intake, assessment, and agreement signing.
                   </p>
                 </div>
@@ -1667,7 +1673,7 @@ export default function AdminCrmPage() {
               <div className="crmToolbar">
                 <div className="crmSearchWrap">
                   <Search size={15} className="crmSearchIcon" />
-                  <input
+                  <input aria-label="Search by participant, referrer, suburb, funding..."
                     type="text"
                     placeholder="Search by participant, referrer, suburb, funding..."
                     value={searchQuery}
@@ -1679,7 +1685,7 @@ export default function AdminCrmPage() {
                 <div className="crmFilterGroup">
                   <Filter size={15} />
                   <span>Stage:</span>
-                  <select
+                  <select aria-label="All Stages ( )"
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="crmSelect"
@@ -1695,8 +1701,8 @@ export default function AdminCrmPage() {
               </div>
 
               {loading ? (
-                <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748B' }}>
-                  <RefreshCw size={24} className="spin" style={{ margin: '0 auto 12px', display: 'block', color: '#0284C7' }} />
+                <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--oc-muted)' }}>
+                  <RefreshCw size={24} className="spin" style={{ margin: '0 auto 12px', display: 'block', color: 'var(--oc-info)' }} />
                   <span>Loading live referrals from Supabase...</span>
                 </div>
               ) : viewMode === 'pipeline' ? (
@@ -1727,7 +1733,7 @@ export default function AdminCrmPage() {
                               onClick={() => setSelectedReferral(item)}
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                                <strong style={{ fontSize: '0.92rem', color: '#0F172A' }}>
+                                <strong style={{ fontSize: '0.92rem', color: 'var(--oc-text)' }}>
                                   {item.participantName}
                                 </strong>
                                 <span className="refIdTag">
@@ -1735,18 +1741,18 @@ export default function AdminCrmPage() {
                                 </span>
                               </div>
 
-                              <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
                                 <MapPin size={12} />
                                 <span>{item.suburb || 'Northern Rivers'}</span>
                                 <span style={{ margin: '0 4px' }}>&bull;</span>
                                 <span style={{ color: '#15803D', fontWeight: 600 }}>{item.funding}</span>
                               </div>
 
-                              <div style={{ fontSize: '0.78rem', color: '#475569', background: '#F8FAFC', padding: '6px 8px', borderRadius: 6, marginBottom: 8 }}>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-secondary)', background: 'var(--oc-background)', padding: '6px 8px', borderRadius: 6, marginBottom: 8 }}>
                                 <strong>Services:</strong> {item.services || 'General Support'}
                               </div>
 
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#94A3B8' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                                 <span>Ref: {item.name}</span>
                                 <span>{new Date(item.createdAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
                               </div>
@@ -1754,7 +1760,7 @@ export default function AdminCrmPage() {
                           ))}
 
                           {colReferrals.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '30px 10px', color: '#94A3B8', fontSize: '0.8rem' }}>
+                            <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--oc-muted)', fontSize: '0.8125rem' }}>
                               No referrals in this stage
                             </div>
                           )}
@@ -1809,7 +1815,7 @@ export default function AdminCrmPage() {
                             </div>
                           </td>
                           <td>
-                            <select
+                            <select aria-label="New Inbound"
                               value={r.status}
                               onChange={(e) => handleStatusChange(r.id, e.target.value as any)}
                               className={`crmStatusSelect status_${r.status}`}
@@ -1844,15 +1850,15 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#E0F2FE', color: '#0284C7', padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, background: '#E0F2FE', color: 'var(--oc-info)', padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase' }}>
                       Contract & Agreement Engine
                     </span>
-                    <span style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                    <span style={{ fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                       Immutable Private Vault &bull; Version Controlled
                     </span>
                   </div>
                   <h2 className="crmPanelTitle">Service Agreements & Document Packs</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                     Generate, execute, and version NDIS Service Agreements, Schedules of Supports, and Workforce Contracts with digital e-signatures.
                   </p>
                 </div>
@@ -1869,26 +1875,26 @@ export default function AdminCrmPage() {
               </div>
 
               {/* Agreement Metric Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
-                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Active Executed Agreements</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A' }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
+                <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Active Executed Agreements</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                     {agreements.filter((a: any) => a.status === 'active' || a.status === 'fully_signed').length}
                   </div>
                 </div>
 
-                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Pending Execution / Drafts</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#D97706' }}>
+                <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Pending Execution / Drafts</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--oc-warning)' }}>
                     {agreements.filter((a: any) => a.status !== 'active' && a.status !== 'fully_signed' && a.status !== 'superseded').length}
                   </div>
                 </div>
 
-                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Committed Plan Funding</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669' }}>
+                <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Committed Plan Funding</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#059669' }}>
                     ${agreements.reduce((acc: number, a: any) => acc + (Number(a.estimated_budget) || 0), 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                    <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 500, marginLeft: 4 }}>AUD</span>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 500, marginLeft: 4 }}>AUD</span>
                   </div>
                 </div>
               </div>
@@ -1901,7 +1907,7 @@ export default function AdminCrmPage() {
                       <th>Ref & Date</th>
                       <th>Recipient / Owner</th>
                       <th>Document Title & Version</th>
-                      <th>Committed Budget</th>
+                      <th className="ocNumeric">Committed Budget</th>
                       <th>Status</th>
                       <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
@@ -1909,7 +1915,7 @@ export default function AdminCrmPage() {
                   <tbody>
                     {agreements.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ padding: 36, textAlign: 'center', color: '#94A3B8' }}>
+                        <td colSpan={6} style={{ padding: 36, textAlign: 'center', color: 'var(--oc-muted)' }}>
                           No agreements created yet. Click <strong>+ New Agreement / Pack</strong> to generate your first document.
                         </td>
                       </tr>
@@ -1922,30 +1928,30 @@ export default function AdminCrmPage() {
                         return (
                           <tr key={agr.id} style={{ opacity: isSuperseded ? 0.65 : 1 }}>
                             <td>
-                              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284C7', fontSize: '0.85rem' }}>
+                              <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--oc-info)', fontSize: '0.85rem' }}>
                                 {agr.agreement_reference}
                               </span>
-                              <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{agr.commencement_date}</div>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>{agr.commencement_date}</div>
                             </td>
                             <td>
-                              <strong style={{ color: '#0F172A' }}>{ownerName}</strong>
-                              <div style={{ fontSize: '0.78rem', color: '#64748B', textTransform: 'capitalize' }}>
+                              <strong style={{ color: 'var(--oc-text)' }}>{ownerName}</strong>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', textTransform: 'capitalize' }}>
                                 {agr.owner_type} &bull; {agr.questionnaire_data?.funding_type || 'Agreed'}
                               </div>
                             </td>
                             <td>
-                              <div style={{ fontWeight: 600, color: '#0F172A', fontSize: '0.9rem' }}>{agr.title}</div>
-                              <span style={{ fontSize: '0.75rem', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: 4 }}>
+                              <div style={{ fontWeight: 600, color: 'var(--oc-text)', fontSize: '0.9rem' }}>{agr.title}</div>
+                              <span style={{ fontSize: '0.8125rem', background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', padding: '1px 6px', borderRadius: 4 }}>
                                 Version {agr.version_number}.0 ({agr.template_version})
                               </span>
                             </td>
-                            <td>
+                            <td className="ocNumeric">
                               {agr.estimated_budget ? (
                                 <strong style={{ color: '#059669', fontSize: '0.92rem' }}>
                                   ${Number(agr.estimated_budget).toLocaleString('en-AU', { minimumFractionDigits: 2 })}
                                 </strong>
                               ) : (
-                                <span style={{ color: '#94A3B8' }}>—</span>
+                                <span style={{ color: 'var(--oc-muted)' }}>—</span>
                               )}
                             </td>
                             <td>
@@ -1953,11 +1959,11 @@ export default function AdminCrmPage() {
                                 display: 'inline-block',
                                 padding: '3px 10px',
                                 borderRadius: 20,
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
+                                fontSize: '0.8125rem',
+                                fontWeight: 600,
                                 textTransform: 'uppercase',
-                                background: isExecuted ? '#ECFDF5' : isSuperseded ? '#F1F5F9' : '#FFFBEB',
-                                color: isExecuted ? '#059669' : isSuperseded ? '#64748B' : '#B45309',
+                                background: isExecuted ? '#ECFDF5' : isSuperseded ? 'var(--oc-subtle)' : 'var(--oc-warning-soft)',
+                                color: isExecuted ? '#059669' : isSuperseded ? 'var(--oc-muted)' : '#B45309',
                               }}>
                                 {agr.status}
                               </span>
@@ -1966,7 +1972,7 @@ export default function AdminCrmPage() {
                               <button
                                 onClick={() => setSelectedAgreementToView(agr)}
                                 className="crmSecondaryBtn"
-                                style={{ padding: '5px 12px', fontSize: '0.8rem' }}
+                                style={{ padding: '5px 12px', fontSize: '0.8125rem' }}
                               >
                                 View / Print
                               </button>
@@ -1980,13 +1986,13 @@ export default function AdminCrmPage() {
               </div>
 
               {/* Collapsible Pricing Reference Table */}
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 18 }}>
+              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: 18 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#162E56', margin: 0 }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#162E56', margin: 0 }}>
                       NDIS Support Catalogue &bull; NSW Northern Rivers Price Limits (2026 Reference)
                     </h3>
-                    <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748B' }}>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                       Statutory price limits serve as reference benchmarks; all client rates in the Schedule of Supports are mutually agreed.
                     </p>
                   </div>
@@ -1999,7 +2005,7 @@ export default function AdminCrmPage() {
                         <th>Line Item Code</th>
                         <th>Support Item Description</th>
                         <th>Category</th>
-                        <th>NSW Regional Price Limit</th>
+                        <th className="ocNumeric">NSW Regional Price Limit</th>
                         <th>Unit</th>
                       </tr>
                     </thead>
@@ -2008,35 +2014,35 @@ export default function AdminCrmPage() {
                         <td><span className="refIdTag">01_011_0107_1_1</span></td>
                         <td><strong>Assistance with Self-Care Activities - Standard - Weekday Daytime</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td><strong style={{ color: '#0F172A' }}>$67.56</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$67.56</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_015_0107_1_1</span></td>
                         <td><strong>Assistance with Self-Care Activities - Standard - Weekday Evening</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td><strong style={{ color: '#0F172A' }}>$74.44</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$74.44</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_013_0107_1_1</span></td>
                         <td><strong>Assistance with Self-Care Activities - Saturday</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td><strong style={{ color: '#0F172A' }}>$95.07</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$95.07</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">04_104_0125_6_1</span></td>
                         <td><strong>Access Community, Social and Rec Activities - Standard - Weekday Daytime</strong></td>
                         <td><span className="fundingPillMini">Capacity Building</span></td>
-                        <td><strong style={{ color: '#0F172A' }}>$67.56</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$67.56</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_019_0120_1_1</span></td>
                         <td><strong>House Cleaning & Other Household Activities</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td><strong style={{ color: '#0F172A' }}>$58.45</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$58.45</strong></td>
                         <td>Hour</td>
                       </tr>
                     </tbody>
@@ -2051,9 +2057,9 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Participants 360° Directory</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Comprehensive participant profiles, NDIS numbers, funding models, assigned support workers, and document vault.
+                  <h2 className="crmPanelTitle">Participants</h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
+                    View participant details, funding arrangements, support workers, and documents.
                   </p>
                 </div>
                 <button
@@ -2074,7 +2080,7 @@ export default function AdminCrmPage() {
                       <th>Funding Type</th>
                       <th>Plan Manager</th>
                       <th>Suburb</th>
-                      <th>Allocated Hours</th>
+                      <th className="ocNumeric">Allocated Hours</th>
                       <th>Support Worker</th>
                       <th>Actions</th>
                     </tr>
@@ -2093,13 +2099,13 @@ export default function AdminCrmPage() {
                           <span className="fundingPillMini">{p.fundingType}</span>
                         </td>
                         <td>
-                          <span style={{ fontSize: '0.85rem', color: '#475569' }}>{p.planManager || 'Self-Managed'}</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>{p.planManager || 'Self-Managed'}</span>
                         </td>
                         <td>
                           <span className="suburbBadge"><MapPin size={12} /> {p.suburb}</span>
                         </td>
-                        <td>
-                          <strong style={{ color: '#0F172A' }}>{p.allocatedHours || 15} hrs/wk</strong>
+                        <td className="ocNumeric">
+                          <strong style={{ color: 'var(--oc-text)' }}>{p.allocatedHours || 15} hrs/wk</strong>
                         </td>
                         <td>
                           <span className="workerPill"><UserCheck size={14} /> {p.workerAssigned || 'Unassigned'}</span>
@@ -2109,14 +2115,14 @@ export default function AdminCrmPage() {
                             onClick={() => setSelectedParticipant(p)}
                             className="crmViewBtn"
                           >
-                            Profile & Vault
+                            View profile
                           </button>
                         </td>
                       </tr>
                     ))}
                     {filteredParticipants.length === 0 && (
                       <tr>
-                        <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#94A3B8' }}>
+                        <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--oc-muted)' }}>
                           No participant records found. Convert referrals to populate this directory.
                         </td>
                       </tr>
@@ -2135,18 +2141,18 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Participant Goals</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                     Manage NDIS plan goals, track progress and link to support activities.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <select
+                  <select className="ocField" aria-label="— Select Participant —"
                     value={selectedGoalParticipant}
                     onChange={(e) => {
                       setSelectedGoalParticipant(e.target.value);
                       if (e.target.value) loadGoals(e.target.value);
                     }}
-                    style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
+                    style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
                   >
                     <option value="">— Select Participant —</option>
                     {participants.map(p => (
@@ -2156,7 +2162,7 @@ export default function AdminCrmPage() {
                   {selectedGoalParticipant && (
                     <button
                       onClick={() => setShowGoalForm(!showGoalForm)}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                     >
                       <Plus size={15} /> Add Goal
                     </button>
@@ -2167,34 +2173,34 @@ export default function AdminCrmPage() {
               {/* Create goal form */}
               {showGoalForm && (
                 <div style={{ background: '#F8FAFF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: '#1E40AF' }}>New Goal</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-accent)' }}>New Goal</h3>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Goal Title *</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Goal Title *</label>
+                      <input className="ocField" aria-label="Goal Title *"
                         type="text"
                         placeholder="e.g. Improve independence in meal preparation"
                         value={newGoal.goal_title}
                         onChange={e => setNewGoal(prev => ({ ...prev, goal_title: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Description</label>
-                      <textarea
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Description</label>
+                      <textarea className="ocField" aria-label="Description"
                         placeholder="Describe the goal in detail..."
                         value={newGoal.goal_description}
                         onChange={e => setNewGoal(prev => ({ ...prev, goal_description: e.target.value }))}
                         rows={3}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Category</label>
-                      <select
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Category</label>
+                      <select className="ocField" aria-label="Category"
                         value={newGoal.category}
                         onChange={e => setNewGoal(prev => ({ ...prev, category: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       >
                         {['Daily Living', 'Community Participation', 'Employment', 'Health & Wellbeing', 'Social', 'Capacity Building', 'General'].map(c => (
                           <option key={c}>{c}</option>
@@ -2202,39 +2208,39 @@ export default function AdminCrmPage() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>NDIS Domain</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>NDIS Domain</label>
+                      <input className="ocField" aria-label="NDIS Domain"
                         type="text"
                         placeholder="e.g. Daily Activities"
                         value={newGoal.ndis_domain}
                         onChange={e => setNewGoal(prev => ({ ...prev, ndis_domain: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Target Date</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Target Date</label>
+                      <input className="ocField" aria-label="Target Date"
                         type="date"
                         value={newGoal.target_date}
                         onChange={e => setNewGoal(prev => ({ ...prev, target_date: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
+                      <input className="ocField" aria-label="Review Date"
                         type="date"
                         value={newGoal.review_date}
                         onChange={e => setNewGoal(prev => ({ ...prev, review_date: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Priority (1=Highest)</label>
-                      <select
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Priority (1=Highest)</label>
+                      <select className="ocField" aria-label="Priority (1=Highest)"
                         value={newGoal.priority}
                         onChange={e => setNewGoal(prev => ({ ...prev, priority: Number(e.target.value) }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       >
                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
                       </select>
@@ -2244,13 +2250,13 @@ export default function AdminCrmPage() {
                     <button
                       onClick={createGoal}
                       disabled={savingGoal || !newGoal.goal_title.trim()}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
                       {savingGoal ? 'Saving…' : 'Save Goal'}
                     </button>
                     <button
                       onClick={() => setShowGoalForm(false)}
-                      style={{ background: '#F1F5F9', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-subtle)', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
                       Cancel
                     </button>
@@ -2260,22 +2266,22 @@ export default function AdminCrmPage() {
 
               {/* Goals list */}
               {!selectedGoalParticipant ? (
-                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>
                   <Target size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
                   <p style={{ margin: 0 }}>Select a participant above to view their goals.</p>
                 </div>
               ) : goalsLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading goals…</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--oc-muted)' }}>Loading goals…</div>
               ) : goals.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>
                   <p>No goals recorded for this participant yet.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {goals.map(goal => (
                     <div key={goal.id} style={{
-                      background: '#FFFFFF', borderRadius: 10, padding: '16px 20px',
-                      border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      background: 'var(--oc-surface)', borderRadius: 10, padding: '16px 20px',
+                      border: '1px solid var(--oc-border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16,
                     }}>
                       <div style={{ flex: 1 }}>
@@ -2284,23 +2290,23 @@ export default function AdminCrmPage() {
                           <p style={{ color: '#6B7280', fontSize: '0.85rem', margin: '0 0 8px' }}>{goal.goal_description}</p>
                         )}
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <span style={{ background: '#EFF6FF', color: '#3B82F6', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 600 }}>{goal.category}</span>
-                          {goal.ndis_domain && <span style={{ background: '#F3F4F6', color: '#6B7280', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem' }}>{goal.ndis_domain}</span>}
-                          {goal.target_date && <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>Target: {new Date(goal.target_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                          <span style={{ background: 'var(--oc-info-soft)', color: '#3B82F6', borderRadius: 20, padding: '2px 10px', fontSize: '0.8125rem', fontWeight: 600 }}>{goal.category}</span>
+                          {goal.ndis_domain && <span style={{ background: '#F3F4F6', color: '#6B7280', borderRadius: 20, padding: '2px 10px', fontSize: '0.8125rem' }}>{goal.ndis_domain}</span>}
+                          {goal.target_date && <span style={{ fontSize: '0.8125rem', color: '#9CA3AF' }}>Target: {new Date(goal.target_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
                         </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                         <span style={{
-                          borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700,
-                          background: goal.status === 'active' ? '#EFF6FF' : goal.status === 'achieved' ? '#F0FDF4' : '#FFF7ED',
-                          color: goal.status === 'active' ? '#3B82F6' : goal.status === 'achieved' ? '#16A34A' : '#D97706',
+                          borderRadius: 20, padding: '4px 12px', fontSize: '0.8125rem', fontWeight: 600,
+                          background: goal.status === 'active' ? 'var(--oc-info-soft)' : goal.status === 'achieved' ? 'var(--oc-success-soft)' : '#FFF7ED',
+                          color: goal.status === 'active' ? '#3B82F6' : goal.status === 'achieved' ? 'var(--oc-success)' : 'var(--oc-warning)',
                         }}>
                           {goal.status === 'active' ? 'In Progress' : goal.status === 'achieved' ? '✓ Achieved' : goal.status === 'paused' ? 'On Hold' : 'Discontinued'}
                         </span>
-                        <select
+                        <select className="ocField" aria-label="In Progress"
                           value={goal.status}
                           onChange={e => updateGoalStatus(goal.id, e.target.value)}
-                          style={{ border: '1px solid #E2E8F0', borderRadius: 6, padding: '4px 8px', fontSize: '0.78rem' }}
+                          style={{ border: '1px solid var(--oc-border)', borderRadius: 6, padding: '4px 8px', fontSize: '0.8125rem' }}
                         >
                           <option value="active">In Progress</option>
                           <option value="achieved">Achieved</option>
@@ -2323,18 +2329,18 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Support Plans</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                     Versioned participant support plans — draft, activate, and supersede as plans evolve.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <select
+                  <select className="ocField" aria-label="— Select Participant —"
                     value={selectedPlanParticipant}
                     onChange={(e) => {
                       setSelectedPlanParticipant(e.target.value);
                       if (e.target.value) loadSupportPlans(e.target.value);
                     }}
-                    style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
+                    style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
                   >
                     <option value="">— Select Participant —</option>
                     {participants.map(p => (
@@ -2344,7 +2350,7 @@ export default function AdminCrmPage() {
                   {selectedPlanParticipant && (
                     <button
                       onClick={() => setShowPlanForm(!showPlanForm)}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                     >
                       <Plus size={15} /> New Plan Version
                     </button>
@@ -2355,74 +2361,74 @@ export default function AdminCrmPage() {
               {/* Support Plan Form */}
               {showPlanForm && (
                 <div style={{ background: '#F8FAFF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: '#1E40AF' }}>New Support Plan Version</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-accent)' }}>New Support Plan Version</h3>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Plan Title *</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Plan Title *</label>
+                      <input className="ocField" aria-label="Plan Title *"
                         type="text"
                         value={newPlan.plan_title}
                         onChange={e => setNewPlan(prev => ({ ...prev, plan_title: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Primary Disability</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Primary Disability</label>
+                      <input className="ocField" aria-label="Primary Disability"
                         type="text"
                         placeholder="e.g. Autism Spectrum Disorder"
                         value={newPlan.primary_disability}
                         onChange={e => setNewPlan(prev => ({ ...prev, primary_disability: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Communication Method</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Communication Method</label>
+                      <input className="ocField" aria-label="Communication Method"
                         type="text"
                         placeholder="e.g. Verbal, AAC device, Pictograms"
                         value={newPlan.communication_method}
                         onChange={e => setNewPlan(prev => ({ ...prev, communication_method: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Dietary Requirements</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Dietary Requirements</label>
+                      <input className="ocField" aria-label="Dietary Requirements"
                         type="text"
                         placeholder="e.g. Gluten-free, soft textures, nut allergy"
                         value={newPlan.dietary_requirements}
                         onChange={e => setNewPlan(prev => ({ ...prev, dietary_requirements: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Mobility Aids</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Mobility Aids</label>
+                      <input className="ocField" aria-label="Mobility Aids"
                         type="text"
                         placeholder="e.g. Walking frame, wheelchair"
                         value={newPlan.mobility_aids}
                         onChange={e => setNewPlan(prev => ({ ...prev, mobility_aids: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
+                      <input className="ocField" aria-label="Review Date"
                         type="date"
                         value={newPlan.review_date}
                         onChange={e => setNewPlan(prev => ({ ...prev, review_date: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       />
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Triggers & De-escalation Responses</label>
-                      <textarea
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Triggers & De-escalation Responses</label>
+                      <textarea className="ocField" aria-label="Triggers & De-escalation Responses"
                         placeholder="Describe sensory triggers, environmental factors, and calming routines..."
                         value={newPlan.triggers_and_responses}
                         onChange={e => setNewPlan(prev => ({ ...prev, triggers_and_responses: e.target.value }))}
                         rows={3}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
@@ -2430,13 +2436,13 @@ export default function AdminCrmPage() {
                     <button
                       onClick={createSupportPlan}
                       disabled={savingPlan || !newPlan.plan_title.trim()}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
                       {savingPlan ? 'Saving…' : 'Save Support Plan Version'}
                     </button>
                     <button
                       onClick={() => setShowPlanForm(false)}
-                      style={{ background: '#F1F5F9', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-subtle)', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
                       Cancel
                     </button>
@@ -2445,51 +2451,51 @@ export default function AdminCrmPage() {
               )}
 
               {!selectedPlanParticipant ? (
-                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>
                   <ClipboardList size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
                   <p style={{ margin: 0 }}>Select a participant to view their support plans.</p>
                 </div>
               ) : plansLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading plans…</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--oc-muted)' }}>Loading plans…</div>
               ) : supportPlans.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>
                   <p>No support plans yet. Click &ldquo;New Plan Version&rdquo; to create the first one.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {supportPlans.map(plan => (
                     <div key={plan.id} style={{
-                      background: '#FFFFFF', borderRadius: 10, padding: '18px 20px',
-                      border: `1px solid ${plan.status === 'active' ? '#BBF7D0' : '#E2E8F0'}`,
+                      background: 'var(--oc-surface)', borderRadius: 10, padding: '18px 20px',
+                      border: `1px solid ${plan.status === 'active' ? '#BBF7D0' : 'var(--oc-border)'}`,
                       boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 12 }}>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{plan.plan_title} — v{plan.version}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 2 }}>
+                          <div style={{ fontWeight: 600, color: '#111827', fontSize: '1rem' }}>{plan.plan_title} — v{plan.version}</div>
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>
                             Created {new Date(plan.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                             {plan.plan_start_date && ` · Plan period: ${new Date(plan.plan_start_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })} – ${plan.plan_end_date ? new Date(plan.plan_end_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'ongoing'}`}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           <span style={{
-                            borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700,
-                            background: plan.status === 'active' ? '#F0FDF4' : plan.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
-                            color: plan.status === 'active' ? '#16A34A' : plan.status === 'draft' ? '#D97706' : '#6B7280',
+                            borderRadius: 20, padding: '4px 12px', fontSize: '0.8125rem', fontWeight: 600,
+                            background: plan.status === 'active' ? 'var(--oc-success-soft)' : plan.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
+                            color: plan.status === 'active' ? 'var(--oc-success)' : plan.status === 'draft' ? 'var(--oc-warning)' : '#6B7280',
                           }}>
                             {plan.status === 'active' ? '✓ Active' : plan.status === 'draft' ? 'Draft' : plan.status === 'superseded' ? 'Superseded' : 'Archived'}
                           </span>
                           {plan.status === 'draft' && (
                             <button
                               onClick={() => activatePlan(plan.id)}
-                              style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                              style={{ background: 'var(--oc-success)', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
                             >
                               Activate
                             </button>
                           )}
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+                      <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
                         {[
                           { label: 'Primary Disability', value: plan.primary_disability },
                           { label: 'Communication', value: plan.communication_method },
@@ -2499,14 +2505,14 @@ export default function AdminCrmPage() {
                           { label: 'Review Date', value: plan.review_date ? new Date(plan.review_date).toLocaleDateString('en-AU') : null },
                         ].filter(f => f.value).map((field, idx) => (
                           <div key={idx}>
-                            <div style={{ fontSize: '0.72rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{field.label}</div>
+                            <div style={{ fontSize: '0.8125rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{field.label}</div>
                             <div style={{ fontSize: '0.85rem', color: '#374151', fontWeight: 500 }}>{field.value}</div>
                           </div>
                         ))}
                       </div>
                       {plan.triggers_and_responses && (
                         <div style={{ marginTop: 12, background: '#FFF7ED', borderRadius: 8, padding: '10px 14px' }}>
-                          <div style={{ fontSize: '0.73rem', color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>Triggers & De-escalation</div>
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-warning)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>Triggers & De-escalation</div>
                           <div style={{ fontSize: '0.85rem', color: '#374151' }}>{plan.triggers_and_responses}</div>
                         </div>
                       )}
@@ -2525,18 +2531,18 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Risk Assessments</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                     Structured participant risk assessments — versioned, activated, and shared with assigned workers.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <select
+                  <select className="ocField" aria-label="— Select Participant —"
                     value={selectedRiskParticipant}
                     onChange={(e) => {
                       setSelectedRiskParticipant(e.target.value);
                       if (e.target.value) loadRiskAssessments(e.target.value);
                     }}
-                    style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
+                    style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
                   >
                     <option value="">— Select Participant —</option>
                     {participants.map(p => (
@@ -2546,7 +2552,7 @@ export default function AdminCrmPage() {
                   {selectedRiskParticipant && (
                     <button
                       onClick={() => setShowRiskForm(!showRiskForm)}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                     >
                       <Plus size={15} /> New Assessment Version
                     </button>
@@ -2557,23 +2563,23 @@ export default function AdminCrmPage() {
               {/* Risk Assessment Form */}
               {showRiskForm && (
                 <div style={{ background: '#F8FAFF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: '#1E40AF' }}>New Risk Assessment Version</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-accent)' }}>New Risk Assessment Version</h3>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Assessment Title *</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Assessment Title *</label>
+                      <input className="ocField" aria-label="Assessment Title *"
                         type="text"
                         value={newRisk.assessment_title}
                         onChange={e => setNewRisk(prev => ({ ...prev, assessment_title: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Overall Risk Rating</label>
-                      <select
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Overall Risk Rating</label>
+                      <select className="ocField" aria-label="Overall Risk Rating"
                         value={newRisk.overall_risk_rating}
                         onChange={e => setNewRisk(prev => ({ ...prev, overall_risk_rating: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       >
                         <option value="Low">Low Risk</option>
                         <option value="Medium">Medium Risk</option>
@@ -2582,39 +2588,39 @@ export default function AdminCrmPage() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Falls & Mobility Risk Description</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Falls & Mobility Risk Description</label>
+                      <input className="ocField" aria-label="Falls & Mobility Risk Description"
                         type="text"
                         value={newRisk.falls_risk}
                         onChange={e => setNewRisk(prev => ({ ...prev, falls_risk: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Falls & Mobility Controls</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Falls & Mobility Controls</label>
+                      <input className="ocField" aria-label="Falls & Mobility Controls"
                         type="text"
                         value={newRisk.falls_controls}
                         onChange={e => setNewRisk(prev => ({ ...prev, falls_controls: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Medication Controls</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Medication Controls</label>
+                      <input className="ocField" aria-label="Medication Controls"
                         type="text"
                         value={newRisk.medication_controls}
                         onChange={e => setNewRisk(prev => ({ ...prev, medication_controls: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
+                      <input className="ocField" aria-label="Review Date"
                         type="date"
                         value={newRisk.review_date}
                         onChange={e => setNewRisk(prev => ({ ...prev, review_date: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
                       />
                     </div>
                   </div>
@@ -2622,13 +2628,13 @@ export default function AdminCrmPage() {
                     <button
                       onClick={createRiskAssessment}
                       disabled={savingRisk || !newRisk.assessment_title.trim()}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
                       {savingRisk ? 'Saving…' : 'Save Risk Assessment Version'}
                     </button>
                     <button
                       onClick={() => setShowRiskForm(false)}
-                      style={{ background: '#F1F5F9', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-subtle)', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
                     >
                       Cancel
                     </button>
@@ -2637,14 +2643,14 @@ export default function AdminCrmPage() {
               )}
 
               {!selectedRiskParticipant ? (
-                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>
                   <ShieldAlert size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
                   <p style={{ margin: 0 }}>Select a participant to view their risk assessments.</p>
                 </div>
               ) : risksLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading risk assessments…</div>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--oc-muted)' }}>Loading risk assessments…</div>
               ) : riskAssessments.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>
                   <p style={{ margin: '0 0 12px' }}>No risk assessments for this participant yet.</p>
                   <button
                     onClick={async () => {
@@ -2666,7 +2672,7 @@ export default function AdminCrmPage() {
                         setStatusNotice('Draft risk assessment created.');
                       }
                     }}
-                    style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                   >
                     Create Initial Risk Assessment
                   </button>
@@ -2674,38 +2680,38 @@ export default function AdminCrmPage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {riskAssessments.map(ra => {
-                    const ratingColour = ra.overall_risk_rating === 'Low' ? '#16A34A' : ra.overall_risk_rating === 'Medium' ? '#D97706' : ra.overall_risk_rating === 'High' ? '#DC2626' : '#7C3AED';
-                    const ratingBg = ra.overall_risk_rating === 'Low' ? '#F0FDF4' : ra.overall_risk_rating === 'Medium' ? '#FFFBEB' : ra.overall_risk_rating === 'High' ? '#FEF2F2' : '#F5F3FF';
+                    const ratingColour = ra.overall_risk_rating === 'Low' ? 'var(--oc-success)' : ra.overall_risk_rating === 'Medium' ? 'var(--oc-warning)' : ra.overall_risk_rating === 'High' ? 'var(--oc-danger)' : '#7C3AED';
+                    const ratingBg = ra.overall_risk_rating === 'Low' ? 'var(--oc-success-soft)' : ra.overall_risk_rating === 'Medium' ? 'var(--oc-warning-soft)' : ra.overall_risk_rating === 'High' ? 'var(--oc-danger-soft)' : '#F5F3FF';
                     return (
                       <div key={ra.id} style={{
-                        background: '#FFFFFF', borderRadius: 10, padding: '18px 20px',
-                        border: `1px solid ${ra.status === 'active' ? '#BBF7D0' : '#E2E8F0'}`,
+                        background: 'var(--oc-surface)', borderRadius: 10, padding: '18px 20px',
+                        border: `1px solid ${ra.status === 'active' ? '#BBF7D0' : 'var(--oc-border)'}`,
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 14 }}>
                           <div>
-                            <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{ra.assessment_title} — v{ra.version}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 2 }}>
+                            <div style={{ fontWeight: 600, color: '#111827', fontSize: '1rem' }}>{ra.assessment_title} — v{ra.version}</div>
+                            <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>
                               Created {new Date(ra.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                               {ra.review_date && ` · Review: ${new Date(ra.review_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                             {ra.overall_risk_rating && (
-                              <span style={{ borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700, background: ratingBg, color: ratingColour }}>
+                              <span style={{ borderRadius: 20, padding: '4px 12px', fontSize: '0.8125rem', fontWeight: 600, background: ratingBg, color: ratingColour }}>
                                 {ra.overall_risk_rating} Risk
                               </span>
                             )}
                             <span style={{
-                              borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700,
-                              background: ra.status === 'active' ? '#F0FDF4' : ra.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
-                              color: ra.status === 'active' ? '#16A34A' : ra.status === 'draft' ? '#D97706' : '#6B7280',
+                              borderRadius: 20, padding: '4px 12px', fontSize: '0.8125rem', fontWeight: 600,
+                              background: ra.status === 'active' ? 'var(--oc-success-soft)' : ra.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
+                              color: ra.status === 'active' ? 'var(--oc-success)' : ra.status === 'draft' ? 'var(--oc-warning)' : '#6B7280',
                             }}>
                               {ra.status === 'active' ? '✓ Active' : ra.status === 'draft' ? 'Draft' : 'Superseded'}
                             </span>
                             {ra.status === 'draft' && (
                               <button
                                 onClick={() => activateRiskAssessment(ra.id)}
-                                style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                                style={{ background: 'var(--oc-success)', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
                               >
                                 Activate
                               </button>
@@ -2713,7 +2719,7 @@ export default function AdminCrmPage() {
                           </div>
                         </div>
                         {/* Risk domains */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+                        <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
                           {[
                             { key: 'falls_and_mobility', label: 'Falls & Mobility', data: ra.falls_and_mobility },
                             { key: 'medication_risks', label: 'Medication', data: ra.medication_risks },
@@ -2723,10 +2729,10 @@ export default function AdminCrmPage() {
                             { key: 'fire_and_emergency', label: 'Fire & Emergency', data: ra.fire_and_emergency },
                             { key: 'financial_exploitation', label: 'Financial Safety', data: ra.financial_exploitation },
                           ].filter(d => d.data).map(domain => (
-                            <div key={domain.key} style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 14px' }}>
-                              <div style={{ fontSize: '0.73rem', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{domain.label}</div>
+                            <div key={domain.key} style={{ background: 'var(--oc-background)', borderRadius: 8, padding: '10px 14px' }}>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{domain.label}</div>
                               <div style={{ fontSize: '0.83rem', color: '#374151', marginBottom: 4 }}>{domain.data.risk}</div>
-                              <div style={{ fontSize: '0.78rem', color: '#6B7280' }}>Controls: {domain.data.controls}</div>
+                              <div style={{ fontSize: '0.8125rem', color: '#6B7280' }}>Controls: {domain.data.controls}</div>
                             </div>
                           ))}
                         </div>
@@ -2746,8 +2752,8 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Quality & Safeguarding Hub</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    NDIS Quality & Safeguards Commission compliant incident management, complaints resolution, and corrective actions register.
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
+                    Review incidents, respond to feedback, and track corrective actions.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -2764,7 +2770,7 @@ export default function AdminCrmPage() {
                       });
                       setShowAddActionModal(true);
                     }}
-                    style={{ background: '#0284C7', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    style={{ background: 'var(--oc-info)', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                   >
                     <Plus size={15} /> Add Action
                   </button>
@@ -2774,7 +2780,7 @@ export default function AdminCrmPage() {
                       loadComplaints();
                       loadCorrectiveActions();
                     }}
-                    style={{ background: '#F1F5F9', color: '#334155', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                   >
                     <RefreshCw size={14} /> Refresh
                   </button>
@@ -2796,42 +2802,42 @@ export default function AdminCrmPage() {
                 );
 
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
-                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Open Incidents</div>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
+                    <div style={{ background: 'var(--oc-surface)', padding: 16, borderRadius: 10, border: '1px solid var(--oc-border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Open Incidents</div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0F172A' }}>{openIncidents.length}</span>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--oc-text)' }}>{openIncidents.length}</span>
                         {highCritIncidents.length > 0 && (
-                          <span style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 700, background: '#FEF2F2', padding: '2px 8px', borderRadius: 12 }}>
+                          <span style={{ fontSize: '0.8125rem', color: 'var(--oc-danger)', fontWeight: 600, background: 'var(--oc-danger-soft)', padding: '2px 8px', borderRadius: 12 }}>
                             {highCritIncidents.length} High/Critical
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Complaints Requiring Action</div>
+                    <div style={{ background: 'var(--oc-surface)', padding: 16, borderRadius: 10, border: '1px solid var(--oc-border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Complaints Requiring Action</div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: pendingComplaints.length > 0 ? '#D97706' : '#16A34A' }}>{pendingComplaints.length}</span>
-                        <span style={{ fontSize: '0.78rem', color: '#64748B' }}>active feedback items</span>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 600, color: pendingComplaints.length > 0 ? 'var(--oc-warning)' : 'var(--oc-success)' }}>{pendingComplaints.length}</span>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>active feedback items</span>
                       </div>
                     </div>
 
-                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Overdue Corrective Actions</div>
+                    <div style={{ background: 'var(--oc-surface)', padding: 16, borderRadius: 10, border: '1px solid var(--oc-border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Overdue Corrective Actions</div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: overdueActions.length > 0 ? '#DC2626' : '#16A34A' }}>{overdueActions.length}</span>
-                        <span style={{ fontSize: '0.78rem', color: overdueActions.length > 0 ? '#DC2626' : '#64748B' }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 600, color: overdueActions.length > 0 ? 'var(--oc-danger)' : 'var(--oc-success)' }}>{overdueActions.length}</span>
+                        <span style={{ fontSize: '0.8125rem', color: overdueActions.length > 0 ? 'var(--oc-danger)' : 'var(--oc-muted)' }}>
                           {overdueActions.length > 0 ? 'requires immediate action' : 'all on schedule'}
                         </span>
                       </div>
                     </div>
 
-                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reportability Assessments</div>
+                    <div style={{ background: 'var(--oc-surface)', padding: 16, borderRadius: 10, border: '1px solid var(--oc-border)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reportability Assessments</div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#2563EB' }}>{reportableReview.length}</span>
-                        <span style={{ fontSize: '0.78rem', color: '#64748B' }}>pending manager evaluation</span>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 600, color: 'var(--oc-info)' }}>{reportableReview.length}</span>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>pending manager evaluation</span>
                       </div>
                     </div>
                   </div>
@@ -2839,14 +2845,14 @@ export default function AdminCrmPage() {
               })()}
 
               {/* Sub-tab Navigation */}
-              <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid #E2E8F0', paddingBottom: 10, marginBottom: 16 }}>
+              <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--oc-border)', paddingBottom: 10, marginBottom: 16 }}>
                 <button
                   onClick={() => setSafeguardingSubTab('incidents')}
                   style={{
                     padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-                    background: safeguardingSubTab === 'incidents' ? '#1E40AF' : '#FFFFFF',
-                    color: safeguardingSubTab === 'incidents' ? '#FFFFFF' : '#64748B',
-                    border: safeguardingSubTab === 'incidents' ? 'none' : '1px solid #E2E8F0',
+                    background: safeguardingSubTab === 'incidents' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+                    color: safeguardingSubTab === 'incidents' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+                    border: safeguardingSubTab === 'incidents' ? 'none' : '1px solid var(--oc-border)',
                   }}
                 >
                   Incidents Register ({incidentsList.length})
@@ -2855,9 +2861,9 @@ export default function AdminCrmPage() {
                   onClick={() => setSafeguardingSubTab('complaints')}
                   style={{
                     padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-                    background: safeguardingSubTab === 'complaints' ? '#1E40AF' : '#FFFFFF',
-                    color: safeguardingSubTab === 'complaints' ? '#FFFFFF' : '#64748B',
-                    border: safeguardingSubTab === 'complaints' ? 'none' : '1px solid #E2E8F0',
+                    background: safeguardingSubTab === 'complaints' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+                    color: safeguardingSubTab === 'complaints' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+                    border: safeguardingSubTab === 'complaints' ? 'none' : '1px solid var(--oc-border)',
                   }}
                 >
                   Complaints Register ({complaintsList.length})
@@ -2866,9 +2872,9 @@ export default function AdminCrmPage() {
                   onClick={() => setSafeguardingSubTab('corrective_actions')}
                   style={{
                     padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-                    background: safeguardingSubTab === 'corrective_actions' ? '#1E40AF' : '#FFFFFF',
-                    color: safeguardingSubTab === 'corrective_actions' ? '#FFFFFF' : '#64748B',
-                    border: safeguardingSubTab === 'corrective_actions' ? 'none' : '1px solid #E2E8F0',
+                    background: safeguardingSubTab === 'corrective_actions' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+                    color: safeguardingSubTab === 'corrective_actions' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+                    border: safeguardingSubTab === 'corrective_actions' ? 'none' : '1px solid var(--oc-border)',
                   }}
                 >
                   Corrective Actions ({actionsList.length})
@@ -2880,10 +2886,10 @@ export default function AdminCrmPage() {
                 <div>
                   {/* Filters */}
                   <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
-                    <select
+                    <select className="ocField" aria-label="All Severities"
                       value={incidentSeverityFilter}
                       onChange={e => setIncidentSeverityFilter(e.target.value)}
-                      style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                      style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
                     >
                       <option value="all">All Severities</option>
                       <option value="Low">Low</option>
@@ -2891,10 +2897,10 @@ export default function AdminCrmPage() {
                       <option value="High">High</option>
                       <option value="Critical">Critical</option>
                     </select>
-                    <select
+                    <select className="ocField" aria-label="All Statuses"
                       value={incidentStatusFilter}
                       onChange={e => setIncidentStatusFilter(e.target.value)}
-                      style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                      style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
                     >
                       <option value="all">All Statuses</option>
                       <option value="Reported">Reported</option>
@@ -2907,12 +2913,12 @@ export default function AdminCrmPage() {
                   </div>
 
                   {incidentsLoading ? (
-                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>Loading incidents…</div>
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--oc-muted)' }}>Loading incidents…</div>
                   ) : incidentsList.length === 0 ? (
-                    <div style={{ background: '#FFFFFF', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid #E2E8F0' }}>
-                      <CheckCircle2 size={36} style={{ color: '#16A34A', marginBottom: 10 }} />
-                      <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>No incidents recorded</p>
-                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>Incident reports submitted by workers or staff will appear here.</p>
+                    <div style={{ background: 'var(--oc-surface)', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                      <CheckCircle2 size={36} style={{ color: 'var(--oc-success)', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: 'var(--oc-secondary)' }}>No incidents recorded</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>Incident reports submitted by workers or staff will appear here.</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -2920,36 +2926,36 @@ export default function AdminCrmPage() {
                         .filter(inc => incidentSeverityFilter === 'all' || inc.severity === incidentSeverityFilter)
                         .filter(inc => incidentStatusFilter === 'all' || inc.status === incidentStatusFilter)
                         .map(inc => {
-                          const sevBg = inc.severity === 'Critical' ? '#450A0A' : inc.severity === 'High' ? '#FEF2F2' : inc.severity === 'Medium' ? '#FFFBEB' : '#F0FDF4';
-                          const sevColor = inc.severity === 'Critical' ? '#FFFFFF' : inc.severity === 'High' ? '#DC2626' : inc.severity === 'Medium' ? '#D97706' : '#16A34A';
+                          const sevBg = inc.severity === 'Critical' ? '#450A0A' : inc.severity === 'High' ? 'var(--oc-danger-soft)' : inc.severity === 'Medium' ? 'var(--oc-warning-soft)' : 'var(--oc-success-soft)';
+                          const sevColor = inc.severity === 'Critical' ? 'var(--oc-surface)' : inc.severity === 'High' ? 'var(--oc-danger)' : inc.severity === 'Medium' ? 'var(--oc-warning)' : 'var(--oc-success)';
                           return (
                             <div
                               key={inc.id}
                               style={{
-                                background: '#FFFFFF', borderRadius: 10, padding: '16px 18px', border: '1px solid #E2E8F0',
+                                background: 'var(--oc-surface)', borderRadius: 10, padding: '16px 18px', border: '1px solid var(--oc-border)',
                                 boxShadow: '0 1px 2px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between',
                                 alignItems: 'center', flexWrap: 'wrap', gap: 12,
                               }}
                             >
                               <div style={{ flex: 1, minWidth: 260 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                  <strong style={{ color: '#0F172A', fontSize: '0.95rem' }}>{inc.incident_reference}</strong>
-                                  <span style={{ background: sevBg, color: sevColor, padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                  <strong style={{ color: 'var(--oc-text)', fontSize: '0.95rem' }}>{inc.incident_reference}</strong>
+                                  <span style={{ background: sevBg, color: sevColor, padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                     {inc.severity} Severity
                                   </span>
-                                  <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                  <span style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                     {inc.category}
                                   </span>
                                   {inc.emergency_services_contacted && (
-                                    <span style={{ background: '#FEF2F2', color: '#991B1B', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                    <span style={{ background: 'var(--oc-danger-soft)', color: '#991B1B', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                       🚨 000 Called
                                     </span>
                                   )}
                                 </div>
-                                <div style={{ fontSize: '0.88rem', color: '#334155', marginBottom: 4 }}>
+                                <div style={{ fontSize: '0.88rem', color: 'var(--oc-secondary)', marginBottom: 4 }}>
                                   {inc.description.length > 120 ? `${inc.description.slice(0, 120)}…` : inc.description}
                                 </div>
-                                <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14 }}>
+                                <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'flex', gap: 14 }}>
                                   <span>Participant: <strong>{inc.participant?.full_name || 'Participant'}</strong></span>
                                   <span>Reported: {new Date(inc.incident_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                                   <span>Status: <strong>{inc.status}</strong></span>
@@ -2959,7 +2965,7 @@ export default function AdminCrmPage() {
                                 <button
                                   onClick={() => setSelectedIncident(inc)}
                                   style={{
-                                    background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6,
+                                    background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6,
                                     padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                                     display: 'flex', alignItems: 'center', gap: 4,
                                   }}
@@ -2980,10 +2986,10 @@ export default function AdminCrmPage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <select
+                      <select className="ocField" aria-label="All Statuses"
                         value={complaintStatusFilter}
                         onChange={e => setComplaintStatusFilter(e.target.value)}
-                        style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                        style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
                       >
                         <option value="all">All Statuses</option>
                         <option value="Received">Received</option>
@@ -2994,12 +3000,12 @@ export default function AdminCrmPage() {
                         <option value="Closed">Closed</option>
                       </select>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: '#64748B' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                       <span>Target Acknowledgement:</span>
-                      <select
+                      <select className="ocField" aria-label="1 Business Day (Prompt: 24h)"
                         value={complaintAckTargetDays}
                         onChange={e => setComplaintAckTargetDays(Number(e.target.value))}
-                        style={{ border: '1px solid #CBD5E1', borderRadius: 6, padding: '5px 10px', fontSize: '0.8rem', color: '#1E293B', background: '#F8FAFC' }}
+                        style={{ border: '1px solid var(--oc-border)', borderRadius: 6, padding: '5px 10px', fontSize: '0.8125rem', color: 'var(--oc-text)', background: 'var(--oc-background)' }}
                       >
                         <option value={1}>1 Business Day (Prompt: 24h)</option>
                         <option value={2}>2 Business Days (Prompt: 48h)</option>
@@ -3010,12 +3016,12 @@ export default function AdminCrmPage() {
                   </div>
 
                   {complaintsLoading ? (
-                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>Loading complaints…</div>
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--oc-muted)' }}>Loading complaints…</div>
                   ) : complaintsList.length === 0 ? (
-                    <div style={{ background: '#FFFFFF', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid #E2E8F0' }}>
-                      <CheckCircle2 size={36} style={{ color: '#16A34A', marginBottom: 10 }} />
-                      <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>No complaints recorded</p>
-                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>Feedback and complaints from participants or stakeholders will appear here.</p>
+                    <div style={{ background: 'var(--oc-surface)', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                      <CheckCircle2 size={36} style={{ color: 'var(--oc-success)', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: 'var(--oc-secondary)' }}>No complaints recorded</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>Feedback and complaints from participants or stakeholders will appear here.</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -3025,40 +3031,40 @@ export default function AdminCrmPage() {
                           <div
                             key={comp.id}
                             style={{
-                              background: '#FFFFFF', borderRadius: 10, padding: '16px 18px', border: '1px solid #E2E8F0',
+                              background: 'var(--oc-surface)', borderRadius: 10, padding: '16px 18px', border: '1px solid var(--oc-border)',
                               boxShadow: '0 1px 2px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between',
                               alignItems: 'center', flexWrap: 'wrap', gap: 12,
                             }}
                           >
                             <div style={{ flex: 1, minWidth: 260 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <strong style={{ color: '#0F172A', fontSize: '0.95rem' }}>{comp.complaint_reference}</strong>
-                                <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                <strong style={{ color: 'var(--oc-text)', fontSize: '0.95rem' }}>{comp.complaint_reference}</strong>
+                                <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                   {comp.complainant_role}
                                 </span>
                                 {comp.immediate_safety_issue && (
-                                  <span style={{ background: '#FEF2F2', color: '#DC2626', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                  <span style={{ background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                     ⚠️ Safety Issue
                                   </span>
                                 )}
                                 {comp.linked_incident_id && (
-                                  <span style={{ background: '#FDF4FF', color: '#9333EA', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                  <span style={{ background: '#FDF4FF', color: '#9333EA', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                     Linked to Incident
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1E293B', marginBottom: 2 }}>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 2 }}>
                                 {comp.summary}
                               </div>
-                              <div style={{ fontSize: '0.84rem', color: '#475569', marginBottom: 4 }}>
+                              <div style={{ fontSize: '0.84rem', color: 'var(--oc-secondary)', marginBottom: 4 }}>
                                 {comp.details.length > 120 ? `${comp.details.slice(0, 120)}…` : comp.details}
                               </div>
-                              <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
                                 <span>From: <strong>{comp.complainant_name}</strong></span>
                                 <span>Received: {comp.received_date}</span>
                                 <span>Status: <strong>{comp.status}</strong></span>
                                 {comp.acknowledgement_date ? (
-                                  <span style={{ color: '#16A34A', fontWeight: 600 }}>
+                                  <span style={{ color: 'var(--oc-success)', fontWeight: 600 }}>
                                     ✓ Acknowledged ({comp.acknowledgement_date})
                                   </span>
                                 ) : (
@@ -3067,7 +3073,7 @@ export default function AdminCrmPage() {
                                     const target = new Date(rec.getTime() + complaintAckTargetDays * 86400000);
                                     const isDue = new Date() > target;
                                     return (
-                                      <span style={{ color: isDue ? '#DC2626' : '#D97706', fontWeight: 600 }}>
+                                      <span style={{ color: isDue ? 'var(--oc-danger)' : 'var(--oc-warning)', fontWeight: 600 }}>
                                         {isDue ? '⚠️ Ack Overdue' : 'Prompt Ack Due'}: {target.toISOString().split('T')[0]}
                                       </span>
                                     );
@@ -3079,7 +3085,7 @@ export default function AdminCrmPage() {
                               <button
                                 onClick={() => setSelectedComplaint(comp)}
                                 style={{
-                                  background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6,
+                                  background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6,
                                   padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                                   display: 'flex', alignItems: 'center', gap: 4,
                                 }}
@@ -3099,10 +3105,10 @@ export default function AdminCrmPage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <select
+                      <select className="ocField" aria-label="All Statuses"
                         value={actionStatusFilter}
                         onChange={e => setActionStatusFilter(e.target.value)}
-                        style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                        style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
                       >
                         <option value="all">All Statuses</option>
                         <option value="Open">Open</option>
@@ -3114,12 +3120,12 @@ export default function AdminCrmPage() {
                   </div>
 
                   {actionsLoading ? (
-                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>Loading corrective actions…</div>
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--oc-muted)' }}>Loading corrective actions…</div>
                   ) : actionsList.length === 0 ? (
-                    <div style={{ background: '#FFFFFF', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid #E2E8F0' }}>
-                      <CheckCircle2 size={36} style={{ color: '#16A34A', marginBottom: 10 }} />
-                      <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>No corrective actions recorded</p>
-                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>Actions assigned from incident reviews or complaint investigations will appear here.</p>
+                    <div style={{ background: 'var(--oc-surface)', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                      <CheckCircle2 size={36} style={{ color: 'var(--oc-success)', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: 'var(--oc-secondary)' }}>No corrective actions recorded</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>Actions assigned from incident reviews or complaint investigations will appear here.</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -3131,34 +3137,34 @@ export default function AdminCrmPage() {
                             <div
                               key={act.id}
                               style={{
-                                background: '#FFFFFF', borderRadius: 10, padding: '16px 18px', border: '1px solid #E2E8F0',
+                                background: 'var(--oc-surface)', borderRadius: 10, padding: '16px 18px', border: '1px solid var(--oc-border)',
                                 boxShadow: '0 1px 2px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between',
                                 alignItems: 'center', flexWrap: 'wrap', gap: 12,
                               }}
                             >
                               <div style={{ flex: 1, minWidth: 260 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                  <strong style={{ color: '#0F172A', fontSize: '0.95rem' }}>{act.action_reference}</strong>
-                                  <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                  <strong style={{ color: 'var(--oc-text)', fontSize: '0.95rem' }}>{act.action_reference}</strong>
+                                  <span style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                     From {act.source_type}
                                   </span>
                                   <span style={{
-                                    background: act.priority === 'Urgent' ? '#FEF2F2' : act.priority === 'High' ? '#FFFBEB' : '#F0FDF4',
-                                    color: act.priority === 'Urgent' ? '#DC2626' : act.priority === 'High' ? '#D97706' : '#16A34A',
-                                    padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700,
+                                    background: act.priority === 'Urgent' ? 'var(--oc-danger-soft)' : act.priority === 'High' ? 'var(--oc-warning-soft)' : 'var(--oc-success-soft)',
+                                    color: act.priority === 'Urgent' ? 'var(--oc-danger)' : act.priority === 'High' ? 'var(--oc-warning)' : 'var(--oc-success)',
+                                    padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600,
                                   }}>
                                     {act.priority} Priority
                                   </span>
                                   {isOverdue && (
-                                    <span style={{ background: '#FEF2F2', color: '#B91C1C', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                    <span style={{ background: 'var(--oc-danger-soft)', color: '#B91C1C', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                                       Overdue
                                     </span>
                                   )}
                                 </div>
-                                <div style={{ fontSize: '0.9rem', color: '#1E293B', fontWeight: 500, marginBottom: 4 }}>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--oc-text)', fontWeight: 500, marginBottom: 4 }}>
                                   {act.action_description}
                                 </div>
-                                <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14 }}>
+                                <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'flex', gap: 14 }}>
                                   <span>Owner: <strong>{act.owner}</strong></span>
                                   <span>Due: <strong>{act.due_date}</strong></span>
                                   <span>Status: <strong>{act.status}</strong></span>
@@ -3178,7 +3184,7 @@ export default function AdminCrmPage() {
                                       }
                                     }}
                                     style={{
-                                      background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6,
+                                      background: 'var(--oc-success)', color: '#fff', border: 'none', borderRadius: 6,
                                       padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
                                       display: 'flex', alignItems: 'center', gap: 4,
                                     }}
@@ -3186,7 +3192,7 @@ export default function AdminCrmPage() {
                                     <Check size={14} /> Mark Completed
                                   </button>
                                 ) : (
-                                  <span style={{ background: '#F0FDF4', color: '#16A34A', padding: '4px 10px', borderRadius: 6, fontSize: '0.8rem', fontWeight: 600 }}>
+                                  <span style={{ background: 'var(--oc-success-soft)', color: 'var(--oc-success)', padding: '4px 10px', borderRadius: 6, fontSize: '0.8125rem', fontWeight: 600 }}>
                                     ✓ Completed
                                   </span>
                                 )}
@@ -3207,47 +3213,47 @@ export default function AdminCrmPage() {
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
               alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16,
             }}>
-              <div style={{
-                background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 760,
+              <DialogPanel className="ocInlineDialog" onClose={() => setSelectedIncident(null)} label="Incident details" style={{
+                background: 'var(--oc-surface)', borderRadius: 12, width: '100%', maxWidth: 760,
                 maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #E2E8F0', paddingBottom: 16, marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--oc-border)', paddingBottom: 16, marginBottom: 16 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                         {selectedIncident.incident_reference}
                       </h3>
-                      <span style={{ background: '#FEF2F2', color: '#DC2626', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
+                      <span style={{ background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                         {selectedIncident.severity} Severity
                       </span>
-                      <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600 }}>
+                      <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                         Status: {selectedIncident.status}
                       </span>
                     </div>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                       Participant: <strong>{selectedIncident.participant?.full_name}</strong> &bull; Date: {new Date(selectedIncident.incident_at).toLocaleString('en-AU')}
                     </p>
                   </div>
                   <button
                     onClick={() => setSelectedIncident(null)}
-                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94A3B8' }}
+                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--oc-muted)' }}
                   >
                     &times;
                   </button>
                 </div>
 
                 {/* Facts Grid */}
-                <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 8, marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.85rem' }}>
+                <div className="ocFormGrid" style={{ background: 'var(--oc-background)', padding: 14, borderRadius: 8, marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.85rem' }}>
                   <div><strong>Category:</strong> {selectedIncident.category}</div>
                   <div><strong>Location:</strong> {selectedIncident.location || 'Participant location'}</div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <strong>Incident Description:</strong>
-                    <div style={{ marginTop: 4, color: '#334155' }}>{selectedIncident.description}</div>
+                    <div style={{ marginTop: 4, color: 'var(--oc-secondary)' }}>{selectedIncident.description}</div>
                   </div>
                   {selectedIncident.immediate_actions_taken && (
                     <div style={{ gridColumn: '1 / -1' }}>
                       <strong>Immediate Actions Taken:</strong>
-                      <div style={{ marginTop: 2, color: '#334155' }}>{selectedIncident.immediate_actions_taken}</div>
+                      <div style={{ marginTop: 2, color: 'var(--oc-secondary)' }}>{selectedIncident.immediate_actions_taken}</div>
                     </div>
                   )}
                   {selectedIncident.injury_or_harm_details && (
@@ -3257,7 +3263,7 @@ export default function AdminCrmPage() {
                     </div>
                   )}
                   {selectedIncident.emergency_services_contacted && (
-                    <div style={{ gridColumn: '1 / -1', background: '#FEF2F2', padding: 8, borderRadius: 6, color: '#991B1B' }}>
+                    <div style={{ gridColumn: '1 / -1', background: 'var(--oc-danger-soft)', padding: 8, borderRadius: 6, color: '#991B1B' }}>
                       <strong>Emergency Services (000) Contacted:</strong> {selectedIncident.emergency_services_details || 'Yes'}
                     </div>
                   )}
@@ -3266,46 +3272,46 @@ export default function AdminCrmPage() {
                 {/* Manager Review & Investigation Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
                   <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                       Manager Investigation Notes & Findings
                     </label>
-                    <textarea
+                    <textarea className="ocField"
                       rows={3}
                       id="incident_inv_notes"
                       defaultValue={selectedIncident.investigation_notes || ''}
                       placeholder="Record root cause analysis, worker interviews, policy compliance, and contributing factors..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', resize: 'vertical', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', resize: 'vertical', boxSizing: 'border-box' }}
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
-                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                         Reportability Assessment
                       </label>
-                      <select
+                      <select className="ocField"
                         id="incident_reportable_assessment"
                         defaultValue={selectedIncident.reportable_assessment || 'Pending Review'}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
                       >
                         <option value="Pending Review">Pending Review</option>
                         <option value="Not Reportable / No External Notification Required">Not Reportable / No External Notification Required</option>
                         <option value="Potentially Reportable / Escalate for Review">Potentially Reportable / Escalate for Review</option>
                         <option value="Reportable where applicable">Reportable where applicable</option>
                       </select>
-                      <span style={{ fontSize: '0.72rem', color: '#64748B', marginTop: 4, display: 'block' }}>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 4, display: 'block' }}>
                         Opus Care operates as an unregistered provider. Formal notification obligations apply only where specifically mandated for the service or participant.
                       </span>
                     </div>
 
                     <div>
-                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                         External Notification Status
                       </label>
-                      <select
+                      <select className="ocField"
                         id="incident_notification_status"
                         defaultValue={selectedIncident.external_notification_status || 'Not Required'}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
                       >
                         <option value="Not Required">Not Required</option>
                         <option value="Pending Review">Pending Review</option>
@@ -3317,34 +3323,34 @@ export default function AdminCrmPage() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                       Reportability Determination Rationale
                     </label>
-                    <input
+                    <input className="ocField"
                       type="text"
                       id="incident_reportable_rationale"
                       defaultValue={selectedIncident.reportable_rationale || ''}
                       placeholder="Explain assessment rationale and whether external notification applies..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                       Participant / Family Follow-up Notes
                     </label>
-                    <input
+                    <input className="ocField"
                       type="text"
                       id="incident_family_followup"
                       defaultValue={selectedIncident.participant_family_follow_up || ''}
                       placeholder="Date contacted, family informed, welfare check completed..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
 
                 {/* Actions & Status Workflow Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E2E8F0', paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--oc-border)', paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => {
@@ -3359,7 +3365,7 @@ export default function AdminCrmPage() {
                         });
                         setShowAddActionModal(true);
                       }}
-                      style={{ background: '#F1F5F9', color: '#1E40AF', border: '1px solid #BFDBFE', borderRadius: 6, padding: '7px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-subtle)', color: 'var(--oc-accent)', border: '1px solid #BFDBFE', borderRadius: 6, padding: '7px 12px', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
                     >
                       + Create Corrective Action
                     </button>
@@ -3382,7 +3388,7 @@ export default function AdminCrmPage() {
                           participant_family_follow_up: familyFollowup,
                         });
                       }}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                     >
                       Save Investigation
                     </button>
@@ -3403,21 +3409,21 @@ export default function AdminCrmPage() {
                             updateIncident(selectedIncident.id, { status: 'Closed' });
                           }
                         }}
-                        style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ background: 'var(--oc-success)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                       >
                         Close Incident
                       </button>
                     ) : (
                       <button
                         onClick={() => updateIncident(selectedIncident.id, { status: 'Under Review' })}
-                        style={{ background: '#F1F5F9', color: '#64748B', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ background: 'var(--oc-subtle)', color: 'var(--oc-muted)', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                       >
                         Re-open Incident
                       </button>
                     )}
                   </div>
                 </div>
-              </div>
+              </DialogPanel>
             </div>
           )}
 
@@ -3427,38 +3433,38 @@ export default function AdminCrmPage() {
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
               alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16,
             }}>
-              <div style={{
-                background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 700,
+              <DialogPanel className="ocInlineDialog" onClose={() => setSelectedComplaint(null)} label="Complaint details" style={{
+                background: 'var(--oc-surface)', borderRadius: 12, width: '100%', maxWidth: 700,
                 maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #E2E8F0', paddingBottom: 14, marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--oc-border)', paddingBottom: 14, marginBottom: 16 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                         {selectedComplaint.complaint_reference}
                       </h3>
-                      <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600 }}>
+                      <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                         {selectedComplaint.status}
                       </span>
                       {selectedComplaint.immediate_safety_issue && (
-                        <span style={{ background: '#FEF2F2', color: '#DC2626', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
+                        <span style={{ background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600 }}>
                           ⚠️ Immediate Safety Issue
                         </span>
                       )}
                     </div>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                       Complainant: <strong>{selectedComplaint.complainant_name}</strong> ({selectedComplaint.complainant_role}) &bull; Received: {selectedComplaint.received_date}
                     </p>
                   </div>
                   <button
                     onClick={() => setSelectedComplaint(null)}
-                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94A3B8' }}
+                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--oc-muted)' }}
                   >
                     &times;
                   </button>
                 </div>
 
-                <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
+                <div style={{ background: 'var(--oc-background)', padding: 14, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
                   <div style={{ marginBottom: 6 }}><strong>Summary:</strong> {selectedComplaint.summary}</div>
                   <div style={{ marginBottom: 6 }}><strong>Full Details:</strong> {selectedComplaint.details}</div>
                   <div><strong>Contact Details:</strong> {selectedComplaint.contact_details || 'Not provided'}</div>
@@ -3471,63 +3477,63 @@ export default function AdminCrmPage() {
 
                 {/* Complaint Management Fields */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                         Target Acknowledgement Date / Prompt Acknowledgement
                       </label>
-                      <input
+                      <input className="ocField"
                         type="date"
                         id="comp_ack_date"
                         defaultValue={selectedComplaint.acknowledgement_date || ''}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem' }}
                       />
-                      <span style={{ fontSize: '0.72rem', color: '#64748B', display: 'block', marginTop: 2 }}>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginTop: 2 }}>
                         Target: prompt acknowledgement within {complaintAckTargetDays} business day{complaintAckTargetDays > 1 ? 's' : ''} of receipt
                       </span>
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                         Assigned Manager
                       </label>
-                      <input
+                      <input className="ocField"
                         type="text"
                         id="comp_assigned_manager"
                         defaultValue={selectedComplaint.assigned_manager || 'Operations Manager'}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                       Investigation Notes & Actions Taken
                     </label>
-                    <textarea
+                    <textarea className="ocField"
                       rows={3}
                       id="comp_investigation_notes"
                       defaultValue={selectedComplaint.investigation_notes || ''}
                       placeholder="Steps taken to address the complaint..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                       Outcome & Resolution Summary
                     </label>
-                    <textarea
+                    <textarea className="ocField"
                       rows={2}
                       id="comp_resolution_summary"
                       defaultValue={selectedComplaint.resolution_summary || ''}
                       placeholder="Agreed resolution and communication with complainant..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E2E8F0', paddingTop: 14, flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--oc-border)', paddingTop: 14, flexWrap: 'wrap', gap: 10 }}>
                   <div>
                     {!selectedComplaint.linked_incident_id && (
                       <button
@@ -3539,7 +3545,7 @@ export default function AdminCrmPage() {
                           });
                           setShowEscalateComplaintModal(true);
                         }}
-                        style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 6, padding: '7px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', border: '1px solid #FECACA', borderRadius: 6, padding: '7px 12px', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
                       >
                         ⚠️ Escalate to Incident
                       </button>
@@ -3561,7 +3567,7 @@ export default function AdminCrmPage() {
                           resolution_summary: res,
                         });
                       }}
-                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                     >
                       Save Updates
                     </button>
@@ -3569,7 +3575,7 @@ export default function AdminCrmPage() {
                     {selectedComplaint.status !== 'Resolved' && selectedComplaint.status !== 'Closed' && (
                       <button
                         onClick={() => updateComplaint(selectedComplaint.id, { status: 'Resolved' })}
-                        style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ background: 'var(--oc-success)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                       >
                         Mark Resolved
                       </button>
@@ -3578,21 +3584,21 @@ export default function AdminCrmPage() {
                     {selectedComplaint.status !== 'Closed' ? (
                       <button
                         onClick={() => updateComplaint(selectedComplaint.id, { status: 'Closed' })}
-                        style={{ background: '#475569', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ background: 'var(--oc-secondary)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                       >
                         Close Complaint
                       </button>
                     ) : (
                       <button
                         onClick={() => updateComplaint(selectedComplaint.id, { status: 'Under Review' })}
-                        style={{ background: '#F1F5F9', color: '#64748B', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ background: 'var(--oc-subtle)', color: 'var(--oc-muted)', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                       >
                         Re-open
                       </button>
                     )}
                   </div>
                 </div>
-              </div>
+              </DialogPanel>
             </div>
           )}
 
@@ -3602,47 +3608,47 @@ export default function AdminCrmPage() {
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
               alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16,
             }}>
-              <div style={{ background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 500, padding: 22 }}>
-                <h3 style={{ margin: '0 0 14px', fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>
+              <DialogPanel className="ocInlineDialog" onClose={() => setShowAddActionModal(false)} label="Create corrective action" style={{ background: 'var(--oc-surface)', borderRadius: 12, width: '100%', maxWidth: 500, padding: 22 }}>
+                <h3 style={{ margin: '0 0 14px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                   Create Corrective Action
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Action Description *</label>
-                    <textarea
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Action Description *</label>
+                    <textarea className="ocField" aria-label="Action Description *"
                       rows={3}
                       value={newActionForm.action_description}
                       onChange={e => setNewActionForm(prev => ({ ...prev, action_description: e.target.value }))}
                       placeholder="e.g. Conduct refresher manual handling training for support team"
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                     <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Owner *</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Owner *</label>
+                      <input className="ocField" aria-label="Owner *"
                         type="text"
                         value={newActionForm.owner}
                         onChange={e => setNewActionForm(prev => ({ ...prev, owner: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Due Date *</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Due Date *</label>
+                      <input className="ocField" aria-label="Due Date *"
                         type="date"
                         value={newActionForm.due_date}
                         onChange={e => setNewActionForm(prev => ({ ...prev, due_date: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Priority</label>
-                    <select
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Priority</label>
+                    <select className="ocField" aria-label="Priority"
                       value={newActionForm.priority}
                       onChange={e => setNewActionForm(prev => ({ ...prev, priority: e.target.value }))}
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -3654,19 +3660,19 @@ export default function AdminCrmPage() {
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
                   <button
                     onClick={() => setShowAddActionModal(false)}
-                    style={{ background: '#F1F5F9', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-subtle)', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => createCorrectiveAction(newActionForm)}
                     disabled={!newActionForm.action_description.trim() || !newActionForm.owner || !newActionForm.due_date}
-                    style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Create Action
                   </button>
                 </div>
-              </div>
+              </DialogPanel>
             </div>
           )}
 
@@ -3676,20 +3682,20 @@ export default function AdminCrmPage() {
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
               alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16,
             }}>
-              <div style={{ background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 520, padding: 22 }}>
-                <h3 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 700, color: '#DC2626' }}>
+              <DialogPanel className="ocInlineDialog" onClose={() => setSelectedComplaint(null)} label="Complaint details" style={{ background: 'var(--oc-surface)', borderRadius: 12, width: '100%', maxWidth: 520, padding: 22 }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-danger)' }}>
                   ⚠️ Escalate Complaint to Incident
                 </h3>
-                <p style={{ margin: '0 0 14px', fontSize: '0.82rem', color: '#64748B' }}>
+                <p style={{ margin: '0 0 14px', fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                   Creates an official Incident record linked to complaint {selectedComplaint.complaint_reference} for formal investigation.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Category</label>
-                    <select
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Category</label>
+                    <select className="ocField" aria-label="Category"
                       value={escalateIncidentForm.category}
                       onChange={e => setEscalateIncidentForm(prev => ({ ...prev, category: e.target.value }))}
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
                     >
                       <option value="allegation_abuse_neglect">Allegation of Abuse / Neglect / Exploitation</option>
                       <option value="injury">Physical Harm or Injury</option>
@@ -3699,11 +3705,11 @@ export default function AdminCrmPage() {
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Severity</label>
-                    <select
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Severity</label>
+                    <select className="ocField" aria-label="Severity"
                       value={escalateIncidentForm.severity}
                       onChange={e => setEscalateIncidentForm(prev => ({ ...prev, severity: e.target.value as any }))}
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -3712,31 +3718,31 @@ export default function AdminCrmPage() {
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Incident Summary / Note</label>
-                    <textarea
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Incident Summary / Note</label>
+                    <textarea className="ocField" aria-label="Incident Summary / Note"
                       rows={2}
                       value={escalateIncidentForm.description}
                       onChange={e => setEscalateIncidentForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Add any specific context for this escalation..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
                   <button
                     onClick={() => setShowEscalateComplaintModal(false)}
-                    style={{ background: '#F1F5F9', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-subtle)', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => escalateComplaintToIncident(selectedComplaint)}
-                    style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-danger)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Confirm Escalation
                   </button>
                 </div>
-              </div>
+              </DialogPanel>
             </div>
           )}
 
@@ -3765,8 +3771,8 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Support Workers & Compliance Clearances</h2>
-                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                  <h2 className="crmPanelTitle">Workers & credentials</h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                     Monitor support worker qualifications, NDIS Worker Screening Check (NWSC), WWCC, and First Aid certificates.
                   </p>
                 </div>
@@ -3775,7 +3781,7 @@ export default function AdminCrmPage() {
                   className="headerCtaBtn"
                   style={{ padding: '8px 18px', fontSize: '0.85rem' }}
                 >
-                  <Plus size={15} /> <span>Register Support Worker</span>
+                  <Plus size={15} /> <span>Add worker</span>
                 </button>
               </div>
 
@@ -3801,7 +3807,7 @@ export default function AdminCrmPage() {
                           <div className="refContactMini"><a href={`tel:${s.phone}`}>{s.phone}</a></div>
                         </td>
                         <td>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>{s.role}</span>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-secondary)' }}>{s.role}</span>
                         </td>
                         <td>
                           <div className="staffSuburbsWrap">
@@ -3834,7 +3840,7 @@ export default function AdminCrmPage() {
                     ))}
                     {filteredStaff.length === 0 && (
                       <tr>
-                        <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#94A3B8' }}>
+                        <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--oc-muted)' }}>
                           No support worker records found.
                         </td>
                       </tr>
@@ -3878,7 +3884,7 @@ export default function AdminCrmPage() {
               <div className="crmPanelHeader">
                 <div>
                   <h2 className="crmPanelTitle">Training & Compliance Management</h2>
-                  <p style={{ margin:'4px 0 0', fontSize:'0.85rem', color:'#64748B' }}>
+                  <p style={{ margin:'4px 0 0', fontSize:'0.85rem', color:'var(--oc-muted)' }}>
                     Create courses, assign to workers, track quiz results and mandatory compliance percentage.
                   </p>
                 </div>
@@ -3892,31 +3898,31 @@ export default function AdminCrmPage() {
                 {(['courses','assign','external','report'] as const).map(t => (
                   <button key={t} onClick={() => setTrainingTab(t)} style={{
                     padding:'10px 18px', border:'none', background:'none', cursor:'pointer',
-                    borderBottom: trainingTab===t ? '2px solid #0284C7' : '2px solid transparent',
-                    color: trainingTab===t ? '#0284C7' : '#64748B', fontWeight:600, fontSize:'0.85rem' }}>
+                    borderBottom: trainingTab===t ? '2px solid var(--oc-info)' : '2px solid transparent',
+                    color: trainingTab===t ? 'var(--oc-info)' : 'var(--oc-muted)', fontWeight:600, fontSize:'0.85rem' }}>
                     {t === 'courses' ? 'Course Library' : t === 'assign' ? 'Assign to Staff' : t === 'external' ? 'External Training Library' : 'Compliance Report'}
                   </button>
                 ))}
               </div>
 
-              {trainingLoading && <div style={{padding:40,textAlign:'center',color:'#94A3B8'}}>Loading...</div>}
+              {trainingLoading && <div style={{padding:40,textAlign:'center',color:'var(--oc-muted)'}}>Loading...</div>}
 
               {!trainingLoading && trainingTab === 'courses' && (
                 <>
                   {showCourseForm && (
-                    <div style={{background:'#F8FAFC',border:'1px solid #EEF2F6',borderRadius:12,padding:24,marginBottom:24}}>
-                      <h3 style={{fontSize:'1rem',fontWeight:700,color:'#0F172A',marginBottom:16}}>New Course</h3>
+                    <div style={{background:'var(--oc-background)',border:'1px solid #EEF2F6',borderRadius:12,padding:24,marginBottom:24}}>
+                      <h3 style={{fontSize:'1rem',fontWeight: 600,color:'var(--oc-text)',marginBottom:16}}>New Course</h3>
                       <form onSubmit={handleCreateCourse}>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+                        <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Title *</label>
-                            <input value={newCourse.title} onChange={e=>setNewCourse(p=>({...p,title:e.target.value}))}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Title *</label>
+                            <input className="ocField" aria-label="Title *" value={newCourse.title} onChange={e=>setNewCourse(p=>({...p,title:e.target.value}))}
                               placeholder="e.g. NDIS Code of Conduct" required
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
                           </div>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Type *</label>
-                            <select value={newCourse.course_type}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Type *</label>
+                            <select className="ocField" aria-label="Type *" value={newCourse.course_type}
                               onChange={e=>setNewCourse(p=>({...p,course_type:e.target.value as "read_acknowledge"|"read_quiz"|"external_cert"}))}
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}>
                               <option value="read_acknowledge">Read & Acknowledge</option>
@@ -3925,8 +3931,8 @@ export default function AdminCrmPage() {
                             </select>
                           </div>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Material</label>
-                            <select value={newCourse.material_type} onChange={e=>setNewCourse(p=>({...p,material_type:e.target.value}))}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Material</label>
+                            <select className="ocField" aria-label="Material" value={newCourse.material_type} onChange={e=>setNewCourse(p=>({...p,material_type:e.target.value}))}
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}>
                               <option value="none">No Material</option>
                               <option value="pdf">PDF</option>
@@ -3935,41 +3941,41 @@ export default function AdminCrmPage() {
                             </select>
                           </div>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Material URL</label>
-                            <input value={newCourse.material_url} onChange={e=>setNewCourse(p=>({...p,material_url:e.target.value}))}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Material URL</label>
+                            <input className="ocField" aria-label="Material URL" value={newCourse.material_url} onChange={e=>setNewCourse(p=>({...p,material_url:e.target.value}))}
                               placeholder="https://..." type="url"
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
                           </div>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Pass Mark %</label>
-                            <input type="number" min="1" max="100" value={newCourse.pass_mark_pct}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Pass Mark %</label>
+                            <input className="ocField" aria-label="Pass Mark %" type="number" min="1" max="100" value={newCourse.pass_mark_pct}
                               onChange={e=>setNewCourse(p=>({...p,pass_mark_pct:Number(e.target.value)}))}
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
                           </div>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Validity (months)</label>
-                            <input type="number" min="1" value={newCourse.validity_months}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Validity (months)</label>
+                            <input className="ocField" aria-label="Validity (months)" type="number" min="1" value={newCourse.validity_months}
                               onChange={e=>setNewCourse(p=>({...p,validity_months:e.target.value}))} placeholder="blank = no expiry"
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
                           </div>
                           <div>
-                            <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Max Attempts</label>
-                            <input type="number" min="1" value={newCourse.max_attempts}
+                            <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Max Attempts</label>
+                            <input className="ocField" aria-label="Max Attempts" type="number" min="1" value={newCourse.max_attempts}
                               onChange={e=>setNewCourse(p=>({...p,max_attempts:e.target.value}))} placeholder="blank = unlimited"
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}/>
                           </div>
                           <div style={{display:'flex',gap:16,alignItems:'center',paddingTop:22}}>
                             <label style={{display:'flex',alignItems:'center',gap:6,fontSize:'0.85rem',cursor:'pointer'}}>
-                              <input type="checkbox" checked={newCourse.is_mandatory} onChange={e=>setNewCourse(p=>({...p,is_mandatory:e.target.checked}))}/> Mandatory
+                              <input aria-label="Mandatory" type="checkbox" checked={newCourse.is_mandatory} onChange={e=>setNewCourse(p=>({...p,is_mandatory:e.target.checked}))}/> Mandatory
                             </label>
                             <label style={{display:'flex',alignItems:'center',gap:6,fontSize:'0.85rem',cursor:'pointer'}}>
-                              <input type="checkbox" checked={newCourse.certificate_enabled} onChange={e=>setNewCourse(p=>({...p,certificate_enabled:e.target.checked}))}/> Issue Certificate
+                              <input aria-label="Mandatory" type="checkbox" checked={newCourse.certificate_enabled} onChange={e=>setNewCourse(p=>({...p,certificate_enabled:e.target.checked}))}/> Issue Certificate
                             </label>
                           </div>
                         </div>
                         <div style={{marginBottom:16}}>
-                          <label style={{fontSize:'0.8rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Description</label>
-                          <textarea value={newCourse.description} onChange={e=>setNewCourse(p=>({...p,description:e.target.value}))}
+                          <label style={{fontSize: '0.8125rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Description</label>
+                          <textarea className="ocField" aria-label="Description" value={newCourse.description} onChange={e=>setNewCourse(p=>({...p,description:e.target.value}))}
                             rows={2} placeholder="Brief course description..."
                             style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem',resize:'vertical'}}/>
                         </div>
@@ -3977,27 +3983,27 @@ export default function AdminCrmPage() {
                           <div style={{marginBottom:16}}>
                             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                               <strong style={{fontSize:'0.85rem',color:'#374151'}}>Quiz Questions ({newCourse.quiz_questions.length})</strong>
-                              <button type="button" className="crmViewBtn" style={{fontSize:'0.8rem',padding:'4px 12px'}}
+                              <button type="button" className="crmViewBtn" style={{fontSize: '0.8125rem',padding:'4px 12px'}}
                                 onClick={()=>setNewCourse(p=>({...p,quiz_questions:[...p.quiz_questions,{question:'',options:['','','',''],correct_index:0}]}))}>
                                 + Add Question
                               </button>
                             </div>
                             {newCourse.quiz_questions.map((q,qi)=>(
-                              <div key={qi} style={{background:'#fff',border:'1px solid #E2E8F0',borderRadius:8,padding:16,marginBottom:12}}>
+                              <div key={qi} style={{background:'#fff',border:'1px solid var(--oc-border)',borderRadius:8,padding:16,marginBottom:12}}>
                                 <div style={{display:'flex',gap:8,marginBottom:8}}>
-                                  <span style={{fontWeight:700,color:'#0284C7',minWidth:28}}>Q{qi+1}</span>
-                                  <input value={q.question} placeholder="Question..." style={{flex:1,padding:'6px 10px',border:'1px solid #D1D5DB',borderRadius:4,fontSize:'0.88rem'}}
+                                  <span style={{fontWeight: 600,color:'var(--oc-info)',minWidth:28}}>Q{qi+1}</span>
+                                  <input className="ocField" aria-label="Question..." value={q.question} placeholder="Question..." style={{flex:1,padding:'6px 10px',border:'1px solid #D1D5DB',borderRadius:4,fontSize:'0.88rem'}}
                                     onChange={e=>{const qs=[...newCourse.quiz_questions];qs[qi]={...qs[qi],question:e.target.value};setNewCourse(p=>({...p,quiz_questions:qs}));}}/>
                                   <button type="button" onClick={()=>setNewCourse(p=>({...p,quiz_questions:p.quiz_questions.filter((_,i)=>i!==qi)}))}
-                                    style={{border:'none',background:'#FEE2E2',color:'#DC2626',borderRadius:4,padding:'4px 8px',cursor:'pointer'}}>Remove</button>
+                                    style={{border:'none',background:'#FEE2E2',color:'var(--oc-danger)',borderRadius:4,padding:'4px 8px',cursor:'pointer'}}>Remove</button>
                                 </div>
                                 {q.options.map((opt,oi)=>(
                                   <div key={oi} style={{display:'flex',gap:8,alignItems:'center',marginBottom:6,paddingLeft:36}}>
                                     <input type="radio" name={'correct-'+qi} checked={q.correct_index===oi} title="Correct answer"
                                       onChange={()=>{const qs=[...newCourse.quiz_questions];qs[qi]={...qs[qi],correct_index:oi};setNewCourse(p=>({...p,quiz_questions:qs}));}}/>
-                                    <input value={opt} placeholder={'Option '+(oi+1)} style={{flex:1,padding:'5px 8px',border:'1px solid #D1D5DB',borderRadius:4,fontSize:'0.85rem'}}
+                                    <input className="ocField" value={opt} placeholder={'Option '+(oi+1)} style={{flex:1,padding:'5px 8px',border:'1px solid #D1D5DB',borderRadius:4,fontSize:'0.85rem'}}
                                       onChange={e=>{const qs=[...newCourse.quiz_questions];const opts=[...qs[qi].options];opts[oi]=e.target.value;qs[qi]={...qs[qi],options:opts};setNewCourse(p=>({...p,quiz_questions:qs}));}}/>
-                                    {q.correct_index===oi&&<span style={{fontSize:'0.75rem',color:'#059669',fontWeight:600}}>Correct</span>}
+                                    {q.correct_index===oi&&<span style={{fontSize: '0.8125rem',color:'#059669',fontWeight:600}}>Correct</span>}
                                   </div>
                                 ))}
                               </div>
@@ -4005,7 +4011,7 @@ export default function AdminCrmPage() {
                           </div>
                         )}
                         <div style={{display:'flex',gap:10}}>
-                          <button type="submit" disabled={savingCourse} className="crmViewBtn" style={{background:'#0284C7',color:'#fff',border:'none'}}>
+                          <button type="submit" disabled={savingCourse} className="crmViewBtn" style={{background:'var(--oc-info)',color:'#fff',border:'none'}}>
                             {savingCourse?'Saving...':'Create Course'}
                           </button>
                           <button type="button" onClick={()=>setShowCourseForm(false)} className="crmViewBtn">Cancel</button>
@@ -4017,21 +4023,21 @@ export default function AdminCrmPage() {
                     <table className="crmTable">
                       <thead><tr><th>Title</th><th>Type</th><th>Material</th><th>Pass Mark</th><th>Validity</th><th>Mandatory</th><th>Status</th></tr></thead>
                       <tbody>
-                        {trainingCourses.length===0&&(<tr><td colSpan={7} style={{textAlign:'center',padding:40,color:'#94A3B8'}}>No courses yet. Click New Course to get started.</td></tr>)}
+                        {trainingCourses.length===0&&(<tr><td colSpan={7} style={{textAlign:'center',padding:40,color:'var(--oc-muted)'}}>No courses yet. Click New Course to get started.</td></tr>)}
                         {trainingCourses.map(c=>(
                           <tr key={c.id}>
-                            <td><strong>{c.title}</strong>{c.description&&<div style={{fontSize:'0.8rem',color:'#64748B',marginTop:2}}>{c.description}</div>}</td>
-                            <td><span style={{padding:'3px 10px',borderRadius:20,fontSize:'0.78rem',fontWeight:600,
+                            <td><strong>{c.title}</strong>{c.description&&<div style={{fontSize: '0.8125rem',color:'var(--oc-muted)',marginTop:2}}>{c.description}</div>}</td>
+                            <td><span style={{padding:'3px 10px',borderRadius:20,fontSize: '0.8125rem',fontWeight:600,
                               background:c.course_type==='read_acknowledge'?'#DBEAFE':c.course_type==='read_quiz'?'#EDE9FE':'#D1FAE5',
                               color:c.course_type==='read_acknowledge'?'#1D4ED8':c.course_type==='read_quiz'?'#7C3AED':'#059669'}}>
                               {c.course_type==='read_acknowledge'?'Read & Ack':c.course_type==='read_quiz'?'Quiz':'Ext. Cert'}
                             </span></td>
-                            <td>{c.material_url?(<a href={c.material_url} target="_blank" rel="noopener noreferrer" style={{color:'#0284C7',textDecoration:'underline',fontSize:'0.85rem'}}>{c.material_type.toUpperCase()}</a>):<span style={{color:'#CBD5E1'}}>None</span>}</td>
+                            <td>{c.material_url?(<a href={c.material_url} target="_blank" rel="noopener noreferrer" style={{color:'var(--oc-info)',textDecoration:'underline',fontSize:'0.85rem'}}>{c.material_type.toUpperCase()}</a>):<span style={{color:'var(--oc-border)'}}>None</span>}</td>
                             <td>{c.course_type==='read_quiz'?c.pass_mark_pct+'%':'—'}</td>
                             <td>{c.validity_months?c.validity_months+' mo':'No expiry'}</td>
-                            <td>{c.is_mandatory?<span style={{color:'#DC2626',fontWeight:700}}>Required</span>:<span style={{color:'#64748B'}}>Optional</span>}</td>
-                            <td><span style={{padding:'3px 10px',borderRadius:20,fontSize:'0.78rem',fontWeight:600,
-                              background:c.is_active?'#D1FAE5':'#F1F5F9',color:c.is_active?'#059669':'#64748B'}}>
+                            <td>{c.is_mandatory?<span style={{color:'var(--oc-danger)',fontWeight: 600}}>Required</span>:<span style={{color:'var(--oc-muted)'}}>Optional</span>}</td>
+                            <td><span style={{padding:'3px 10px',borderRadius:20,fontSize: '0.8125rem',fontWeight:600,
+                              background:c.is_active?'#D1FAE5':'var(--oc-subtle)',color:c.is_active?'#059669':'var(--oc-muted)'}}>
                               {c.is_active?'Active':'Inactive'}</span></td>
                           </tr>
                         ))}
@@ -4047,7 +4053,7 @@ export default function AdminCrmPage() {
                     <form onSubmit={handleAssignCourse}>
                       <div style={{marginBottom:16}}>
                         <label style={{fontSize:'0.85rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Course *</label>
-                        <select value={assignCourseId} onChange={e=>setAssignCourseId(e.target.value)} required
+                        <select className="ocField" aria-label="Course *" value={assignCourseId} onChange={e=>setAssignCourseId(e.target.value)} required
                           style={{width:'100%',padding:'10px 12px',border:'1px solid #D1D5DB',borderRadius:8,fontSize:'0.9rem'}}>
                           <option value="">Choose a course</option>
                           {trainingCourses.filter(c=>c.is_active).map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
@@ -4056,22 +4062,22 @@ export default function AdminCrmPage() {
                       <div style={{marginBottom:16}}>
                         <label style={{fontSize:'0.85rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Staff Members *</label>
                         <div style={{border:'1px solid #D1D5DB',borderRadius:8,maxHeight:220,overflowY:'auto',padding:8}}>
-                          {staff.length===0&&<p style={{color:'#94A3B8',fontSize:'0.85rem',padding:8}}>No staff loaded.</p>}
+                          {staff.length===0&&<p style={{color:'var(--oc-muted)',fontSize:'0.85rem',padding:8}}>No staff loaded.</p>}
                           {staff.map(s=>(
                             <label key={s.id} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 8px',cursor:'pointer',borderRadius:4,
-                              background:assignStaffIds.includes(s.id)?'#EFF6FF':'transparent'}}>
+                              background:assignStaffIds.includes(s.id)?'var(--oc-info-soft)':'transparent'}}>
                               <input type="checkbox" checked={assignStaffIds.includes(s.id)}
                                 onChange={e=>setAssignStaffIds(p=>e.target.checked?[...p,s.id]:p.filter(id=>id!==s.id))}/>
                               <span style={{fontWeight:600,fontSize:'0.88rem'}}>{s.name}</span>
-                              <span style={{fontSize:'0.8rem',color:'#64748B'}}>{s.role}</span>
+                              <span style={{fontSize: '0.8125rem',color:'var(--oc-muted)'}}>{s.role}</span>
                             </label>
                           ))}
                         </div>
-                        {assignStaffIds.length>0&&<p style={{fontSize:'0.8rem',color:'#0284C7',marginTop:4}}>{assignStaffIds.length} selected</p>}
+                        {assignStaffIds.length>0&&<p style={{fontSize: '0.8125rem',color:'var(--oc-info)',marginTop:4}}>{assignStaffIds.length} selected</p>}
                       </div>
                       <div style={{marginBottom:20}}>
                         <label style={{fontSize:'0.85rem',fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>Due Date</label>
-                        <input type="date" value={assignDueDate} onChange={e=>setAssignDueDate(e.target.value)}
+                        <input className="ocField" aria-label="Due Date" type="date" value={assignDueDate} onChange={e=>setAssignDueDate(e.target.value)}
                           style={{padding:'10px 12px',border:'1px solid #D1D5DB',borderRadius:8,fontSize:'0.9rem'}}/>
                       </div>
                       <button type="submit" disabled={assigning} className="crmViewBtn" style={{background:'#059669',color:'#fff',border:'none',padding:'10px 24px'}}>
@@ -4081,7 +4087,7 @@ export default function AdminCrmPage() {
                   </div>
                   {trainingAssignments.length>0&&(
                     <div>
-                      <h4 style={{fontSize:'0.9rem',fontWeight:700,color:'#0F172A',marginBottom:12}}>All Assignments ({trainingAssignments.length})</h4>
+                      <h4 style={{fontSize:'0.9rem',fontWeight: 600,color:'var(--oc-text)',marginBottom:12}}>All Assignments ({trainingAssignments.length})</h4>
                       <div className="crmTableWrapper">
                         <table className="crmTable">
                           <thead><tr><th>Course</th><th>Staff</th><th>Due Date</th></tr></thead>
@@ -4090,7 +4096,7 @@ export default function AdminCrmPage() {
                               <tr key={a.id}>
                                 <td>{a.training_courses?.title??'Unknown'}</td>
                                 <td style={{fontWeight:600}}>{a.staff_name??a.staff_id}</td>
-                                <td style={{color:'#64748B'}}>{a.due_date??'No due date'}</td>
+                                <td style={{color:'var(--oc-muted)'}}>{a.due_date??'No due date'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -4105,10 +4111,10 @@ export default function AdminCrmPage() {
                 <div>
                   <div className="crmPanelHeader" style={{ marginBottom: 16 }}>
                     <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                         Curated Free External Training Directory ({externalCourses.length})
                       </h3>
-                      <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
                         Authoritative free courses from the NDIS Commission, NSW Ageing & Disability Commission, and universities.
                       </p>
                     </div>
@@ -4127,7 +4133,7 @@ export default function AdminCrmPage() {
                       </tr></thead>
                       <tbody>
                         {externalCourses.length === 0 && (
-                          <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#94A3B8' }}>
+                          <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--oc-muted)' }}>
                             No external training loaded.
                           </td></tr>
                         )}
@@ -4135,28 +4141,28 @@ export default function AdminCrmPage() {
                           <tr key={ext.id}>
                             <td>
                               <strong>{ext.title}</strong>
-                              <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>{ext.description}</div>
+                              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>{ext.description}</div>
                             </td>
                             <td style={{ fontSize: '0.85rem', fontWeight: 600 }}>{ext.provider}</td>
                             <td>
-                              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, background: '#F1F5F9', color: '#475569' }}>
+                              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600, background: 'var(--oc-subtle)', color: 'var(--oc-secondary)' }}>
                                 {ext.category}
                               </span>
                             </td>
                             <td style={{ fontSize: '0.82rem' }}>{ext.target_audience}</td>
                             <td>
-                              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, background: '#EDE9FE', color: '#6D28D9' }}>
+                              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.8125rem', fontWeight: 600, background: '#EDE9FE', color: '#6D28D9' }}>
                                 {ext.certificate_type}
                               </span>
                             </td>
-                            <td style={{ fontSize: '0.82rem', color: '#64748B' }}>{ext.duration_text || 'Self-paced'}</td>
+                            <td style={{ fontSize: '0.82rem', color: 'var(--oc-muted)' }}>{ext.duration_text || 'Self-paced'}</td>
                             <td>
                               <a
                                 href={ext.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="crmViewBtn"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: '0.78rem' }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: '0.8125rem' }}
                               >
                                 <span>Open Course</span>
                                 <ExternalLink size={12}/>
@@ -4177,14 +4183,14 @@ export default function AdminCrmPage() {
                       <thead><tr>
                         <th>Staff Member</th>
                         {trainingCourses.filter(c=>c.is_active).map(c=>(
-                          <th key={c.id} style={{fontSize:'0.75rem',textAlign:'center'}}>
-                            {c.title}{c.is_mandatory&&<span style={{color:'#DC2626'}}>*</span>}
+                          <th key={c.id} style={{fontSize: '0.8125rem',textAlign:'center'}}>
+                            {c.title}{c.is_mandatory&&<span style={{color:'var(--oc-danger)'}}>*</span>}
                           </th>
                         ))}
                         <th>Mandatory %</th>
                       </tr></thead>
                       <tbody>
-                        {staff.length===0&&<tr><td colSpan={99} style={{textAlign:'center',padding:40,color:'#94A3B8'}}>No staff records.</td></tr>}
+                        {staff.length===0&&<tr><td colSpan={99} style={{textAlign:'center',padding:40,color:'var(--oc-muted)'}}>No staff records.</td></tr>}
                         {staff.map(s=>{
                           const ac=trainingCourses.filter(c=>c.is_active);
                           const mc=ac.filter(c=>c.is_mandatory);
@@ -4195,21 +4201,21 @@ export default function AdminCrmPage() {
                           const pct=mc.length>0?Math.round((done/mc.length)*100):100;
                           return (
                             <tr key={s.id}>
-                              <td><strong style={{fontSize:'0.88rem'}}>{s.name}</strong><div style={{fontSize:'0.78rem',color:'#64748B'}}>{s.role}</div></td>
+                              <td><strong style={{fontSize:'0.88rem'}}>{s.name}</strong><div style={{fontSize: '0.8125rem',color:'var(--oc-muted)'}}>{s.role}</div></td>
                               {ac.map(c=>{
                                 const a=trainingAssignments.find(x=>x.course_id===c.id&&x.staff_id===s.id);
-                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'#CBD5E1',fontSize:'0.8rem'}}>—</span></td>;
+                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'var(--oc-border)',fontSize: '0.8125rem'}}>—</span></td>;
                                 const st=getTrainingStatus(s.id,c.id,a.due_date);
                                 return <td key={c.id} style={{textAlign:'center'}}>
-                                  <span style={{padding:'2px 8px',borderRadius:20,fontSize:'0.75rem',fontWeight:600,background:st.bg,color:st.color}}>{st.label}</span>
+                                  <span style={{padding:'2px 8px',borderRadius:20,fontSize: '0.8125rem',fontWeight:600,background:st.bg,color:st.color}}>{st.label}</span>
                                 </td>;
                               })}
                               <td>
                                 <div style={{display:'flex',alignItems:'center',gap:8}}>
-                                  <div style={{flex:1,height:8,background:'#F1F5F9',borderRadius:4,overflow:'hidden',minWidth:60}}>
-                                    <div style={{width:pct+'%',height:'100%',borderRadius:4,background:pct===100?'#059669':pct>=60?'#D97706':'#DC2626'}}/>
+                                  <div style={{flex:1,height:8,background:'var(--oc-subtle)',borderRadius:4,overflow:'hidden',minWidth:60}}>
+                                    <div style={{width:pct+'%',height:'100%',borderRadius:4,background:pct===100?'#059669':pct>=60?'var(--oc-warning)':'var(--oc-danger)'}}/>
                                   </div>
-                                  <span style={{fontSize:'0.82rem',fontWeight:700,minWidth:36,color:pct===100?'#059669':pct>=60?'#D97706':'#DC2626'}}>{pct}%</span>
+                                  <span style={{fontSize:'0.82rem',fontWeight: 600,minWidth:36,color:pct===100?'#059669':pct>=60?'var(--oc-warning)':'var(--oc-danger)'}}>{pct}%</span>
                                 </div>
                               </td>
                             </tr>
@@ -4218,7 +4224,7 @@ export default function AdminCrmPage() {
                       </tbody>
                     </table>
                   </div>
-                  <p style={{fontSize:'0.75rem',color:'#94A3B8',marginTop:8}}>* Mandatory. Compliance % counts mandatory courses only.</p>
+                  <p style={{fontSize: '0.8125rem',color:'var(--oc-muted)',marginTop:8}}>* Mandatory. Compliance % counts mandatory courses only.</p>
                 </div>
               )}
             </div>
@@ -4228,10 +4234,10 @@ export default function AdminCrmPage() {
           {tab === 'settings' && (
         <div>
           <div style={{ marginBottom: 20 }}>
-            <h2 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+            <h2 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 600, color: 'var(--oc-text)', letterSpacing: '-0.02em' }}>
               Settings & Preferences
             </h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
               Manage your administrator account, provider legal configuration, and system preferences.
             </p>
           </div>
@@ -4247,10 +4253,10 @@ export default function AdminCrmPage() {
                     width: 88,
                     height: 88,
                     borderRadius: '50%',
-                    background: '#0F172A',
-                    color: '#FFFFFF',
+                    background: 'var(--oc-text)',
+                    color: 'var(--oc-surface)',
                     fontSize: '2rem',
-                    fontWeight: 800,
+                    fontWeight: 600,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -4260,10 +4266,10 @@ export default function AdminCrmPage() {
                 >
                   OA
                 </div>
-                <h3 style={{ margin: '0 0 2px', fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
+                <h3 style={{ margin: '0 0 2px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                   Opus Admin
                 </h3>
-                <span style={{ fontSize: '0.78rem', color: '#64748B', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginBottom: 10 }}>
                   support@opuscare.com.au
                 </span>
                 <span className="vsTagCrm" style={{ marginBottom: 18 }}>
@@ -4273,17 +4279,17 @@ export default function AdminCrmPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
                   <button
                     type="button"
-                    onClick={() => alert('Admin Key is managed via ADMIN_ACCESS_KEY environment secret.')}
+                    onClick={() => notify('Admin Key is managed via ADMIN_ACCESS_KEY environment secret.')}
                     className="vsBtnBlack"
-                    style={{ flex: 1, padding: '7px 12px', fontSize: '0.75rem' }}
+                    style={{ flex: 1, padding: '7px 12px', fontSize: '0.8125rem' }}
                   >
                     Change Key
                   </button>
                   <button
                     type="button"
-                    onClick={() => alert('Audit logs are synchronized in private Supabase bucket.')}
+                    onClick={() => notify('Audit logs are synchronized in private Supabase bucket.')}
                     className="vsBtnOutline"
-                    style={{ flex: 1, padding: '7px 12px', fontSize: '0.75rem' }}
+                    style={{ flex: 1, padding: '7px 12px', fontSize: '0.8125rem' }}
                   >
                     Export Log
                   </button>
@@ -4292,19 +4298,19 @@ export default function AdminCrmPage() {
 
               {/* Provider Legal Entity Card (Screen 4 Plan Box) */}
               <div className="vsHeroCard lavender">
-                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#4F46E5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4F46E5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   REGISTERED PROVIDER
                 </span>
-                <h4 style={{ margin: '4px 0 2px', fontSize: '0.98rem', fontWeight: 800, color: '#0F172A' }}>
+                <h4 style={{ margin: '4px 0 2px', fontSize: '0.98rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                   Opus Care Support Services
                 </h4>
-                <p style={{ margin: '0 0 10px', fontSize: '0.75rem', color: '#475569' }}>
+                <p style={{ margin: '0 0 10px', fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
                   ABN: 89 654 321 098 &bull; Yamba NSW
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowAgreementGenerator(true)}
-                  style={{ background: 'none', border: 'none', padding: 0, color: '#4F46E5', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer', textAlign: 'left' }}
+                  style={{ background: 'none', border: 'none', padding: 0, color: '#4F46E5', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
                 >
                   Configure provider details &rarr;
                 </button>
@@ -4324,14 +4330,14 @@ export default function AdminCrmPage() {
                   description="Trading name, ABN, ACN & registered address"
                   icon={<Shield size={18} />}
                   tint="indigo"
-                  onClick={() => alert('Provider Legal Configuration is loaded dynamically from public.provider_config.')}
+                  onClick={() => notify('Provider Legal Configuration is loaded dynamically from public.provider_config.')}
                 />
                 <CrmSettingRow
                   title="Password & Security"
                   description="7-day HttpOnly cookie session active"
                   icon={<Lock size={18} />}
                   tint="teal"
-                  onClick={() => alert('Session token is cryptographically signed with HMAC-SHA256.')}
+                  onClick={() => notify('Session token is cryptographically signed with HMAC-SHA256.')}
                 />
                 <CrmSettingRow
                   title="Private Document Vault"
@@ -4379,7 +4385,7 @@ export default function AdminCrmPage() {
                   tint="slate"
                   toggle={{
                     checked: false,
-                    onChange: () => alert('Dark mode preference will be persisted.'),
+                    onChange: () => notify('Dark mode preference will be persisted.'),
                   }}
                 />
                 <CrmSettingRow
@@ -4425,12 +4431,16 @@ export default function AdminCrmPage() {
 
       {/* DETAIL MODAL / DRAWER (Referral, Participant, or Staff) */}
       {(selectedReferral || selectedParticipant || selectedStaff) && (
-        <div className="crmModalOverlay" onClick={() => {
+        <div className="crmModalOverlay ocRecordOverlay" onClick={() => {
           setSelectedReferral(null);
           setSelectedParticipant(null);
           setSelectedStaff(null);
         }}>
-          <div className="crmModalBox" onClick={(e) => e.stopPropagation()}>
+          <DialogPanel onClose={() => {
+          setSelectedReferral(null);
+          setSelectedParticipant(null);
+          setSelectedStaff(null);
+        }} label="Record details" className="crmModalBox ocRecordDrawer" onClick={(e) => e.stopPropagation()}>
             <div className="crmModalHeader">
               <div>
                 <span className="refIdTag">
@@ -4446,22 +4456,22 @@ export default function AdminCrmPage() {
                   setSelectedParticipant(null);
                   setSelectedStaff(null);
                 }}
-                className="crmModalClose"
+                aria-label="Close dialog" className="crmModalClose"
               >
                 &times;
               </button>
             </div>
 
             {/* Modal Drawer Tabs */}
-            <div style={{ display: 'flex', gap: 12, borderBottom: '1px solid #EEF2F6', padding: '0 24px' }}>
+            <div className="ocRecordTabs" aria-label="Record views">
               <button
                 onClick={() => setDrawerTab('overview')}
                 style={{
                   padding: '12px 0',
                   border: 'none',
                   background: 'none',
-                  borderBottom: `2px solid ${drawerTab === 'overview' ? '#0284C7' : 'transparent'}`,
-                  color: drawerTab === 'overview' ? '#0284C7' : '#64748B',
+                  borderBottom: `2px solid ${drawerTab === 'overview' ? 'var(--oc-info)' : 'transparent'}`,
+                  color: drawerTab === 'overview' ? 'var(--oc-info)' : 'var(--oc-muted)',
                   fontWeight: 600,
                   fontSize: '0.88rem',
                   cursor: 'pointer'
@@ -4476,8 +4486,8 @@ export default function AdminCrmPage() {
                   padding: '12px 0',
                   border: 'none',
                   background: 'none',
-                  borderBottom: `2px solid ${drawerTab === 'documents' ? '#0284C7' : 'transparent'}`,
-                  color: drawerTab === 'documents' ? '#0284C7' : '#64748B',
+                  borderBottom: `2px solid ${drawerTab === 'documents' ? 'var(--oc-info)' : 'transparent'}`,
+                  color: drawerTab === 'documents' ? 'var(--oc-info)' : 'var(--oc-muted)',
                   fontWeight: 600,
                   fontSize: '0.88rem',
                   cursor: 'pointer',
@@ -4497,8 +4507,8 @@ export default function AdminCrmPage() {
                     padding: '12px 0',
                     border: 'none',
                     background: 'none',
-                    borderBottom: `2px solid ${drawerTab === 'timeline' ? '#0284C7' : 'transparent'}`,
-                    color: drawerTab === 'timeline' ? '#0284C7' : '#64748B',
+                    borderBottom: `2px solid ${drawerTab === 'timeline' ? 'var(--oc-info)' : 'transparent'}`,
+                    color: drawerTab === 'timeline' ? 'var(--oc-info)' : 'var(--oc-muted)',
                     fontWeight: 600,
                     fontSize: '0.88rem',
                     cursor: 'pointer',
@@ -4535,11 +4545,11 @@ export default function AdminCrmPage() {
                         <div>
                           <label>Contact Details</label>
                           <p>
-                            <a href={`tel:${selectedReferral.phone}`} style={{ color: '#0284C7', textDecoration: 'none' }}>
+                            <a href={`tel:${selectedReferral.phone}`} style={{ color: 'var(--oc-info)', textDecoration: 'none' }}>
                               {selectedReferral.phone}
                             </a>
                             <br />
-                            <a href={`mailto:${selectedReferral.email}`} style={{ color: '#64748B', fontSize: '0.85rem' }}>
+                            <a href={`mailto:${selectedReferral.email}`} style={{ color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
                               {selectedReferral.email}
                             </a>
                           </p>
@@ -4566,10 +4576,10 @@ export default function AdminCrmPage() {
 
                       {/* Convert to Participant Action */}
                       {selectedReferral.status !== 'accepted' && (
-                        <div style={{ marginTop: 20, padding: 16, background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ marginTop: 20, padding: 16, background: 'var(--oc-success-soft)', border: '1px solid #BBF7D0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div>
-                            <strong style={{ color: '#166534', fontSize: '0.9rem' }}>Enrol as Active Participant?</strong>
-                            <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#15803D' }}>
+                            <strong style={{ color: 'var(--oc-success)', fontSize: '0.9rem' }}>Enrol as Active Participant?</strong>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#15803D' }}>
                               Creates official Participant record and links all documents & history.
                             </p>
                           </div>
@@ -4632,56 +4642,56 @@ export default function AdminCrmPage() {
                         <label>Assigned Support Worker</label>
                         <p>{selectedParticipant.workerAssigned || 'Unassigned - assign in roster'}</p>
                       </div>
-                      <div className="fullCol" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #E2E8F0' }}>
+                      <div className="fullCol" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--oc-border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                          <strong style={{ fontSize: '0.88rem', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <strong style={{ fontSize: '0.88rem', color: 'var(--oc-accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <Shield size={15} /> Emergency & Worker Instructions
                           </strong>
                           <button
                             onClick={() => setShowEditEmergency(!showEditEmergency)}
-                            style={{ background: 'none', border: '1px solid #CBD5E1', borderRadius: 6, padding: '3px 8px', fontSize: '0.78rem', color: '#374151', cursor: 'pointer' }}
+                            style={{ background: 'none', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '3px 8px', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer' }}
                           >
                             {showEditEmergency ? 'Close' : 'Edit'}
                           </button>
                         </div>
                         {showEditEmergency ? (
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: '#F8FAFC', padding: 12, borderRadius: 8 }}>
+                          <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: 'var(--oc-background)', padding: 12, borderRadius: 8 }}>
                             <div>
-                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Emergency Contact Name</label>
-                              <input
+                              <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Emergency Contact Name</label>
+                              <input className="ocField"
                                 type="text"
                                 defaultValue={selectedParticipant.emergencyContactName || ''}
                                 id="edit_emergency_name"
-                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                               />
                             </div>
                             <div>
-                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Emergency Contact Phone</label>
-                              <input
+                              <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Emergency Contact Phone</label>
+                              <input className="ocField"
                                 type="text"
                                 defaultValue={selectedParticipant.emergencyContactPhone || ''}
                                 id="edit_emergency_phone"
-                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                               />
                             </div>
                             <div className="fullCol">
-                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Medical Alert / Allergies</label>
-                              <input
+                              <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Medical Alert / Allergies</label>
+                              <input className="ocField"
                                 type="text"
                                 defaultValue={selectedParticipant.medicalAlert || ''}
                                 id="edit_medical_alert"
                                 placeholder="e.g. Severe peanut allergy - carries EpiPen"
-                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                                style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                               />
                             </div>
                             <div className="fullCol">
-                              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Worker Instructions</label>
-                              <textarea
+                              <label style={{ fontSize: '0.8125rem', fontWeight: 600 }}>Worker Instructions</label>
+                              <textarea className="ocField"
                                 defaultValue={selectedParticipant.workerInstructions || ''}
                                 id="edit_worker_instructions"
                                 rows={2}
                                 placeholder="e.g. Ring bell twice, prompt to take morning medication"
-                                style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', resize: 'vertical', boxSizing: 'border-box' }}
+                                style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '6px 8px', fontSize: '0.82rem', resize: 'vertical', boxSizing: 'border-box' }}
                               />
                             </div>
                             <div className="fullCol">
@@ -4718,30 +4728,30 @@ export default function AdminCrmPage() {
                                     setStatusNotice('Failed to save emergency info.');
                                   }
                                 }}
-                                style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                                style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                               >
                                 Save Emergency Info
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: '0.83rem', color: '#374151' }}>
+                          <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: '0.83rem', color: '#374151' }}>
                             <div>
-                              <span style={{ color: '#94A3B8', fontSize: '0.75rem', display: 'block' }}>Emergency Contact</span>
+                              <span style={{ color: 'var(--oc-muted)', fontSize: '0.8125rem', display: 'block' }}>Emergency Contact</span>
                               <strong>{selectedParticipant.emergencyContactName || 'Not recorded'}</strong>
                               {selectedParticipant.emergencyContactPhone && (
-                                <span style={{ display: 'block', color: '#0284C7' }}>{selectedParticipant.emergencyContactPhone}</span>
+                                <span style={{ display: 'block', color: 'var(--oc-info)' }}>{selectedParticipant.emergencyContactPhone}</span>
                               )}
                             </div>
                             <div>
-                              <span style={{ color: '#94A3B8', fontSize: '0.75rem', display: 'block' }}>Medical Alert</span>
-                              <span style={{ color: selectedParticipant.medicalAlert ? '#DC2626' : '#64748B', fontWeight: selectedParticipant.medicalAlert ? 600 : 400 }}>
+                              <span style={{ color: 'var(--oc-muted)', fontSize: '0.8125rem', display: 'block' }}>Medical Alert</span>
+                              <span style={{ color: selectedParticipant.medicalAlert ? 'var(--oc-danger)' : 'var(--oc-muted)', fontWeight: selectedParticipant.medicalAlert ? 600 : 400 }}>
                                 {selectedParticipant.medicalAlert || 'None'}
                               </span>
                             </div>
                             {selectedParticipant.workerInstructions && (
-                              <div className="fullCol" style={{ background: '#FFFBEB', padding: 8, borderRadius: 6, border: '1px solid #FEF3C7' }}>
-                                <span style={{ color: '#B45309', fontSize: '0.75rem', fontWeight: 600, display: 'block' }}>Worker Instructions</span>
+                              <div className="fullCol" style={{ background: 'var(--oc-warning-soft)', padding: 8, borderRadius: 6, border: '1px solid #FEF3C7' }}>
+                                <span style={{ color: '#B45309', fontSize: '0.8125rem', fontWeight: 600, display: 'block' }}>Worker Instructions</span>
                                 {selectedParticipant.workerInstructions}
                               </div>
                             )}
@@ -4763,11 +4773,11 @@ export default function AdminCrmPage() {
                       </div>
                       <div>
                         <label>Phone</label>
-                        <p><a href={`tel:${selectedStaff.phone}`} style={{ color: '#0284C7' }}>{selectedStaff.phone}</a></p>
+                        <p><a href={`tel:${selectedStaff.phone}`} style={{ color: 'var(--oc-info)' }}>{selectedStaff.phone}</a></p>
                       </div>
                       <div>
                         <label>Email</label>
-                        <p><a href={`mailto:${selectedStaff.email}`} style={{ color: '#64748B' }}>{selectedStaff.email}</a></p>
+                        <p><a href={`mailto:${selectedStaff.email}`} style={{ color: 'var(--oc-muted)' }}>{selectedStaff.email}</a></p>
                       </div>
                       <div>
                         <label>NDIS Worker Screening (NWSC)</label>
@@ -4793,14 +4803,14 @@ export default function AdminCrmPage() {
               {/* DRAWER TAB 2: DOCUMENT VAULT */}
               {drawerTab === 'documents' && (
                 <div>
-                  <div style={{ marginBottom: 20, padding: 16, background: '#F8FAFC', border: '1px solid #EEF2F6', borderRadius: 10 }}>
-                    <h4 style={{ margin: '0 0 8px', fontSize: '0.92rem', color: '#0F172A' }}>
+                  <div style={{ marginBottom: 20, padding: 16, background: 'var(--oc-background)', border: '1px solid #EEF2F6', borderRadius: 10 }}>
+                    <h4 style={{ margin: '0 0 8px', fontSize: '0.92rem', color: 'var(--oc-text)' }}>
                       Upload to Encrypted Vault (AES-256)
                     </h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', marginBottom: 4 }}>Document Category</label>
-                        <select
+                        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Document Category</label>
+                        <select aria-label="Document Category"
                           value={uploadCategory}
                           onChange={(e) => setUploadCategory(e.target.value)}
                           className="crmSelect"
@@ -4816,8 +4826,8 @@ export default function AdminCrmPage() {
                         </select>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', marginBottom: 4 }}>Expiry Date (if applicable)</label>
-                        <input
+                        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Expiry Date (if applicable)</label>
+                        <input aria-label="Expiry Date (if applicable)"
                           type="date"
                           value={uploadExpiry}
                           onChange={(e) => setUploadExpiry(e.target.value)}
@@ -4828,7 +4838,7 @@ export default function AdminCrmPage() {
                     </div>
 
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <input
+                      <input className="ocField"
                         type="file"
                         ref={fileInputRef}
                         onChange={handleFileUpload}
@@ -4836,7 +4846,7 @@ export default function AdminCrmPage() {
                         style={{ fontSize: '0.85rem' }}
                       />
                       {uploadingDoc && (
-                        <span style={{ fontSize: '0.8rem', color: '#0284C7', fontWeight: 600 }}>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--oc-info)', fontWeight: 600 }}>
                           Encrypting & uploading...
                         </span>
                       )}
@@ -4845,12 +4855,12 @@ export default function AdminCrmPage() {
 
                   {/* Document List */}
                   {docsLoading ? (
-                    <div style={{ textAlign: 'center', padding: '30px', color: '#64748B' }}>
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--oc-muted)' }}>
                       <RefreshCw size={20} className="spin" style={{ margin: '0 auto 8px', display: 'block' }} />
                       <span>Loading vault documents...</span>
                     </div>
                   ) : documents.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '30px', color: '#94A3B8', fontSize: '0.85rem' }}>
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
                       No documents in vault yet. Choose a file above to upload securely.
                     </div>
                   ) : (
@@ -4863,18 +4873,18 @@ export default function AdminCrmPage() {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '12px 14px',
-                            background: '#FFFFFF',
+                            background: 'var(--oc-surface)',
                             border: '1px solid #EEF2F6',
                             borderRadius: 8
                           }}
                         >
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <FileText size={16} style={{ color: '#0284C7' }} />
-                              <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>{doc.file_name}</strong>
-                              <span className="refIdTag" style={{ fontSize: '0.7rem' }}>{doc.category}</span>
+                              <FileText size={16} style={{ color: 'var(--oc-info)' }} />
+                              <strong style={{ fontSize: '0.88rem', color: 'var(--oc-text)' }}>{doc.file_name}</strong>
+                              <span className="refIdTag" style={{ fontSize: '0.8125rem' }}>{doc.category}</span>
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: 4 }}>
+                            <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 4 }}>
                               Uploaded {new Date(doc.created_at).toLocaleDateString('en-AU')} &bull; {doc.uploaded_by || 'Admin'}
                             </div>
                           </div>
@@ -4902,11 +4912,11 @@ export default function AdminCrmPage() {
                   {/* Add Note Form */}
                   <form onSubmit={handleAddNote} style={{ marginBottom: 20 }}>
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      <select
+                      <select aria-label="Internal Note"
                         value={newNoteType}
                         onChange={(e) => setNewNoteType(e.target.value as any)}
                         className="crmSelect"
-                        style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                        style={{ fontSize: '0.8125rem', padding: '6px 10px' }}
                       >
                         <option value="note">Internal Note</option>
                         <option value="call">Phone Call</option>
@@ -4914,7 +4924,7 @@ export default function AdminCrmPage() {
                         <option value="meeting">Meeting</option>
                       </select>
                     </div>
-                    <textarea
+                    <textarea aria-label="Write an operational note or log contact..."
                       placeholder="Write an operational note or log contact..."
                       value={newNoteText}
                       onChange={(e) => setNewNoteText(e.target.value)}
@@ -4936,12 +4946,12 @@ export default function AdminCrmPage() {
 
                   {/* Timeline Feed */}
                   {activitiesLoading ? (
-                    <div style={{ textAlign: 'center', padding: '30px', color: '#64748B' }}>
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--oc-muted)' }}>
                       <RefreshCw size={20} className="spin" style={{ margin: '0 auto 8px', display: 'block' }} />
                       <span>Loading timeline history...</span>
                     </div>
                   ) : activities.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '30px', color: '#94A3B8', fontSize: '0.85rem' }}>
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
                       No activity logged yet. Add your first note above.
                     </div>
                   ) : (
@@ -4953,28 +4963,28 @@ export default function AdminCrmPage() {
                             display: 'flex',
                             gap: 12,
                             padding: '12px 14px',
-                            background: '#F8FAFC',
+                            background: 'var(--oc-background)',
                             border: '1px solid #EEF2F6',
                             borderRadius: 8
                           }}
                         >
                           <div style={{ marginTop: 2 }}>
-                            {act.activity_type === 'call' && <Phone size={16} style={{ color: '#0284C7' }} />}
-                            {act.activity_type === 'email' && <Mail size={16} style={{ color: '#F59E0B' }} />}
+                            {act.activity_type === 'call' && <Phone size={16} style={{ color: 'var(--oc-info)' }} />}
+                            {act.activity_type === 'email' && <Mail size={16} style={{ color: 'var(--oc-warning)' }} />}
                             {act.activity_type === 'meeting' && <Calendar size={16} style={{ color: '#10B981' }} />}
                             {act.activity_type === 'note' && <MessageSquare size={16} style={{ color: '#6D28D9' }} />}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <strong style={{ fontSize: '0.85rem', color: '#0F172A' }}>{act.title}</strong>
-                              <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                              <strong style={{ fontSize: '0.85rem', color: 'var(--oc-text)' }}>{act.title}</strong>
+                              <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                                 {new Date(act.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#475569', lineHeight: 1.5 }}>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--oc-secondary)', lineHeight: 1.5 }}>
                               {act.description}
                             </p>
-                            <span style={{ fontSize: '0.72rem', color: '#94A3B8', display: 'inline-block', marginTop: 4 }}>
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'inline-block', marginTop: 4 }}>
                               Logged by {act.author_name}
                             </span>
                           </div>
@@ -4985,7 +4995,7 @@ export default function AdminCrmPage() {
                 </div>
               )}
             </div>
-          </div>
+          </DialogPanel>
         </div>
       )}
       {/* ADD PARTICIPANT MODAL */}

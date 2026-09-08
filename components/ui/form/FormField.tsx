@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
+import { FieldContext } from './FieldContext';
 import { AlertCircle } from 'lucide-react';
 
 export interface FormFieldProps {
@@ -24,12 +25,15 @@ export function FormField({
   children,
   className = '',
 }: FormFieldProps) {
+  const generatedId = useId();
+  const fieldId = id || generatedId;
+  const descriptionId = hint || error ? `${fieldId}-description` : undefined;
   return (
     <div className={`formFieldGroup ${className}`} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {label && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label
-            htmlFor={id}
+            htmlFor={fieldId}
             className="crmFormLabel"
             style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}
           >
@@ -37,21 +41,21 @@ export function FormField({
             {required && <span style={{ color: '#E11D48', fontWeight: 600 }}>*</span>}
           </label>
           {optional && (
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 400 }}>Optional</span>
+            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 400 }}>Optional</span>
           )}
         </div>
       )}
 
-      {children}
+      <FieldContext.Provider value={{ id: fieldId, 'aria-describedby': descriptionId, 'aria-invalid': !!error }}>{children}</FieldContext.Provider>
 
       {hint && !error && (
-        <p className="crmFormHelper" style={{ margin: 0 }}>
+        <p id={descriptionId} className="crmFormHelper" style={{ margin: 0 }}>
           {hint}
         </p>
       )}
 
       {error && (
-        <p className="crmFormError" style={{ margin: 0 }}>
+        <p id={descriptionId} role="alert" className="crmFormError" style={{ margin: 0 }}>
           <AlertCircle size={14} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </p>

@@ -1,5 +1,7 @@
 'use client';
 
+import DialogPanel from '@/components/ui/DialogPanel';
+
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -425,36 +427,36 @@ function WorkerPortalContent() {
   }
 
   const severityColours: Record<string, { bg: string; text: string; border: string }> = {
-    Low: { bg: '#F0FDF4', text: '#16A34A', border: '#BBF7D0' },
-    Medium: { bg: '#FFFBEB', text: '#D97706', border: '#FDE68A' },
-    High: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA' },
-    Critical: { bg: '#450A0A', text: '#FFFFFF', border: '#991B1B' },
+    Low: { bg: 'var(--oc-success-soft)', text: 'var(--oc-success)', border: '#BBF7D0' },
+    Medium: { bg: 'var(--oc-warning-soft)', text: 'var(--oc-warning)', border: '#FDE68A' },
+    High: { bg: 'var(--oc-danger-soft)', text: 'var(--oc-danger)', border: '#FECACA' },
+    Critical: { bg: '#450A0A', text: 'var(--oc-surface)', border: '#991B1B' },
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', color: '#1E293B', fontFamily: 'Source Sans 3, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--oc-background)', color: 'var(--oc-text)', fontFamily: 'var(--font-geist-sans), system-ui, sans-serif' }}>
       {/* Top Navigation */}
-      <header style={{
-        background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0 24px',
+      <header className="ocPortalHeader" style={{
+        background: 'var(--oc-surface)', borderBottom: '1px solid var(--oc-border)', padding: '0 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64,
         position: 'sticky', top: 0, zIndex: 30,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Image src="/logo.png" alt="Opus Care" width={120} height={32} style={{ objectFit: 'contain' }} priority />
-          <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '3px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>
+          <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '3px 10px', borderRadius: 20, fontSize: '0.8125rem', fontWeight: 600 }}>
             Support Worker Portal
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span style={{ fontSize: '0.88rem', color: '#475569' }}>
+          <span style={{ fontSize: '0.88rem', color: 'var(--oc-secondary)' }}>
             Logged in as <strong>{workerName}</strong>
           </span>
           <button
             onClick={handleSignOut}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: '#F1F5F9', border: 'none', borderRadius: 8, padding: '7px 14px',
-              fontSize: '0.82rem', fontWeight: 600, color: '#475569', cursor: 'pointer',
+              background: 'var(--oc-subtle)', border: 'none', borderRadius: 8, padding: '7px 14px',
+              fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-secondary)', cursor: 'pointer',
             }}
           >
             <LogOut size={14} /> Sign out
@@ -467,9 +469,9 @@ function WorkerPortalContent() {
         {/* Banner Alert if any */}
         {statusNotice && (
           <div style={{
-            background: statusNotice.type === 'success' ? '#F0FDF4' : '#FEF2F2',
+            background: statusNotice.type === 'success' ? 'var(--oc-success-soft)' : 'var(--oc-danger-soft)',
             border: `1px solid ${statusNotice.type === 'success' ? '#BBF7D0' : '#FECACA'}`,
-            color: statusNotice.type === 'success' ? '#166534' : '#991B1B',
+            color: statusNotice.type === 'success' ? 'var(--oc-success)' : '#991B1B',
             padding: '12px 16px', borderRadius: 8, marginBottom: 20, fontSize: '0.88rem',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
@@ -479,15 +481,15 @@ function WorkerPortalContent() {
         )}
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid #E2E8F0', paddingBottom: 12, marginBottom: 24 }}>
+        <div className="ocPortalTabs" aria-label="Worker views" style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--oc-border)', paddingBottom: 12, marginBottom: 24 }}>
           <button
             onClick={() => setTab('shifts')}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '9px 18px', borderRadius: 8, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
-              background: tab === 'shifts' ? '#1E40AF' : '#FFFFFF',
-              color: tab === 'shifts' ? '#FFFFFF' : '#64748B',
-              border: tab === 'shifts' ? 'none' : '1px solid #E2E8F0',
+              background: tab === 'shifts' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+              color: tab === 'shifts' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+              border: tab === 'shifts' ? 'none' : '1px solid var(--oc-border)',
             }}
           >
             <Calendar size={16} /> My Shifts & Progress Notes
@@ -497,9 +499,9 @@ function WorkerPortalContent() {
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '9px 18px', borderRadius: 8, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
-              background: tab === 'timesheets' ? '#1E40AF' : '#FFFFFF',
-              color: tab === 'timesheets' ? '#FFFFFF' : '#64748B',
-              border: tab === 'timesheets' ? 'none' : '1px solid #E2E8F0',
+              background: tab === 'timesheets' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+              color: tab === 'timesheets' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+              border: tab === 'timesheets' ? 'none' : '1px solid var(--oc-border)',
             }}
           >
             <Clock size={16} /> My Timesheets ({timesheets.length})
@@ -509,9 +511,9 @@ function WorkerPortalContent() {
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '9px 18px', borderRadius: 8, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
-              background: tab === 'report_incident' ? '#DC2626' : '#FFFFFF',
-              color: tab === 'report_incident' ? '#FFFFFF' : '#64748B',
-              border: tab === 'report_incident' ? 'none' : '1px solid #E2E8F0',
+              background: tab === 'report_incident' ? 'var(--oc-danger)' : 'var(--oc-surface)',
+              color: tab === 'report_incident' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+              border: tab === 'report_incident' ? 'none' : '1px solid var(--oc-border)',
             }}
           >
             <AlertTriangle size={16} /> Report Incident
@@ -521,9 +523,9 @@ function WorkerPortalContent() {
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '9px 18px', borderRadius: 8, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
-              background: tab === 'my_incidents' ? '#1E40AF' : '#FFFFFF',
-              color: tab === 'my_incidents' ? '#FFFFFF' : '#64748B',
-              border: tab === 'my_incidents' ? 'none' : '1px solid #E2E8F0',
+              background: tab === 'my_incidents' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+              color: tab === 'my_incidents' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+              border: tab === 'my_incidents' ? 'none' : '1px solid var(--oc-border)',
             }}
           >
             <Shield size={16} /> My Reported Incidents ({incidents.length})
@@ -535,20 +537,20 @@ function WorkerPortalContent() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Assigned Shifts</h2>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 4px', color: 'var(--oc-text)' }}>Assigned Shifts</h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                   Record shift progress notes and flag any safeguarding incidents immediately.
                 </p>
               </div>
             </div>
 
             {isLoading ? (
-              <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>Loading shifts…</div>
+              <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>Loading shifts…</div>
             ) : shifts.length === 0 ? (
-              <div style={{ background: '#FFFFFF', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid #E2E8F0' }}>
-                <Calendar size={40} style={{ color: '#CBD5E1', marginBottom: 12 }} />
-                <h3 style={{ margin: '0 0 6px', color: '#334155' }}>No assigned shifts found</h3>
-                <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748B' }}>
+              <div style={{ background: 'var(--oc-surface)', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                <Calendar size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
+                <h3 style={{ margin: '0 0 6px', color: 'var(--oc-secondary)' }}>No assigned shifts found</h3>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--oc-muted)' }}>
                   Your assigned shifts from the Opus Care roster will appear here.
                 </p>
               </div>
@@ -558,23 +560,23 @@ function WorkerPortalContent() {
                   <div
                     key={shift.id}
                     style={{
-                      background: '#FFFFFF', borderRadius: 10, padding: 18, border: '1px solid #E2E8F0',
+                      background: 'var(--oc-surface)', borderRadius: 10, padding: 18, border: '1px solid var(--oc-border)',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14,
                     }}
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                        <span style={{ fontWeight: 700, fontSize: '1rem', color: '#0F172A' }}>
+                        <span style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--oc-text)' }}>
                           {shift.participant?.full_name || 'Participant'}
                         </span>
-                        <span style={{ background: '#F1F5F9', color: '#475569', borderRadius: 4, padding: '2px 8px', fontSize: '0.75rem', fontWeight: 600 }}>
+                        <span style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', borderRadius: 4, padding: '2px 8px', fontSize: '0.8125rem', fontWeight: 600 }}>
                           {shift.shift_reference}
                         </span>
-                        <span style={{ background: '#EFF6FF', color: '#2563EB', borderRadius: 4, padding: '2px 8px', fontSize: '0.75rem' }}>
+                        <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-info)', borderRadius: 4, padding: '2px 8px', fontSize: '0.8125rem' }}>
                           {shift.service_type || 'Core Support'}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: '0.84rem', color: '#64748B' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: '0.84rem', color: 'var(--oc-muted)' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <Clock size={13} />
                           {new Date(shift.start_time).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}{' '}
@@ -591,7 +593,7 @@ function WorkerPortalContent() {
                       <button
                         onClick={() => openCompleteShiftModal(shift)}
                         style={{
-                          background: shift.status === 'completed' ? '#0D9488' : '#1E40AF', color: '#FFFFFF', border: 'none', borderRadius: 8,
+                          background: shift.status === 'completed' ? 'var(--oc-accent)' : 'var(--oc-accent)', color: 'var(--oc-surface)', border: 'none', borderRadius: 8,
                           padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: 6,
                         }}
@@ -601,7 +603,7 @@ function WorkerPortalContent() {
                       <button
                         onClick={() => openIncidentFromShift(shift)}
                         style={{
-                          background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8,
+                          background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', border: '1px solid #FECACA', borderRadius: 8,
                           padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: 6,
                         }}
@@ -621,17 +623,17 @@ function WorkerPortalContent() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>My Weekly Timesheets</h2>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 4px', color: 'var(--oc-text)' }}>My Weekly Timesheets</h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                   Weekly timesheets automatically compiled from your completed shifts and submitted for manager approval.
                 </p>
               </div>
               <button
                 onClick={() => loadTimesheets()}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 6, background: '#FFFFFF',
-                  border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 14px',
-                  fontSize: '0.82rem', fontWeight: 600, color: '#475569', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6, background: 'var(--oc-surface)',
+                  border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 14px',
+                  fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-secondary)', cursor: 'pointer',
                 }}
               >
                 <RefreshCw size={14} /> Refresh
@@ -639,12 +641,12 @@ function WorkerPortalContent() {
             </div>
 
             {timesheetsLoading ? (
-              <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>Loading timesheets…</div>
+              <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>Loading timesheets…</div>
             ) : timesheets.length === 0 ? (
-              <div style={{ background: '#FFFFFF', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid #E2E8F0' }}>
-                <Clock size={40} style={{ color: '#CBD5E1', marginBottom: 12 }} />
-                <h3 style={{ margin: '0 0 6px', color: '#334155' }}>No timesheet submissions found</h3>
-                <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748B' }}>
+              <div style={{ background: 'var(--oc-surface)', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                <Clock size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
+                <h3 style={{ margin: '0 0 6px', color: 'var(--oc-secondary)' }}>No timesheet submissions found</h3>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--oc-muted)' }}>
                   When you complete shifts and submit progress notes, your weekly hours and travel will automatically appear here.
                 </p>
               </div>
@@ -652,10 +654,10 @@ function WorkerPortalContent() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {timesheets.map((ts: any) => {
                   const statusColors: Record<string, { bg: string; text: string; border: string }> = {
-                    Approved: { bg: '#F0FDF4', text: '#16A34A', border: '#BBF7D0' },
-                    Submitted: { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' },
-                    Draft: { bg: '#F8FAFC', text: '#64748B', border: '#E2E8F0' },
-                    Rejected: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA' },
+                    Approved: { bg: 'var(--oc-success-soft)', text: 'var(--oc-success)', border: '#BBF7D0' },
+                    Submitted: { bg: 'var(--oc-info-soft)', text: 'var(--oc-info)', border: '#BFDBFE' },
+                    Draft: { bg: 'var(--oc-background)', text: 'var(--oc-muted)', border: 'var(--oc-border)' },
+                    Rejected: { bg: 'var(--oc-danger-soft)', text: 'var(--oc-danger)', border: '#FECACA' },
                     Adjusted: { bg: '#FAF5FF', text: '#7C3AED', border: '#E9D5FF' },
                     Exported: { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' },
                   };
@@ -665,7 +667,7 @@ function WorkerPortalContent() {
                   const totalKm = (ts.entries || []).reduce((acc: number, e: any) => acc + (Number(e.kilometres) || 0), 0);
 
                   return (
-                    <div key={ts.id} style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+                    <div key={ts.id} style={{ background: 'var(--oc-surface)', borderRadius: 10, border: '1px solid var(--oc-border)', overflow: 'hidden' }}>
                       <div
                         onClick={() => setExpandedTimesheetId(isExpanded ? null : ts.id)}
                         style={{
@@ -675,14 +677,14 @@ function WorkerPortalContent() {
                       >
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                            <strong style={{ fontSize: '1rem', color: '#0F172A' }}>
+                            <strong style={{ fontSize: '1rem', color: 'var(--oc-text)' }}>
                               Week: {new Date(ts.week_start).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} – {new Date(ts.week_end).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </strong>
-                            <span style={{ background: col.bg, color: col.text, border: `1px solid ${col.border}`, borderRadius: 9999, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700 }}>
+                            <span style={{ background: col.bg, color: col.text, border: `1px solid ${col.border}`, borderRadius: 9999, padding: '2px 10px', fontSize: '0.8125rem', fontWeight: 600 }}>
                               {ts.status}
                             </span>
                           </div>
-                          <div style={{ display: 'flex', gap: 16, fontSize: '0.84rem', color: '#64748B' }}>
+                          <div style={{ display: 'flex', gap: 16, fontSize: '0.84rem', color: 'var(--oc-muted)' }}>
                             <span><strong>{totalHrs.toFixed(2)}</strong> Total Hours</span>
                             <span>&bull;</span>
                             <span><strong>{ts.entries?.length || 0}</strong> Shifts</span>
@@ -697,13 +699,13 @@ function WorkerPortalContent() {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           {ts.notes && (
-                            <span style={{ fontSize: '0.78rem', color: '#64748B', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               Note: {ts.notes}
                             </span>
                           )}
                           <button
                             type="button"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)' }}
                           >
                             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                           </button>
@@ -712,24 +714,24 @@ function WorkerPortalContent() {
 
                       {/* Expanded Entries Breakdown */}
                       {isExpanded && (
-                        <div style={{ borderTop: '1px solid #E2E8F0', background: '#F8FAFC', padding: '14px 18px' }}>
-                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <div style={{ borderTop: '1px solid var(--oc-border)', background: 'var(--oc-background)', padding: '14px 18px' }}>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             Shift Entries Breakdown
                           </div>
                           {(ts.entries || []).length === 0 ? (
-                            <div style={{ fontSize: '0.82rem', color: '#94A3B8' }}>No shift entries recorded for this week.</div>
+                            <div style={{ fontSize: '0.82rem', color: 'var(--oc-muted)' }}>No shift entries recorded for this week.</div>
                           ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                               {ts.entries.map((entry: any) => (
-                                <div key={entry.id} style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                                <div key={entry.id} style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                                   <div>
-                                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0F172A' }}>
+                                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--oc-text)' }}>
                                       {entry.participant?.full_name || 'Participant'}
-                                      <span style={{ marginLeft: 8, fontSize: '0.75rem', color: '#64748B', fontWeight: 400 }}>
+                                      <span style={{ marginLeft: 8, fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 400 }}>
                                         ({entry.shift?.shift_reference || 'Shift'})
                                       </span>
                                     </div>
-                                    <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>
+                                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>
                                       {entry.actual_start ? new Date(entry.actual_start).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) : 'N/A'}:{' '}
                                       {entry.actual_start ? new Date(entry.actual_start).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : ''} –{' '}
                                       {entry.actual_end ? new Date(entry.actual_end).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : ''}
@@ -737,10 +739,10 @@ function WorkerPortalContent() {
                                     </div>
                                   </div>
                                   <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0F172A' }}>
+                                    <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--oc-text)' }}>
                                       {Number(entry.actual_hours || 0).toFixed(2)} hrs
                                     </div>
-                                    <div style={{ fontSize: '0.72rem', color: entry.variance_minutes > 0 ? '#DC2626' : '#16A34A' }}>
+                                    <div style={{ fontSize: '0.8125rem', color: entry.variance_minutes > 0 ? 'var(--oc-danger)' : 'var(--oc-success)' }}>
                                       {entry.variance_minutes > 0 ? `+${entry.variance_minutes}m variance` : entry.variance_minutes < 0 ? `${entry.variance_minutes}m variance` : 'On schedule'}
                                       {entry.kilometres > 0 ? ` &bull; ${entry.kilometres}km` : ''}
                                     </div>
@@ -765,22 +767,22 @@ function WorkerPortalContent() {
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
             alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16,
           }}>
-            <div style={{
-              background: '#FFFFFF', borderRadius: 14, width: '100%', maxWidth: 680, maxHeight: '92vh',
+            <DialogPanel className="ocInlineDialog" onClose={() => setActiveShiftForNote(null)} label="Complete shift and progress note" style={{
+              background: 'var(--oc-surface)', borderRadius: 14, width: '100%', maxWidth: 680, maxHeight: '92vh',
               overflowY: 'auto', padding: 26, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid #E2E8F0', paddingBottom: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--oc-border)', paddingBottom: 14 }}>
                 <div>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 800, color: '#0F172A' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                     Complete Shift & Record Clinical Delivery
                   </h3>
-                  <p style={{ margin: 0, fontSize: '0.84rem', color: '#64748B' }}>
+                  <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--oc-muted)' }}>
                     Participant: <strong>{activeShiftForNote.participant?.full_name}</strong> &bull; Shift: <strong>{activeShiftForNote.shift_reference}</strong>
                   </p>
                 </div>
                 <button
                   onClick={() => setActiveShiftForNote(null)}
-                  style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94A3B8' }}
+                  style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--oc-muted)' }}
                 >
                   &times;
                 </button>
@@ -788,39 +790,39 @@ function WorkerPortalContent() {
 
               <form onSubmit={submitCompleteShift} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* 1. Actual Shift Hours & Break */}
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 14 }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Clock size={15} color="#2563EB" /> 1. Actual Shift Hours & Break
+                <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: 14 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Clock size={15} color="var(--oc-info)" /> 1. Actual Shift Hours & Break
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                     <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Actual Start</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Actual Start</label>
+                      <input className="ocField" aria-label="Actual Start"
                         type="datetime-local"
                         required
                         value={actualStart}
                         onChange={(e) => setActualStart(e.target.value)}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Actual Finish</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Actual Finish</label>
+                      <input className="ocField" aria-label="Actual Finish"
                         type="datetime-local"
                         required
                         value={actualEnd}
                         onChange={(e) => setActualEnd(e.target.value)}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Break (Minutes)</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Break (Minutes)</label>
+                      <input className="ocField" aria-label="Break (Minutes)"
                         type="number"
                         min="0"
                         value={breakMinutes}
                         onChange={(e) => setBreakMinutes(Number(e.target.value) || 0)}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
@@ -828,61 +830,61 @@ function WorkerPortalContent() {
 
                 {/* 2. Clinical Notes & Observations */}
                 <div>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', display: 'block', marginBottom: 4 }}>
                     Progress Summary / Shift Narrative *
                   </label>
-                  <textarea
+                  <textarea className="ocField" aria-label="Progress Summary / Shift Narrative *"
                     rows={3}
                     required
                     value={noteText}
                     onChange={(e) => setNoteText(e.target.value)}
                     placeholder="Describe activities supported, participant engagement, daily routine, and overall shift narrative..."
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.85rem', resize: 'vertical', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.85rem', resize: 'vertical', boxSizing: 'border-box' }}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Support Delivered</label>
-                    <input
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Support Delivered</label>
+                    <input className="ocField" aria-label="Support Delivered"
                       type="text"
                       value={supportDelivered}
                       onChange={(e) => setSupportDelivered(e.target.value)}
                       placeholder="e.g. Personal care, meal prep, community access"
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Participant Response</label>
-                    <input
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Participant Response</label>
+                    <input className="ocField" aria-label="Participant Response"
                       type="text"
                       value={participantResponse}
                       onChange={(e) => setParticipantResponse(e.target.value)}
                       placeholder="e.g. Engaged, positive mood, expressed choices"
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Outcomes Observed</label>
-                    <input
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Outcomes Observed</label>
+                    <input className="ocField" aria-label="Outcomes Observed"
                       type="text"
                       value={outcomesObserved}
                       onChange={(e) => setOutcomesObserved(e.target.value)}
                       placeholder="e.g. Prepared dinner independently, completed shopping"
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Concerns / Variations</label>
-                    <input
+                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Concerns / Variations</label>
+                    <input className="ocField" aria-label="Concerns / Variations"
                       type="text"
                       value={concerns}
                       onChange={(e) => setConcerns(e.target.value)}
                       placeholder="e.g. Mild fatigue noted towards end of shift"
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                     />
                   </div>
                 </div>
@@ -894,50 +896,50 @@ function WorkerPortalContent() {
                     id="followUpCheck"
                     checked={followUpRequired}
                     onChange={(e) => setFollowUpRequired(e.target.checked)}
-                    style={{ width: 16, height: 16, accentColor: '#2563EB' }}
+                    style={{ width: 16, height: 16, accentColor: 'var(--oc-info)' }}
                   />
-                  <label htmlFor="followUpCheck" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                  <label htmlFor="followUpCheck" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-secondary)', cursor: 'pointer' }}>
                     Operational or Care Follow-Up Required by Management
                   </label>
                 </div>
                 {followUpRequired && (
                   <div>
-                    <input
+                    <input className="ocField" aria-label="Specify follow-up action required (e.g. Restock supplies, notify OT, call GP)..."
                       type="text"
                       value={followUpNotes}
                       onChange={(e) => setFollowUpNotes(e.target.value)}
                       placeholder="Specify follow-up action required (e.g. Restock supplies, notify OT, call GP)..."
-                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                     />
                   </div>
                 )}
 
                 {/* 3. NDIS Goals Supported */}
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 14 }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Target size={15} color="#0D9488" /> 2. NDIS Goals Progress
+                <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: 14 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Target size={15} color="var(--oc-accent)" /> 2. NDIS Goals Progress
                   </div>
                   {loadingGoals ? (
-                    <div style={{ fontSize: '0.8rem', color: '#94A3B8' }}>Loading active goals…</div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Loading active goals…</div>
                   ) : participantGoals.length === 0 ? (
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>No active goals found for this participant.</div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>No active goals found for this participant.</div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {participantGoals.map((g, idx) => (
-                        <div key={g.id} style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: 8, padding: '10px 12px' }}>
+                        <div key={g.id} style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '10px 12px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.82rem', color: '#0F172A' }}>{g.goal_title}</span>
-                            <span style={{ fontSize: '0.72rem', background: '#F1F5F9', color: '#64748B', padding: '2px 8px', borderRadius: 4 }}>{g.category}</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--oc-text)' }}>{g.goal_title}</span>
+                            <span style={{ fontSize: '0.8125rem', background: 'var(--oc-subtle)', color: 'var(--oc-muted)', padding: '2px 8px', borderRadius: 4 }}>{g.category}</span>
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8 }}>
-                            <select
+                          <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8 }}>
+                            <select className="ocField" aria-label="Not Addressed"
                               value={g.progress_rating}
                               onChange={(e) => {
                                 const next = [...participantGoals];
                                 next[idx].progress_rating = e.target.value;
                                 setParticipantGoals(next);
                               }}
-                              style={{ border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.78rem' }}
+                              style={{ border: '1px solid var(--oc-border)', borderRadius: 6, padding: '6px 8px', fontSize: '0.8125rem' }}
                             >
                               <option value="Not Addressed">Not Addressed</option>
                               <option value="Regressed">Regressed</option>
@@ -945,7 +947,7 @@ function WorkerPortalContent() {
                               <option value="Progress Made">Progress Made</option>
                               <option value="Goal Achieved">Goal Achieved</option>
                             </select>
-                            <input
+                            <input className="ocField" aria-label="Worker observation for this goal..."
                               type="text"
                               value={g.worker_comment}
                               onChange={(e) => {
@@ -954,7 +956,7 @@ function WorkerPortalContent() {
                                 setParticipantGoals(next);
                               }}
                               placeholder="Worker observation for this goal..."
-                              style={{ border: '1px solid #CBD5E1', borderRadius: 6, padding: '6px 8px', fontSize: '0.78rem' }}
+                              style={{ border: '1px solid var(--oc-border)', borderRadius: 6, padding: '6px 8px', fontSize: '0.8125rem' }}
                             />
                           </div>
                         </div>
@@ -964,17 +966,17 @@ function WorkerPortalContent() {
                 </div>
 
                 {/* 4. Travel & Kilometres */}
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 14 }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E293B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: 14 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Car size={15} color="#7C3AED" /> 3. Worker Travel & Participant Transport
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
+                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
                     <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Travel Type</label>
-                      <select
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Travel Type</label>
+                      <select className="ocField" aria-label="Travel Type"
                         value={travelType}
                         onChange={(e) => setTravelType(e.target.value as any)}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       >
                         <option value="none">No Travel Incurred</option>
                         <option value="provider_travel_to">Provider Travel to Participant</option>
@@ -983,26 +985,26 @@ function WorkerPortalContent() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Travel Time (Min)</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Travel Time (Min)</label>
+                      <input className="ocField" aria-label="Travel Time (Min)"
                         type="number"
                         min="0"
                         disabled={travelType === 'none'}
                         value={travelMinutes}
                         onChange={(e) => setTravelMinutes(Number(e.target.value) || 0)}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>Kilometres (km)</label>
-                      <input
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>Kilometres (km)</label>
+                      <input className="ocField" aria-label="Kilometres (km)"
                         type="number"
                         min="0"
                         step="0.1"
                         disabled={travelType === 'none'}
                         value={kilometres}
                         onChange={(e) => setKilometres(Number(e.target.value) || 0)}
-                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 10px', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
@@ -1010,8 +1012,8 @@ function WorkerPortalContent() {
 
                 {/* 5. Incident Toggle */}
                 <div style={{
-                  background: incidentOccurred ? '#FEF2F2' : '#F8FAFC',
-                  border: `1px solid ${incidentOccurred ? '#FECACA' : '#E2E8F0'}`,
+                  background: incidentOccurred ? 'var(--oc-danger-soft)' : 'var(--oc-background)',
+                  border: `1px solid ${incidentOccurred ? '#FECACA' : 'var(--oc-border)'}`,
                   borderRadius: 10, padding: 14,
                 }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
@@ -1019,13 +1021,13 @@ function WorkerPortalContent() {
                       type="checkbox"
                       checked={incidentOccurred}
                       onChange={(e) => setIncidentOccurred(e.target.checked)}
-                      style={{ width: 18, height: 18, accentColor: '#DC2626' }}
+                      style={{ width: 18, height: 18, accentColor: 'var(--oc-danger)' }}
                     />
                     <div>
-                      <strong style={{ fontSize: '0.88rem', color: incidentOccurred ? '#DC2626' : '#1E293B' }}>
+                      <strong style={{ fontSize: '0.88rem', color: incidentOccurred ? 'var(--oc-danger)' : 'var(--oc-text)' }}>
                         An incident or near-miss occurred on this shift
                       </strong>
-                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                         If checked, you will be prompted to submit a prefilled Incident Report after saving this note.
                       </div>
                     </div>
@@ -1036,47 +1038,47 @@ function WorkerPortalContent() {
                   <button
                     type="button"
                     onClick={() => setActiveShiftForNote(null)}
-                    style={{ background: '#F1F5F9', color: '#475569', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingNote || !noteText.trim()}
-                    style={{ background: '#1E40AF', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' }}
+                    style={{ background: 'var(--oc-accent)', color: 'var(--oc-surface)', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                   >
                     {submittingNote ? 'Submitting…' : 'Complete Shift & Save Record'}
                   </button>
                 </div>
               </form>
-            </div>
+            </DialogPanel>
           </div>
         )}
 
         {/* TAB 2: REPORT INCIDENT FORM */}
         {tab === 'report_incident' && (
-          <div style={{ background: '#FFFFFF', borderRadius: 12, padding: 24, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: 16, marginBottom: 20 }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 4px', color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <AlertTriangle size={20} style={{ color: '#DC2626' }} /> Structured Incident Report
+          <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: 24, border: '1px solid var(--oc-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ borderBottom: '1px solid var(--oc-border)', paddingBottom: 16, marginBottom: 20 }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: '0 0 4px', color: 'var(--oc-text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertTriangle size={20} style={{ color: 'var(--oc-danger)' }} /> Structured Incident Report
               </h2>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                 Complete all known facts accurately. Opus Care management will review and conduct an official investigation.
               </p>
             </div>
 
             <form onSubmit={submitIncidentReport} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {/* Row 1: Participant & Shift */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Participant *
                   </label>
-                  <select
+                  <select className="ocField" aria-label="Participant *"
                     required
                     value={incidentForm.participant_id}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, participant_id: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   >
                     <option value="">— Select Participant —</option>
                     {/* Unique participants from assigned shifts */}
@@ -1092,42 +1094,42 @@ function WorkerPortalContent() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Date & Time of Incident *
                   </label>
-                  <input
+                  <input className="ocField" aria-label="Date & Time of Incident *"
                     type="datetime-local"
                     required
                     value={incidentForm.incident_at}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, incident_at: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Location
                   </label>
-                  <input
+                  <input className="ocField" aria-label="Location"
                     type="text"
                     placeholder="e.g. Participant residence, community center"
                     value={incidentForm.location}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, location: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               {/* Row 2: Category & Severity */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Category *
                   </label>
-                  <select
+                  <select className="ocField" aria-label="Category *"
                     value={incidentForm.category}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, category: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   >
                     <option value="injury">Physical Injury / Harm</option>
                     <option value="medication_error">Medication Error / Missed Dose</option>
@@ -1140,13 +1142,13 @@ function WorkerPortalContent() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Severity Level *
                   </label>
-                  <select
+                  <select className="ocField" aria-label="Severity Level *"
                     value={incidentForm.severity}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, severity: e.target.value as any }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   >
                     <option value="Low">Low — Minor bump, near miss, no injury</option>
                     <option value="Medium">Medium — First aid applied, temporary distress</option>
@@ -1158,50 +1160,50 @@ function WorkerPortalContent() {
 
               {/* Description */}
               <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                   Detailed Incident Description (Facts Only) *
                 </label>
-                <textarea
+                <textarea className="ocField" aria-label="Detailed Incident Description (Facts Only) *"
                   rows={4}
                   required
                   placeholder="State what happened clearly and objectively. Include what was observed, who was present, and what occurred before and after."
                   value={incidentForm.description}
                   onChange={(e) => setIncidentForm(prev => ({ ...prev, description: e.target.value }))}
-                  style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '10px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                  style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '10px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
                 />
               </div>
 
               {/* Immediate Actions */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Immediate Actions Taken
                   </label>
-                  <textarea
+                  <textarea className="ocField" aria-label="Immediate Actions Taken"
                     rows={3}
                     placeholder="e.g. Applied cold pack, provided reassurance, moved to quiet area..."
                     value={incidentForm.immediate_actions_taken}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, immediate_actions_taken: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Injury or Harm Details (if any)
                   </label>
-                  <textarea
+                  <textarea className="ocField" aria-label="Injury or Harm Details (if any)"
                     rows={3}
                     placeholder="Describe any visible scratch, bruise, swelling, pain level, or psychological distress..."
                     value={incidentForm.injury_or_harm_details}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, injury_or_harm_details: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               {/* Emergency Services */}
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 14 }}>
+              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: 14 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', marginBottom: 8 }}>
                   <input
                     type="checkbox"
@@ -1209,56 +1211,56 @@ function WorkerPortalContent() {
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, emergency_services_contacted: e.target.checked }))}
                     style={{ width: 18, height: 18 }}
                   />
-                  <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--oc-text)' }}>
                     Emergency services were contacted (Ambulance 000, Police, Fire)
                   </strong>
                 </label>
                 {incidentForm.emergency_services_contacted && (
-                  <input
+                  <input className="ocField" aria-label="CAD/Job Number, attending officers/paramedics, hospital destination..."
                     type="text"
                     placeholder="CAD/Job Number, attending officers/paramedics, hospital destination..."
                     value={incidentForm.emergency_services_details}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, emergency_services_details: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                   />
                 )}
               </div>
 
               {/* Witnesses & Attachments */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Witnesses (Names & Roles)
                   </label>
-                  <input
+                  <input className="ocField" aria-label="Witnesses (Names & Roles)"
                     type="text"
                     placeholder="e.g. John Doe (Co-worker), Jane Smith (Family member)"
                     value={incidentForm.witnesses}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, witnesses: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                  <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
                     Evidence / Document Links (One per line)
                   </label>
-                  <input
+                  <input className="ocField" aria-label="Evidence / Document Links (One per line)"
                     type="text"
                     placeholder="URL to photo, medical report, or document"
                     value={incidentForm.attachment_urls_text}
                     onChange={(e) => setIncidentForm(prev => ({ ...prev, attachment_urls_text: e.target.value }))}
-                    style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                    style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               {/* Submit Buttons */}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', borderTop: '1px solid var(--oc-border)', paddingTop: 16 }}>
                 <button
                   type="button"
                   onClick={() => setTab('shifts')}
-                  style={{ background: '#F1F5F9', color: '#475569', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                  style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -1266,7 +1268,7 @@ function WorkerPortalContent() {
                   type="submit"
                   disabled={submittingIncident}
                   style={{
-                    background: '#DC2626', color: '#FFFFFF', border: 'none', borderRadius: 8,
+                    background: 'var(--oc-danger)', color: 'var(--oc-surface)', border: 'none', borderRadius: 8,
                     padding: '10px 24px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: 8,
                   }}
@@ -1283,15 +1285,15 @@ function WorkerPortalContent() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>My Reported Incidents</h2>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 4px', color: 'var(--oc-text)' }}>My Reported Incidents</h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
                   Live submission status of reports you have submitted.
                 </p>
               </div>
               <button
                 onClick={() => setTab('report_incident')}
                 style={{
-                  background: '#DC2626', color: '#FFFFFF', border: 'none', borderRadius: 8,
+                  background: 'var(--oc-danger)', color: 'var(--oc-surface)', border: 'none', borderRadius: 8,
                   padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 6,
                 }}
@@ -1301,10 +1303,10 @@ function WorkerPortalContent() {
             </div>
 
             {incidents.length === 0 ? (
-              <div style={{ background: '#FFFFFF', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid #E2E8F0' }}>
-                <CheckCircle2 size={40} style={{ color: '#16A34A', marginBottom: 12 }} />
-                <h3 style={{ margin: '0 0 6px', color: '#334155' }}>No incidents reported</h3>
-                <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748B' }}>
+              <div style={{ background: 'var(--oc-surface)', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                <CheckCircle2 size={40} style={{ color: 'var(--oc-success)', marginBottom: 12 }} />
+                <h3 style={{ margin: '0 0 6px', color: 'var(--oc-secondary)' }}>No incidents reported</h3>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--oc-muted)' }}>
                   You have not submitted any incident reports.
                 </p>
               </div>
@@ -1316,39 +1318,39 @@ function WorkerPortalContent() {
                     <div
                       key={inc.id}
                       style={{
-                        background: '#FFFFFF', borderRadius: 10, padding: 18, border: '1px solid #E2E8F0',
+                        background: 'var(--oc-surface)', borderRadius: 10, padding: 18, border: '1px solid var(--oc-border)',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8, flexWrap: 'wrap', gap: 10 }}>
                         <div>
-                          <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '1rem', marginRight: 10 }}>
+                          <span style={{ fontWeight: 600, color: 'var(--oc-text)', fontSize: '1rem', marginRight: 10 }}>
                             {inc.incident_reference}
                           </span>
                           <span style={{
                             background: sevStyle.bg, color: sevStyle.text, border: `1px solid ${sevStyle.border}`,
-                            borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700, marginRight: 8,
+                            borderRadius: 20, padding: '2px 10px', fontSize: '0.8125rem', fontWeight: 600, marginRight: 8,
                           }}>
                             {inc.severity} Severity
                           </span>
-                          <span style={{ background: '#F1F5F9', color: '#475569', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 600 }}>
+                          <span style={{ background: 'var(--oc-subtle)', color: 'var(--oc-secondary)', borderRadius: 20, padding: '2px 10px', fontSize: '0.8125rem', fontWeight: 600 }}>
                             {inc.category}
                           </span>
                         </div>
                         <span style={{
-                          background: inc.status === 'Closed' ? '#F0FDF4' : '#EFF6FF',
-                          color: inc.status === 'Closed' ? '#16A34A' : '#1E40AF',
-                          borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 600,
+                          background: inc.status === 'Closed' ? 'var(--oc-success-soft)' : 'var(--oc-info-soft)',
+                          color: inc.status === 'Closed' ? 'var(--oc-success)' : 'var(--oc-accent)',
+                          borderRadius: 20, padding: '4px 12px', fontSize: '0.8125rem', fontWeight: 600,
                         }}>
                           Status: {inc.status}
                         </span>
                       </div>
 
-                      <p style={{ margin: '0 0 10px', fontSize: '0.88rem', color: '#334155' }}>
+                      <p style={{ margin: '0 0 10px', fontSize: '0.88rem', color: 'var(--oc-secondary)' }}>
                         {inc.description}
                       </p>
 
-                      <div style={{ display: 'flex', gap: 16, fontSize: '0.78rem', color: '#94A3B8' }}>
+                      <div style={{ display: 'flex', gap: 16, fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                         <span>Participant: <strong>{inc.participant?.full_name || 'Participant'}</strong></span>
                         <span>Date: {new Date(inc.incident_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
@@ -1366,7 +1368,7 @@ function WorkerPortalContent() {
 
 export default function WorkerPortalPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#94A3B8' }}>Loading worker portal…</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: 'var(--oc-muted)' }}>Loading worker portal…</div>}>
       <WorkerPortalContent />
     </Suspense>
   );

@@ -116,6 +116,7 @@ export default function CrmContainer({
 
   return (
     <div className="vsCanvas">
+      <a href="#operations-content" className="ocSkipLink">Skip to content</a>
       {/* Main Horizontal Window with Vertical Left Dock */}
       <div className="vsWindowHorizontal">
         {/* VERTICAL LEFT DOCK (Matching VibeStore Pill Style on Left Side) */}
@@ -149,8 +150,14 @@ export default function CrmContainer({
               {NAV_ITEMS.map((item) => {
                 const isActive = currentTab === item.id;
                 return (
+                  <React.Fragment key={item.id}>
+                    {item.id === 'participants' && <div className="ocNavGroup">Participant care</div>}
+                    {item.id === 'workforce' && <div className="ocNavGroup">Service delivery</div>}
+                    {item.id === 'quotes' && <div className="ocNavGroup">Finance & governance</div>}
+                    {item.id === 'staff' && <div className="ocNavGroup">People & workspace</div>}
                   <button
                     key={item.id}
+                    aria-current={isActive ? 'page' : undefined}
                     type="button"
                     onClick={() => onSelectTab(item.id)}
                     className={`vsDockBtnVertical ${isActive ? 'active' : ''}`}
@@ -165,6 +172,7 @@ export default function CrmContainer({
                       </span>
                     )}
                   </button>
+                  </React.Fragment>
                 );
               })}
             </nav>
@@ -183,25 +191,25 @@ export default function CrmContainer({
                 cursor: 'pointer',
                 transition: 'background 0.15s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--oc-background)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <div className="vsAvatarBtn" style={{ width: 34, height: 34, fontSize: '0.75rem' }}>
+              <div className="vsAvatarBtn" style={{ width: 34, height: 34, fontSize: '0.8125rem' }}>
                 OA
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>Opus Admin</div>
-                <div style={{ fontSize: '0.7rem', color: '#64748B' }}>support@opuscare...</div>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', lineHeight: 1.2 }}>Opus Admin</div>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>support@opuscare...</div>
               </div>
             </div>
 
             <div
               className="vsLivePill"
-              title="Connected to Supabase Sydney (ap-southeast-2)"
+              title="Opus Care operations"
               style={{ width: '100%', justifyContent: 'center' }}
             >
               <span className="vsLiveDot" />
-              <span>Sydney Live (ap-southeast-2)</span>
+              <span>Operations workspace</span>
             </div>
           </div>
         </aside>
@@ -214,9 +222,10 @@ export default function CrmContainer({
               {/* Full-Width Search Input (VibeStore Style) */}
               <div className="vsSearchWrap" style={{ flex: 1 }}>
                 <div className="vsSearchBar">
-                  <Search size={16} color="#94A3B8" style={{ flexShrink: 0 }} />
+                  <Search size={16} color="var(--oc-muted)" style={{ flexShrink: 0 }} />
                   <input
-                    type="text"
+                    type="search"
+                    aria-label="Search operations"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder={searchPlaceholder}
@@ -225,8 +234,9 @@ export default function CrmContainer({
                   {searchQuery && (
                     <button
                       type="button"
+                      aria-label="Clear search"
                       onClick={() => onSearchChange('')}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex', alignItems: 'center' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', display: 'flex', alignItems: 'center' }}
                     >
                       <X size={14} />
                     </button>
@@ -261,7 +271,7 @@ export default function CrmContainer({
                       onClick={onOpenNewAgreement}
                       className="vsBtnTinted"
                     >
-                      + New Pack
+                      New agreement
                     </button>
                   )}
                 </div>
@@ -272,6 +282,8 @@ export default function CrmContainer({
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="vsBellBtn"
                   title="View Activity & Notifications"
+                  aria-label="Notifications"
+                  aria-expanded={showNotifications}
                 >
                   <Bell size={16} />
                   {unreadCount > 0 && (
@@ -294,29 +306,30 @@ export default function CrmContainer({
                 zIndex: 100,
                 width: 380,
                 maxWidth: '90vw',
-                background: '#FFFFFF',
+                background: 'var(--oc-surface)',
                 borderRadius: 20,
                 border: '1px solid rgba(0, 0, 0, 0.08)',
                 boxShadow: '0 16px 40px rgba(15, 23, 42, 0.14)',
                 overflow: 'hidden',
               }}
             >
-              <div style={{ padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--oc-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>Notifications</h3>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B' }}>Live operational & compliance alerts</p>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>Notifications</h3>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Live operational & compliance alerts</p>
                 </div>
                 <button
                   type="button"
+                  aria-label="Close notifications"
                   onClick={() => setShowNotifications(false)}
-                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--oc-muted)', cursor: 'pointer' }}
                 >
                   <X size={16} />
                 </button>
               </div>
 
               <div style={{ maxHeight: 380, overflowY: 'auto' }}>
-                <div style={{ padding: '8px 18px 4px', fontSize: '0.7rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ padding: '8px 18px 4px', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Today
                 </div>
                 <CrmNotificationItem
@@ -361,7 +374,7 @@ export default function CrmContainer({
                   }}
                 />
 
-                <div style={{ padding: '8px 18px 4px', fontSize: '0.7rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ padding: '8px 18px 4px', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderTop: '1px solid var(--oc-subtle)' }}>
                   Yesterday
                 </div>
                 <CrmNotificationItem
@@ -391,8 +404,8 @@ export default function CrmContainer({
                   }}
                 />
               </div>
-              <div style={{ padding: '10px', background: '#F8FAFC', textAlign: 'center', borderTop: '1px solid #F1F5F9' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B' }}>
+              <div style={{ padding: '10px', background: 'var(--oc-background)', textAlign: 'center', borderTop: '1px solid var(--oc-subtle)' }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>
                   You&apos;re all caught up with NDIS compliance!
                 </span>
               </div>
@@ -400,7 +413,7 @@ export default function CrmContainer({
           )}
 
           {/* Main Tab Content */}
-          <main style={{ padding: '24px 28px', flex: 1 }}>
+          <main id="operations-content" tabIndex={-1} className="ocMain" style={{ flex: 1 }}>
             {children}
           </main>
         </div>

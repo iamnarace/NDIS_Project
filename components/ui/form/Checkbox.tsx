@@ -36,8 +36,8 @@ export function Checkbox({ id, checked, onChange, label, description, disabled }
           width: 20,
           height: 20,
           borderRadius: 5,
-          border: checked ? '2px solid #0284C7' : '2px solid #CBD5E1',
-          background: checked ? '#0284C7' : '#FFFFFF',
+          border: checked ? '2px solid var(--oc-info)' : '2px solid var(--oc-border)',
+          background: checked ? 'var(--oc-info)' : 'var(--oc-surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -46,14 +46,14 @@ export function Checkbox({ id, checked, onChange, label, description, disabled }
           transition: 'all 0.15s ease',
         }}
       >
-        {checked && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+        {checked && <Check size={14} color="var(--oc-surface)" strokeWidth={3} />}
       </div>
       <div>
-        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: '#0F172A', lineHeight: 1.35 }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--oc-text)', lineHeight: 1.35 }}>
           {label}
         </div>
         {description && (
-          <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: 2, lineHeight: 1.4 }}>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2, lineHeight: 1.4 }}>
             {description}
           </div>
         )}

@@ -27,10 +27,10 @@ export function SegmentedChoice<T extends string = string>({
       style={{
         display: 'inline-flex',
         width: fullWidth ? '100%' : 'auto',
-        background: '#F1F5F9',
+        background: 'var(--oc-subtle)',
         borderRadius: 8,
         padding: 3,
-        border: '1px solid #E2E8F0',
+        border: '1px solid var(--oc-border)',
       }}
     >
       {options.map((opt) => {
@@ -38,6 +38,7 @@ export function SegmentedChoice<T extends string = string>({
         return (
           <button
             key={opt.value}
+            aria-pressed={active}
             type="button"
             onClick={() => onChange(opt.value)}
             style={{
@@ -46,8 +47,8 @@ export function SegmentedChoice<T extends string = string>({
               minHeight: 38,
               borderRadius: 6,
               border: 'none',
-              background: active ? '#FFFFFF' : 'transparent',
-              color: active ? '#0F172A' : '#64748B',
+              background: active ? 'var(--oc-surface)' : 'transparent',
+              color: active ? 'var(--oc-text)' : 'var(--oc-muted)',
               fontWeight: active ? 600 : 500,
               fontSize: '0.875rem',
               cursor: 'pointer',
@@ -64,11 +65,11 @@ export function SegmentedChoice<T extends string = string>({
             {opt.badge && (
               <span
                 style={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.8125rem',
                   padding: '1px 5px',
                   borderRadius: 4,
-                  background: active ? '#E0F2FE' : '#E2E8F0',
-                  color: active ? '#0284C7' : '#475569',
+                  background: active ? '#E0F2FE' : 'var(--oc-border)',
+                  color: active ? 'var(--oc-info)' : 'var(--oc-secondary)',
                 }}
               >
                 {opt.badge}

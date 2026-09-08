@@ -36,7 +36,7 @@ export default function CrmNotificationItem({
         gap: 12,
         transition: 'background 0.15s',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--oc-background)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
@@ -54,22 +54,22 @@ export default function CrmNotificationItem({
                 width: 9,
                 height: 9,
                 borderRadius: '50%',
-                background: '#0D9488',
-                border: '2px solid #FFFFFF',
+                background: 'var(--oc-accent)',
+                border: '2px solid var(--oc-surface)',
               }}
             />
           )}
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <h4 style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {title}
             </h4>
-            <span style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600 }}>
               {timestamp}
             </span>
           </div>
-          <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#64748B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {description}
           </p>
         </div>
@@ -80,7 +80,7 @@ export default function CrmNotificationItem({
           type="button"
           onClick={onAction}
           className="vsBtnOutline"
-          style={{ padding: '4px 12px', fontSize: '0.72rem' }}
+          style={{ padding: '4px 12px', fontSize: '0.8125rem' }}
         >
           {actionLabel}
         </button>

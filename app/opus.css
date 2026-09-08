@@ -1,0 +1,207 @@
+/* Shared product styles. Public marketing pages retain their existing design. */
+:root {
+  --oc-background: #f5f7f8;
+  --oc-surface: #ffffff;
+  --oc-raised: #ffffff;
+  --oc-subtle: #edf2f4;
+  --oc-border: #d7e0e5;
+  --oc-border-subtle: #e8edef;
+  --oc-text: #172e40;
+  --oc-secondary: #425b6b;
+  --oc-muted: #607583;
+  --oc-accent: #176b68;
+  --oc-accent-hover: #105451;
+  --oc-accent-soft: #e8f3f0;
+  --oc-success: #236545;
+  --oc-success-soft: #edf6ef;
+  --oc-warning: #885a13;
+  --oc-warning-soft: #fff5df;
+  --oc-danger: #b1353c;
+  --oc-danger-soft: #fff0f0;
+  --oc-info: #265f8d;
+  --oc-info-soft: #edf4fa;
+  --oc-radius-control: 8px;
+  --oc-radius-panel: 12px;
+  --oc-radius-dialog: 16px;
+  --oc-shadow: 0 16px 48px #172e4024;
+  --oc-space-1: 4px;
+  --oc-space-2: 8px;
+  --oc-space-3: 12px;
+  --oc-space-4: 16px;
+  --oc-space-5: 20px;
+  --oc-space-6: 24px;
+  --oc-space-8: 32px;
+}
+.opusApp { font-family: var(--font-geist-sans), system-ui, sans-serif; font-size: 15px; line-height: 1.55; color: var(--oc-text); background: var(--oc-background); min-height: 100vh; }
+.opusApp :where(button, input, select, textarea) { font-family: inherit; }
+.opusApp :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid var(--oc-accent); outline-offset: 3px; }
+.opusApp :where(button):disabled { cursor: not-allowed; opacity: .55; }
+.opusApp :where(h1,h2,h3,h4) { line-height: 1.3; text-wrap: balance; }
+.opusApp :where(p) { text-wrap: pretty; }
+.opusApp .vsCanvas { display: block; padding: 0; background: var(--oc-background); min-height: 100vh; }
+.opusApp .vsWindowHorizontal { max-width: none; min-height: 100vh; border: 0; border-radius: 0; box-shadow: none; overflow: visible; background: var(--oc-background); }
+.opusApp .vsLeftDock { width: 232px; min-width: 232px; padding: 24px 12px 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; border-color: var(--oc-border); }
+.opusApp .vsNavListVertical { gap: 2px; }
+.opusApp .vsDockBtnVertical { font-size: 14px; font-weight: 500; padding: 10px 12px; min-height: 40px; border-radius: 6px; color: var(--oc-secondary); box-shadow: none; }
+.opusApp .vsDockBtnVertical.active { color: var(--oc-accent-hover); background: var(--oc-accent-soft); box-shadow: none; }
+.opusApp .vsDockBtnVertical:hover { background: var(--oc-subtle); }
+.opusApp .vsDockBadge { border-radius: 5px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.ocNavGroup { margin: 16px 12px 6px; color: var(--oc-muted); font-size: 12px; font-weight: 500; letter-spacing: .04em; }
+.opusApp .vsBrandName { font-size: 18px; font-weight: 600; color: var(--oc-text); }
+.opusApp .vsTagCrm { background: var(--oc-subtle); color: var(--oc-secondary); border-radius: 4px; box-shadow: none; font-size: 11px; font-weight: 500; }
+.opusApp .vsMainPanel { min-width: 0; flex: 1; }
+.opusApp .vsTopBar { background: var(--oc-surface); border-bottom: 1px solid var(--oc-border-subtle); padding: 16px 32px; border-radius: 0; }
+.opusApp .vsTopBarRow { gap: 20px; }
+.opusApp .vsSearchBar { border: 1px solid var(--oc-border); border-radius: 8px; background: var(--oc-background); padding: 0 12px; min-height: 44px; box-shadow: none; }
+.opusApp .vsSearchInput { font-size: 14px; color: var(--oc-text); }
+.opusApp .vsSearchInput::placeholder { color: var(--oc-muted); }
+.opusApp .vsBellBtn { width: 44px; height: 44px; border-radius: 8px; box-shadow: none; }
+.opusApp .ocMain { padding: 32px; max-width: 1600px; margin: 0 auto; }
+.ocPageHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.ocPageHeading h1 { font-size: 28px; font-weight: 600; letter-spacing: -.035em; margin: 4px 0 8px; }
+.ocPageHeading p { color: var(--oc-secondary); max-width: 660px; }
+.ocEyebrow { font-size: 13px; font-weight: 500; color: var(--oc-accent); }
+.ocAttention { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 20px; margin-bottom: 24px; background: var(--oc-accent-soft); border: 1px solid var(--oc-border); border-left: 3px solid var(--oc-accent); border-radius: 8px; }
+.ocAttention p { color: var(--oc-secondary); font-size: 14px; }
+.opusApp .vsPillBar { gap: 4px; padding: 0 0 16px; background: transparent; }
+.opusApp .vsPill { border-radius: 6px; font-size: 13px; font-weight: 500; min-height: 40px; box-shadow: none; }
+.opusApp .vsPill.active { background: var(--oc-text); }
+.opusApp .vsCard { background: var(--oc-surface); border: 1px solid var(--oc-border); border-radius: 12px; padding: 20px; box-shadow: none; }
+.opusApp .vsCard:hover { box-shadow: none; transform: none; }
+.opusApp .vsGrid4 { gap: 16px; margin-bottom: 24px; }
+.opusApp .vsGrid2ColBento { gap: 24px; align-items: start; }
+.opusApp .vsHeroCard { border: 1px solid var(--oc-border); background: var(--oc-surface); border-radius: 12px; padding: 24px; box-shadow: none; }
+.opusApp .vsSquircle { width: 36px; height: 36px; border-radius: 8px; box-shadow: none; background: var(--oc-accent-soft); color: var(--oc-accent); border: 0; }
+.ocMetric { display: flex; flex-direction: column; gap: 12px; }
+.ocMetricTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ocMetric h3 { font-size: 14px; font-weight: 500; color: var(--oc-secondary); }
+.ocMetricValue { font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.ocMetric p { font-size: 13px; color: var(--oc-muted); }
+.ocMetricFooter { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--oc-border-subtle); padding-top: 12px; margin-top: auto; }
+.ocMetricMeta { font-size: 13px; color: var(--oc-muted); }
+.ocBadge { display: inline-flex; align-items: center; border-radius: 5px; padding: 3px 7px; background: var(--oc-subtle); color: var(--oc-secondary); font-size: 12px; font-weight: 500; }
+.ocPanelHeading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--oc-border-subtle); }
+.ocPanelHeading h3 { font-size: 17px; font-weight: 600; }
+.ocPanelHeading p { font-size: 14px; color: var(--oc-muted); margin-top: 4px; }
+.ocPanelBody { padding: 24px; }
+.opusApp :is(.vsBtnBlack,.vsBtnOutline,.vsBtnTinted,.crmPrimaryBtn,.crmSecondaryBtn,.crmModalSubmitBtn,.crmModalCancelBtn) { min-height: 44px; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 500; box-shadow: none; transform: none; line-height: 1.35; }
+.opusApp :is(.vsBtnBlack,.crmPrimaryBtn,.crmModalSubmitBtn) { background: var(--oc-accent); color: white; border: 1px solid var(--oc-accent); }
+.opusApp :is(.vsBtnBlack,.crmPrimaryBtn,.crmModalSubmitBtn):hover { background: var(--oc-accent-hover); }
+.opusApp :is(.vsBtnOutline,.crmSecondaryBtn,.crmModalCancelBtn) { background: var(--oc-surface); color: var(--oc-text); border: 1px solid var(--oc-border); }
+.opusApp .vsBtnTinted { background: var(--oc-accent-soft); color: var(--oc-accent-hover); border: 1px solid var(--oc-border); }
+.ocTextButton { border: 0; padding: 8px 0; background: transparent; color: var(--oc-accent); font-size: 14px; font-weight: 500; cursor: pointer; min-height: 40px; }
+.opusApp .crmSectionTitle { font-size: 26px; font-weight: 600; letter-spacing: -.025em; color: var(--oc-text); }
+.opusApp .crmTableWrapper { border: 1px solid var(--oc-border); border-radius: 12px; box-shadow: none; overflow-x: auto; background: var(--oc-surface); }
+.opusApp .crmTable { border-collapse: collapse; width: 100%; font-size: 14px; }
+.opusApp .crmTable th { padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--oc-secondary); background: var(--oc-background); text-transform: none; letter-spacing: 0; white-space: nowrap; }
+.opusApp .crmTable td { padding: 16px; color: var(--oc-text); border-bottom: 1px solid var(--oc-border-subtle); line-height: 1.5; }
+.opusApp .crmTable tbody tr:last-child td { border-bottom: 0; }
+.opusApp .crmTable tbody tr:hover { background: #f6faf8; }
+.opusApp .crmTable :is(strong,b) { font-weight: 600; }
+.opusApp .crmTable button { min-height: 36px; border-radius: 6px; font-size: 13px; }
+.ocNumeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.opusApp :is(.crmFormInput,.crmFormSelect,.crmFormTextarea,.crmKeyInput,.portalInputField) { min-height: 46px; border: 1px solid var(--oc-border); border-radius: 8px; background-color: var(--oc-surface); color: var(--oc-text); font-size: 15px; box-shadow: none; padding: 11px 14px; }
+.opusApp :is(.crmFormInput,.crmFormSelect,.crmFormTextarea,.portalInputField):focus { border-color: var(--oc-accent); outline: 3px solid var(--oc-accent-soft); }
+.opusApp :is(.crmFormInput,.crmFormTextarea)::placeholder { color: var(--oc-muted); }
+.opusApp .crmFormLabel { font-size: 14px; font-weight: 500; color: var(--oc-secondary); }
+.opusApp :is(.crmFormHelper,.crmFormError) { font-size: 13px; line-height: 1.5; }
+.opusApp .crmFormHelper { color: var(--oc-muted); }
+.opusApp .crmFormError { color: var(--oc-danger); }
+.opusApp .hasError { border-color: var(--oc-danger); }
+.opusApp .crmModalOverlay { background: #172e4066; backdrop-filter: none; padding: 24px; overflow-y: auto; }
+.opusApp .crmModalBox { border-radius: 16px; border: 1px solid var(--oc-border); box-shadow: var(--oc-shadow); width: 100%; }
+.opusApp .crmModalHeader { padding: 24px; background: var(--oc-surface); border-bottom: 1px solid var(--oc-border-subtle); }
+.opusApp .crmModalHeader .crmSectionTitle { font-size: 22px; }
+.opusApp .crmModalFooter { padding: 16px 24px; background: var(--oc-surface); border-top: 1px solid var(--oc-border); position: sticky; bottom: 0; }
+.opusApp .crmModalBody { padding: 24px; }
+.ocSkipLink { position: fixed; top: 8px; left: 12px; z-index: 2000; transform: translateY(-160%); background: var(--oc-text); color: white; padding: 12px 20px; border-radius: 8px; }
+.ocSkipLink:focus { transform: none; }
+.ocToastRegion { position: fixed; right: 24px; bottom: 24px; z-index: 3000; display: grid; gap: 12px; width: min(420px, calc(100vw - 32px)); }
+.ocToast { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--oc-surface); border: 1px solid var(--oc-border); border-left: 4px solid var(--oc-accent); box-shadow: var(--oc-shadow); border-radius: 10px; color: var(--oc-text); }
+.ocToast p { flex: 1; overflow-wrap: anywhere; }
+.ocToast button { background: none; border: 0; color: var(--oc-secondary); cursor: pointer; padding: 4px; }
+.ocCombobox { position: relative; width: 100%; }
+.ocComboTrigger { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; cursor: pointer; }
+.ocComboMenu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 1100; background: var(--oc-raised); border: 1px solid var(--oc-border); border-radius: 10px; box-shadow: var(--oc-shadow); overflow: hidden; }
+.ocComboSearch { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--oc-border-subtle); }
+.ocComboSearch input { width: 100%; border: 0; font-size: 15px; background: transparent; color: var(--oc-text); }
+.ocComboList { max-height: 240px; overflow-y: auto; padding: 4px; }
+.ocComboOption { padding: 10px 12px; min-height: 44px; border-radius: 6px; display: flex; justify-content: space-between; gap: 12px; cursor: pointer; }
+.ocComboOption[data-active=true] { background: var(--oc-accent-soft); }
+.ocComboOption small { display: block; font-size: 13px; color: var(--oc-muted); }
+.ocComboClear { border: 0; background: none; color: var(--oc-accent); cursor: pointer; min-height: 36px; padding: 8px 0; font-size: 13px; }
+.ocSkeleton { display: grid; gap: 12px; padding: 24px; }
+.ocSkeleton span { display: block; height: 16px; border-radius: 4px; background: var(--oc-subtle); animation: ocPulse 1.5s ease-in-out infinite alternate; }
+.ocSkeleton span:nth-child(2) { width: 75%; }
+.ocSkeleton span:nth-child(3) { width: 45%; }
+@keyframes ocPulse { to { opacity: .45; } }
+.opusApp .portalLoginWrapper { background: var(--oc-background); }
+.opusApp .portalAuthCard { background: var(--oc-surface); border: 1px solid var(--oc-border); border-radius: 16px; box-shadow: 0 8px 32px #172e400a; }
+.opusApp .portalAuthHeading { font-size: 28px; font-weight: 600; color: var(--oc-text); }
+.opusApp .portalAuthSubhead { font-size: 15px; color: var(--oc-secondary); }
+.opusApp .portalSubmitBtn { background: var(--oc-accent); border-radius: 8px; min-height: 48px; box-shadow: none; }
+.opusApp .portalRoleToggle { background: var(--oc-background); border-radius: 8px; }
+.opusApp .portalTabBtn { border-radius: 6px; font-weight: 500; min-height: 44px; }
+.ocPortalTabs { overflow-x: auto; scrollbar-width: thin; }
+.ocPortalTabs button { flex-shrink: 0; min-height: 44px; }
+.ocPortalHeader { gap: 16px; }
+.opusApp .crmModalBackdrop { position: fixed; inset: 0; z-index: 1000; background: #172e4066; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.opusApp .crmModalCard { width: 100%; max-height: calc(100dvh - 48px); overflow-y: auto; background: var(--oc-surface); border: 1px solid var(--oc-border); border-radius: 16px; box-shadow: var(--oc-shadow); }
+.opusApp .crmModalTitle { font-size: 22px; font-weight: 600; color: var(--oc-text); }
+.opusApp :is(.crmModalCloseBtn,.crmModalClose) { width: 40px; height: 40px; flex-shrink: 0; border: 1px solid var(--oc-border); border-radius: 8px; background: var(--oc-surface); color: var(--oc-secondary); font-size: 24px; cursor: pointer; }
+.opusApp .ocRecordOverlay { justify-content: flex-end; padding: 0; }
+.opusApp .ocRecordDrawer { max-width: 840px; width: min(840px,100vw); height: 100dvh; max-height: 100dvh; border-radius: 0; display: flex; flex-direction: column; overflow-y: auto; margin: 0; }
+.opusApp .ocRecordDrawer .crmModalHeader { position: sticky; top: 0; z-index: 1; }
+.opusApp .ocRecordDrawer .crmModalHeader h3 { font-size: 26px; font-weight: 600; }
+.ocRecordTabs { display: flex; gap: 20px; padding: 0 24px; overflow-x: auto; flex-shrink: 0; border-bottom: 1px solid var(--oc-border); }
+.ocEmpty { padding: 32px 24px; text-align: center; }
+.ocEmpty strong { display: block; font-size: 17px; font-weight: 600; color: var(--oc-text); margin-bottom: 8px; }
+.ocEmpty p { font-size: 14px; color: var(--oc-muted); max-width: 420px; margin: 0 auto; }
+.opusApp :where(main, [role=dialog]) select { min-height: 44px; font-family: inherit; border-radius: 8px; padding: 10px 32px 10px 12px; border: 1px solid var(--oc-border); background-color: var(--oc-surface); color: var(--oc-text); font-size: 14px; }
+.opusApp :where([role=dialog]) :where(input:not([type=checkbox]):not([type=radio]):not([type=file]),textarea) { min-height: 44px; font-size: 15px; }
+.opusApp :where([role=dialog]) label { line-height: 1.5; }
+.ocDialogHeader { position: sticky; top: 0; background: var(--oc-surface); z-index: 1; }
+.ocStepper { list-style: none; display: grid; gap: 12px; padding: 16px 24px; margin: 0; background: var(--oc-background); border-bottom: 1px solid var(--oc-border); }
+.ocStepper li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--oc-muted); line-height: 1.4; min-width: 0; }
+.ocStepper li[aria-current=step] { color: var(--oc-text); font-weight: 600; }
+.ocStepNumber { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; background: var(--oc-border); color: var(--oc-secondary); }
+.ocStepper li[aria-current=step] .ocStepNumber { background: var(--oc-accent); color: white; }
+.ocStepper li[data-complete=true] .ocStepNumber { background: var(--oc-accent-soft); color: var(--oc-accent); }
+.ocStepper button { border: 0; background: transparent; font-size: inherit; color: var(--oc-accent); cursor: pointer; text-align: left; }
+/* Existing wizard actions carry inline colours; these product variants own them. */
+.opusApp .crmPrimaryBtn { background: var(--oc-accent) !important; border-color: var(--oc-accent) !important; }
+.opusApp .crmPrimaryBtn:hover { background: var(--oc-accent-hover) !important; }
+.opusApp .ocField { min-height: 44px; border: 1px solid var(--oc-border); border-radius: 8px; background-color: var(--oc-surface); color: var(--oc-text); font-size: 15px; padding: 10px 12px; }
+.opusApp .crmActionBtnPrimary { background: var(--oc-accent); color: white; border: 1px solid var(--oc-accent); min-height: 44px; border-radius: 8px; font-size: 14px; font-weight: 500; padding: 10px 16px; box-shadow: none; }
+.opusApp .crmActionBtnPrimary:hover { background: var(--oc-accent-hover); transform: none; box-shadow: none; }
+.opusApp .ocInlineDialog { max-height: calc(100dvh - 32px); overflow-y: auto; border: 1px solid var(--oc-border); }
+.opusApp .crmTable th.ocNumeric { text-align: right; }
+@media (max-width:600px) { .ocStepper { padding: 12px 16px; gap: 8px; } .ocStepper li { flex-direction: column; font-size: 12px; } .ocStepper li:not([aria-current=step]) > span:last-child { display: none; } .opusApp .crmModalBackdrop { padding: 8px; } .opusApp .crmModalCard { max-height: calc(100dvh - 16px); } }
+@media (min-width: 901px) { .opusApp .vsLeftDock { flex-shrink: 0; } }
+@media (max-width: 1100px) { .opusApp .vsTopBar { padding: 16px 20px; } .opusApp .ocMain { padding: 24px 20px; } .opusApp .vsTopBarRow { flex-wrap: wrap; } .opusApp .vsGrid2ColBento { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .opusApp .vsWindowHorizontal { flex-direction: column; }
+  .opusApp .vsLeftDock { position: static; height: auto; width: 100%; min-width: 0; padding: 16px; gap: 12px; }
+  .opusApp .vsLeftDock > div:first-child { gap: 12px !important; }
+  .opusApp .vsLeftDock > div:last-child { display: none !important; }
+  .opusApp .vsNavListVertical { flex-direction: row; overflow-x: auto; gap: 4px; scrollbar-width: thin; }
+  .opusApp .vsDockBtnVertical { width: auto; }
+  .ocNavGroup { display: none; }
+  .opusApp .vsGrid4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  .opusApp .ocMain { padding: 20px 16px; }
+  .ocPageHeading, .ocAttention { flex-direction: column; gap: 12px; }
+  .ocPageHeading h1 { font-size: 26px; }
+  .opusApp .vsTopActions { flex-wrap: wrap; }
+  .opusApp .vsGrid4 { grid-template-columns: 1fr; }
+  .opusApp .crmModalOverlay { padding: 8px; }
+  .opusApp .crmModalBox { max-height: calc(100dvh - 16px) !important; }
+  .opusApp :is(.crmModalHeader,.crmModalBody,.crmModalFooter) { padding: 16px; }
+  .opusApp .crmModalFooter { flex-wrap: wrap; gap: 12px; }
+  .ocFormGrid { grid-template-columns: 1fr !important; }
+  .ocPortalHeader { flex-wrap: wrap; height: auto !important; min-height: 64px; padding: 12px 16px !important; position: static !important; }
+  .ocPortalHeader > div { flex-wrap: wrap; }
+  .ocPortalHero { flex-wrap: wrap; padding: 20px !important; }
+}
+@media (prefers-reduced-motion: reduce) { .opusApp *, .opusApp *::before, .opusApp *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

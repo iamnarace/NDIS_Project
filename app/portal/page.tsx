@@ -1,5 +1,7 @@
 'use client';
 
+import { notify } from '@/components/ui/ProductFeedback';
+
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -120,7 +122,7 @@ function PortalLoginContent() {
       redirectTo: `${window.location.origin}/portal/reset-password`,
     });
     setErrorMsg('');
-    alert(`Password reset email sent to ${email}. Please check your inbox.`);
+    notify(`Password reset email sent to ${email}. Please check your inbox.`);
   };
 
   return (
@@ -287,12 +289,12 @@ function PortalLoginContent() {
             <div style={{
               marginTop: 16,
               padding: '10px 14px',
-              background: '#F8FAFC',
+              background: 'var(--oc-background)',
               borderRadius: 8,
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--oc-border)',
               textAlign: 'center',
               fontSize: '0.82rem',
-              color: '#64748B',
+              color: 'var(--oc-muted)',
             }}>
               <span>Opus Care staff admin? </span>
               <Link href="/admin" style={{ color: '#3B82F6', fontWeight: 600, textDecoration: 'none' }}>
@@ -328,7 +330,7 @@ export default function PortalLoginPage() {
   return (
     <Suspense fallback={
       <div className="portalLoginWrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#64748B' }}>Loading portal...</p>
+        <p style={{ color: 'var(--oc-muted)' }}>Loading portal...</p>
       </div>
     }>
       <PortalLoginContent />
