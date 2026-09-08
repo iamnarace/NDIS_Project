@@ -47,7 +47,7 @@ export async function GET(req: Request) {
         worker_notes,
         staff:staff(id, reference_number, full_name, role, phone, email, suburbs, ndis_screening, ndis_screening_expiry, first_aid_expiry, cpr_expiry, hourly_rate)
       ),
-      progress_notes:shift_progress_notes(*)
+      progress_notes:shift_progress_notes(*, incident:incidents(id, incident_reference, severity, status))
     `)
     .order('start_time', { ascending: true });
 

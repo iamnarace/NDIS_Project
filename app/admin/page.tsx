@@ -170,7 +170,7 @@ interface TrainingCompletion {
 }
 
 
-type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
+type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
 
 const PIPELINE_STAGES = [
   { id: 'new', label: 'New Inbound', color: '#0284C7', bg: '#E0F2FE' },
@@ -308,6 +308,41 @@ export default function AdminCrmPage() {
   const [portalUserSaving, setPortalUserSaving] = useState(false);
   const [portalUserMsg, setPortalUserMsg] = useState('');
 
+  // -- Phase B: Quality & Safeguarding State ---------------------------------
+  const [safeguardingSubTab, setSafeguardingSubTab] = useState<'incidents' | 'complaints' | 'corrective_actions'>('incidents');
+  const [incidentsList, setIncidentsList] = useState<any[]>([]);
+  const [incidentsLoading, setIncidentsLoading] = useState(false);
+  const [incidentSeverityFilter, setIncidentSeverityFilter] = useState('all');
+  const [incidentStatusFilter, setIncidentStatusFilter] = useState('all');
+  const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
+
+  const [complaintsList, setComplaintsList] = useState<any[]>([]);
+  const [complaintsLoading, setComplaintsLoading] = useState(false);
+  const [complaintStatusFilter, setComplaintStatusFilter] = useState('all');
+  const [selectedComplaint, setSelectedComplaint] = useState<any | null>(null);
+
+  const [actionsList, setActionsList] = useState<any[]>([]);
+  const [actionsLoading, setActionsLoading] = useState(false);
+  const [actionStatusFilter, setActionStatusFilter] = useState('all');
+  const [showAddActionModal, setShowAddActionModal] = useState(false);
+  const [newActionForm, setNewActionForm] = useState({
+    source_type: 'incident',
+    source_id: '',
+    action_description: '',
+    owner: 'Operations Manager',
+    due_date: '',
+    priority: 'Medium',
+    notes: '',
+  });
+
+  // Complaint escalation modal
+  const [showEscalateComplaintModal, setShowEscalateComplaintModal] = useState(false);
+  const [escalateIncidentForm, setEscalateIncidentForm] = useState({
+    category: 'other',
+    severity: 'High' as 'Low' | 'Medium' | 'High' | 'Critical',
+    description: '',
+  });
+
   useEffect(() => {
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -318,6 +353,10 @@ export default function AdminCrmPage() {
       loadTrainingData();
     } else if (tab === 'agreements') {
       loadAgreements();
+    } else if (tab === 'safeguarding') {
+      loadIncidents();
+      loadComplaints();
+      loadCorrectiveActions();
     } else if (tab === 'goals' && selectedGoalParticipant) {
       loadGoals(selectedGoalParticipant);
     } else if (tab === 'support_plans' && selectedPlanParticipant) {
@@ -325,8 +364,7 @@ export default function AdminCrmPage() {
     } else if (tab === 'risk_assessments' && selectedRiskParticipant) {
       loadRiskAssessments(selectedRiskParticipant);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [tab, selectedGoalParticipant, selectedPlanParticipant, selectedRiskParticipant]);
 
 
 
@@ -508,6 +546,149 @@ export default function AdminCrmPage() {
       if (selectedRiskParticipant) loadRiskAssessments(selectedRiskParticipant);
       setStatusNotice('Risk assessment activated. Previous active versions superseded.');
     } catch { setStatusNotice('Failed to activate risk assessment.'); }
+  }
+
+  // -- Phase B: Quality & Safeguarding Functions -----------------------------
+  async function loadIncidents() {
+    setIncidentsLoading(true);
+    try {
+      const res = await fetch('/api/safeguarding/incidents', {
+        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
+      });
+      const data = await res.json();
+      setIncidentsList(data.incidents || []);
+    } catch {
+      setIncidentsList([]);
+    }
+    setIncidentsLoading(false);
+  }
+
+  async function updateIncident(id: string, updates: Record<string, any>) {
+    try {
+      const res = await fetch('/api/safeguarding/incidents', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const data = await res.json();
+      if (res.ok && data.incident) {
+        setStatusNotice(`Incident ${data.incident.incident_reference} updated.`);
+        setSelectedIncident(data.incident);
+        loadIncidents();
+      }
+    } catch {
+      setStatusNotice('Failed to update incident.');
+    }
+  }
+
+  async function loadComplaints() {
+    setComplaintsLoading(true);
+    try {
+      const res = await fetch('/api/safeguarding/complaints', {
+        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
+      });
+      const data = await res.json();
+      setComplaintsList(data.complaints || []);
+    } catch {
+      setComplaintsList([]);
+    }
+    setComplaintsLoading(false);
+  }
+
+  async function updateComplaint(id: string, updates: Record<string, any>) {
+    try {
+      const res = await fetch('/api/safeguarding/complaints', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const data = await res.json();
+      if (res.ok && data.complaint) {
+        setStatusNotice(`Complaint ${data.complaint.complaint_reference} updated.`);
+        setSelectedComplaint(data.complaint);
+        loadComplaints();
+      }
+    } catch {
+      setStatusNotice('Failed to update complaint.');
+    }
+  }
+
+  async function loadCorrectiveActions() {
+    setActionsLoading(true);
+    try {
+      const res = await fetch('/api/safeguarding/corrective-actions', {
+        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
+      });
+      const data = await res.json();
+      setActionsList(data.actions || []);
+    } catch {
+      setActionsList([]);
+    }
+    setActionsLoading(false);
+  }
+
+  async function createCorrectiveAction(form: any) {
+    try {
+      const res = await fetch('/api/safeguarding/corrective-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok && data.action) {
+        setStatusNotice(`Corrective action ${data.action.action_reference} created.`);
+        setShowAddActionModal(false);
+        loadCorrectiveActions();
+      }
+    } catch {
+      setStatusNotice('Failed to create corrective action.');
+    }
+  }
+
+  async function updateCorrectiveAction(id: string, updates: Record<string, any>) {
+    try {
+      const res = await fetch('/api/safeguarding/corrective-actions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      if (res.ok) {
+        setStatusNotice('Corrective action updated.');
+        loadCorrectiveActions();
+      }
+    } catch {
+      setStatusNotice('Failed to update corrective action.');
+    }
+  }
+
+  async function escalateComplaintToIncident(complaint: any) {
+    if (!complaint) return;
+    try {
+      const res = await fetch('/api/safeguarding/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({
+          participant_id: complaint.participant_id || (participants[0]?.id || ''),
+          category: escalateIncidentForm.category,
+          severity: escalateIncidentForm.severity,
+          description: `Arising from complaint ${complaint.complaint_reference}: ${escalateIncidentForm.description || complaint.summary}. Details: ${complaint.details}`,
+          status: 'Under Review',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.incident) {
+        await updateComplaint(complaint.id, {
+          linked_incident_id: data.incident.id,
+          status: 'Under Review',
+        });
+        setStatusNotice(`Incident ${data.incident.incident_reference} created and linked to complaint.`);
+        setShowEscalateComplaintModal(false);
+        loadIncidents();
+        loadComplaints();
+      }
+    } catch {
+      setStatusNotice('Failed to escalate complaint.');
+    }
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -2448,6 +2629,967 @@ export default function AdminCrmPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* =============================================================== */}
+          {/* PHASE B TAB: QUALITY & SAFEGUARDING                               */}
+          {/* =============================================================== */}
+          {tab === 'safeguarding' && (
+            <div className="crmTabPanel">
+              <div className="crmPanelHeader">
+                <div>
+                  <h2 className="crmPanelTitle">Quality &amp; Safeguarding Hub</h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                    NDIS Quality &amp; Safeguards Commission compliant incident management, complaints resolution, and corrective actions register.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => {
+                      setNewActionForm({
+                        source_type: 'incident',
+                        source_id: incidentsList[0]?.id || '',
+                        action_description: '',
+                        owner: 'Operations Manager',
+                        due_date: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                        priority: 'Medium',
+                        notes: '',
+                      });
+                      setShowAddActionModal(true);
+                    }}
+                    style={{ background: '#0284C7', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Plus size={15} /> Add Action
+                  </button>
+                  <button
+                    onClick={() => {
+                      loadIncidents();
+                      loadComplaints();
+                      loadCorrectiveActions();
+                    }}
+                    style={{ background: '#F1F5F9', color: '#334155', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <RefreshCw size={14} /> Refresh
+                  </button>
+                </div>
+              </div>
+
+              {/* KPI Strip */}
+              {(() => {
+                const openIncidents = incidentsList.filter(i => i.status !== 'Closed');
+                const highCritIncidents = openIncidents.filter(i => i.severity === 'High' || i.severity === 'Critical');
+                const pendingComplaints = complaintsList.filter(c => c.status !== 'Closed' && c.status !== 'Resolved');
+                const nowStr = new Date().toISOString().split('T')[0];
+                const overdueActions = actionsList.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled' && a.due_date < nowStr);
+                const reportableReview = openIncidents.filter(i => i.reportable_assessment === 'Pending Review' || i.reportable_assessment === 'Potentially Reportable');
+
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
+                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Open Incidents</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0F172A' }}>{openIncidents.length}</span>
+                        {highCritIncidents.length > 0 && (
+                          <span style={{ fontSize: '0.78rem', color: '#DC2626', fontWeight: 700, background: '#FEF2F2', padding: '2px 8px', borderRadius: 12 }}>
+                            {highCritIncidents.length} High/Critical
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Complaints Requiring Action</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: pendingComplaints.length > 0 ? '#D97706' : '#16A34A' }}>{pendingComplaints.length}</span>
+                        <span style={{ fontSize: '0.78rem', color: '#64748B' }}>active feedback items</span>
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Overdue Corrective Actions</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: overdueActions.length > 0 ? '#DC2626' : '#16A34A' }}>{overdueActions.length}</span>
+                        <span style={{ fontSize: '0.78rem', color: overdueActions.length > 0 ? '#DC2626' : '#64748B' }}>
+                          {overdueActions.length > 0 ? 'requires immediate action' : 'all on schedule'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#FFFFFF', padding: 16, borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NDIS Reportable Reviews</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
+                        <span style={{ fontSize: '1.6rem', fontWeight: 800, color: '#2563EB' }}>{reportableReview.length}</span>
+                        <span style={{ fontSize: '0.78rem', color: '#64748B' }}>manager assessment pending</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Sub-tab Navigation */}
+              <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid #E2E8F0', paddingBottom: 10, marginBottom: 16 }}>
+                <button
+                  onClick={() => setSafeguardingSubTab('incidents')}
+                  style={{
+                    padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                    background: safeguardingSubTab === 'incidents' ? '#1E40AF' : '#FFFFFF',
+                    color: safeguardingSubTab === 'incidents' ? '#FFFFFF' : '#64748B',
+                    border: safeguardingSubTab === 'incidents' ? 'none' : '1px solid #E2E8F0',
+                  }}
+                >
+                  Incidents Register ({incidentsList.length})
+                </button>
+                <button
+                  onClick={() => setSafeguardingSubTab('complaints')}
+                  style={{
+                    padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                    background: safeguardingSubTab === 'complaints' ? '#1E40AF' : '#FFFFFF',
+                    color: safeguardingSubTab === 'complaints' ? '#FFFFFF' : '#64748B',
+                    border: safeguardingSubTab === 'complaints' ? 'none' : '1px solid #E2E8F0',
+                  }}
+                >
+                  Complaints Register ({complaintsList.length})
+                </button>
+                <button
+                  onClick={() => setSafeguardingSubTab('corrective_actions')}
+                  style={{
+                    padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                    background: safeguardingSubTab === 'corrective_actions' ? '#1E40AF' : '#FFFFFF',
+                    color: safeguardingSubTab === 'corrective_actions' ? '#FFFFFF' : '#64748B',
+                    border: safeguardingSubTab === 'corrective_actions' ? 'none' : '1px solid #E2E8F0',
+                  }}
+                >
+                  Corrective Actions ({actionsList.length})
+                </button>
+              </div>
+
+              {/* SUBTAB 1: INCIDENTS */}
+              {safeguardingSubTab === 'incidents' && (
+                <div>
+                  {/* Filters */}
+                  <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+                    <select
+                      value={incidentSeverityFilter}
+                      onChange={e => setIncidentSeverityFilter(e.target.value)}
+                      style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                    >
+                      <option value="all">All Severities</option>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Critical">Critical</option>
+                    </select>
+                    <select
+                      value={incidentStatusFilter}
+                      onChange={e => setIncidentStatusFilter(e.target.value)}
+                      style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="Reported">Reported</option>
+                      <option value="Under Review">Under Review</option>
+                      <option value="Investigation">Investigation</option>
+                      <option value="Corrective Action">Corrective Action</option>
+                      <option value="Monitoring">Monitoring</option>
+                      <option value="Closed">Closed</option>
+                    </select>
+                  </div>
+
+                  {incidentsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>Loading incidents…</div>
+                  ) : incidentsList.length === 0 ? (
+                    <div style={{ background: '#FFFFFF', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid #E2E8F0' }}>
+                      <CheckCircle2 size={36} style={{ color: '#16A34A', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>No incidents recorded</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>Incident reports submitted by workers or staff will appear here.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {incidentsList
+                        .filter(inc => incidentSeverityFilter === 'all' || inc.severity === incidentSeverityFilter)
+                        .filter(inc => incidentStatusFilter === 'all' || inc.status === incidentStatusFilter)
+                        .map(inc => {
+                          const sevBg = inc.severity === 'Critical' ? '#450A0A' : inc.severity === 'High' ? '#FEF2F2' : inc.severity === 'Medium' ? '#FFFBEB' : '#F0FDF4';
+                          const sevColor = inc.severity === 'Critical' ? '#FFFFFF' : inc.severity === 'High' ? '#DC2626' : inc.severity === 'Medium' ? '#D97706' : '#16A34A';
+                          return (
+                            <div
+                              key={inc.id}
+                              style={{
+                                background: '#FFFFFF', borderRadius: 10, padding: '16px 18px', border: '1px solid #E2E8F0',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between',
+                                alignItems: 'center', flexWrap: 'wrap', gap: 12,
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 260 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                  <strong style={{ color: '#0F172A', fontSize: '0.95rem' }}>{inc.incident_reference}</strong>
+                                  <span style={{ background: sevBg, color: sevColor, padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                    {inc.severity} Severity
+                                  </span>
+                                  <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                    {inc.category}
+                                  </span>
+                                  {inc.emergency_services_contacted && (
+                                    <span style={{ background: '#FEF2F2', color: '#991B1B', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                      🚨 000 Called
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '0.88rem', color: '#334155', marginBottom: 4 }}>
+                                  {inc.description.length > 120 ? `${inc.description.slice(0, 120)}…` : inc.description}
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14 }}>
+                                  <span>Participant: <strong>{inc.participant?.full_name || 'Participant'}</strong></span>
+                                  <span>Reported: {new Date(inc.incident_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                                  <span>Status: <strong>{inc.status}</strong></span>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button
+                                  onClick={() => setSelectedIncident(inc)}
+                                  style={{
+                                    background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6,
+                                    padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                  }}
+                                >
+                                  <Eye size={14} /> Review &amp; Investigate
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SUBTAB 2: COMPLAINTS */}
+              {safeguardingSubTab === 'complaints' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <select
+                        value={complaintStatusFilter}
+                        onChange={e => setComplaintStatusFilter(e.target.value)}
+                        style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="Received">Received</option>
+                        <option value="Acknowledged">Acknowledged</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Action Required">Action Required</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {complaintsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>Loading complaints…</div>
+                  ) : complaintsList.length === 0 ? (
+                    <div style={{ background: '#FFFFFF', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid #E2E8F0' }}>
+                      <CheckCircle2 size={36} style={{ color: '#16A34A', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>No complaints recorded</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>Feedback and complaints from participants or stakeholders will appear here.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {complaintsList
+                        .filter(c => complaintStatusFilter === 'all' || c.status === complaintStatusFilter)
+                        .map(comp => (
+                          <div
+                            key={comp.id}
+                            style={{
+                              background: '#FFFFFF', borderRadius: 10, padding: '16px 18px', border: '1px solid #E2E8F0',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between',
+                              alignItems: 'center', flexWrap: 'wrap', gap: 12,
+                            }}
+                          >
+                            <div style={{ flex: 1, minWidth: 260 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <strong style={{ color: '#0F172A', fontSize: '0.95rem' }}>{comp.complaint_reference}</strong>
+                                <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                  {comp.complainant_role}
+                                </span>
+                                {comp.immediate_safety_issue && (
+                                  <span style={{ background: '#FEF2F2', color: '#DC2626', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                    ⚠️ Safety Issue
+                                  </span>
+                                )}
+                                {comp.linked_incident_id && (
+                                  <span style={{ background: '#FDF4FF', color: '#9333EA', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                    Linked to Incident
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#1E293B', marginBottom: 2 }}>
+                                {comp.summary}
+                              </div>
+                              <div style={{ fontSize: '0.84rem', color: '#475569', marginBottom: 4 }}>
+                                {comp.details.length > 120 ? `${comp.details.slice(0, 120)}…` : comp.details}
+                              </div>
+                              <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14 }}>
+                                <span>From: <strong>{comp.complainant_name}</strong></span>
+                                <span>Received: {comp.received_date}</span>
+                                <span>Status: <strong>{comp.status}</strong></span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button
+                                onClick={() => setSelectedComplaint(comp)}
+                                style={{
+                                  background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6,
+                                  padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', gap: 4,
+                                }}
+                              >
+                                <Eye size={14} /> Manage Complaint
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SUBTAB 3: CORRECTIVE ACTIONS */}
+              {safeguardingSubTab === 'corrective_actions' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <select
+                        value={actionStatusFilter}
+                        onChange={e => setActionStatusFilter(e.target.value)}
+                        style={{ border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 12px', fontSize: '0.83rem' }}
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Overdue">Overdue</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {actionsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#94A3B8' }}>Loading corrective actions…</div>
+                  ) : actionsList.length === 0 ? (
+                    <div style={{ background: '#FFFFFF', padding: '40px 20px', borderRadius: 10, textAlign: 'center', border: '1px solid #E2E8F0' }}>
+                      <CheckCircle2 size={36} style={{ color: '#16A34A', marginBottom: 10 }} />
+                      <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>No corrective actions recorded</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>Actions assigned from incident reviews or complaint investigations will appear here.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {actionsList
+                        .filter(a => actionStatusFilter === 'all' || a.status === actionStatusFilter)
+                        .map(act => {
+                          const isOverdue = act.status !== 'Completed' && act.status !== 'Cancelled' && act.due_date < new Date().toISOString().split('T')[0];
+                          return (
+                            <div
+                              key={act.id}
+                              style={{
+                                background: '#FFFFFF', borderRadius: 10, padding: '16px 18px', border: '1px solid #E2E8F0',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between',
+                                alignItems: 'center', flexWrap: 'wrap', gap: 12,
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 260 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                  <strong style={{ color: '#0F172A', fontSize: '0.95rem' }}>{act.action_reference}</strong>
+                                  <span style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 600 }}>
+                                    From {act.source_type}
+                                  </span>
+                                  <span style={{
+                                    background: act.priority === 'Urgent' ? '#FEF2F2' : act.priority === 'High' ? '#FFFBEB' : '#F0FDF4',
+                                    color: act.priority === 'Urgent' ? '#DC2626' : act.priority === 'High' ? '#D97706' : '#16A34A',
+                                    padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700,
+                                  }}>
+                                    {act.priority} Priority
+                                  </span>
+                                  {isOverdue && (
+                                    <span style={{ background: '#FEF2F2', color: '#B91C1C', padding: '2px 8px', borderRadius: 12, fontSize: '0.73rem', fontWeight: 700 }}>
+                                      Overdue
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '0.9rem', color: '#1E293B', fontWeight: 500, marginBottom: 4 }}>
+                                  {act.action_description}
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: '#94A3B8', display: 'flex', gap: 14 }}>
+                                  <span>Owner: <strong>{act.owner}</strong></span>
+                                  <span>Due: <strong>{act.due_date}</strong></span>
+                                  <span>Status: <strong>{act.status}</strong></span>
+                                  {act.completed_at && <span>Completed: {new Date(act.completed_at).toLocaleDateString('en-AU')}</span>}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                {act.status !== 'Completed' ? (
+                                  <button
+                                    onClick={() => {
+                                      const evidence = prompt('Enter evidence / completion notes:');
+                                      if (evidence !== null) {
+                                        updateCorrectiveAction(act.id, {
+                                          status: 'Completed',
+                                          evidence_reference: evidence || 'Verified by manager',
+                                        });
+                                      }
+                                    }}
+                                    style={{
+                                      background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6,
+                                      padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                                      display: 'flex', alignItems: 'center', gap: 4,
+                                    }}
+                                  >
+                                    <Check size={14} /> Mark Completed
+                                  </button>
+                                ) : (
+                                  <span style={{ background: '#F0FDF4', color: '#16A34A', padding: '4px 10px', borderRadius: 6, fontSize: '0.8rem', fontWeight: 600 }}>
+                                    ✓ Completed
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* INCIDENT DETAIL & INVESTIGATION MODAL */}
+          {selectedIncident && (
+            <div style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16,
+            }}>
+              <div style={{
+                background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 760,
+                maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #E2E8F0', paddingBottom: 16, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>
+                        {selectedIncident.incident_reference}
+                      </h3>
+                      <span style={{ background: '#FEF2F2', color: '#DC2626', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
+                        {selectedIncident.severity} Severity
+                      </span>
+                      <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600 }}>
+                        Status: {selectedIncident.status}
+                      </span>
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                      Participant: <strong>{selectedIncident.participant?.full_name}</strong> &bull; Date: {new Date(selectedIncident.incident_at).toLocaleString('en-AU')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedIncident(null)}
+                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94A3B8' }}
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                {/* Facts Grid */}
+                <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 8, marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.85rem' }}>
+                  <div><strong>Category:</strong> {selectedIncident.category}</div>
+                  <div><strong>Location:</strong> {selectedIncident.location || 'Participant location'}</div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <strong>Incident Description:</strong>
+                    <div style={{ marginTop: 4, color: '#334155' }}>{selectedIncident.description}</div>
+                  </div>
+                  {selectedIncident.immediate_actions_taken && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <strong>Immediate Actions Taken:</strong>
+                      <div style={{ marginTop: 2, color: '#334155' }}>{selectedIncident.immediate_actions_taken}</div>
+                    </div>
+                  )}
+                  {selectedIncident.injury_or_harm_details && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <strong>Injury / Harm:</strong>
+                      <div style={{ marginTop: 2, color: '#B91C1C' }}>{selectedIncident.injury_or_harm_details}</div>
+                    </div>
+                  )}
+                  {selectedIncident.emergency_services_contacted && (
+                    <div style={{ gridColumn: '1 / -1', background: '#FEF2F2', padding: 8, borderRadius: 6, color: '#991B1B' }}>
+                      <strong>Emergency Services (000) Contacted:</strong> {selectedIncident.emergency_services_details || 'Yes'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Manager Review & Investigation Section */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      Manager Investigation Notes &amp; Findings
+                    </label>
+                    <textarea
+                      rows={3}
+                      id="incident_inv_notes"
+                      defaultValue={selectedIncident.investigation_notes || ''}
+                      placeholder="Record root cause analysis, worker interviews, policy compliance, and contributing factors..."
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', resize: 'vertical', boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                        NDIS Commission Reportability Assessment
+                      </label>
+                      <select
+                        id="incident_reportable_assessment"
+                        defaultValue={selectedIncident.reportable_assessment || 'Pending Review'}
+                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
+                      >
+                        <option value="Not Reportable">Not Reportable (Internal Management Only)</option>
+                        <option value="Potentially Reportable">Potentially Reportable (Requires Further Evidence)</option>
+                        <option value="NDIS Commission Reportable">NDIS Commission Reportable (Part 6 NDIS Act)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                        External Notification Status
+                      </label>
+                      <select
+                        id="incident_notification_status"
+                        defaultValue={selectedIncident.external_notification_status || 'Not Required'}
+                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem' }}
+                      >
+                        <option value="Not Required">Not Required</option>
+                        <option value="Pending Review">Pending Review</option>
+                        <option value="Reported to NDIS Commission (24-Hour)">Reported to NDIS Commission (24-Hour Notice)</option>
+                        <option value="Reported to NDIS Commission (5-Day)">Reported to NDIS Commission (5-Day Report)</option>
+                        <option value="Reported to Police">Reported to Police</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      Reportability Determination Rationale
+                    </label>
+                    <input
+                      type="text"
+                      id="incident_reportable_rationale"
+                      defaultValue={selectedIncident.reportable_rationale || ''}
+                      placeholder="Explain why the incident is or is not reportable under NDIS rules..."
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      Participant / Family Follow-up Notes
+                    </label>
+                    <input
+                      type="text"
+                      id="incident_family_followup"
+                      defaultValue={selectedIncident.participant_family_follow_up || ''}
+                      placeholder="Date contacted, family informed, welfare check completed..."
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Actions & Status Workflow Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E2E8F0', paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => {
+                        setNewActionForm({
+                          source_type: 'incident',
+                          source_id: selectedIncident.id,
+                          action_description: `Corrective action arising from ${selectedIncident.incident_reference}`,
+                          owner: 'Operations Manager',
+                          due_date: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                          priority: 'High',
+                          notes: '',
+                        });
+                        setShowAddActionModal(true);
+                      }}
+                      style={{ background: '#F1F5F9', color: '#1E40AF', border: '1px solid #BFDBFE', borderRadius: 6, padding: '7px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      + Create Corrective Action
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={async () => {
+                        const invNotes = (document.getElementById('incident_inv_notes') as HTMLTextAreaElement)?.value;
+                        const repAssessment = (document.getElementById('incident_reportable_assessment') as HTMLSelectElement)?.value;
+                        const notifStatus = (document.getElementById('incident_notification_status') as HTMLSelectElement)?.value;
+                        const repRationale = (document.getElementById('incident_reportable_rationale') as HTMLInputElement)?.value;
+                        const familyFollowup = (document.getElementById('incident_family_followup') as HTMLInputElement)?.value;
+
+                        await updateIncident(selectedIncident.id, {
+                          investigation_notes: invNotes,
+                          reportable_assessment: repAssessment,
+                          external_notification_status: notifStatus,
+                          reportable_rationale: repRationale,
+                          participant_family_follow_up: familyFollowup,
+                        });
+                      }}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Save Investigation
+                    </button>
+
+                    {selectedIncident.status !== 'Investigation' && selectedIncident.status !== 'Closed' && (
+                      <button
+                        onClick={() => updateIncident(selectedIncident.id, { status: 'Investigation' })}
+                        style={{ background: '#7C3AED', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Start Investigation
+                      </button>
+                    )}
+
+                    {selectedIncident.status !== 'Closed' ? (
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to close this incident? All investigation findings and corrective actions must be finalized.')) {
+                            updateIncident(selectedIncident.id, { status: 'Closed' });
+                          }
+                        }}
+                        style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Close Incident
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => updateIncident(selectedIncident.id, { status: 'Under Review' })}
+                        style={{ background: '#F1F5F9', color: '#64748B', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Re-open Incident
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* COMPLAINT DETAIL & RESOLUTION MODAL */}
+          {selectedComplaint && (
+            <div style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 16,
+            }}>
+              <div style={{
+                background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 700,
+                maxHeight: '90vh', overflowY: 'auto', padding: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #E2E8F0', paddingBottom: 14, marginBottom: 16 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>
+                        {selectedComplaint.complaint_reference}
+                      </h3>
+                      <span style={{ background: '#EFF6FF', color: '#1E40AF', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600 }}>
+                        {selectedComplaint.status}
+                      </span>
+                      {selectedComplaint.immediate_safety_issue && (
+                        <span style={{ background: '#FEF2F2', color: '#DC2626', padding: '2px 8px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 700 }}>
+                          ⚠️ Immediate Safety Issue
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
+                      Complainant: <strong>{selectedComplaint.complainant_name}</strong> ({selectedComplaint.complainant_role}) &bull; Received: {selectedComplaint.received_date}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedComplaint(null)}
+                    style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#94A3B8' }}
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div style={{ background: '#F8FAFC', padding: 14, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
+                  <div style={{ marginBottom: 6 }}><strong>Summary:</strong> {selectedComplaint.summary}</div>
+                  <div style={{ marginBottom: 6 }}><strong>Full Details:</strong> {selectedComplaint.details}</div>
+                  <div><strong>Contact Details:</strong> {selectedComplaint.contact_details || 'Not provided'}</div>
+                  {selectedComplaint.linked_incident_id && (
+                    <div style={{ marginTop: 8, background: '#FDF4FF', padding: 8, borderRadius: 6, color: '#7E22CE' }}>
+                      <strong>Linked Incident:</strong> Incident ID {selectedComplaint.linked_incident_id}
+                    </div>
+                  )}
+                </div>
+
+                {/* Complaint Management Fields */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                        Acknowledgement Date
+                      </label>
+                      <input
+                        type="date"
+                        id="comp_ack_date"
+                        defaultValue={selectedComplaint.acknowledgement_date || ''}
+                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                        Assigned Manager
+                      </label>
+                      <input
+                        type="text"
+                        id="comp_assigned_manager"
+                        defaultValue={selectedComplaint.assigned_manager || 'Operations Manager'}
+                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      Investigation Notes &amp; Actions Taken
+                    </label>
+                    <textarea
+                      rows={3}
+                      id="comp_investigation_notes"
+                      defaultValue={selectedComplaint.investigation_notes || ''}
+                      placeholder="Steps taken to address the complaint..."
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
+                      Outcome &amp; Resolution Summary
+                    </label>
+                    <textarea
+                      rows={2}
+                      id="comp_resolution_summary"
+                      defaultValue={selectedComplaint.resolution_summary || ''}
+                      placeholder="Agreed resolution and communication with complainant..."
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #E2E8F0', paddingTop: 14, flexWrap: 'wrap', gap: 10 }}>
+                  <div>
+                    {!selectedComplaint.linked_incident_id && (
+                      <button
+                        onClick={() => {
+                          setEscalateIncidentForm({
+                            category: 'other',
+                            severity: 'High',
+                            description: selectedComplaint.summary,
+                          });
+                          setShowEscalateComplaintModal(true);
+                        }}
+                        style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 6, padding: '7px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        ⚠️ Escalate to Incident
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={async () => {
+                        const ackDate = (document.getElementById('comp_ack_date') as HTMLInputElement)?.value;
+                        const manager = (document.getElementById('comp_assigned_manager') as HTMLInputElement)?.value;
+                        const notes = (document.getElementById('comp_investigation_notes') as HTMLTextAreaElement)?.value;
+                        const res = (document.getElementById('comp_resolution_summary') as HTMLTextAreaElement)?.value;
+
+                        await updateComplaint(selectedComplaint.id, {
+                          acknowledgement_date: ackDate || null,
+                          assigned_manager: manager,
+                          investigation_notes: notes,
+                          resolution_summary: res,
+                        });
+                      }}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Save Updates
+                    </button>
+
+                    {selectedComplaint.status !== 'Resolved' && selectedComplaint.status !== 'Closed' && (
+                      <button
+                        onClick={() => updateComplaint(selectedComplaint.id, { status: 'Resolved' })}
+                        style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Mark Resolved
+                      </button>
+                    )}
+
+                    {selectedComplaint.status !== 'Closed' ? (
+                      <button
+                        onClick={() => updateComplaint(selectedComplaint.id, { status: 'Closed' })}
+                        style={{ background: '#475569', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Close Complaint
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => updateComplaint(selectedComplaint.id, { status: 'Under Review' })}
+                        style={{ background: '#F1F5F9', color: '#64748B', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Re-open
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ADD CORRECTIVE ACTION MODAL */}
+          {showAddActionModal && (
+            <div style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16,
+            }}>
+              <div style={{ background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 500, padding: 22 }}>
+                <h3 style={{ margin: '0 0 14px', fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>
+                  Create Corrective Action
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Action Description *</label>
+                    <textarea
+                      rows={3}
+                      value={newActionForm.action_description}
+                      onChange={e => setNewActionForm(prev => ({ ...prev, action_description: e.target.value }))}
+                      placeholder="e.g. Conduct refresher manual handling training for support team"
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Owner *</label>
+                      <input
+                        type="text"
+                        value={newActionForm.owner}
+                        onChange={e => setNewActionForm(prev => ({ ...prev, owner: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Due Date *</label>
+                      <input
+                        type="date"
+                        value={newActionForm.due_date}
+                        onChange={e => setNewActionForm(prev => ({ ...prev, due_date: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Priority</label>
+                    <select
+                      value={newActionForm.priority}
+                      onChange={e => setNewActionForm(prev => ({ ...prev, priority: e.target.value }))}
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Urgent">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
+                  <button
+                    onClick={() => setShowAddActionModal(false)}
+                    style={{ background: '#F1F5F9', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => createCorrectiveAction(newActionForm)}
+                    disabled={!newActionForm.action_description.trim() || !newActionForm.owner || !newActionForm.due_date}
+                    style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Create Action
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ESCALATE COMPLAINT TO INCIDENT MODAL */}
+          {showEscalateComplaintModal && selectedComplaint && (
+            <div style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16,
+            }}>
+              <div style={{ background: '#FFFFFF', borderRadius: 12, width: '100%', maxWidth: 520, padding: 22 }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 700, color: '#DC2626' }}>
+                  ⚠️ Escalate Complaint to Incident
+                </h3>
+                <p style={{ margin: '0 0 14px', fontSize: '0.82rem', color: '#64748B' }}>
+                  Creates an official Incident record linked to complaint {selectedComplaint.complaint_reference} for formal investigation.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Category</label>
+                    <select
+                      value={escalateIncidentForm.category}
+                      onChange={e => setEscalateIncidentForm(prev => ({ ...prev, category: e.target.value }))}
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                    >
+                      <option value="allegation_abuse_neglect">Allegation of Abuse / Neglect / Exploitation</option>
+                      <option value="injury">Physical Harm or Injury</option>
+                      <option value="medication_error">Medication Issue</option>
+                      <option value="behaviour_of_concern">Behaviour of Concern</option>
+                      <option value="other">Other Incident</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Severity</label>
+                    <select
+                      value={escalateIncidentForm.severity}
+                      onChange={e => setEscalateIncidentForm(prev => ({ ...prev, severity: e.target.value as any }))}
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Critical">Critical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Incident Summary / Note</label>
+                    <textarea
+                      rows={2}
+                      value={escalateIncidentForm.description}
+                      onChange={e => setEscalateIncidentForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Add any specific context for this escalation..."
+                      style={{ width: '100%', border: '1px solid #CBD5E1', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
+                  <button
+                    onClick={() => setShowEscalateComplaintModal(false)}
+                    style={{ background: '#F1F5F9', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => escalateComplaintToIncident(selectedComplaint)}
+                    style={{ background: '#DC2626', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Confirm Escalation
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

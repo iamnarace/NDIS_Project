@@ -41,6 +41,13 @@ export interface ShiftProgressNote {
   note_text: string;
   goals_supported?: string;
   incident_occurred: boolean;
+  incident_id?: string;
+  incident?: {
+    id: string;
+    incident_reference: string;
+    severity: string;
+    status: string;
+  };
   created_at: string;
 }
 
@@ -1316,17 +1323,66 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
               {/* Progress Note if exists */}
               {selectedShift.progress_notes && selectedShift.progress_notes.length > 0 && (
-                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 14, marginBottom: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, color: '#0F172A', fontWeight: 800, fontSize: '0.88rem' }}>
-                    <FileText size={15} style={{ color: '#0284C7' }} />
-                    <span>Shift Progress Note Logged</span>
+                <div style={{
+                  background: selectedShift.progress_notes[0].incident_occurred ? '#FEF2F2' : '#F8FAFC',
+                  border: selectedShift.progress_notes[0].incident_occurred ? '1px solid #FECACA' : '1px solid #E2E8F0',
+                  borderRadius: 10,
+                  padding: 14,
+                  marginBottom: 20
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#0F172A', fontWeight: 800, fontSize: '0.88rem' }}>
+                      <FileText size={15} style={{ color: selectedShift.progress_notes[0].incident_occurred ? '#DC2626' : '#0284C7' }} />
+                      <span>Shift Progress Note Logged</span>
+                    </div>
+                    {selectedShift.progress_notes[0].incident_occurred && (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        background: '#FEE2E2',
+                        color: '#DC2626',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}>
+                        <ShieldAlert size={12} />
+                        INCIDENT FLAGGED
+                      </span>
+                    )}
                   </div>
                   <p style={{ fontSize: '0.85rem', color: '#334155', lineHeight: 1.5, margin: '0 0 8px' }}>
                     &ldquo;{selectedShift.progress_notes[0].note_text}&rdquo;
                   </p>
                   {selectedShift.progress_notes[0].goals_supported && (
-                    <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
+                    <div style={{ fontSize: '0.78rem', color: '#64748B', marginBottom: 4 }}>
                       <strong>NDIS Goals:</strong> {selectedShift.progress_notes[0].goals_supported}
+                    </div>
+                  )}
+                  {(selectedShift.progress_notes[0].incident || selectedShift.progress_notes[0].incident_id) && (
+                    <div style={{
+                      fontSize: '0.78rem',
+                      color: '#B91C1C',
+                      fontWeight: 700,
+                      marginTop: 8,
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      background: '#FFF',
+                      border: '1px solid #FCA5A5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <ShieldAlert size={14} />
+                        <span>Linked Incident: <strong>{selectedShift.progress_notes[0].incident?.incident_reference || selectedShift.progress_notes[0].incident_id}</strong></span>
+                      </div>
+                      {selectedShift.progress_notes[0].incident?.status && (
+                        <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: 4, background: '#FEE2E2' }}>
+                          {selectedShift.progress_notes[0].incident.status}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

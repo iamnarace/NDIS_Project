@@ -35,6 +35,7 @@ export type CrmTab =
   | 'goals'
   | 'support_plans'
   | 'risk_assessments'
+  | 'safeguarding'
   | 'invoicing'
   | 'quotes'
   | 'staff'
@@ -94,6 +95,7 @@ export default function CrmContainer({
     { id: 'risk_assessments', label: 'Risk', icon: <ShieldCheck size={16} /> },
     { id: 'workforce', label: 'Roster', icon: <CalendarClock size={16} /> },
     { id: 'agreements', label: 'Agreements', icon: <FileText size={16} /> },
+    { id: 'safeguarding', label: 'Safeguarding', icon: <ShieldAlert size={16} /> },
     {
       id: 'staff',
       label: 'Workers',
