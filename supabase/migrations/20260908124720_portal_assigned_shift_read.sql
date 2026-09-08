@@ -1,0 +1,10 @@
+begin;
+create or replace function public.portal_has_shift(target uuid) returns boolean language sql stable security definer set search_path = '' as $$ select exists(select 1 from public.shift_assignments where shift_id=target and staff_id=public.my_staff_id() and status<>'cancelled'); $$;
+revoke all on function public.portal_has_shift(uuid) from public, anon;
+grant execute on function public.portal_has_shift(uuid) to authenticated, service_role;
+drop policy if exists "Allow all on shifts" on public.shifts;
+drop policy if exists "Admin manages shifts" on public.shifts;
+create policy "Admin manages shifts" on public.shifts for all to authenticated using (public.is_opus_admin()) with check (public.is_opus_admin());
+drop policy if exists "Worker reads assigned shifts" on public.shifts;
+create policy "Worker reads assigned shifts" on public.shifts for select to authenticated using (public.portal_has_shift(id));
+commit;

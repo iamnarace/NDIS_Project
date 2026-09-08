@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     if (!supabase) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
     }
 
     // Validate session
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     let staffMember = null;
 
     // Load linked participant record
-    if (profile.portal_participant_id) {
+    if (profile.role === 'participant' && profile.portal_participant_id) {
       const { data } = await supabase
         .from('participants')
         .select(`
@@ -52,30 +52,20 @@ export async function GET(request: NextRequest) {
         .eq('id', profile.portal_participant_id)
         .single();
       participant = data;
-    } else if (profile.role === 'participant') {
-      // Try to find participant by auth_user_id fallback
-      const { data } = await supabase
-        .from('participants')
-        .select(`
-          id, reference_number, full_name, ndis_number, date_of_birth,
-          phone, email, suburb, funding_type, plan_manager_name,
-          support_coordinator_name, support_coordinator_phone,
-          allocated_weekly_hours, emergency_contact_name, emergency_contact_phone,
-          emergency_contact_relation, medical_alert, allergies, status
-        `)
-        .eq('auth_user_id', user.id)
-        .single();
-      participant = data;
     }
 
     // Load linked staff record for workers
-    if (profile.portal_staff_id) {
+    if (profile.role === 'worker' && profile.portal_staff_id) {
       const { data } = await supabase
         .from('staff')
-        .select('id, full_name, role, phone, suburb, status')
+        .select('id, reference_number, full_name, role, phone, suburbs, status')
         .eq('id', profile.portal_staff_id)
         .single();
       staffMember = data;
+    }
+
+    if ((profile.role === 'worker' && !staffMember) || (profile.role === 'participant' && !participant)) {
+      return NextResponse.json({ error: "Your account doesn't currently have portal access. Please contact Opus Care." }, { status: 403 });
     }
 
     return NextResponse.json({
@@ -89,6 +79,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     console.error('GET /api/portal/me error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

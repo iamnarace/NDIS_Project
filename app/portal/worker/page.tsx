@@ -134,7 +134,7 @@ function WorkerPortalContent() {
       const res = await fetch(`/api/workforce/timesheets?staff_id=${id}`);
       if (res.ok) {
         const data = await res.json();
-        setTimesheets(Array.isArray(data) ? data : []);
+        setTimesheets(Array.isArray(data.timesheets) ? data.timesheets : []);
       }
     } catch (err) {
       console.error('Worker timesheets load error:', err);
@@ -152,7 +152,11 @@ function WorkerPortalContent() {
         return;
       }
       const meData = await meRes.json();
-      setWorkerName(meData.profile?.full_name || meData.staffMember?.name || 'Support Worker');
+      if (!meRes.ok || meData.profile?.role !== 'worker' || !meData.staffMember?.id) {
+        setStatusNotice({ type: 'error', text: "Your account doesn't currently have worker portal access. Please contact Opus Care." });
+        return;
+      }
+      setWorkerName(meData.staffMember.full_name || meData.profile.full_name);
       const staffId = meData.staffMember?.id || '';
       setWorkerStaffId(staffId);
 
@@ -177,6 +181,7 @@ function WorkerPortalContent() {
       }
     } catch (err) {
       console.error('Worker portal load error:', err);
+      setStatusNotice({ type: 'error', text: "We couldn't load your dashboard. Please refresh and try again." });
     } finally {
       setIsLoading(false);
     }
@@ -232,7 +237,7 @@ function WorkerPortalContent() {
     // Load active participant goals
     setLoadingGoals(true);
     try {
-      const res = await fetch(`/api/client/goals?participant_id=${shift.participant_id}`);
+      const res = await fetch(`/api/portal/participant/goals?participant_id=${shift.participant_id}`);
       if (res.ok) {
         const data = await res.json();
         const active = (data.goals || []).filter((g: any) => g.status === 'active').map((g: any) => ({
@@ -442,7 +447,7 @@ function WorkerPortalContent() {
         position: 'sticky', top: 0, zIndex: 30,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Image src="/logo.png" alt="Opus Care" width={120} height={32} style={{ objectFit: 'contain' }} priority />
+          <Image src="/brand/Opus_Care_Logo_Transparent.png" alt="Opus Care" width={120} height={32} style={{ objectFit: 'contain' }} priority />
           <span style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '3px 10px', borderRadius: 20, fontSize: '0.8125rem', fontWeight: 600 }}>
             Support Worker Portal
           </span>
@@ -774,7 +779,7 @@ function WorkerPortalContent() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--oc-border)', paddingBottom: 14 }}>
                 <div>
                   <h3 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                    Complete Shift & Record Clinical Delivery
+                    Complete shift and progress note
                   </h3>
                   <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--oc-muted)' }}>
                     Participant: <strong>{activeShiftForNote.participant?.full_name}</strong> &bull; Shift: <strong>{activeShiftForNote.shift_reference}</strong>

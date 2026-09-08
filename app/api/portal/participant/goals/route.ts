@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       .from('participant_goals')
       .select(`
         id, participant_id, goal_title, goal_description, category,
-        status, target_date, review_date, progress_pct, priority,
+        status, target_date, review_date, priority,
         ndis_domain, created_at, updated_at
       `)
       .order('created_at', { ascending: false });
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ goals: data || [] });
   } catch (err) {
     console.error('GET /api/portal/participant/goals error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!supabase) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
     }
 
     if (!isAdmin) {
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
       resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
     }
     if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
-      return NextResponse.json({ error: `Invalid participant_id: '${participant_id}' could not be resolved to a valid UUID.` }, { status: 400 });
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -127,13 +128,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Goal create error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     return NextResponse.json({ goal: data }, { status: 201 });
   } catch (err) {
     console.error('POST /api/portal/participant/goals error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -149,7 +150,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!supabase) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
     }
 
     if (!isAdmin) {
@@ -174,13 +175,13 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     return NextResponse.json({ goal: data });
   } catch (err) {
     console.error('PATCH /api/portal/participant/goals error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -196,7 +197,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!supabase) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
     }
 
     if (!isAdmin) {
@@ -218,12 +219,12 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('DELETE /api/portal/participant/goals error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

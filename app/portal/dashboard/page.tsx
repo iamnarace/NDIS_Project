@@ -142,7 +142,11 @@ export default function ParticipantDashboardPage() {
         return;
       }
       const meData = await meRes.json();
-      setProfileName(meData.profile?.full_name || meData.user?.email || 'Participant');
+      if (meData.profile?.role !== 'participant' || !meData.participant) {
+        setError("Your account doesn't currently have participant portal access. Please contact Opus Care.");
+        return;
+      }
+      setProfileName(meData.participant?.full_name || meData.profile?.full_name || 'Participant');
       setParticipant(meData.participant || null);
 
       // Load goals, shifts, support plans, and funding
@@ -157,14 +161,14 @@ export default function ParticipantDashboardPage() {
         const shiftsRes = await fetch(`/api/workforce/shifts?participant_id=${meData.participant.id}&upcoming=true`);
         if (shiftsRes.ok) {
           const shiftsData = await shiftsRes.json();
-          setUpcomingShifts(shiftsData.shifts || []);
+          setUpcomingShifts((Array.isArray(shiftsData) ? shiftsData : []).map((shift: any) => ({ ...shift, scheduled_start: shift.start_time, scheduled_end: shift.end_time, location: shift.location_suburb })));
         }
 
         // Load active support plan
         const plansRes = await fetch(`/api/portal/participant/support-plans?participant_id=${meData.participant.id}`);
         if (plansRes.ok) {
           const plansData = await plansRes.json();
-          const active = (plansData.plans || []).find((p: any) => p.status === 'active') || plansData.plans?.[0] || null;
+          const active = (plansData.plans || []).find((p: any) => p.status === 'active') || null;
           setActivePlan(active);
         }
 
@@ -341,7 +345,7 @@ export default function ParticipantDashboardPage() {
             <p style={{ margin: 0, opacity: 0.85, fontSize: '0.9rem' }}>
               {participant?.reference_number && `Ref: ${participant.reference_number} · `}
               {participant?.funding_type || 'NDIS Participant'} ·{' '}
-              <ShieldCheck size={14} style={{ verticalAlign: 'middle' }} /> Verified
+              <ShieldCheck size={14} style={{ verticalAlign: 'middle' }} /> Signed in
             </p>
           </div>
           {participant?.status === 'active' && (
@@ -352,7 +356,7 @@ export default function ParticipantDashboardPage() {
               textAlign: 'center',
               backdropFilter: 'blur(4px)',
             }}>
-              <div style={{ fontSize: '0.8125rem', opacity: 0.8, marginBottom: 2 }}>NDIS Plan</div>
+              <div style={{ fontSize: '0.8125rem', opacity: 0.8, marginBottom: 2 }}>Care record</div>
               <div style={{ fontSize: '1rem', fontWeight: 600 }}>Active</div>
               {participant?.allocated_weekly_hours && (
                 <div style={{ fontSize: '0.8125rem', opacity: 0.85 }}>
@@ -852,9 +856,9 @@ export default function ParticipantDashboardPage() {
         {activeTab === 'documents' && (
           <div style={{ background: 'var(--oc-surface)', borderRadius: 12, padding: '32px 24px', textAlign: 'center', border: '1px solid var(--oc-subtle)' }}>
             <FileText size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
-            <h3 style={{ color: '#374151', margin: '0 0 8px', fontSize: '1rem' }}>Document access coming soon</h3>
+            <h3 style={{ color: '#374151', margin: '0 0 8px', fontSize: '1rem' }}>Request your documents</h3>
             <p style={{ color: 'var(--oc-muted)', fontSize: '0.88rem', margin: '0 0 16px' }}>
-              Your service agreements, progress notes and plans will appear here.
+              Contact Opus Care to request copies of your care documents.
             </p>
             <a href="mailto:support@opuscare.com.au?subject=Document Request" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -924,7 +928,7 @@ export default function ParticipantDashboardPage() {
                 </div>
               ) : (
                 <p style={{ color: '#6B7280', fontSize: '0.88rem', margin: 0 }}>
-                  Your active support plan is currently being finalised by your Opus Care coordinator.
+                  No active support plan is available here yet. Contact your Opus Care coordinator for more information.
                 </p>
               )}
             </div>
@@ -996,7 +1000,7 @@ export default function ParticipantDashboardPage() {
           flexWrap: 'wrap', gap: 8,
           fontSize: '0.8125rem', color: 'var(--oc-muted)',
         }}>
-          <span>© 2026 Opus Care Support Services. Australian Privacy Act compliant.</span>
+          <span>© 2026 Opus Care Support Services. Your privacy matters.</span>
           <button
             onClick={handleSignOut}
             style={{

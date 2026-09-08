@@ -1,6 +1,8 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { isValidUuid, resolveParticipantUuid, resolveStaffUuid } from '@/lib/uuid';
 
 async function generateShiftReference(supabase: ReturnType<typeof createAdminClient>): Promise<string> {
@@ -17,10 +19,33 @@ async function generateShiftReference(supabase: ReturnType<typeof createAdminCli
 
 export async function GET(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  if (!authed) {
+    const client = await createClient();
+    if (!client) return NextResponse.json({ message: "We couldn't load your supports. Please try again." }, { status: 503 });
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return NextResponse.json({ message: 'Please sign in to continue.' }, { status: 401 });
+    const { data: profile } = await client.from('profiles').select('role,is_active,portal_staff_id,portal_participant_id').eq('id', user.id).single();
+    if (!profile?.is_active || !['worker', 'participant'].includes(profile.role)) {
+      return NextResponse.json({ message: "Your account doesn't currently have portal access. Please contact Opus Care." }, { status: 403 });
+    }
+    // RLS derives the caller's assignment/participant relationship. Browser IDs never grant access.
+    let query = client.from('shifts').select(`id,shift_reference,participant_id,service_type,start_time,end_time,hours,location_suburb,location_address,special_instructions,status,participant:participants(id,reference_number,full_name)`).order('start_time');
+    if (profile.role === 'participant') {
+      if (!profile.portal_participant_id) return NextResponse.json({ message: 'Please contact Opus Care about portal access.' }, { status: 403 });
+      query = query.eq('participant_id', profile.portal_participant_id).gte('end_time', new Date().toISOString()).neq('status', 'cancelled');
+    } else if (!profile.portal_staff_id) {
+      return NextResponse.json({ message: 'Please contact Opus Care about portal access.' }, { status: 403 });
+    }
+    const { data, error } = await query;
+    if (error) {
+      console.error('Portal shifts load failed', error);
+      return NextResponse.json({ message: "We couldn't load your supports. Please try again." }, { status: 500 });
+    }
+    return NextResponse.json(data || []);
+  }
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const start = searchParams.get('start');
@@ -68,7 +93,7 @@ export async function GET(req: Request) {
   if (status && status !== 'all') query = query.eq('status', status);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
 
   let results = data ?? [];
   if (staffId) {
@@ -85,7 +110,7 @@ export async function POST(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -112,7 +137,7 @@ export async function POST(req: Request) {
       resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
     }
     if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
-      return NextResponse.json({ message: `Invalid participant_id: '${participant_id}' could not be resolved to a valid UUID.` }, { status: 400 });
+      return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
     let resolvedStaffId = staff_id;
@@ -180,7 +205,7 @@ export async function POST(req: Request) {
         .single();
 
       if (shiftError) {
-        return NextResponse.json({ message: shiftError.message }, { status: 500 });
+        return NextResponse.json({ message: userFacingError(shiftError.message) }, { status: 500 });
       }
 
       if (resolvedStaffId && newShift) {
@@ -215,7 +240,7 @@ export async function PATCH(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -238,7 +263,7 @@ export async function PATCH(req: Request) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
     return NextResponse.json({ ok: true, shift: data });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Server error';
@@ -251,7 +276,7 @@ export async function DELETE(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
@@ -263,6 +288,6 @@ export async function DELETE(req: Request) {
     .delete()
     .eq('id', id);
 
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
   return NextResponse.json({ ok: true, deleted_id: id });
 }

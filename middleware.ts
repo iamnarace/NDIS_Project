@@ -50,9 +50,12 @@ export async function middleware(request: NextRequest) {
 
   // If authenticated user visits /portal login page, redirect to their dashboard
   if (pathname === '/portal' && user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/portal/dashboard';
-    return NextResponse.redirect(redirectUrl);
+    const { data: profile } = await supabase.from('profiles').select('role,is_active,portal_staff_id,portal_participant_id').eq('id', user.id).single();
+    if (profile?.is_active && ((profile.role === 'worker' && profile.portal_staff_id) || (profile.role === 'participant' && profile.portal_participant_id))) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = profile.role === 'worker' ? '/portal/worker' : '/portal/dashboard';
+      return NextResponse.redirect(redirectUrl);
+    }
   }
 
   return supabaseResponse;

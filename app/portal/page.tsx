@@ -52,11 +52,9 @@ function PortalLoginContent() {
     try {
       const supabase = createClient();
 
-      // Supabase is not configured — gracefully fall back for demo
       if (!supabase) {
-        console.warn('Supabase not configured, using demo mode');
-        await new Promise((r) => setTimeout(r, 600));
-        router.push('/portal/dashboard');
+        setErrorMsg("We couldn't sign you in right now. Please try again.");
+        setIsLoading(false);
         return;
       }
 
@@ -72,7 +70,7 @@ function PortalLoginContent() {
         } else if (error.message.includes('Email not confirmed')) {
           setErrorMsg('Please check your email to confirm your account before logging in.');
         } else {
-          setErrorMsg(error.message || 'Login failed. Please try again.');
+          setErrorMsg("We couldn't sign you in right now. Please try again.");
         }
         return;
       }
@@ -83,12 +81,14 @@ function PortalLoginContent() {
         return;
       }
 
-      // Check profile role to route correctly
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
+      const identityResponse = await fetch('/api/portal/me');
+      const { profile } = await identityResponse.json();
+      if (!identityResponse.ok || !profile?.is_active) {
+        await supabase.auth.signOut();
+        setErrorMsg("Your account doesn't currently have portal access. Please contact Opus Care.");
+        setIsLoading(false);
+        return;
+      }
 
       if (profile?.role === 'worker') {
         router.push('/portal/worker');
@@ -101,8 +101,9 @@ function PortalLoginContent() {
         // Staff member — redirect to admin CRM
         router.push('/admin');
       } else {
-        // Default: participant dashboard
-        router.push('/portal/dashboard');
+        await supabase.auth.signOut();
+        setErrorMsg("Your account doesn't currently have portal access. Please contact Opus Care.");
+        setIsLoading(false);
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -319,7 +320,7 @@ function PortalLoginContent() {
 
           <div className="portalSecurityNotice">
           <Shield size={14} />
-          <span>Encrypted · 256-bit SSL · Australian Privacy Act compliant</span>
+          <span>Your care information is available to authorised users.</span>
         </div>
       </div>
     </div>

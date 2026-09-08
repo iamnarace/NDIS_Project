@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -27,10 +28,13 @@ export async function POST(request: NextRequest) {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('portal_staff_id')
+        .select('portal_staff_id,role,is_active')
         .eq('id', user.id)
         .single();
       workerStaffId = profile?.portal_staff_id || null;
+      if (!profile?.is_active || profile.role !== 'worker' || !workerStaffId) {
+        return NextResponse.json({ error: 'Your account does not have worker portal access.' }, { status: 403 });
+      }
     }
 
     const body = await request.json();
@@ -79,7 +83,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Shift not found.' }, { status: 404 });
     }
 
-    const rawStaffId = inputStaffId || workerStaffId;
+    const rawStaffId = isAdmin ? inputStaffId : workerStaffId;
     const resolvedStaffId = isValidUuid(rawStaffId)
       ? rawStaffId
       : await resolveStaffUuid(supabase, rawStaffId);
@@ -88,11 +92,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Worker staff identity could not be verified.' }, { status: 400 });
     }
 
+    if (!isAdmin) {
+      const { data: assignment } = await supabase.from('shift_assignments').select('id,status').eq('shift_id', shift_id).eq('staff_id', resolvedStaffId).maybeSingle();
+      if (!assignment || assignment.status === 'cancelled') return NextResponse.json({ error: 'This shift is not assigned to you.' }, { status: 403 });
+      if (assignment.status === 'completed') return NextResponse.json({ error: 'This shift has already been completed.' }, { status: 409 });
+      if (Array.isArray(goals) && goals.length) {
+        const ids = goals.map((g: any) => g?.goal_id);
+        const { data: allowed } = await supabase.from('participant_goals').select('id').eq('participant_id', shift.participant_id).in('id', ids);
+        if (!allowed || ids.some((id: string) => !allowed.some((g: any) => g.id === id))) return NextResponse.json({ error: 'Please refresh and select goals for this participant.' }, { status: 400 });
+      }
+      if (incident_id) {
+        const { data: incident } = await supabase.from('incidents').select('id').eq('id', incident_id).eq('shift_id', shift_id).eq('reported_by', actorId).maybeSingle();
+        if (!incident) return NextResponse.json({ error: 'Please select an incident you reported for this shift.' }, { status: 400 });
+      }
+      // Only after the signed-in identity and all supplied relationships have been checked.
+      // Portal callers never receive the server client or its finance records.
+      supabase = createAdminClient();
+      if (!supabase) return NextResponse.json({ error: 'We could not save this shift. Please try again.' }, { status: 503 });
+    }
+
     // 2. Compute actual hours
     const startMs = new Date(actual_start).getTime();
     const finishMs = new Date(finalActualFinish).getTime();
     const breakMs = (Number(break_minutes) || 0) * 60000;
     const diffMs = finishMs - startMs - breakMs;
+    if (!Number.isFinite(diffMs) || diffMs <= 0 || Number(break_minutes) < 0) return NextResponse.json({ error: 'Please check the actual start, finish and break times.' }, { status: 400 });
     const actualHours = Math.max(0.1, Number((diffMs / 3600000).toFixed(2)));
 
     // 3. Mark Shift & Assignment Completed
@@ -148,7 +172,7 @@ export async function POST(request: NextRequest) {
 
     if (noteErr) {
       console.error('Failed to create progress note in completion:', noteErr);
-      return NextResponse.json({ error: 'Failed to save progress note: ' + noteErr.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError('Failed to save progress note: ' + noteErr.message) }, { status: 500 });
     }
 
     // 5. Link Progress Note Goals
@@ -365,11 +389,11 @@ export async function POST(request: NextRequest) {
       actual_hours: actualHours,
       progress_note: progressNote,
       timesheet_entry: timesheetEntry,
-      service_record: serviceRecord,
+      ...(isAdmin ? { service_record: serviceRecord } : {}),
       travel_record: travelRecord,
     }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/workforce/shifts/complete error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }
