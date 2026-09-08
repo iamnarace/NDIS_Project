@@ -21,6 +21,9 @@ import {
   AlertTriangle,
   Clock,
   Sparkles,
+  Target,
+  ClipboardList,
+  ShieldCheck,
 } from 'lucide-react';
 import CrmNotificationItem from './CrmNotificationItem';
 
@@ -29,6 +32,9 @@ export type CrmTab =
   | 'referrals'
   | 'agreements'
   | 'participants'
+  | 'goals'
+  | 'support_plans'
+  | 'risk_assessments'
   | 'invoicing'
   | 'quotes'
   | 'staff'
@@ -83,6 +89,9 @@ export default function CrmContainer({
       icon: <Users size={16} />,
       count: participantsCount > 0 ? participantsCount : undefined,
     },
+    { id: 'goals', label: 'Goals', icon: <Target size={16} /> },
+    { id: 'support_plans', label: 'Support Plans', icon: <ClipboardList size={16} /> },
+    { id: 'risk_assessments', label: 'Risk', icon: <ShieldCheck size={16} /> },
     { id: 'workforce', label: 'Roster', icon: <CalendarClock size={16} /> },
     { id: 'agreements', label: 'Agreements', icon: <FileText size={16} /> },
     {

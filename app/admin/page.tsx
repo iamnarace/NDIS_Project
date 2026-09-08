@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -22,7 +22,8 @@ import {
   UploadCloud, FileDown, FolderLock, CalendarClock, AlertTriangle,
   LayoutDashboard, Receipt, Calculator, Award, Settings, ChevronLeft,
   ChevronRight, TrendingUp, DollarSign, Activity, FileSpreadsheet,
-  Layers, ShieldAlert, Sparkle, Eye, BookOpen, GraduationCap, ClipboardCheck, Upload, Trophy
+  Layers, ShieldAlert, Sparkle, Eye, BookOpen, GraduationCap, ClipboardCheck, Upload, Trophy,
+  ClipboardList, Target
 } from 'lucide-react';
 
 interface Referral {
@@ -162,7 +163,7 @@ interface TrainingCompletion {
 }
 
 
-type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
+type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
 
 const PIPELINE_STAGES = [
   { id: 'new', label: 'New Inbound', color: '#0284C7', bg: '#E0F2FE' },
@@ -219,7 +220,7 @@ export default function AdminCrmPage() {
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // ── Training & Compliance State ──────────────────────────────────────────
+  // â”€â”€ Training & Compliance State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [trainingCourses, setTrainingCourses] = useState<TrainingCourse[]>([]);
   const [trainingAssignments, setTrainingAssignments] = useState<TrainingAssignment[]>([]);
   const [trainingComplianceMap, setTrainingComplianceMap] = useState<Record<string, TrainingCompletion[]>>({});
@@ -239,6 +240,35 @@ export default function AdminCrmPage() {
   const [assignDueDate, setAssignDueDate] = useState('');
   const [assigning, setAssigning] = useState(false);
 
+  // â”€â”€ Phase A: Goals, Support Plans, Risk Assessments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const [goals, setGoals] = useState<any[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(false);
+  const [selectedGoalParticipant, setSelectedGoalParticipant] = useState('');
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [newGoal, setNewGoal] = useState({
+    goal_title: '', goal_description: '', category: 'General',
+    target_date: '', review_date: '', priority: 3, ndis_domain: '',
+  });
+  const [savingGoal, setSavingGoal] = useState(false);
+
+  const [supportPlans, setSupportPlans] = useState<any[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedPlanParticipant, setSelectedPlanParticipant] = useState('');
+  const [showPlanForm, setShowPlanForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<any | null>(null);
+
+  const [riskAssessments, setRiskAssessments] = useState<any[]>([]);
+  const [risksLoading, setRisksLoading] = useState(false);
+  const [selectedRiskParticipant, setSelectedRiskParticipant] = useState('');
+  const [showRiskForm, setShowRiskForm] = useState(false);
+  const [editingRisk, setEditingRisk] = useState<any | null>(null);
+
+  // â”€â”€ Phase A: Portal User Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const [showPortalUserModal, setShowPortalUserModal] = useState(false);
+  const [portalUserParticipantId, setPortalUserParticipantId] = useState('');
+  const [portalUserEmail, setPortalUserEmail] = useState('');
+  const [portalUserSaving, setPortalUserSaving] = useState(false);
+  const [portalUserMsg, setPortalUserMsg] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -250,6 +280,12 @@ export default function AdminCrmPage() {
       loadTrainingData();
     } else if (tab === 'agreements') {
       loadAgreements();
+    } else if (tab === 'goals' && selectedGoalParticipant) {
+      loadGoals(selectedGoalParticipant);
+    } else if (tab === 'support_plans' && selectedPlanParticipant) {
+      loadSupportPlans(selectedPlanParticipant);
+    } else if (tab === 'risk_assessments' && selectedRiskParticipant) {
+      loadRiskAssessments(selectedRiskParticipant);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
@@ -288,6 +324,100 @@ export default function AdminCrmPage() {
       setIsAuth(false);
       setLoading(false);
     }
+  }
+
+  // â”€â”€ Phase A: Goals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadGoals(participantId: string) {
+    setGoalsLoading(true);
+    try {
+      const res = await fetch(`/api/portal/participant/goals?participant_id=${participantId}`, {
+        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
+      });
+      const data = await res.json();
+      setGoals(data.goals || []);
+    } catch { setGoals([]); }
+    setGoalsLoading(false);
+  }
+
+  async function createGoal() {
+    if (!selectedGoalParticipant || !newGoal.goal_title.trim()) return;
+    setSavingGoal(true);
+    try {
+      const res = await fetch('/api/portal/participant/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ participant_id: selectedGoalParticipant, ...newGoal }),
+      });
+      const data = await res.json();
+      if (data.goal) {
+        setGoals(prev => [data.goal, ...prev]);
+        setShowGoalForm(false);
+        setNewGoal({ goal_title: '', goal_description: '', category: 'General', target_date: '', review_date: '', priority: 3, ndis_domain: '' });
+        setStatusNotice('Goal created successfully.');
+      }
+    } catch { setStatusNotice('Failed to create goal.'); }
+    setSavingGoal(false);
+  }
+
+  async function updateGoalStatus(goalId: string, status: string) {
+    try {
+      await fetch('/api/portal/participant/goals', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ id: goalId, status, ...(status === 'achieved' ? { achieved_date: new Date().toISOString().split('T')[0] } : {}) }),
+      });
+      setGoals(prev => prev.map(g => g.id === goalId ? { ...g, status } : g));
+    } catch { setStatusNotice('Failed to update goal status.'); }
+  }
+
+  // â”€â”€ Phase A: Support Plans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadSupportPlans(participantId: string) {
+    setPlansLoading(true);
+    try {
+      const res = await fetch(`/api/portal/participant/support-plans?participant_id=${participantId}`, {
+        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
+      });
+      const data = await res.json();
+      setSupportPlans(data.plans || []);
+    } catch { setSupportPlans([]); }
+    setPlansLoading(false);
+  }
+
+  async function activatePlan(planId: string) {
+    try {
+      await fetch('/api/portal/participant/support-plans', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ id: planId, status: 'active' }),
+      });
+      if (selectedPlanParticipant) loadSupportPlans(selectedPlanParticipant);
+      setStatusNotice('Support plan activated.');
+    } catch { setStatusNotice('Failed to activate plan.'); }
+  }
+
+  // â”€â”€ Phase A: Risk Assessments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadRiskAssessments(participantId: string) {
+    setRisksLoading(true);
+    try {
+      const res = await fetch(`/api/portal/participant/risk-assessments?participant_id=${participantId}`, {
+        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
+      });
+      const data = await res.json();
+      setRiskAssessments(data.assessments || []);
+    } catch { setRiskAssessments([]); }
+    setRisksLoading(false);
+  }
+
+  async function activateRiskAssessment(assessmentId: string) {
+    try {
+      await fetch('/api/portal/participant/risk-assessments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        body: JSON.stringify({ id: assessmentId, status: 'active' }),
+      });
+      if (selectedRiskParticipant) loadRiskAssessments(selectedRiskParticipant);
+      setStatusNotice('Risk assessment activated.');
+    } catch { setStatusNotice('Failed to activate risk assessment.'); }
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -1438,7 +1568,7 @@ export default function AdminCrmPage() {
                                   ${Number(agr.estimated_budget).toLocaleString('en-AU', { minimumFractionDigits: 2 })}
                                 </strong>
                               ) : (
-                                <span style={{ color: '#94A3B8' }}>—</span>
+                                <span style={{ color: '#94A3B8' }}>â€”</span>
                               )}
                             </td>
                             <td>
@@ -1544,7 +1674,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Participants 360° Directory</h2>
+                  <h2 className="crmPanelTitle">Participants 360Â° Directory</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Comprehensive participant profiles, NDIS numbers, funding models, assigned support workers, and document vault.
                   </p>
@@ -1617,6 +1747,435 @@ export default function AdminCrmPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* PHASE A TAB: PARTICIPANT GOALS                                  */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {tab === 'goals' && (
+            <div className="crmTabPanel">
+              <div className="crmPanelHeader">
+                <div>
+                  <h2 className="crmPanelTitle">Participant Goals</h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                    Manage NDIS plan goals, track progress and link to support activities.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <select
+                    value={selectedGoalParticipant}
+                    onChange={(e) => {
+                      setSelectedGoalParticipant(e.target.value);
+                      if (e.target.value) loadGoals(e.target.value);
+                    }}
+                    style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
+                  >
+                    <option value="">â€” Select Participant â€”</option>
+                    {participants.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  {selectedGoalParticipant && (
+                    <button
+                      onClick={() => setShowGoalForm(!showGoalForm)}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <Plus size={15} /> Add Goal
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Create goal form */}
+              {showGoalForm && (
+                <div style={{ background: '#F8FAFF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.95rem', fontWeight: 600, color: '#1E40AF' }}>New Goal</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Goal Title *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Improve independence in meal preparation"
+                        value={newGoal.goal_title}
+                        onChange={e => setNewGoal(prev => ({ ...prev, goal_title: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Description</label>
+                      <textarea
+                        placeholder="Describe the goal in detail..."
+                        value={newGoal.goal_description}
+                        onChange={e => setNewGoal(prev => ({ ...prev, goal_description: e.target.value }))}
+                        rows={3}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', resize: 'vertical', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Category</label>
+                      <select
+                        value={newGoal.category}
+                        onChange={e => setNewGoal(prev => ({ ...prev, category: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      >
+                        {['Daily Living', 'Community Participation', 'Employment', 'Health & Wellbeing', 'Social', 'Capacity Building', 'General'].map(c => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>NDIS Domain</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Daily Activities"
+                        value={newGoal.ndis_domain}
+                        onChange={e => setNewGoal(prev => ({ ...prev, ndis_domain: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Target Date</label>
+                      <input
+                        type="date"
+                        value={newGoal.target_date}
+                        onChange={e => setNewGoal(prev => ({ ...prev, target_date: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Review Date</label>
+                      <input
+                        type="date"
+                        value={newGoal.review_date}
+                        onChange={e => setNewGoal(prev => ({ ...prev, review_date: e.target.value }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Priority (1=Highest)</label>
+                      <select
+                        value={newGoal.priority}
+                        onChange={e => setNewGoal(prev => ({ ...prev, priority: Number(e.target.value) }))}
+                        style={{ width: '100%', border: '1px solid #E2E8F0', borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }}
+                      >
+                        {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                    <button
+                      onClick={createGoal}
+                      disabled={savingGoal || !newGoal.goal_title.trim()}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                    >
+                      {savingGoal ? 'Savingâ€¦' : 'Save Goal'}
+                    </button>
+                    <button
+                      onClick={() => setShowGoalForm(false)}
+                      style={{ background: '#F1F5F9', color: '#374151', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 500, fontSize: '0.88rem', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Goals list */}
+              {!selectedGoalParticipant ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                  <Target size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
+                  <p style={{ margin: 0 }}>Select a participant above to view their goals.</p>
+                </div>
+              ) : goalsLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading goalsâ€¦</div>
+              ) : goals.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                  <p>No goals recorded for this participant yet.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {goals.map(goal => (
+                    <div key={goal.id} style={{
+                      background: '#FFFFFF', borderRadius: 10, padding: '16px 20px',
+                      border: '1px solid #E2E8F0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16,
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, color: '#111827', marginBottom: 4 }}>{goal.goal_title}</div>
+                        {goal.goal_description && (
+                          <p style={{ color: '#6B7280', fontSize: '0.85rem', margin: '0 0 8px' }}>{goal.goal_description}</p>
+                        )}
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ background: '#EFF6FF', color: '#3B82F6', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 600 }}>{goal.category}</span>
+                          {goal.ndis_domain && <span style={{ background: '#F3F4F6', color: '#6B7280', borderRadius: 20, padding: '2px 10px', fontSize: '0.75rem' }}>{goal.ndis_domain}</span>}
+                          {goal.target_date && <span style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>Target: {new Date(goal.target_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+                        <span style={{
+                          borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700,
+                          background: goal.status === 'active' ? '#EFF6FF' : goal.status === 'achieved' ? '#F0FDF4' : '#FFF7ED',
+                          color: goal.status === 'active' ? '#3B82F6' : goal.status === 'achieved' ? '#16A34A' : '#D97706',
+                        }}>
+                          {goal.status === 'active' ? 'In Progress' : goal.status === 'achieved' ? 'âœ“ Achieved' : goal.status === 'paused' ? 'On Hold' : 'Discontinued'}
+                        </span>
+                        <select
+                          value={goal.status}
+                          onChange={e => updateGoalStatus(goal.id, e.target.value)}
+                          style={{ border: '1px solid #E2E8F0', borderRadius: 6, padding: '4px 8px', fontSize: '0.78rem' }}
+                        >
+                          <option value="active">In Progress</option>
+                          <option value="achieved">Achieved</option>
+                          <option value="paused">On Hold</option>
+                          <option value="discontinued">Discontinued</option>
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* PHASE A TAB: SUPPORT PLANS                                       */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {tab === 'support_plans' && (
+            <div className="crmTabPanel">
+              <div className="crmPanelHeader">
+                <div>
+                  <h2 className="crmPanelTitle">Support Plans</h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                    Versioned participant support plans â€” draft, activate, and supersede as plans evolve.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <select
+                    value={selectedPlanParticipant}
+                    onChange={(e) => {
+                      setSelectedPlanParticipant(e.target.value);
+                      if (e.target.value) loadSupportPlans(e.target.value);
+                    }}
+                    style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
+                  >
+                    <option value="">â€” Select Participant â€”</option>
+                    {participants.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  {selectedPlanParticipant && (
+                    <button
+                      onClick={() => setShowPlanForm(true)}
+                      style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <Plus size={15} /> New Plan Version
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {!selectedPlanParticipant ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                  <ClipboardList size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
+                  <p style={{ margin: 0 }}>Select a participant to view their support plans.</p>
+                </div>
+              ) : plansLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading plansâ€¦</div>
+              ) : supportPlans.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                  <p>No support plans yet. Click &ldquo;New Plan Version&rdquo; to create the first one.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {supportPlans.map(plan => (
+                    <div key={plan.id} style={{
+                      background: '#FFFFFF', borderRadius: 10, padding: '18px 20px',
+                      border: `1px solid ${plan.status === 'active' ? '#BBF7D0' : '#E2E8F0'}`,
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 12 }}>
+                        <div>
+                          <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{plan.plan_title} â€” v{plan.version}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 2 }}>
+                            Created {new Date(plan.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {plan.plan_start_date && ` Â· Plan period: ${new Date(plan.plan_start_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' })} â€“ ${plan.plan_end_date ? new Date(plan.plan_end_date).toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }) : 'ongoing'}`}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <span style={{
+                            borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700,
+                            background: plan.status === 'active' ? '#F0FDF4' : plan.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
+                            color: plan.status === 'active' ? '#16A34A' : plan.status === 'draft' ? '#D97706' : '#6B7280',
+                          }}>
+                            {plan.status === 'active' ? 'âœ“ Active' : plan.status === 'draft' ? 'Draft' : plan.status === 'superseded' ? 'Superseded' : 'Archived'}
+                          </span>
+                          {plan.status === 'draft' && (
+                            <button
+                              onClick={() => activatePlan(plan.id)}
+                              style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Activate
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+                        {[
+                          { label: 'Primary Disability', value: plan.primary_disability },
+                          { label: 'Communication', value: plan.communication_method },
+                          { label: 'Language', value: plan.language_preference },
+                          { label: 'Dietary', value: plan.dietary_requirements },
+                          { label: 'Mobility Aids', value: plan.mobility_aids },
+                          { label: 'Review Date', value: plan.review_date ? new Date(plan.review_date).toLocaleDateString('en-AU') : null },
+                        ].filter(f => f.value).map((field, idx) => (
+                          <div key={idx}>
+                            <div style={{ fontSize: '0.72rem', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{field.label}</div>
+                            <div style={{ fontSize: '0.85rem', color: '#374151', fontWeight: 500 }}>{field.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                      {plan.triggers_and_responses && (
+                        <div style={{ marginTop: 12, background: '#FFF7ED', borderRadius: 8, padding: '10px 14px' }}>
+                          <div style={{ fontSize: '0.73rem', color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>Triggers & De-escalation</div>
+                          <div style={{ fontSize: '0.85rem', color: '#374151' }}>{plan.triggers_and_responses}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {/* PHASE A TAB: RISK ASSESSMENTS                                   */}
+          {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+          {tab === 'risk_assessments' && (
+            <div className="crmTabPanel">
+              <div className="crmPanelHeader">
+                <div>
+                  <h2 className="crmPanelTitle">Risk Assessments</h2>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
+                    Structured participant risk assessments â€” versioned, activated, and shared with assigned workers.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <select
+                    value={selectedRiskParticipant}
+                    onChange={(e) => {
+                      setSelectedRiskParticipant(e.target.value);
+                      if (e.target.value) loadRiskAssessments(e.target.value);
+                    }}
+                    style={{ border: '1px solid #E2E8F0', borderRadius: 8, padding: '8px 12px', fontSize: '0.85rem', minWidth: 220 }}
+                  >
+                    <option value="">â€” Select Participant â€”</option>
+                    {participants.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {!selectedRiskParticipant ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                  <ShieldAlert size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
+                  <p style={{ margin: 0 }}>Select a participant to view their risk assessments.</p>
+                </div>
+              ) : risksLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94A3B8' }}>Loading risk assessmentsâ€¦</div>
+              ) : riskAssessments.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94A3B8' }}>
+                  <p style={{ margin: '0 0 12px' }}>No risk assessments for this participant yet.</p>
+                  <button
+                    onClick={async () => {
+                      const res = await fetch('/api/portal/participant/risk-assessments', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+                        body: JSON.stringify({
+                          participant_id: selectedRiskParticipant,
+                          assessment_title: 'Initial Risk Assessment',
+                          status: 'draft',
+                          overall_risk_rating: 'Low',
+                          falls_and_mobility: { risk: 'Low risk of falls', likelihood: 1, consequence: 2, controls: 'Non-slip mats, grab rails in bathroom', residual_risk: 'Low' },
+                          medication_risks: { risk: 'Medication management', likelihood: 2, consequence: 3, controls: 'Worker prompts at medication times; blister packs', residual_risk: 'Low' },
+                        }),
+                      });
+                      const data = await res.json();
+                      if (data.assessment) {
+                        setRiskAssessments([data.assessment]);
+                        setStatusNotice('Draft risk assessment created.');
+                      }
+                    }}
+                    style={{ background: '#1E40AF', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+                  >
+                    Create Initial Risk Assessment
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {riskAssessments.map(ra => {
+                    const ratingColour = ra.overall_risk_rating === 'Low' ? '#16A34A' : ra.overall_risk_rating === 'Medium' ? '#D97706' : ra.overall_risk_rating === 'High' ? '#DC2626' : '#7C3AED';
+                    const ratingBg = ra.overall_risk_rating === 'Low' ? '#F0FDF4' : ra.overall_risk_rating === 'Medium' ? '#FFFBEB' : ra.overall_risk_rating === 'High' ? '#FEF2F2' : '#F5F3FF';
+                    return (
+                      <div key={ra.id} style={{
+                        background: '#FFFFFF', borderRadius: 10, padding: '18px 20px',
+                        border: `1px solid ${ra.status === 'active' ? '#BBF7D0' : '#E2E8F0'}`,
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 14 }}>
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{ra.assessment_title} â€” v{ra.version}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 2 }}>
+                              Created {new Date(ra.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {ra.review_date && ` Â· Review: ${new Date(ra.review_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            {ra.overall_risk_rating && (
+                              <span style={{ borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700, background: ratingBg, color: ratingColour }}>
+                                {ra.overall_risk_rating} Risk
+                              </span>
+                            )}
+                            <span style={{
+                              borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem', fontWeight: 700,
+                              background: ra.status === 'active' ? '#F0FDF4' : ra.status === 'draft' ? '#FFF7ED' : '#F3F4F6',
+                              color: ra.status === 'active' ? '#16A34A' : ra.status === 'draft' ? '#D97706' : '#6B7280',
+                            }}>
+                              {ra.status === 'active' ? 'âœ“ Active' : ra.status === 'draft' ? 'Draft' : 'Superseded'}
+                            </span>
+                            {ra.status === 'draft' && (
+                              <button
+                                onClick={() => activateRiskAssessment(ra.id)}
+                                style={{ background: '#16A34A', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                              >
+                                Activate
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {/* Risk domains */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+                          {[
+                            { key: 'falls_and_mobility', label: 'Falls & Mobility', data: ra.falls_and_mobility },
+                            { key: 'medication_risks', label: 'Medication', data: ra.medication_risks },
+                            { key: 'behaviour_and_mental_health', label: 'Behaviour & Mental Health', data: ra.behaviour_and_mental_health },
+                            { key: 'environmental_hazards', label: 'Environmental Hazards', data: ra.environmental_hazards },
+                            { key: 'community_access_risks', label: 'Community Access', data: ra.community_access_risks },
+                            { key: 'fire_and_emergency', label: 'Fire & Emergency', data: ra.fire_and_emergency },
+                            { key: 'financial_exploitation', label: 'Financial Safety', data: ra.financial_exploitation },
+                          ].filter(d => d.data).map(domain => (
+                            <div key={domain.key} style={{ background: '#F8FAFC', borderRadius: 8, padding: '10px 14px' }}>
+                              <div style={{ fontSize: '0.73rem', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{domain.label}</div>
+                              <div style={{ fontSize: '0.83rem', color: '#374151', marginBottom: 4 }}>{domain.data.risk}</div>
+                              <div style={{ fontSize: '0.78rem', color: '#6B7280' }}>Controls: {domain.data.controls}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -1962,7 +2521,7 @@ export default function AdminCrmPage() {
                               {c.course_type==='read_acknowledge'?'Read & Ack':c.course_type==='read_quiz'?'Quiz':'Ext. Cert'}
                             </span></td>
                             <td>{c.material_url?(<a href={c.material_url} target="_blank" rel="noopener noreferrer" style={{color:'#0284C7',textDecoration:'underline',fontSize:'0.85rem'}}>{c.material_type.toUpperCase()}</a>):<span style={{color:'#CBD5E1'}}>None</span>}</td>
-                            <td>{c.course_type==='read_quiz'?c.pass_mark_pct+'%':'—'}</td>
+                            <td>{c.course_type==='read_quiz'?c.pass_mark_pct+'%':'â€”'}</td>
                             <td>{c.validity_months?c.validity_months+' mo':'No expiry'}</td>
                             <td>{c.is_mandatory?<span style={{color:'#DC2626',fontWeight:700}}>Required</span>:<span style={{color:'#64748B'}}>Optional</span>}</td>
                             <td><span style={{padding:'3px 10px',borderRadius:20,fontSize:'0.78rem',fontWeight:600,
@@ -2133,7 +2692,7 @@ export default function AdminCrmPage() {
                               <td><strong style={{fontSize:'0.88rem'}}>{s.name}</strong><div style={{fontSize:'0.78rem',color:'#64748B'}}>{s.role}</div></td>
                               {ac.map(c=>{
                                 const a=trainingAssignments.find(x=>x.course_id===c.id&&x.staff_id===s.id);
-                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'#CBD5E1',fontSize:'0.8rem'}}>—</span></td>;
+                                if(!a) return <td key={c.id} style={{textAlign:'center'}}><span style={{color:'#CBD5E1',fontSize:'0.8rem'}}>â€”</span></td>;
                                 const st=getTrainingStatus(s.id,c.id,a.due_date);
                                 return <td key={c.id} style={{textAlign:'center'}}>
                                   <span style={{padding:'2px 8px',borderRadius:20,fontSize:'0.75rem',fontWeight:600,background:st.bg,color:st.color}}>{st.label}</span>
@@ -2858,3 +3417,4 @@ export default function AdminCrmPage() {
     </CrmContainer>
   );
 }
+

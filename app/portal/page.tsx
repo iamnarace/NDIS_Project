@@ -1,58 +1,126 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { 
-  Shield, 
-  Lock, 
-  ArrowRight, 
-  User, 
-  Fingerprint, 
-  Sparkles, 
-  CheckCircle2, 
-  ArrowLeft 
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  Shield,
+  Lock,
+  ArrowRight,
+  Fingerprint,
+  Sparkles,
+  ArrowLeft,
+  AlertCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
-export default function PortalLoginPage() {
+function PortalLoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [role, setRole] = useState<'participant' | 'staff'>('participant');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [sessionExpired, setSessionExpired] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (searchParams.get('reason') === 'session_expired') {
+      setSessionExpired(true);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setErrorMsg('Please enter your email address');
+    if (!email.trim()) {
+      setErrorMsg('Please enter your email address.');
+      return;
+    }
+    if (!password.trim()) {
+      setErrorMsg('Please enter your password.');
       return;
     }
     setIsLoading(true);
     setErrorMsg('');
 
-    setTimeout(() => {
-      setIsLoading(false);
-      // Route to live dashboard
-      if (role === 'participant') {
+    try {
+      const supabase = createClient();
+
+      // Supabase is not configured — gracefully fall back for demo
+      if (!supabase) {
+        console.warn('Supabase not configured, using demo mode');
+        await new Promise((r) => setTimeout(r, 600));
         router.push('/portal/dashboard');
-      } else {
-        router.push('/admin');
+        return;
       }
-    }, 600);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+      });
+
+      if (error) {
+        setIsLoading(false);
+        if (error.message.includes('Invalid login credentials')) {
+          setErrorMsg('Incorrect email or password. Please try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setErrorMsg('Please check your email to confirm your account before logging in.');
+        } else {
+          setErrorMsg(error.message || 'Login failed. Please try again.');
+        }
+        return;
+      }
+
+      if (!data.user) {
+        setIsLoading(false);
+        setErrorMsg('Login failed. Please try again.');
+        return;
+      }
+
+      // Check profile role to route correctly
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profile?.role === 'worker') {
+        router.push('/portal/worker');
+      } else if (profile?.role === 'participant') {
+        router.push('/portal/dashboard');
+      } else if (
+        profile?.role &&
+        ['admin', 'manager', 'coordinator', 'staff'].includes(profile.role)
+      ) {
+        // Staff member — redirect to admin CRM
+        router.push('/admin');
+      } else {
+        // Default: participant dashboard
+        router.push('/portal/dashboard');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setIsLoading(false);
+      setErrorMsg('An unexpected error occurred. Please try again.');
+    }
   };
 
-  const handlePasskey = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      if (role === 'participant') {
-        router.push('/portal/dashboard');
-      } else {
-        router.push('/admin');
-      }
-    }, 400);
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setErrorMsg('Enter your email address first, then click "Forgot password".');
+      return;
+    }
+    const supabase = createClient();
+    if (!supabase) return;
+    await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/portal/reset-password`,
+    });
+    setErrorMsg('');
+    alert(`Password reset email sent to ${email}. Please check your inbox.`);
   };
 
   return (
@@ -82,24 +150,32 @@ export default function PortalLoginPage() {
 
         {/* Card */}
         <div className="portalAuthCard">
-          <h1 className="portalAuthHeading">Welcome</h1>
+          <h1 className="portalAuthHeading">Welcome back</h1>
           <p className="portalAuthSubhead">
-            Log in to Opus Care {role === 'participant' ? 'Participant Portal' : 'Staff CRM'}
+            Log in to Opus Care {role === 'participant' ? 'Participant Portal' : 'Staff Worker Portal'}
           </p>
+
+          {/* Session expired notice */}
+          {sessionExpired && (
+            <div className="portalAlertWarning">
+              <AlertCircle size={16} />
+              <span>Your session expired. Please log in again.</span>
+            </div>
+          )}
 
           {/* Role Tabs */}
           <div className="portalRoleToggle">
             <button
               type="button"
               className={`portalTabBtn ${role === 'participant' ? 'active' : ''}`}
-              onClick={() => setRole('participant')}
+              onClick={() => { setRole('participant'); setErrorMsg(''); }}
             >
               Participant / Carer
             </button>
             <button
               type="button"
               className={`portalTabBtn ${role === 'staff' ? 'active' : ''}`}
-              onClick={() => setRole('staff')}
+              onClick={() => { setRole('staff'); setErrorMsg(''); }}
             >
               Support Worker / Staff
             </button>
@@ -107,66 +183,21 @@ export default function PortalLoginPage() {
 
           {errorMsg && (
             <div className="portalAlertError">
+              <AlertCircle size={16} />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* Quick Demo Access Bar */}
-          <div style={{
-            background: '#F0FDF4',
-            border: '1px solid #BBF7D0',
-            borderRadius: 10,
-            padding: '12px 14px',
-            marginBottom: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            textAlign: 'left'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', fontWeight: 700, color: '#166534' }}>
-              <Sparkles size={15} style={{ color: '#16A34A' }} />
-              <span>Demo / Test Account Access</span>
-            </div>
-            <p style={{ margin: 0, fontSize: '0.78rem', color: '#15803D', lineHeight: 1.4 }}>
-              Click below to jump straight in with demo participant credentials:
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('sarah.mitchell@opuscare.com.au');
-                setPassword('OpusCare2026!');
-                setTimeout(() => router.push('/portal/dashboard'), 200);
-              }}
-              style={{
-                background: '#16A34A',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: 8,
-                padding: '8px 12px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                transition: 'background 0.15s'
-              }}
-            >
-              <span>1-Click Login (Sarah M. - Demo Participant)</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-
           <form onSubmit={handleSubmit} className="portalLoginForm">
             <div className="portalFormGroup">
               <label htmlFor="portalEmail" className="portalInputLabel">
-                Email address*
+                Email address *
               </label>
               <input
                 id="portalEmail"
                 type="email"
                 required
+                autoComplete="email"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -176,22 +207,52 @@ export default function PortalLoginPage() {
 
             <div className="portalFormGroup">
               <label htmlFor="portalPassword" className="portalInputLabel">
-                Password or Passcode
+                Password *
               </label>
-              <input
-                id="portalPassword"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="portalInputField"
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="portalPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="portalInputField"
+                  style={{ paddingRight: 44 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#6B7280',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div className="portalForgotRow">
-              <a href="mailto:support@opuscare.com.au?subject=Portal%20Access%20Help" className="portalForgotLink">
-                Can&apos;t log in to your account?
-              </a>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="portalForgotLink"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                Forgot your password?
+              </button>
             </div>
 
             <button
@@ -199,7 +260,8 @@ export default function PortalLoginPage() {
               disabled={isLoading}
               className="portalSubmitBtn"
             >
-              <span>{isLoading ? 'Verifying...' : 'Continue'}</span>
+              <Lock size={16} />
+              <span>{isLoading ? 'Verifying...' : 'Sign in securely'}</span>
               <ArrowRight size={16} />
             </button>
           </form>
@@ -212,13 +274,32 @@ export default function PortalLoginPage() {
           {/* Passkey Button */}
           <button
             type="button"
-            onClick={handlePasskey}
             disabled={isLoading}
             className="portalPasskeyBtn"
+            onClick={() => setErrorMsg('Passkey login coming soon. Please use email & password.')}
           >
             <Fingerprint size={18} className="passkeyIcon" />
             <span>Continue with a passkey or biometric</span>
           </button>
+
+          {/* Admin quick-link for staff */}
+          {role === 'staff' && (
+            <div style={{
+              marginTop: 16,
+              padding: '10px 14px',
+              background: '#F8FAFC',
+              borderRadius: 8,
+              border: '1px solid #E2E8F0',
+              textAlign: 'center',
+              fontSize: '0.82rem',
+              color: '#64748B',
+            }}>
+              <span>Opus Care staff admin? </span>
+              <Link href="/admin" style={{ color: '#3B82F6', fontWeight: 600, textDecoration: 'none' }}>
+                Access Admin CRM →
+              </Link>
+            </div>
+          )}
 
           <div className="portalCardFooter">
             <p>
@@ -226,7 +307,7 @@ export default function PortalLoginPage() {
               <Link href="/referral" className="portalCardFooterLink">
                 Make a referral
               </Link>{' '}
-              or email{' '}
+              or contact{' '}
               <a href="mailto:support@opuscare.com.au" className="portalCardFooterLink">
                 support@opuscare.com.au
               </a>
@@ -234,12 +315,23 @@ export default function PortalLoginPage() {
           </div>
         </div>
 
-        {/* Security Note */}
-        <div className="portalSecurityNotice">
+          <div className="portalSecurityNotice">
           <Shield size={14} />
-          <span>Encrypted with 256-bit SSL · Compliant with Australian Privacy Principles</span>
+          <span>Encrypted · 256-bit SSL · Australian Privacy Act compliant</span>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PortalLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="portalLoginWrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#64748B' }}>Loading portal...</p>
+      </div>
+    }>
+      <PortalLoginContent />
+    </Suspense>
   );
 }
