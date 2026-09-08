@@ -901,14 +901,19 @@ export default function AdminCrmPage() {
   async function loadTrainingData() {
     setTrainingLoading(true);
     try {
-      const [coursesRes, assignRes] = await Promise.all([
+      const [coursesRes, assignRes, externalRes] = await Promise.all([
         fetch('/api/training/courses?active=false'),
         fetch('/api/training/assignments'),
+        fetch('/api/training/external'),
       ]);
       if (coursesRes.ok) setTrainingCourses(await coursesRes.json());
       if (assignRes.ok) {
         const assignments: TrainingAssignment[] = await assignRes.json();
         setTrainingAssignments(assignments);
+      }
+      if (externalRes.ok) {
+        const extCourses = await externalRes.json();
+        setExternalCourses(Array.isArray(extCourses) ? extCourses : []);
       }
       // Load completions for compliance map (per staff)
       const compRes = await fetch('/api/training/completions');
