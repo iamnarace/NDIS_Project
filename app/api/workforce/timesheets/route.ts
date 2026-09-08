@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ timesheets: data || [] });
   } catch (err) {
     console.error('GET /api/workforce/timesheets error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -85,7 +86,7 @@ export async function PATCH(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       return NextResponse.json({ error: 'Manager authorisation required to approve/adjust timesheets.' }, { status: 403 });
@@ -113,7 +114,7 @@ export async function PATCH(request: NextRequest) {
         .select()
         .single();
 
-      if (tsErr) return NextResponse.json({ error: tsErr.message }, { status: 500 });
+      if (tsErr) return NextResponse.json({ error: userFacingError(tsErr.message) }, { status: 500 });
 
       // Update Entries
       await supabase
@@ -175,7 +176,7 @@ export async function PATCH(request: NextRequest) {
         .select()
         .single();
 
-      if (tsErr) return NextResponse.json({ error: tsErr.message }, { status: 500 });
+      if (tsErr) return NextResponse.json({ error: userFacingError(tsErr.message) }, { status: 500 });
 
       await supabase
         .from('timesheet_entries')
@@ -312,7 +313,7 @@ export async function PATCH(request: NextRequest) {
         .select()
         .single();
 
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return NextResponse.json({ error: userFacingError(updateErr.message) }, { status: 500 });
 
       // Synchronize linked service_records quantity and subtotal!
       const { data: linkedSr } = await supabase
@@ -356,6 +357,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action.' }, { status: 400 });
   } catch (err: any) {
     console.error('PATCH /api/workforce/timesheets error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }

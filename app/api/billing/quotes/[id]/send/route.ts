@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!id || !isValidUuid(id)) return NextResponse.json({ error: 'Invalid Quote ID' }, { status: 400 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const { data: quote, error } = await supabase
       .from('quotes')
@@ -83,6 +84,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ success: true, message: `Quote sent to ${recipientEmail}` });
   } catch (err: any) {
     console.error('POST /api/billing/quotes/[id]/send error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }

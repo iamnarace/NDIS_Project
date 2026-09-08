@@ -262,7 +262,7 @@ export default function ServiceAgreementPage() {
                 We welcome feedback, suggestions, and compliments. If you are not satisfied with any aspect of our service:
               </p>
               <ol className="clauseList">
-                <li>Contact our local management team directly by emailing <strong>support@opuscare.com.au</strong>. All complaints are acknowledged within 24 hours and investigated thoroughly.</li>
+                <li>Contact our local management team directly by emailing <strong>support@opuscare.com.au</strong>. We aim to acknowledge complaints within one business day and will keep you informed about the review.</li>
                 <li>You can also contact an external independent advocate or make a complaint directly to the <strong>NDIS Quality and Safeguards Commission</strong>:
                   <br />Phone: <strong>1800 035 544</strong> (free call) · Web: <strong>ndiscommission.gov.au</strong>
                 </li>

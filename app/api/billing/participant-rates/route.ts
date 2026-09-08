@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
@@ -27,12 +28,12 @@ export async function GET(request: NextRequest) {
       .eq('participant_id', pUuid)
       .eq('active', true);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     return NextResponse.json({ rates: data || [] });
   } catch (err: any) {
     console.error('GET /api/billing/participant-rates error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const { participant_id, support_item_id, agreed_rate, agreement_id } = body;
@@ -69,11 +70,11 @@ export async function POST(request: NextRequest) {
       `)
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     return NextResponse.json({ rate: data }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/billing/participant-rates error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const staffId = searchParams.get('staff_id');
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
   if (courseId) query = query.eq('course_id', courseId);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
 
   // For completions with cert_storage_path, generate signed URLs
   const enriched = await Promise.all(
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -117,7 +118,7 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
     return NextResponse.json({ ok: true, completion });
   } catch (err) {
     console.error('Acknowledge completion error:', err);
@@ -131,7 +132,7 @@ export async function PATCH(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const formData = await req.formData();
@@ -166,7 +167,7 @@ export async function PATCH(req: Request) {
 
       if (uploadErr) {
         console.error('Certificate upload error:', uploadErr);
-        return NextResponse.json({ message: 'File upload failed: ' + uploadErr.message }, { status: 500 });
+        return NextResponse.json({ message: userFacingError('File upload failed: ' + uploadErr.message) }, { status: 500 });
       }
     }
 
@@ -189,7 +190,7 @@ export async function PATCH(req: Request) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
     return NextResponse.json({ ok: true, completion });
   } catch (err) {
     console.error('External cert upload error:', err);

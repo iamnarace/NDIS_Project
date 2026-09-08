@@ -422,7 +422,7 @@ export default function AgreementGeneratorModal({
               <div>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>All-in-One Onboarding Packs</h4>
                 <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Recommended: Generate a comprehensive compliance pack bundled with all statutory consents.
+                  Prepare the relevant agreements and consent forms for review.
                 </p>
               </div>
 
@@ -501,7 +501,7 @@ export default function AgreementGeneratorModal({
                   Select {ownerType === 'participant' ? 'Participant' : 'Support Worker / Contractor'}
                 </h4>
                 <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Selecting a registered record pulls their verified database UUID, contact info, and pricing profile.
+                  Select an existing record to use their contact information and agreed rates.
                 </p>
               </div>
 
@@ -542,7 +542,7 @@ export default function AgreementGeneratorModal({
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <FormField label="Choose Support Worker from Team *" hint="Guarantees valid worker UUID foreign key binding">
+                  <FormField label="Choose Support Worker from Team *" hint="Select the worker this agreement is for.">
                     <select aria-label="-- Select Worker from Register --"
                       value={selectedOwnerId}
                       onChange={(e) => handleOwnerChange(e.target.value)}

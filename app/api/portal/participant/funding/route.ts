@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       .eq('participant_id', pUuid)
       .order('plan_start', { ascending: false });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     const processed = (periods || []).map((p: any) => {
       let totalBudget = 0;
@@ -92,6 +93,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ periods: processed });
   } catch (err: any) {
     console.error('GET /api/portal/participant/funding error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

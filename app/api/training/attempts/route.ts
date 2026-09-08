@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (aErr) return NextResponse.json({ message: aErr.message }, { status: 500 });
+    if (aErr) return NextResponse.json({ message: userFacingError(aErr.message) }, { status: 500 });
 
     // 5. If failed — do NOT create a completion. Return result.
     if (!passed) {
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (compErr) return NextResponse.json({ message: compErr.message }, { status: 500 });
+    if (compErr) return NextResponse.json({ message: userFacingError(compErr.message) }, { status: 500 });
 
     return NextResponse.json({ ok: true, passed: true, score_pct, attempt: attemptData, completion });
   } catch (err) {
@@ -119,7 +120,7 @@ export async function GET(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const staffId = searchParams.get('staff_id');
@@ -130,6 +131,6 @@ export async function GET(req: Request) {
   if (courseId) query = query.eq('course_id', courseId);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
   return NextResponse.json(data ?? []);
 }

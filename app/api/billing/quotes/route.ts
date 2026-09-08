@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
@@ -35,12 +36,12 @@ export async function GET(request: NextRequest) {
     if (status && status !== 'all') query = query.eq('status', status);
 
     const { data, error } = await query;
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     return NextResponse.json({ quotes: data || [] });
   } catch (err: any) {
     console.error('GET /api/billing/quotes error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const {
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (qErr) return NextResponse.json({ error: qErr.message }, { status: 500 });
+    if (qErr) return NextResponse.json({ error: userFacingError(qErr.message) }, { status: 500 });
 
     // Insert line items
     if (computedItems.length > 0) {
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ quote: fullQuote }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/billing/quotes error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }
 
@@ -148,7 +149,7 @@ export async function PATCH(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const { id, action, status, notes } = body;
@@ -178,7 +179,7 @@ export async function PATCH(request: NextRequest) {
         .select()
         .single();
 
-      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      if (updateErr) return NextResponse.json({ error: userFacingError(updateErr.message) }, { status: 500 });
 
       await logAuditEvent({
         entity_type: 'quotes',
@@ -209,7 +210,7 @@ export async function PATCH(request: NextRequest) {
         .select()
         .single();
 
-      if (schErr) return NextResponse.json({ error: schErr.message }, { status: 500 });
+      if (schErr) return NextResponse.json({ error: userFacingError(schErr.message) }, { status: 500 });
 
       if (quote.items && quote.items.length > 0) {
         const schedItems = quote.items.map((qi: any) => ({
@@ -268,7 +269,7 @@ export async function PATCH(request: NextRequest) {
         .select()
         .single();
 
-      if (agrErr) return NextResponse.json({ error: agrErr.message }, { status: 500 });
+      if (agrErr) return NextResponse.json({ error: userFacingError(agrErr.message) }, { status: 500 });
 
       await supabase
         .from('quotes')
@@ -290,6 +291,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action.' }, { status: 400 });
   } catch (err: any) {
     console.error('PATCH /api/billing/quotes error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }

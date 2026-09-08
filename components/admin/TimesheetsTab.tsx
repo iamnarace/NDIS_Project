@@ -513,7 +513,7 @@ export default function TimesheetsTab() {
               <div>
                 <h3 className="crmModalTitle">Manual Hours Adjustment</h3>
                 <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-danger)' }}>
-                  * Any manual adjustment requires a documented reason and logs an immutable audit event.
+                  * Any manual adjustment requires a documented reason and records the change in the activity history.
                 </p>
               </div>
               <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setAdjustingEntry(null)}>&times;</button>

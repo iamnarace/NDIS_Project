@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
@@ -37,12 +38,12 @@ export async function GET(request: NextRequest) {
     if (status && status !== 'all') query = query.eq('status', status);
 
     const { data, error } = await query;
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     return NextResponse.json({ schedules: data || [] });
   } catch (err: any) {
     console.error('GET /api/billing/schedules error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const {
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (sErr) return NextResponse.json({ error: sErr.message }, { status: 500 });
+    if (sErr) return NextResponse.json({ error: userFacingError(sErr.message) }, { status: 500 });
 
     if (items.length > 0) {
       const itemsPayload = items.map((it: any) => ({
@@ -116,6 +117,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ schedule }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/billing/schedules error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }

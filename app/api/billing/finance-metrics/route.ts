@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     // 1. Service records metrics
     const { data: serviceRecords } = await supabase
@@ -109,6 +109,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (err: any) {
     console.error('GET /api/billing/finance-metrics error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

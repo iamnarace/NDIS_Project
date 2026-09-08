@@ -41,7 +41,7 @@ export function SupportFinderWidget() {
       <div className="supportFinderHeader">
         <div className="badgeRow">
           <span className="finderBadge"><Calculator size={15} /> Interactive Support Estimator</span>
-          <span className="rateTag">NDIS Price Limit Aligned</span>
+          <span className="rateTag">Planning estimate</span>
         </div>
         <h3>Plan Your Opus Care Routine</h3>
         <p>Explore how regular 1-on-1 support fits into your NDIS Core or Capacity Building budget.</p>
@@ -73,7 +73,7 @@ export function SupportFinderWidget() {
 
         {/* Preferred Timing */}
         <div className="calculatorBlock">
-          <label className="blockLabel">Preferred Shift Timing (NDIS Hourly Rate):</label>
+          <label className="blockLabel">Preferred shift timing (illustrative hourly rate):</label>
           <div className="timingGrid">
             <button
               type="button"
@@ -161,7 +161,7 @@ export function SupportFinderWidget() {
 
           <div className="estimatorNotice">
             <p>
-              💡 Rates match standard NDIS Pricing Arrangements (1:1 Assistance in Self-Care / Social & Community Access). Actual billing strictly follows the agreed Schedule of Supports in your Opus Care Service Agreement.
+              These rates are planning examples, not a quote or confirmation of current NDIS price limits. Confirm applicable pricing rules and agreed rates with Opus Care before booking.
             </p>
           </div>
 

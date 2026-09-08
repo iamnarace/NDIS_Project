@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ records: data || [] });
   } catch (err) {
     console.error('GET /api/workforce/travel error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -53,7 +54,7 @@ export async function PATCH(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 403 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const { id, approval_status, notes } = body;
@@ -72,7 +73,7 @@ export async function PATCH(request: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     await logAuditEvent({
       entity_type: 'travel_records',
@@ -86,6 +87,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ record: data });
   } catch (err: any) {
     console.error('PATCH /api/workforce/travel error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }

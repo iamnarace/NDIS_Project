@@ -281,7 +281,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
                   selected={engagementType === 'employee'}
                   onSelect={() => setEngagementType('employee')}
                   title="Employee (SCHADS Award)"
-                  description="PAYG withholding, 11.5% Superannuation guarantee, Fair Work Award coverage."
+                  description="Confirm PAYG, current superannuation obligations and applicable award coverage."
                   badge="Standard PAYG"
                   icon={<Briefcase size={20} />}
                 />
@@ -385,7 +385,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
               <div style={{ marginBottom: 4 }}>
                 <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Compliance Credentials & Clearances</h4>
                 <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Record mandatory safeguarding clearances with expiry tracking for automated roster compliance checks.
+                  Record the clearances required for this role and track their expiry dates.
                 </p>
               </div>
 

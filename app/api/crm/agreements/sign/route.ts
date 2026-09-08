@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
       if (byRef?.id) {
         agreement_id = byRef.id;
       } else {
-        return NextResponse.json({ message: `Invalid agreement_id: '${agreement_id}' is not a valid UUID.` }, { status: 400 });
+        return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
       }
     }
 
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (sigErr) return NextResponse.json({ message: sigErr.message }, { status: 500 });
+    if (sigErr) return NextResponse.json({ message: userFacingError(sigErr.message) }, { status: 500 });
 
     // Check all signatures on this agreement
     const { data: allSigs } = await supabase
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
       .select('*, template:document_templates(*), signatures:agreement_signatures(*)')
       .single();
 
-    if (updateErr) return NextResponse.json({ message: updateErr.message }, { status: 500 });
+    if (updateErr) return NextResponse.json({ message: userFacingError(updateErr.message) }, { status: 500 });
 
     return NextResponse.json({
       ok: true,

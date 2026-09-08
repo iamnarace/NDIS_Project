@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -58,12 +59,12 @@ export async function GET(request: NextRequest) {
     if (status && status !== 'all') query = query.eq('status', status);
 
     const { data, error } = await query;
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     return NextResponse.json({ invoices: data || [] });
   } catch (err: any) {
     console.error('GET /api/billing/invoices error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const {
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: serviceRecords, error: srErr } = await srQuery;
-    if (srErr) return NextResponse.json({ error: srErr.message }, { status: 500 });
+    if (srErr) return NextResponse.json({ error: userFacingError(srErr.message) }, { status: 500 });
 
     if (!serviceRecords || serviceRecords.length === 0) {
       return NextResponse.json({
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 });
+    if (invErr) return NextResponse.json({ error: userFacingError(invErr.message) }, { status: 500 });
 
     // 5. Insert Invoice Line Items
     const lineItemsPayload = lineItems.map((li: any) => ({
@@ -240,7 +241,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ invoice: fullInvoice }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/billing/invoices error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }
 
@@ -250,7 +251,7 @@ export async function PATCH(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const { id, status, notes, due_date } = body;
@@ -285,7 +286,7 @@ export async function PATCH(request: NextRequest) {
       `)
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     await logAuditEvent({
       entity_type: 'invoices',
@@ -300,6 +301,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ invoice: updated });
   } catch (err: any) {
     console.error('PATCH /api/billing/invoices error:', err);
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: userFacingError(err.message || 'Internal server error') }, { status: 500 });
   }
 }

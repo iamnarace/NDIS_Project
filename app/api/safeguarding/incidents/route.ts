@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ incidents: data || [] });
   } catch (err) {
     console.error('GET /api/safeguarding/incidents error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
       resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
     }
     if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
-      return NextResponse.json({ error: `Invalid participant_id: '${participant_id}' could not be resolved to a valid UUID.` }, { status: 400 });
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
     let resolvedWorkerId = worker_id || null;
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Incident insert error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     // Link back to shift_progress_notes if shift_id or progress_note_id provided
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ incident: data }, { status: 201 });
   } catch (err) {
     console.error('POST /api/safeguarding/incidents error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -214,7 +215,7 @@ export async function PATCH(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -252,7 +253,7 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     // Record audit event
@@ -269,6 +270,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ incident: data });
   } catch (err) {
     console.error('PATCH /api/safeguarding/incidents error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

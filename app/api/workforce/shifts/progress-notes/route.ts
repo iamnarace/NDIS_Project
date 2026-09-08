@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ notes: results });
   } catch (err) {
     console.error('GET /api/workforce/shifts/progress-notes error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Progress note insert error:', insertError);
-      return NextResponse.json({ error: insertError.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(insertError.message) }, { status: 500 });
     }
 
     // Insert progress_note_goals if provided
@@ -223,7 +224,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ note }, { status: 201 });
   } catch (err) {
     console.error('POST /api/workforce/shifts/progress-notes error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -239,7 +240,7 @@ export async function PATCH(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -292,7 +293,7 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (updateErr) {
-      return NextResponse.json({ error: updateErr.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(updateErr.message) }, { status: 500 });
     }
 
     // Record audit event with before and after values (preventing silent destructive edits)
@@ -314,7 +315,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ note: updatedNote });
   } catch (err) {
     console.error('PATCH /api/workforce/shifts/progress-notes error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 

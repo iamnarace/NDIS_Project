@@ -272,9 +272,9 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
               <div style={{ marginTop: 20, background: 'var(--oc-subtle)', padding: '10px 14px', borderRadius: 8, fontSize: '0.8125rem', color: 'var(--oc-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Shield size={14} style={{ color: '#059669' }} />
-                  <span><strong>Immutable Audit Checksum (SHA-256):</strong> <code style={{ wordBreak: 'break-all' }}>{agreement.executed_hash_sha256}</code></span>
+                  <span><strong>Signed and locked</strong></span>
                 </div>
-                <span style={{ color: '#059669', fontWeight: 600 }}>Locked in Private Vault</span>
+                <span style={{ color: '#059669', fontWeight: 600 }}>Signed copy retained</span>
               </div>
             )}
           </div>

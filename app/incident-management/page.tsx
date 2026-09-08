@@ -47,7 +47,7 @@ export default function IncidentManagementPage() {
               <div className="policySection">
                 <h2>4. Regulatory Reporting</h2>
                 <p>
-                  We comply fully with mandatory incident notification guidelines under NDIS safeguards and state health regulations.
+                  We record and review incidents, respond to immediate safety needs, and assess any notification obligations that apply to the service and circumstances.
                 </p>
               </div>
 

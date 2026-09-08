@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ complaints: data || [] });
   } catch (err) {
     console.error('GET /api/safeguarding/complaints error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Complaint insert error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     // Record audit event
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ complaint: data }, { status: 201 });
   } catch (err) {
     console.error('POST /api/safeguarding/complaints error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -178,7 +179,7 @@ export async function PATCH(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -229,7 +230,7 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
     }
 
     // Record audit event
@@ -246,6 +247,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ complaint: data });
   } catch (err) {
     console.error('PATCH /api/safeguarding/complaints error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

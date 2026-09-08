@@ -12,16 +12,10 @@ import {
 } from 'lucide-react';
 
 const PORTAL_FEATURES = [
-  'Access on any device 24/7',
-  'Approve and decline invoices & shift records',
-  'Track plan budgets in real time',
-  'View clear, transparent budget summaries',
-  'Monitor funding periods and category balances',
-  'Access full history of delivered services',
-  'View and download monthly activity statements',
-  'Get real-time shift & invoice notifications',
-  'Manage multiple participants in one unified account',
-  'Provide seamless access for authorised representatives'
+  'View upcoming Opus Care supports',
+  'Read your goals and available support plan',
+  'View funding amounts tracked by Opus Care',
+  'Find your support and emergency contacts'
 ];
 
 export function ParticipantPortalSection() {
@@ -33,7 +27,7 @@ export function ParticipantPortalSection() {
           {/* Left Column: Portal Information & Bullet Checklist */}
           <div className="portalInfoCol">
             <span className="portalSuperTag">
-              EMPOWER YOUR NDIS JOURNEY WITH REAL TIME BUDGET INSIGHTS
+              YOUR OPUS CARE SUPPORT INFORMATION
             </span>
 
             <h2 className="portalMainTitle">
@@ -41,11 +35,11 @@ export function ParticipantPortalSection() {
             </h2>
 
             <p className="portalSubTitle">
-              Transparency, Empowerment & Complete Control
+              Your supports, clearly organised
             </p>
 
             <p className="portalIntroText">
-              Manage your support services effortlessly. Our modern self-service portal gives participants, family members, and support coordinators complete visibility over funding, shifts, and invoices from any phone, tablet, or computer.
+              Sign in to view the care information linked to your account, including upcoming supports and funding tracked by Opus Care. Contact our team for document copies or help with access.
             </p>
 
             <div className="portalChecklistGrid">
@@ -72,7 +66,7 @@ export function ParticipantPortalSection() {
             </div>
 
             <div className="portalPoweredNote">
-              <span>Securely powered by Opus Care CRM Platform · 256-bit SSL Protection</span>
+              <span>Access your care information in one place.</span>
             </div>
           </div>
 
@@ -85,7 +79,7 @@ export function ParticipantPortalSection() {
                   <span className="dot yellow" />
                   <span className="dot green" />
                 </div>
-                <span className="portalDeviceUrl">portal.opuscare.com.au</span>
+                <span className="portalDeviceUrl">Illustrative preview · example information</span>
                 <span className="portalDeviceSecure">
                   <Lock size={12} /> Secure
                 </span>

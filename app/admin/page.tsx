@@ -1614,25 +1614,25 @@ export default function AdminCrmPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span className="vsLiveDot" />
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Supabase PostgreSQL 17</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Care records</span>
                     </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#059669' }}>Sydney ap-southeast-2</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#059669' }}>Workspace</span>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <FolderLock size={14} color="var(--oc-info)" />
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Private Vault (AES-256)</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Documents</span>
                     </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)' }}>crm-documents</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)' }}>Record library</span>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Shield size={14} color="#7C3AED" />
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>NDIS Commission Rules</span>
+                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Compliance tasks</span>
                     </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#7C3AED' }}>Compliant</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#7C3AED' }}>Review regularly</span>
                   </div>
                 </div>
               </CrmBentoPane>
@@ -1703,7 +1703,7 @@ export default function AdminCrmPage() {
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--oc-muted)' }}>
                   <RefreshCw size={24} className="spin" style={{ margin: '0 auto 12px', display: 'block', color: 'var(--oc-info)' }} />
-                  <span>Loading live referrals from Supabase...</span>
+                  <span>Loading referrals...</span>
                 </div>
               ) : viewMode === 'pipeline' ? (
                 /* KANBAN BOARD */
@@ -1737,7 +1737,7 @@ export default function AdminCrmPage() {
                                   {item.participantName}
                                 </strong>
                                 <span className="refIdTag">
-                                  {item.referenceNumber || `#${item.id.slice(0, 6)}`}
+                                  {item.referenceNumber || 'Reference pending'}
                                 </span>
                               </div>
 
@@ -1789,7 +1789,7 @@ export default function AdminCrmPage() {
                         <tr key={r.id} className={r.status === 'new' ? 'rowNew' : ''}>
                           <td>
                             <span className="refIdTag">
-                              {r.referenceNumber || `#${r.id.slice(0, 6)}`}
+                              {r.referenceNumber || 'Reference pending'}
                             </span>
                             <span className="refDate">
                               {new Date(r.createdAt).toLocaleDateString('en-AU')}
@@ -1854,7 +1854,7 @@ export default function AdminCrmPage() {
                       Contract & Agreement Engine
                     </span>
                     <span style={{ fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
-                      Immutable Private Vault &bull; Version Controlled
+                      Document library &bull; Version history
                     </span>
                   </div>
                   <h2 className="crmPanelTitle">Service Agreements & Document Packs</h2>
@@ -1993,7 +1993,7 @@ export default function AdminCrmPage() {
                       NDIS Support Catalogue &bull; NSW Northern Rivers Price Limits (2026 Reference)
                     </h3>
                     <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                      Statutory price limits serve as reference benchmarks; all client rates in the Schedule of Supports are mutually agreed.
+                      Confirm the applicable NDIS pricing rules and record agreed rates in the Schedule of Supports.
                     </p>
                   </div>
                 </div>
@@ -4287,7 +4287,7 @@ export default function AdminCrmPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => notify('Audit logs are synchronized in private Supabase bucket.')}
+                    onClick={() => notify('Activity history is available to authorised administrators.')}
                     className="vsBtnOutline"
                     style={{ flex: 1, padding: '7px 12px', fontSize: '0.8125rem' }}
                   >
@@ -4299,7 +4299,7 @@ export default function AdminCrmPage() {
               {/* Provider Legal Entity Card (Screen 4 Plan Box) */}
               <div className="vsHeroCard lavender">
                 <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4F46E5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  REGISTERED PROVIDER
+                  UNREGISTERED NDIS PROVIDER
                 </span>
                 <h4 style={{ margin: '4px 0 2px', fontSize: '0.98rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                   Opus Care Support Services
@@ -4337,11 +4337,11 @@ export default function AdminCrmPage() {
                   description="7-day HttpOnly cookie session active"
                   icon={<Lock size={18} />}
                   tint="teal"
-                  onClick={() => notify('Session token is cryptographically signed with HMAC-SHA256.')}
+                  onClick={() => notify('Sign out when you finish using this device.')}
                 />
                 <CrmSettingRow
                   title="Private Document Vault"
-                  description="AES-256 encrypted Supabase Storage"
+                  description="Document storage for authorised users"
                   icon={<FolderLock size={18} />}
                   tint="sky"
                   badge="Encrypted"
@@ -4398,20 +4398,20 @@ export default function AdminCrmPage() {
 
               {/* About & Sign Out Bento Card */}
               <CrmBentoPane
-                title="About & System"
+                title="System Diagnostics"
                 subtitle="System information and security"
                 noPadding
               >
                 <CrmSettingRow
                   title="About Opus Care CRM"
-                  description="Version 2.5 Enterprise Edition"
+                  description="Opus Care operations workspace"
                   icon={<Sparkles size={18} />}
                   tint="indigo"
-                  badge="v2.5"
+                  badge="Opus Care"
                 />
                 <CrmSettingRow
-                  title="Supabase Sydney Connection"
-                  description="Connected live to ap-southeast-2"
+                  title="System access"
+                  description="Use your account to access the workspace"
                   icon={<Activity size={18} />}
                   tint="emerald"
                   badge="Live"
@@ -4805,7 +4805,7 @@ export default function AdminCrmPage() {
                 <div>
                   <div style={{ marginBottom: 20, padding: 16, background: 'var(--oc-background)', border: '1px solid #EEF2F6', borderRadius: 10 }}>
                     <h4 style={{ margin: '0 0 8px', fontSize: '0.92rem', color: 'var(--oc-text)' }}>
-                      Upload to Encrypted Vault (AES-256)
+                      Upload document
                     </h4>
                     <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                       <div>

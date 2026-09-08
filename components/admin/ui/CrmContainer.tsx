@@ -335,7 +335,7 @@ export default function CrmContainer({
                 <CrmNotificationItem
                   id="notif-1"
                   title="Service Agreement Signed"
-                  description="Liam Davies digitally executed PACK-PART-01 with SHA-256 seal."
+                  description="Liam Davies signed the participant agreement."
                   timestamp="15m ago"
                   icon={<FileCheck size={16} />}
                   tint="teal"

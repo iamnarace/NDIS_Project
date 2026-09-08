@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -7,7 +8,7 @@ export async function POST(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -95,7 +96,7 @@ export async function POST(req: Request) {
       .select('*, staff:staff(*)')
       .single();
 
-    if (assignErr) return NextResponse.json({ message: assignErr.message }, { status: 500 });
+    if (assignErr) return NextResponse.json({ message: userFacingError(assignErr.message) }, { status: 500 });
 
     // Update shift status to 'assigned'
     await supabase
@@ -121,7 +122,7 @@ export async function PATCH(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -143,7 +144,7 @@ export async function PATCH(req: Request) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
 
     // Sync shift status if completed
     if (status === 'completed' && data?.shift_id) {
@@ -165,7 +166,7 @@ export async function DELETE(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const shiftId = searchParams.get('shift_id');

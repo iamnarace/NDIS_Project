@@ -26,13 +26,13 @@ const FAQS: FaqItem[] = [
     id: 'provider-status',
     question: 'Are you a registered or unregistered NDIS provider?',
     category: 'NDIS Registration',
-    answer: 'Opus Care operates as an unregistered provider under the NDIS framework. We maintain strict compliance with the NDIS Quality and Safeguards Commission and the NDIS Code of Conduct. As an unregistered provider, we work directly with self-managed and plan-managed participants, ensuring personalised matching with zero corporate administrative overhead.',
+    answer: 'Opus Care operates as an unregistered provider under the NDIS framework. The NDIS Code of Conduct applies to our supports and services. As an unregistered provider, we work directly with self-managed and plan-managed participants, with support matched to individual needs.',
   },
   {
     id: 'hourly-rates',
     question: 'How are your hourly rates determined?',
     category: 'Pricing & Billing',
-    answer: 'All our hourly rates strictly adhere to the official NDIS Pricing Arrangements and Price Limits for standard 1-on-1 Core (Assistance with Daily Living, Social & Community Participation) and Capacity Building supports. All rates, travel, and cancellation terms are documented upfront in your service agreement with zero hidden fees or exit charges.',
+    answer: 'We discuss and document agreed rates, travel and cancellation terms before support starts, taking account of the pricing rules that apply to your funding and supports.',
   },
   {
     id: 'turnaround-time',

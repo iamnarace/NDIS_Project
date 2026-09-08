@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const ownerId = searchParams.get('owner_id');
@@ -53,7 +54,7 @@ export async function GET(req: Request) {
   if (status && status !== 'all') query = query.eq('status', status);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
 
   return NextResponse.json(data || []);
 }
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -88,11 +89,11 @@ export async function POST(req: Request) {
     }
 
     if (!isValidUuid(template_id)) {
-      return NextResponse.json({ message: 'Invalid template_id: must be a valid UUID' }, { status: 400 });
+      return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
     if (prior_agreement_id && !isValidUuid(prior_agreement_id)) {
-      return NextResponse.json({ message: 'Invalid prior_agreement_id: must be a valid UUID' }, { status: 400 });
+      return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
     // Defensively resolve owner_id to actual Supabase UUID
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
 
     if (!resolvedOwnerId || !isValidUuid(resolvedOwnerId)) {
       return NextResponse.json(
-        { message: `Invalid ${owner_type} ID: '${owner_id}' is not a valid UUID and could not be resolved to a registered database record.` },
+        { message: "We couldn't complete this action. Please refresh and try again." },
         { status: 400 }
       );
     }
@@ -157,7 +158,7 @@ export async function POST(req: Request) {
       .select('*, template:document_templates(*)')
       .single();
 
-    if (insertErr) return NextResponse.json({ message: insertErr.message }, { status: 500 });
+    if (insertErr) return NextResponse.json({ message: userFacingError(insertErr.message) }, { status: 500 });
 
     // If variation, mark prior agreement as superseded
     if (is_variation && prior_agreement_id && newAgreement) {
@@ -183,7 +184,7 @@ export async function PATCH(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
@@ -215,7 +216,7 @@ export async function PATCH(req: Request) {
       .select('*, template:document_templates(*), signatures:agreement_signatures(*)')
       .single();
 
-    if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
     return NextResponse.json({ ok: true, agreement: data });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Server error';
@@ -228,7 +229,7 @@ export async function DELETE(req: Request) {
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: 'Database unavailable' }, { status: 503 });
+  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
@@ -251,6 +252,6 @@ export async function DELETE(req: Request) {
     .delete()
     .eq('id', id);
 
-  if (error) return NextResponse.json({ message: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
   return NextResponse.json({ ok: true, deleted_id: id });
 }

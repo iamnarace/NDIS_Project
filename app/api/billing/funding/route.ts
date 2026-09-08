@@ -1,3 +1,4 @@
+import { userFacingError } from '@/lib/userFacingError';
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
       .eq('participant_id', pUuid)
       .order('plan_start', { ascending: false });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: userFacingError(error.message) }, { status: 500 });
 
     // Calculate aggregated metrics across budgets
     const processedPeriods = (periods || []).map((p: any) => {
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ periods: processedPeriods });
   } catch (err: any) {
     console.error('GET /api/billing/funding error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }
 
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
     const supabase = createAdminClient();
-    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
 
     const body = await request.json();
     const {
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (pErr) return NextResponse.json({ error: pErr.message }, { status: 500 });
+    if (pErr) return NextResponse.json({ error: userFacingError(pErr.message) }, { status: 500 });
 
     const defaultBudgetCategories = budgets.length > 0 ? budgets : [
       { category: 'Core Supports', budget_amount: 35000, committed_amount: 0 },
@@ -161,6 +162,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ period }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/billing/funding error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 500 });
   }
 }

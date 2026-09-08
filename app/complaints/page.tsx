@@ -43,7 +43,7 @@ export default function ComplaintsPage() {
               <div className="policySection">
                 <h2>3. How We Handle Complaints</h2>
                 <p>
-                  We acknowledge all complaints within 24 hours (1 business day), treat your concerns with confidentiality and respect, investigate the matter thoroughly, and provide you with a written outcome and proposed resolution within 10 business days.
+                  We aim to acknowledge complaints within one business day and provide an outcome within ten business days. These are our service targets. If more time is needed, we will explain why and keep you informed.
                 </p>
               </div>
 
