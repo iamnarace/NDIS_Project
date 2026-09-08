@@ -72,9 +72,9 @@ export default function FaqPage() {
           <div className="shell">
             <div className="faqHeroCenter">
               <span className="greenCategoryTag">
-                <HelpCircle size={14} /> CLARITY &amp; TRANSPARENCY
+                <HelpCircle size={14} /> CLARITY & TRANSPARENCY
               </span>
-              <h1 className="sectionSerifTitle">Frequently Asked Questions &amp; Pricing</h1>
+              <h1 className="sectionSerifTitle">Frequently Asked Questions & Pricing</h1>
               <p className="sectionSubDesc">
                 Find clear, straightforward answers regarding our NDIS support services, pricing limits, billing, matching process, and regional coverage across Northern Rivers NSW.
               </p>

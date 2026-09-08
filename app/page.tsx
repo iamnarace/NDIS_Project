@@ -50,7 +50,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="unifiedHeroDesc lightDesc">
-                  At Opus Care Support Services, we match you with trusted, compassionate local support workers. Supporting Self-Managed and Plan-Managed Participants with genuine choice, control, and transparent 1-on-1 care across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
+                  At Opus Care Support Services, we match you with trusted, compassionate local support workers. Supporting Self-Managed and Plan-Managed Participants with genuine choice, control, and transparent 1-on-1 care across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers.
                 </p>
 
                 <div className="unifiedHeroBtnRow">
@@ -66,7 +66,7 @@ export default function HomePage() {
 
                 <div className="heroSubtagRow">
                   <span className="heroSubtagText">
-                    🛡️ UNREGISTERED NDIS PROVIDER · SUPPORTING SELF &amp; PLAN-MANAGED PARTICIPANTS
+                    🛡️ UNREGISTERED NDIS PROVIDER · SUPPORTING SELF & PLAN-MANAGED PARTICIPANTS
                   </span>
                 </div>
               </div>
@@ -170,8 +170,8 @@ export default function HomePage() {
         <section className="cleanSectionPadding" id="estimator">
           <div className="shell">
             <div className="sectionHeaderCenter">
-              <span className="greenCategoryTag">PLANNING &amp; COVERAGE</span>
-              <h2 className="sectionSerifTitle">Plan Your Support &amp; Check Coverage</h2>
+              <span className="greenCategoryTag">PLANNING & COVERAGE</span>
+              <h2 className="sectionSerifTitle">Plan Your Support & Check Coverage</h2>
               <p className="sectionSubDesc">
                 Calculate your NDIS budget and verify immediate support worker availability in your town.
               </p>

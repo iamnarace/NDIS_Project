@@ -11,9 +11,9 @@ export default function ComplaintsPage() {
         <section className="pageHero">
           <div className="shell">
             <span className="eyebrow">
-              <MessageSquare size={15} /> Feedback &amp; Continuous Improvement
+              <MessageSquare size={15} /> Feedback & Continuous Improvement
             </span>
-            <h1>Complaints, Compliments &amp; Feedback</h1>
+            <h1>Complaints, Compliments & Feedback</h1>
             <p>
               You have the right to give feedback and make complaints at any time without fear of negative consequences. We welcome your input to continuously improve our support.
             </p>

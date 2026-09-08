@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { isValidUuid, resolveParticipantUuid } from '@/lib/uuid';
 
 /**
  * GET /api/portal/participant/goals?participant_id=xxx
@@ -34,18 +35,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const participantId = searchParams.get('participant_id');
 
+    let resolvedParticipantId = participantId;
+    if (resolvedParticipantId && !isValidUuid(resolvedParticipantId)) {
+      resolvedParticipantId = (await resolveParticipantUuid(supabase, resolvedParticipantId)) || resolvedParticipantId;
+    }
+
     let query = supabase
       .from('participant_goals')
       .select(`
         id, participant_id, goal_title, goal_description, category,
-        status, target_date, achieved_date, review_date, priority, ndis_domain,
-        created_at, updated_at
+        status, target_date, review_date, progress_pct, priority,
+        ndis_domain, created_at, updated_at
       `)
-      .order('priority', { ascending: true })
       .order('created_at', { ascending: false });
 
-    if (participantId) {
-      query = query.eq('participant_id', participantId);
+    if (resolvedParticipantId && isValidUuid(resolvedParticipantId)) {
+      query = query.eq('participant_id', resolvedParticipantId);
     }
 
     const { data, error } = await query;
@@ -95,10 +100,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'participant_id and goal_title are required' }, { status: 400 });
     }
 
+    let resolvedParticipantId = participant_id;
+    if (!isValidUuid(participant_id)) {
+      resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
+    }
+    if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
+      return NextResponse.json({ error: `Invalid participant_id: '${participant_id}' could not be resolved to a valid UUID.` }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from('participant_goals')
       .insert({
-        participant_id,
+        participant_id: resolvedParticipantId,
         goal_title,
         goal_description: goal_description || null,
         category: category || 'General',

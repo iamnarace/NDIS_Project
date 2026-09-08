@@ -54,7 +54,7 @@ export function OurApproachSection() {
           </span>
           <h2 className="sectionSerifTitle">Our 4-Step Support Approach</h2>
           <p className="sectionSubDesc">
-            How we partner with NDIS participants, families, and support coordinators across Clarence Coast &amp; Northern Rivers NSW to deliver care you can genuinely rely on.
+            How we partner with NDIS participants, families, and support coordinators across Clarence Coast & Northern Rivers NSW to deliver care you can genuinely rely on.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export function OurApproachSection() {
             </div>
             <div>
               <strong>Supporting Participants Across Regional NSW</strong>
-              <p>Self-Managed &amp; Plan-Managed Participants · Immediate Northern Rivers Capacity</p>
+              <p>Self-Managed & Plan-Managed Participants · Immediate Northern Rivers Capacity</p>
             </div>
           </div>
           <div className="approachBannerRight">

@@ -1,54 +1,120 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, UserCheck, AlertCircle } from 'lucide-react';
+import { X, UserCheck, ArrowRight, ArrowLeft, Check, ShieldCheck, Briefcase } from 'lucide-react';
+import {
+  FormField,
+  TextInput,
+  SmartSelect,
+  RadioCard,
+  FormStepper,
+  ReviewSummary,
+  InlineValidation,
+  CredentialUpload,
+} from '@/components/ui/form';
 
 interface AddWorkerModalProps {
   onClose: () => void;
   onCreated: (newStaff: any) => void;
 }
 
-const REGIONAL_SUBURBS = [
-  'Yamba', 'Maclean', 'Grafton', 'Iluka', 'Ulmarra', 'Townsend', 'Wooli'
+const WIZARD_STEPS = [
+  { num: 1, label: 'Personal Details' },
+  { num: 2, label: 'Engagement Model' },
+  { num: 3, label: 'Role & Rates' },
+  { num: 4, label: 'Compliance & Clearances' },
+  { num: 5, label: 'Review & Register' },
+];
+
+const HUB_SUBURBS = [
+  'Yamba', 'Maclean', 'Grafton', 'Iluka', 'Townsend',
+  'Coffs Harbour', 'Woolgoolga', 'Casino', 'Lismore', 'Ballina'
 ];
 
 export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalProps) {
+  const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  // Step 1: Personal Details
   const [name, setName] = useState('');
-  const [role, setRole] = useState('Disability Support Worker');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [emergencyContact, setEmergencyContact] = useState('');
+
+  // Step 2: Engagement Type
+  const [engagementType, setEngagementType] = useState<'employee' | 'contractor'>('employee');
+  const [abn, setAbn] = useState('');
+
+  // Step 3: Role & Employment
+  const [role, setRole] = useState('Disability Support Worker');
   const [hourlyRate, setHourlyRate] = useState('38.50');
   const [selectedSuburbs, setSelectedSuburbs] = useState<string[]>(['Yamba', 'Maclean']);
-  
-  // Credentials
+
+  // Step 4: Compliance Credentials
   const [ndisScreening, setNdisScreening] = useState('Verified');
   const [ndisScreeningExpiry, setNdisScreeningExpiry] = useState('');
   const [wwcc, setWwcc] = useState('');
   const [wwccExpiry, setWwccExpiry] = useState('');
   const [firstAidExpiry, setFirstAidExpiry] = useState('');
   const [cprExpiry, setCprExpiry] = useState('');
-
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [policeCheckDate, setPoliceCheckDate] = useState('');
+  const [ndisOrientationCompleted, setNdisOrientationCompleted] = useState(true);
 
   const toggleSuburb = (sub: string) => {
     if (selectedSuburbs.includes(sub)) {
-      setSelectedSuburbs(selectedSuburbs.filter(s => s !== sub));
+      setSelectedSuburbs(selectedSuburbs.filter((s) => s !== sub));
     } else {
       setSelectedSuburbs([...selectedSuburbs, sub]);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const validateStep = (currentStep: number): boolean => {
     setError('');
+    if (currentStep === 1) {
+      if (!name.trim()) {
+        setError('Worker Full Legal Name is required.');
+        return false;
+      }
+      if (!phone.trim()) {
+        setError('Mobile phone number is required.');
+        return false;
+      }
+      if (!email.trim()) {
+        setError('Email address is required.');
+        return false;
+      }
+    }
+    if (currentStep === 2) {
+      if (engagementType === 'contractor' && abn && !/^\d{11}$/.test(abn.replace(/\s/g, ''))) {
+        setError('ABN should be 11 digits.');
+        return false;
+      }
+    }
+    return true;
+  };
 
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep((prev) => Math.min(prev + 1, 5));
+    }
+  };
+
+  const handleBack = () => {
+    setError('');
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!name.trim() || !phone.trim() || !email.trim()) {
-      setError('Full Name, Phone, and Email are required.');
-      setSubmitting(false);
+      setError('Full Legal Name, Mobile Phone, and Email are required.');
+      setStep(1);
       return;
     }
+
+    setSubmitting(true);
+    setError('');
 
     try {
       const res = await fetch('/api/crm/staff', {
@@ -61,12 +127,17 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
           email: email.trim(),
           suburbs: selectedSuburbs.length > 0 ? selectedSuburbs : ['Yamba', 'Maclean'],
           hourlyRate: Number(hourlyRate) || 38.50,
+          engagementType,
+          abn: engagementType === 'contractor' ? abn.trim() || null : null,
+          emergencyContact: emergencyContact.trim() || null,
           ndisScreening,
           ndisScreeningExpiry: ndisScreeningExpiry || null,
           wwcc: wwcc.trim() || null,
           wwccExpiry: wwccExpiry || null,
           firstAidExpiry: firstAidExpiry || null,
           cprExpiry: cprExpiry || null,
+          policeCheckDate: policeCheckDate || null,
+          ndisOrientationCompleted,
         }),
       });
 
@@ -79,7 +150,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
       onCreated(data.staff);
       onClose();
     } catch (err: unknown) {
-      setError('Connection error. Please try again.');
+      setError('Connection error. Please check your network and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -87,174 +158,355 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
 
   return (
     <div className="crmModalOverlay" onClick={onClose}>
-      <div className="crmModalBox" style={{ maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
-        <div className="crmModalHeader">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
-              <UserCheck size={18} />
+      <div
+        className="crmModalBox"
+        style={{ maxWidth: 740, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="crmModalHeader" style={{ flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: '#ECFDF5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#059669',
+              }}
+            >
+              <UserCheck size={20} />
             </div>
             <div>
-              <span className="refIdTag">NEW SUPPORT WORKER</span>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>Register Support Worker</h3>
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                WORKFORCE ONBOARDING
+              </span>
+              <h3 className="crmSectionTitle" style={{ margin: 0 }}>Register Support Worker</h3>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 4 }}
+          >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Stepper */}
+        <FormStepper
+          steps={WIZARD_STEPS}
+          currentStep={step}
+          onStepClick={(num) => {
+            if (num < step) setStep(num);
+          }}
+        />
+
+        {/* Body */}
+        <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
           {error && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertCircle size={16} />
-              <span>{error}</span>
+            <div style={{ marginBottom: 16 }}>
+              <InlineValidation type="error" message={error} />
             </div>
           )}
 
-          {/* Full Name & Role */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div>
-              <label className="crmFormLabel">Worker Full Name *</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="crmFormInput"
-                placeholder="e.g. Sarah Jenkins"
-                required
+          {/* STEP 1: PERSONAL DETAILS */}
+          {step === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ marginBottom: 4 }}>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 1: Personal Details</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Basic identity and contact information for roster communications and emergency contacts.
+                </p>
+              </div>
+
+              <FormField label="Full Legal Name" required id="wName">
+                <TextInput
+                  id="wName"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Jordan Miller"
+                  autoFocus
+                />
+              </FormField>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <FormField label="Mobile Phone" required id="wPhone">
+                  <TextInput
+                    id="wPhone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="0455 000 111"
+                  />
+                </FormField>
+
+                <FormField label="Email Address" required id="wEmail">
+                  <TextInput
+                    id="wEmail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="worker@opuscare.com.au"
+                  />
+                </FormField>
+              </div>
+
+              <FormField label="Emergency Contact" hint="Next of kin / Emergency contact name & phone">
+                <TextInput
+                  value={emergencyContact}
+                  onChange={(e) => setEmergencyContact(e.target.value)}
+                  placeholder="e.g. Sarah Miller (Partner) - 0411 222 333"
+                />
+              </FormField>
+            </div>
+          )}
+
+          {/* STEP 2: ENGAGEMENT MODEL */}
+          {step === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ marginBottom: 4 }}>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 2: Engagement Type</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Select whether the worker is engaged as an employee or independent subcontractor.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <RadioCard
+                  selected={engagementType === 'employee'}
+                  onSelect={() => setEngagementType('employee')}
+                  title="Employee (SCHADS Award)"
+                  description="PAYG withholding, 11.5% Superannuation guarantee, Fair Work Award coverage."
+                  badge="Standard PAYG"
+                  icon={<Briefcase size={20} />}
+                />
+                <RadioCard
+                  selected={engagementType === 'contractor'}
+                  onSelect={() => setEngagementType('contractor')}
+                  title="Independent Contractor"
+                  description="Sole Trader with active ABN, invoice-based billing, required insurances & clearances."
+                  badge="ABN / Invoicing"
+                  icon={<ShieldCheck size={20} />}
+                />
+              </div>
+
+              {engagementType === 'contractor' && (
+                <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 8, padding: 14 }}>
+                  <FormField label="Australian Business Number (ABN)" required hint="11-digit registered Australian Business Number">
+                    <TextInput
+                      value={abn}
+                      onChange={(e) => setAbn(e.target.value)}
+                      placeholder="e.g. 12 345 678 901"
+                    />
+                  </FormField>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP 3: ROLE & EMPLOYMENT */}
+          {step === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ marginBottom: 4 }}>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 3: Role & Rates</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Define position classification, agreed base hourly billing rate, and operational coverage areas.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 14 }}>
+                <FormField label="Position / Role" required>
+                  <SmartSelect
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    options={[
+                      { value: 'Disability Support Worker', label: 'Disability Support Worker (Level 2)' },
+                      { value: 'Support Worker & Mentor', label: 'Support Worker & Senior Mentor (Level 3)' },
+                      { value: 'Complex Care Specialist', label: 'Complex Care Specialist (Level 4)' },
+                      { value: 'Team Leader', label: 'Team Leader / Care Coordinator' },
+                    ]}
+                  />
+                </FormField>
+
+                <FormField label="Base Hourly Rate ($ AUD)" required hint="Standard weekday daytime rate">
+                  <TextInput
+                    type="number"
+                    step="0.50"
+                    min="30"
+                    value={hourlyRate}
+                    onChange={(e) => setHourlyRate(e.target.value)}
+                    placeholder="38.50"
+                  />
+                </FormField>
+              </div>
+
+              <div>
+                <label className="crmFormLabel">Assigned Regional Coverage Hubs</label>
+                <p className="crmFormHelper" style={{ marginBottom: 10 }}>
+                  Select the regional towns where this worker is available for roster scheduling:
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {HUB_SUBURBS.map((sub) => {
+                    const active = selectedSuburbs.includes(sub);
+                    return (
+                      <button
+                        key={sub}
+                        type="button"
+                        onClick={() => toggleSuburb(sub)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 20,
+                          border: active ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
+                          background: active ? '#F0F9FF' : '#FFFFFF',
+                          color: active ? '#0284C7' : '#475569',
+                          fontWeight: active ? 600 : 500,
+                          fontSize: '0.8125rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {active ? `✓ ${sub}` : `+ ${sub}`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: COMPLIANCE & CREDENTIALS */}
+          {step === 4 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ marginBottom: 4 }}>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Compliance Credentials & Clearances</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Record mandatory safeguarding clearances with expiry tracking for automated roster compliance checks.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <CredentialUpload
+                  title="NDIS Worker Screening Check (NDISWC)"
+                  subtitle="National clearance verified through the NDIS Commission Worker Portal"
+                  expiryDate={ndisScreeningExpiry}
+                  onExpiryChange={setNdisScreeningExpiry}
+                  required
+                />
+
+                <CredentialUpload
+                  title="Working with Children Check (WWCC)"
+                  subtitle="NSW Office of the Children's Guardian registration"
+                  referenceNumber={wwcc}
+                  onReferenceChange={setWwcc}
+                  referencePlaceholder="e.g. WWC0982341E"
+                  expiryDate={wwccExpiry}
+                  onExpiryChange={setWwccExpiry}
+                />
+
+                <CredentialUpload
+                  title="First Aid & CPR (HLTAID011 / HLTAID009)"
+                  subtitle="Current certification for life support and emergency response"
+                  expiryDate={firstAidExpiry}
+                  onExpiryChange={setFirstAidExpiry}
+                />
+
+                <CredentialUpload
+                  title="National Police Certificate"
+                  subtitle="Criminal history check conducted within the last 12 months"
+                  expiryDate={policeCheckDate}
+                  onExpiryChange={setPoliceCheckDate}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: REVIEW & REGISTER */}
+          {step === 5 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ marginBottom: 4 }}>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 5: Review & Register Support Worker</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Confirm worker profile and credentials before registering into the active roster.
+                </p>
+              </div>
+
+              <ReviewSummary
+                sections={[
+                  {
+                    title: 'Worker Profile',
+                    fields: [
+                      { label: 'Full Legal Name', value: name },
+                      { label: 'Mobile Phone', value: phone },
+                      { label: 'Email', value: email },
+                      { label: 'Emergency Contact', value: emergencyContact || 'None' },
+                    ],
+                  },
+                  {
+                    title: 'Engagement & Classification',
+                    fields: [
+                      {
+                        label: 'Engagement Model',
+                        value: engagementType === 'employee' ? 'Employee (SCHADS Award)' : 'Independent Contractor',
+                        badge: engagementType.toUpperCase(),
+                      },
+                      { label: 'Position', value: role },
+                      { label: 'Base Rate', value: `$${hourlyRate} / hr` },
+                      { label: 'Coverage Hubs', value: selectedSuburbs.join(', ') || 'Clarence Valley' },
+                    ],
+                  },
+                  {
+                    title: 'Safeguarding & Clearances',
+                    fields: [
+                      {
+                        label: 'NDIS Worker Screening',
+                        value: ndisScreeningExpiry ? `Valid to ${ndisScreeningExpiry}` : 'Verified',
+                        badge: 'Active',
+                      },
+                      {
+                        label: 'WWCC',
+                        value: wwcc ? `${wwcc} (Exp: ${wwccExpiry || 'Pending'})` : 'Not provided',
+                      },
+                      {
+                        label: 'First Aid & CPR',
+                        value: firstAidExpiry ? `Valid to ${firstAidExpiry}` : 'Current',
+                      },
+                    ],
+                  },
+                ]}
               />
             </div>
-            <div>
-              <label className="crmFormLabel">Position / Title</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="crmFormInput"
+          )}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: '14px 24px',
+            borderTop: '1px solid #E2E8F0',
+            background: '#F8FAFC',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+          }}
+        >
+          <div>
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={handleBack}
+                className="crmSecondaryBtn"
               >
-                <option value="Disability Support Worker">Disability Support Worker (Level 2)</option>
-                <option value="Senior Support Worker">Senior Support Worker (Level 3)</option>
-                <option value="Team Leader / Coordinator">Team Leader / Coordinator</option>
-                <option value="Allied Health Assistant">Allied Health Assistant</option>
-              </select>
-            </div>
+                <ArrowLeft size={16} />
+                <span>Back</span>
+              </button>
+            )}
           </div>
 
-          {/* Phone & Email */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div>
-              <label className="crmFormLabel">Mobile Phone *</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="crmFormInput"
-                placeholder="0400 000 000"
-                required
-              />
-            </div>
-            <div>
-              <label className="crmFormLabel">Email Address *</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="crmFormInput"
-                placeholder="worker@opuscare.com.au"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Base Hourly Rate */}
-          <div>
-            <label className="crmFormLabel">Base Hourly Rate (AUD)</label>
-            <input
-              type="number"
-              step="0.5"
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-              className="crmFormInput"
-              placeholder="38.50"
-            />
-          </div>
-
-          {/* Suburbs Covered */}
-          <div>
-            <label className="crmFormLabel">Covered Suburbs / Service Areas</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-              {REGIONAL_SUBURBS.map((sub) => {
-                const active = selectedSuburbs.includes(sub);
-                return (
-                  <button
-                    key={sub}
-                    type="button"
-                    onClick={() => toggleSuburb(sub)}
-                    style={{
-                      border: active ? '1.5px solid #059669' : '1px solid #CBD5E1',
-                      background: active ? '#ECFDF5' : '#FFFFFF',
-                      color: active ? '#065F46' : '#475569',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {active ? `✓ ${sub}` : `+ ${sub}`}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Clearances & Expiry Dates */}
-          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 14 }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0F172A', display: 'block', marginBottom: 10 }}>
-              Mandatory Clearances &amp; Expiry Tracking
-            </span>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label className="crmFormLabel">NDIS Screening Expiry</label>
-                <input
-                  type="date"
-                  value={ndisScreeningExpiry}
-                  onChange={(e) => setNdisScreeningExpiry(e.target.value)}
-                  className="crmFormInput"
-                />
-              </div>
-              <div>
-                <label className="crmFormLabel">WWCC Number &amp; Expiry</label>
-                <input
-                  type="text"
-                  value={wwcc}
-                  onChange={(e) => setWwcc(e.target.value)}
-                  className="crmFormInput"
-                  placeholder="e.g. WWC1234567E"
-                />
-              </div>
-              <div>
-                <label className="crmFormLabel">First Aid Expiry (HLTAID011)</label>
-                <input
-                  type="date"
-                  value={firstAidExpiry}
-                  onChange={(e) => setFirstAidExpiry(e.target.value)}
-                  className="crmFormInput"
-                />
-              </div>
-              <div>
-                <label className="crmFormLabel">CPR Expiry (HLTAID009)</label>
-                <input
-                  type="date"
-                  value={cprExpiry}
-                  onChange={(e) => setCprExpiry(e.target.value)}
-                  className="crmFormInput"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               type="button"
               onClick={onClose}
@@ -262,15 +514,36 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="crmActionBtnPrimary"
-            >
-              {submitting ? 'Registering...' : 'Save Support Worker'}
-            </button>
+
+            {step < 5 ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="crmActionBtnPrimary"
+              >
+                <span>Continue</span>
+                <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleSubmit()}
+                className="crmActionBtnPrimary"
+                style={{ background: '#059669' }}
+              >
+                {submitting ? (
+                  <span>Registering Worker...</span>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    <span>Register Support Worker</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidUuid } from '@/lib/uuid';
 
 export async function POST(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const {
+    let {
       agreement_id,
       party_role,
       signer_name,
@@ -24,6 +25,21 @@ export async function POST(req: Request) {
 
     if (!agreement_id || !party_role || !signer_name) {
       return NextResponse.json({ message: 'agreement_id, party_role, and signer_name are required' }, { status: 400 });
+    }
+
+    // Defensive resolution if agreement_reference passed
+    if (!isValidUuid(agreement_id)) {
+      const { data: byRef } = await supabase
+        .from('agreement_records')
+        .select('id')
+        .eq('agreement_reference', String(agreement_id).trim())
+        .maybeSingle();
+
+      if (byRef?.id) {
+        agreement_id = byRef.id;
+      } else {
+        return NextResponse.json({ message: `Invalid agreement_id: '${agreement_id}' is not a valid UUID.` }, { status: 400 });
+      }
     }
 
     // Insert signature

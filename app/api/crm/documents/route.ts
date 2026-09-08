@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidUuid, resolveParticipantUuid, resolveStaffUuid } from '@/lib/uuid';
 import fs from 'fs';
 import path from 'path';
 
@@ -42,9 +43,22 @@ export async function GET(req: Request) {
   const supabase = createAdminClient();
   if (supabase) {
     try {
+      let resolvedOwnerId = ownerId;
+      if (!isValidUuid(ownerId)) {
+        if (ownerType === 'participant') {
+          resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
+        } else if (ownerType === 'staff' || ownerType === 'contractor') {
+          resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
+        }
+      }
+
       let query = supabase.from('documents').select('*').order('created_at', { ascending: false });
       if (ownerType) query = query.eq('owner_type', ownerType);
-      query = query.eq('owner_id', ownerId);
+      if (isValidUuid(resolvedOwnerId)) {
+        query = query.eq('owner_id', resolvedOwnerId);
+      } else {
+        query = query.eq('owner_id', ownerId);
+      }
 
       const { data, error } = await query;
       if (!error && data) {
@@ -104,6 +118,15 @@ export async function POST(req: Request) {
     const supabase = createAdminClient();
     if (supabase) {
       try {
+        let resolvedOwnerId = ownerId;
+        if (!isValidUuid(ownerId)) {
+          if (ownerType === 'participant') {
+            resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
+          } else if (ownerType === 'staff' || ownerType === 'contractor') {
+            resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
+          }
+        }
+
         // 1. Upload to Supabase Storage bucket: crm-documents
         const { error: uploadErr } = await supabase.storage
           .from('crm-documents')
@@ -121,7 +144,7 @@ export async function POST(req: Request) {
           .from('documents')
           .insert({
             owner_type: ownerType,
-            owner_id: ownerId,
+            owner_id: resolvedOwnerId,
             file_name: file.name,
             file_size: file.size,
             file_type: file.type || 'application/octet-stream',

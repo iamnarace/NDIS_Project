@@ -24,7 +24,7 @@ export function ReadyCtaSection() {
               <div className="pillIconCircle">
                 <Home size={16} />
               </div>
-              <span>Home &amp; Living</span>
+              <span>Home & Living</span>
             </div>
             <div className="readyPillItem">
               <div className="pillIconCircle">

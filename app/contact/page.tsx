@@ -68,7 +68,7 @@ export default function ContactPage() {
                 </div>
                 <div className="sidebarDetailContent">
                   <span className="sidebarLabel">LOCAL SERVICE REGION</span>
-                  <h3>Yamba, Grafton &amp; Northern Rivers</h3>
+                  <h3>Yamba, Grafton & Northern Rivers</h3>
                   <p>Supporting Yamba, Maclean, Grafton, Iluka, New Italy, Woodburn, Evans Head, and surrounding Clarence communities.</p>
                 </div>
               </div>

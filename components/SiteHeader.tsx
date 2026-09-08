@@ -17,7 +17,7 @@ export function SiteHeader() {
           <div className="noticeDesktopView">
             <div className="noticeLeft">
               <span className="noticeBadge">NDIS Provider</span>
-              <span className="noticeText">Supporting Self &amp; Plan-Managed Participants Across NSW North Coast &amp; Northern Rivers</span>
+              <span className="noticeText">Supporting Self & Plan-Managed Participants Across NSW North Coast & Northern Rivers</span>
             </div>
             <div className="noticeRight">
               <span className="intakeBadge">
@@ -66,10 +66,10 @@ export function SiteHeader() {
           {/* Desktop Navigation */}
           <nav className="desktopNav" aria-label="Main Navigation">
             <Link href="/" className="navLink">Home</Link>
-            <Link href="/services" className="navLink">Services &amp; Supports</Link>
+            <Link href="/services" className="navLink">Services & Supports</Link>
             <Link href="/service-areas" className="navLink">Areas We Serve</Link>
             <Link href="/about" className="navLink">About Opus Care</Link>
-            <Link href="/faq" className="navLink">Pricing &amp; FAQ</Link>
+            <Link href="/faq" className="navLink">Pricing & FAQ</Link>
             <Link href="/portal" className="navLink portalHighlight">
               <Lock size={13} /> Portal
             </Link>
@@ -119,12 +119,12 @@ export function SiteHeader() {
         <nav className="mobileNavLinks">
           <Link href="/" onClick={() => setOpen(false)}>Home</Link>
           <Link href="/portal" onClick={() => setOpen(false)} className="mobilePortalNav">
-            <Lock size={16} /> <strong>Participant &amp; Staff Portal</strong>
+            <Lock size={16} /> <strong>Participant & Staff Portal</strong>
           </Link>
-          <Link href="/services" onClick={() => setOpen(false)}>Services &amp; Supports</Link>
+          <Link href="/services" onClick={() => setOpen(false)}>Services & Supports</Link>
           <Link href="/service-areas" onClick={() => setOpen(false)}>Areas We Serve</Link>
           <Link href="/about" onClick={() => setOpen(false)}>About Opus Care</Link>
-          <Link href="/faq" onClick={() => setOpen(false)}>Pricing &amp; FAQ</Link>
+          <Link href="/faq" onClick={() => setOpen(false)}>Pricing & FAQ</Link>
           <Link href="/contact" onClick={() => setOpen(false)}>Contact Us</Link>
           <div className="mobileDrawerCta">
             <Link className="headerCtaBtn full" href="/referral" onClick={() => setOpen(false)}>
@@ -136,8 +136,8 @@ export function SiteHeader() {
 
         <div className="mobileDrawerFooter">
           <span>📧 support@opuscare.com.au</span>
-          <span>📍 NSW North Coast &amp; Northern Rivers</span>
-          <small>Unregistered NDIS Provider · Supporting Self &amp; Plan Managed</small>
+          <span>📍 NSW North Coast & Northern Rivers</span>
+          <small>Unregistered NDIS Provider · Supporting Self & Plan Managed</small>
         </div>
       </div>
       {open && <div className="mobileBackdropOverlay" aria-hidden="true" onClick={() => setOpen(false)} />}

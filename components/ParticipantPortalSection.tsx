@@ -37,11 +37,11 @@ export function ParticipantPortalSection() {
             </span>
 
             <h2 className="portalMainTitle">
-              Participant &amp; Carer Portal
+              Participant & Carer Portal
             </h2>
 
             <p className="portalSubTitle">
-              Transparency, Empowerment &amp; Complete Control
+              Transparency, Empowerment & Complete Control
             </p>
 
             <p className="portalIntroText">
@@ -133,7 +133,7 @@ export function ParticipantPortalSection() {
                     <strong>Upcoming Support Shift</strong>
                   </div>
                   <p>Tomorrow at 9:00 AM – 1:00 PM · Support Worker: <em>Emma H.</em></p>
-                  <small>Community Access &amp; Life Skills Training</small>
+                  <small>Community Access & Life Skills Training</small>
                 </div>
 
                 <div className="miniInvoiceCard">

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { logAuditEvent } from '@/lib/audit';
+import { isValidUuid, resolveIncidentUuid } from '@/lib/uuid';
 
 export async function GET(request: NextRequest) {
   try {
@@ -87,6 +88,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let resolvedSourceId = source_id;
+    if (!isValidUuid(source_id)) {
+      if (source_type === 'incident') {
+        resolvedSourceId = await resolveIncidentUuid(supabase, source_id);
+      } else if (source_type === 'complaint') {
+        const { data: cData } = await supabase.from('complaints').select('id').eq('complaint_reference', source_id).maybeSingle();
+        if (cData?.id) resolvedSourceId = cData.id;
+      }
+    }
+
+    if (!resolvedSourceId || !isValidUuid(resolvedSourceId)) {
+      return NextResponse.json({ error: `Invalid source_id: '${source_id}' is not a valid UUID.` }, { status: 400 });
+    }
+
     // Generate unique reference CAP-YYYY-XXXX
     const year = new Date().getFullYear();
     const { count } = await supabase
@@ -99,7 +114,7 @@ export async function POST(request: NextRequest) {
       .insert({
         action_reference: ref,
         source_type,
-        source_id,
+        source_id: resolvedSourceId,
         action_description,
         owner,
         due_date,

@@ -11,9 +11,9 @@ export default function PrivacyPage() {
         <section className="pageHero">
           <div className="shell">
             <span className="eyebrow">
-              <Shield size={15} /> Privacy &amp; Governance
+              <Shield size={15} /> Privacy & Governance
             </span>
-            <h1>Privacy Policy &amp; Information Handling</h1>
+            <h1>Privacy Policy & Information Handling</h1>
             <p>
               How Opus Care Support Services collects, manages, and protects personal and sensitive participant information in accordance with the Privacy Act 1988 (Cth) and Australian Privacy Principles.
             </p>

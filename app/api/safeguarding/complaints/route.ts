@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { logAuditEvent } from '@/lib/audit';
+import { isValidUuid, resolveParticipantUuid, resolveIncidentUuid } from '@/lib/uuid';
 
 export async function GET(request: NextRequest) {
   try {
@@ -101,6 +102,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let resolvedParticipantId = participant_id || null;
+    if (resolvedParticipantId && !isValidUuid(resolvedParticipantId)) {
+      resolvedParticipantId = await resolveParticipantUuid(supabase, resolvedParticipantId);
+    }
+
+    let resolvedLinkedIncidentId = linked_incident_id || null;
+    if (resolvedLinkedIncidentId && !isValidUuid(resolvedLinkedIncidentId)) {
+      resolvedLinkedIncidentId = await resolveIncidentUuid(supabase, resolvedLinkedIncidentId);
+    }
+
     // Generate unique reference CMP-YYYY-XXXX
     const year = new Date().getFullYear();
     const { count } = await supabase
@@ -112,7 +123,7 @@ export async function POST(request: NextRequest) {
       .from('complaints')
       .insert({
         complaint_reference: ref,
-        participant_id: participant_id || null,
+        participant_id: resolvedParticipantId,
         complainant_name,
         complainant_role: resolvedRole,
         contact_details: resolvedContact,
@@ -121,7 +132,7 @@ export async function POST(request: NextRequest) {
         summary: resolvedSummary,
         details: resolvedDetails,
         immediate_safety_issue: Boolean(immediate_safety_issue),
-        linked_incident_id: linked_incident_id || null,
+        linked_incident_id: resolvedLinkedIncidentId,
         assigned_manager: assigned_manager || null,
         status: 'Received',
       })

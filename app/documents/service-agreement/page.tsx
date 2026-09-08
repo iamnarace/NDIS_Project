@@ -69,7 +69,7 @@ export default function ServiceAgreementPage() {
                     <strong>Opus Care Support Services Pty Ltd</strong><br />
                     ABN: 54 689 123 456<br />
                     Email: support@opuscare.com.au · Web: opuscare.com.au<br />
-                    Operating across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers NSW
+                    Operating across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers NSW
                   </p>
                 </div>
                 <div className="contractBadgeBox">
@@ -82,9 +82,9 @@ export default function ServiceAgreementPage() {
 
             {/* Fillable Participant Details Box */}
             <section className="contractSection fillableBox">
-              <h2 className="sectionClauseTitle">Part 1: Schedule of Parties &amp; Participant Details</h2>
+              <h2 className="sectionClauseTitle">Part 1: Schedule of Parties & Participant Details</h2>
               <p className="clauseText">
-                This Service Agreement is made between <strong>Opus Care Support Services Pty Ltd</strong> (&quot;the Provider&quot;) and the Participant or their authorised representative (&quot;the Participant&quot;).
+                This Service Agreement is made between <strong>Opus Care Support Services Pty Ltd</strong> {`("the Provider")`} and the Participant or their authorised representative {`("the Participant")`}.
               </p>
 
               <div className="contractFieldsGrid">
@@ -122,7 +122,7 @@ export default function ServiceAgreementPage() {
                   <label>Plan Manager / Invoice Contact (if applicable):</label>
                   <input 
                     type="text" 
-                    placeholder="Plan Management Company &amp; Accounts Email"
+                    placeholder="Plan Management Company & Accounts Email"
                     value={planManager}
                     onChange={(e) => setPlanManager(e.target.value)}
                     className="contractInput"
@@ -153,7 +153,7 @@ export default function ServiceAgreementPage() {
 
             {/* Part 2: Schedule of Supports & NDIS Price Limits */}
             <section className="contractSection">
-              <h2 className="sectionClauseTitle">Part 2: Schedule of Supports &amp; Pricing Limits</h2>
+              <h2 className="sectionClauseTitle">Part 2: Schedule of Supports & Pricing Limits</h2>
               <p className="clauseText">
                 The Provider agrees to provide the Participant with agreed disability supports in accordance with the <em>NDIS Pricing Arrangements and Price Limits</em> (Support Catalogue) in effect at the date of service delivery.
               </p>
@@ -200,13 +200,13 @@ export default function ServiceAgreementPage() {
                   </tr>
                   <tr>
                     <td><strong>Core Supports</strong></td>
-                    <td>Social, Civic &amp; Community Participation (Weekday Daytime)</td>
+                    <td>Social, Civic & Community Participation (Weekday Daytime)</td>
                     <td>04_104_0125_6_1</td>
                     <td><strong>$65.47 / hr</strong></td>
                   </tr>
                   <tr>
                     <td><strong>Capacity Building</strong></td>
-                    <td>Individual Life Skills Development &amp; Training</td>
+                    <td>Individual Life Skills Development & Training</td>
                     <td>09_009_0117_6_3</td>
                     <td><strong>$74.60 / hr</strong></td>
                   </tr>
@@ -257,7 +257,7 @@ export default function ServiceAgreementPage() {
 
             {/* Part 6: Feedback & Complaints */}
             <section className="contractSection">
-              <h2 className="sectionClauseTitle">Part 6: Feedback, Incidents &amp; Complaints</h2>
+              <h2 className="sectionClauseTitle">Part 6: Feedback, Incidents & Complaints</h2>
               <p className="clauseText">
                 We welcome feedback, suggestions, and compliments. If you are not satisfied with any aspect of our service:
               </p>
@@ -271,7 +271,7 @@ export default function ServiceAgreementPage() {
 
             {/* Part 7: Signatures Block */}
             <section className="contractSection signaturesBlock">
-              <h2 className="sectionClauseTitle">Part 7: Agreement &amp; Signatures</h2>
+              <h2 className="sectionClauseTitle">Part 7: Agreement & Signatures</h2>
               <p className="clauseText">
                 By signing below, both parties acknowledge and accept the terms and conditions outlined in this NDIS Service Agreement:
               </p>
@@ -300,7 +300,7 @@ export default function ServiceAgreementPage() {
                     <span>Authorised Representative Signature</span>
                   </div>
                   <div className="sigFieldRow">
-                    <span>Name &amp; Title: <strong>Care Director, Opus Care Support Services</strong></span>
+                    <span>Name & Title: <strong>Care Director, Opus Care Support Services</strong></span>
                   </div>
                   <div className="sigFieldRow">
                     <span>Date: <strong>________________________</strong></span>
@@ -310,8 +310,8 @@ export default function ServiceAgreementPage() {
             </section>
 
             <footer className="contractFooterLegal">
-              <p>Opus Care Support Services Pty Ltd · NSW North Coast &amp; Northern Rivers · support@opuscare.com.au</p>
-              <small>Unregistered NDIS Provider · Supporting Self-Managed and Plan-Managed Participants with Choice &amp; Control</small>
+              <p>Opus Care Support Services Pty Ltd · NSW North Coast & Northern Rivers · support@opuscare.com.au</p>
+              <small>Unregistered NDIS Provider · Supporting Self-Managed and Plan-Managed Participants with Choice & Control</small>
             </footer>
 
           </div>

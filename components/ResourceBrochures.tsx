@@ -66,8 +66,8 @@ export function ResourceBrochures() {
   return (
     <div className="resourceBrochuresContainer">
       <div className="sectionHead">
-        <span className="eyebrow"><BookOpen size={16} /> Information &amp; Resources</span>
-        <h2>Information Packs &amp; Participant Guides</h2>
+        <span className="eyebrow"><BookOpen size={16} /> Information & Resources</span>
+        <h2>Information Packs & Participant Guides</h2>
         <p>Download or review our clear, transparent guides designed for NDIS participants, families, and referring coordinators.</p>
       </div>
 

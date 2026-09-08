@@ -309,7 +309,7 @@ export default function StaffTrainingPage() {
           {/* Welcome & Progress Bar */}
           <div className="portalWelcomeRow" style={{ marginBottom: 20 }}>
             <div>
-              <h1 className="portalWelcomeTitle">Staff Training &amp; Compliance Hub</h1>
+              <h1 className="portalWelcomeTitle">Staff Training & Compliance Hub</h1>
               <p className="portalWelcomeSub">
                 Complete internal induction modules, explore verified free external training, and track your NDIS compliance credentials.
               </p>
@@ -350,7 +350,7 @@ export default function StaffTrainingPage() {
               onClick={() => { setPortalTab('my_certificates'); setActiveCourseId(null); }}
             >
               <Award size={15} style={{ marginRight: 6, display: 'inline-block', verticalAlign: '-2px' }}/>
-              My Certificates &amp; Evidence ({completions.length})
+              My Certificates & Evidence ({completions.length})
             </button>
           </div>
 
@@ -468,7 +468,7 @@ export default function StaffTrainingPage() {
                 <div>
                   <h3>Free External Training Library</h3>
                   <p>
-                    Curated official courses from the NDIS Commission, NSW Ageing &amp; Disability Commission, and La Trobe University.
+                    Curated official courses from the NDIS Commission, NSW Ageing & Disability Commission, and La Trobe University.
                     Complete training on the provider platform, then upload your certificate below.
                   </p>
                 </div>
@@ -589,7 +589,7 @@ export default function StaffTrainingPage() {
             <div className="portalSectionBlock">
               <div className="portalBlockHead">
                 <div>
-                  <h3>My Training Certificates &amp; Credentials</h3>
+                  <h3>My Training Certificates & Credentials</h3>
                   <p>All verified completion records, internal certificates, and uploaded external credentials stored securely.</p>
                 </div>
               </div>

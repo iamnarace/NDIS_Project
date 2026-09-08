@@ -7,7 +7,7 @@ export function NdisToolsResourcesSection() {
       <div className="shell">
         <div className="sectionHeaderCenter">
           <span className="greenCategoryTag">RESOURCES</span>
-          <h2 className="sectionSerifTitle">Free NDIS Tools &amp; Resources</h2>
+          <h2 className="sectionSerifTitle">Free NDIS Tools & Resources</h2>
           <p className="sectionSubDesc">
             Quick access to the price guide, the full support catalogue, and a budget calculator to plan your funding.
           </p>
@@ -21,7 +21,7 @@ export function NdisToolsResourcesSection() {
             </div>
             <h3>NDIS Pricing Arrangements</h3>
             <p className="toolsDesc">
-              Current NDIA price limits across support categories — fully updated to the latest Pricing Arrangements &amp; Price Limits.
+              Current NDIA price limits across support categories — fully updated to the latest Pricing Arrangements & Price Limits.
             </p>
             <div className="toolsCardAction">
               <Link href="/faq" className="toolsActionBtn">

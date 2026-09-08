@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidUuid, resolveStaffUuid, resolveParticipantUuid } from '@/lib/uuid';
 
 async function generateAgreementRef(supabase: ReturnType<typeof createAdminClient>): Promise<string> {
   const year = new Date().getFullYear();
@@ -35,7 +36,19 @@ export async function GET(req: Request) {
     `)
     .order('created_at', { ascending: false });
 
-  if (ownerId) query = query.eq('owner_id', ownerId);
+  if (ownerId) {
+    let resolvedOwner = ownerId;
+    if (!isValidUuid(ownerId)) {
+      if (ownerType === 'staff' || ownerType === 'contractor') {
+        resolvedOwner = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
+      } else if (ownerType === 'participant') {
+        resolvedOwner = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
+      }
+    }
+    if (isValidUuid(resolvedOwner)) {
+      query = query.eq('owner_id', resolvedOwner);
+    }
+  }
   if (ownerType) query = query.eq('owner_type', ownerType);
   if (status && status !== 'all') query = query.eq('status', status);
 
@@ -74,6 +87,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Missing required agreement fields' }, { status: 400 });
     }
 
+    if (!isValidUuid(template_id)) {
+      return NextResponse.json({ message: 'Invalid template_id: must be a valid UUID' }, { status: 400 });
+    }
+
+    if (prior_agreement_id && !isValidUuid(prior_agreement_id)) {
+      return NextResponse.json({ message: 'Invalid prior_agreement_id: must be a valid UUID' }, { status: 400 });
+    }
+
+    // Defensively resolve owner_id to actual Supabase UUID
+    let resolvedOwnerId = owner_id;
+    if (!isValidUuid(owner_id)) {
+      if (owner_type === 'staff' || owner_type === 'contractor') {
+        resolvedOwnerId = await resolveStaffUuid(supabase, owner_id);
+      } else if (owner_type === 'participant') {
+        resolvedOwnerId = await resolveParticipantUuid(supabase, owner_id);
+      }
+    }
+
+    if (!resolvedOwnerId || !isValidUuid(resolvedOwnerId)) {
+      return NextResponse.json(
+        { message: `Invalid ${owner_type} ID: '${owner_id}' is not a valid UUID and could not be resolved to a registered database record.` },
+        { status: 400 }
+      );
+    }
+
     // Fetch template to get template_version
     const { data: template, error: tmplErr } = await supabase
       .from('document_templates')
@@ -104,7 +142,7 @@ export async function POST(req: Request) {
         template_id,
         template_version: template.template_version,
         owner_type,
-        owner_id,
+        owner_id: resolvedOwnerId,
         title,
         version_number: versionNumber,
         questionnaire_data,

@@ -1535,7 +1535,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Referrals &amp; Intake Pipeline</h2>
+                  <h2 className="crmPanelTitle">Referrals & Intake Pipeline</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Track incoming NDIS participant referrals through the stages of intake, assessment, and agreement signing.
                   </p>
@@ -1740,13 +1740,13 @@ export default function AdminCrmPage() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#E0F2FE', color: '#0284C7', padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase' }}>
-                      Contract &amp; Agreement Engine
+                      Contract & Agreement Engine
                     </span>
                     <span style={{ fontSize: '0.82rem', color: '#64748B' }}>
                       Immutable Private Vault &bull; Version Controlled
                     </span>
                   </div>
-                  <h2 className="crmPanelTitle">Service Agreements &amp; Document Packs</h2>
+                  <h2 className="crmPanelTitle">Service Agreements & Document Packs</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Generate, execute, and version NDIS Service Agreements, Schedules of Supports, and Workforce Contracts with digital e-signatures.
                   </p>
@@ -1793,9 +1793,9 @@ export default function AdminCrmPage() {
                 <table className="crmTable">
                   <thead>
                     <tr>
-                      <th>Ref &amp; Date</th>
+                      <th>Ref & Date</th>
                       <th>Recipient / Owner</th>
-                      <th>Document Title &amp; Version</th>
+                      <th>Document Title & Version</th>
                       <th>Committed Budget</th>
                       <th>Status</th>
                       <th style={{ textAlign: 'right' }}>Actions</th>
@@ -1929,7 +1929,7 @@ export default function AdminCrmPage() {
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_019_0120_1_1</span></td>
-                        <td><strong>House Cleaning &amp; Other Household Activities</strong></td>
+                        <td><strong>House Cleaning & Other Household Activities</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
                         <td><strong style={{ color: '#0F172A' }}>$58.45</strong></td>
                         <td>Hour</td>
@@ -2004,7 +2004,7 @@ export default function AdminCrmPage() {
                             onClick={() => setSelectedParticipant(p)}
                             className="crmViewBtn"
                           >
-                            Profile &amp; Vault
+                            Profile & Vault
                           </button>
                         </td>
                       </tr>
@@ -2640,9 +2640,9 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Quality &amp; Safeguarding Hub</h2>
+                  <h2 className="crmPanelTitle">Quality & Safeguarding Hub</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    NDIS Quality &amp; Safeguards Commission compliant incident management, complaints resolution, and corrective actions register.
+                    NDIS Quality & Safeguards Commission compliant incident management, complaints resolution, and corrective actions register.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -2859,7 +2859,7 @@ export default function AdminCrmPage() {
                                     display: 'flex', alignItems: 'center', gap: 4,
                                   }}
                                 >
-                                  <Eye size={14} /> Review &amp; Investigate
+                                  <Eye size={14} /> Review & Investigate
                                 </button>
                               </div>
                             </div>
@@ -3162,7 +3162,7 @@ export default function AdminCrmPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18 }}>
                   <div>
                     <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
-                      Manager Investigation Notes &amp; Findings
+                      Manager Investigation Notes & Findings
                     </label>
                     <textarea
                       rows={3}
@@ -3396,7 +3396,7 @@ export default function AdminCrmPage() {
 
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
-                      Investigation Notes &amp; Actions Taken
+                      Investigation Notes & Actions Taken
                     </label>
                     <textarea
                       rows={3}
@@ -3409,7 +3409,7 @@ export default function AdminCrmPage() {
 
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1E293B', display: 'block', marginBottom: 4 }}>
-                      Outcome &amp; Resolution Summary
+                      Outcome & Resolution Summary
                     </label>
                     <textarea
                       rows={2}
@@ -3640,7 +3640,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">NDIS PACE Invoicing &amp; Line Items</h2>
+                  <h2 className="crmPanelTitle">NDIS PACE Invoicing & Line Items</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Generate compliant NDIS tax invoices with verified support catalogue line items ready for Plan Managers or PACE self-claims.
                   </p>
@@ -3692,7 +3692,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Quotes &amp; Service Plan Estimator</h2>
+                  <h2 className="crmPanelTitle">Quotes & Service Plan Estimator</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Calculate estimated weekly and annual funding burn rates based on participant support schedules.
                   </p>
@@ -3715,7 +3715,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Support Workers &amp; Compliance Clearances</h2>
+                  <h2 className="crmPanelTitle">Support Workers & Compliance Clearances</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
                     Monitor support worker qualifications, NDIS Worker Screening Check (NWSC), WWCC, and First Aid certificates.
                   </p>
@@ -3827,7 +3827,7 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Training &amp; Compliance Management</h2>
+                  <h2 className="crmPanelTitle">Training & Compliance Management</h2>
                   <p style={{ margin:'4px 0 0', fontSize:'0.85rem', color:'#64748B' }}>
                     Create courses, assign to workers, track quiz results and mandatory compliance percentage.
                   </p>
@@ -3869,7 +3869,7 @@ export default function AdminCrmPage() {
                             <select value={newCourse.course_type}
                               onChange={e=>setNewCourse(p=>({...p,course_type:e.target.value as "read_acknowledge"|"read_quiz"|"external_cert"}))}
                               style={{width:'100%',padding:'8px 12px',border:'1px solid #D1D5DB',borderRadius:6,fontSize:'0.9rem'}}>
-                              <option value="read_acknowledge">Read &amp; Acknowledge</option>
+                              <option value="read_acknowledge">Read & Acknowledge</option>
                               <option value="read_quiz">Read + Quiz</option>
                               <option value="external_cert">External Certificate Upload</option>
                             </select>
@@ -4059,7 +4059,7 @@ export default function AdminCrmPage() {
                         Curated Free External Training Directory ({externalCourses.length})
                       </h3>
                       <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B' }}>
-                        Authoritative free courses from the NDIS Commission, NSW Ageing &amp; Disability Commission, and universities.
+                        Authoritative free courses from the NDIS Commission, NSW Ageing & Disability Commission, and universities.
                       </p>
                     </div>
                   </div>
@@ -4179,7 +4179,7 @@ export default function AdminCrmPage() {
         <div>
           <div style={{ marginBottom: 20 }}>
             <h2 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
-              Settings &amp; Preferences
+              Settings & Preferences
             </h2>
             <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748B' }}>
               Manage your administrator account, provider legal configuration, and system preferences.
@@ -4520,7 +4520,7 @@ export default function AdminCrmPage() {
                           <div>
                             <strong style={{ color: '#166534', fontSize: '0.9rem' }}>Enrol as Active Participant?</strong>
                             <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#15803D' }}>
-                              Creates official Participant record and links all documents &amp; history.
+                              Creates official Participant record and links all documents & history.
                             </p>
                           </div>
                           <button
@@ -4585,7 +4585,7 @@ export default function AdminCrmPage() {
                       <div className="fullCol" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #E2E8F0' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                           <strong style={{ fontSize: '0.88rem', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Shield size={15} /> Emergency &amp; Worker Instructions
+                            <Shield size={15} /> Emergency & Worker Instructions
                           </strong>
                           <button
                             onClick={() => setShowEditEmergency(!showEditEmergency)}
@@ -4787,7 +4787,7 @@ export default function AdminCrmPage() {
                       />
                       {uploadingDoc && (
                         <span style={{ fontSize: '0.8rem', color: '#0284C7', fontWeight: 600 }}>
-                          Encrypting &amp; uploading...
+                          Encrypting & uploading...
                         </span>
                       )}
                     </div>

@@ -63,11 +63,11 @@ export default function DocumentsHubPage() {
           <div className="shell">
             <div className="docHubHeroCenter">
               <span className="greenCategoryTag">
-                <Sparkles size={14} /> CLIENT &amp; COORDINATOR HUB
+                <Sparkles size={14} /> CLIENT & COORDINATOR HUB
               </span>
-              <h1 className="sectionSerifTitle">NDIS Client Documents &amp; Contract Templates</h1>
+              <h1 className="sectionSerifTitle">NDIS Client Documents & Contract Templates</h1>
               <p className="sectionSubDesc">
-                Download, review, or fill out our official onboarding documentation. Compliant with Australian consumer law and the NDIS Quality &amp; Safeguards Commission.
+                Download, review, or fill out our official onboarding documentation. Compliant with Australian consumer law and the NDIS Quality & Safeguards Commission.
               </p>
             </div>
           </div>

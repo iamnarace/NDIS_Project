@@ -15,7 +15,7 @@ export function JourneyBeginsSection() {
               Your journey <span className="highlightHandwriting">begins here</span>
             </h2>
             <p className="journeyDescText">
-              Discover how our personalised, person-centred support makes your NDIS and disability journey easier across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
+              Discover how our personalised, person-centred support makes your NDIS and disability journey easier across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers.
             </p>
 
             <div className="journeyPhotoCollageGrid">

@@ -161,7 +161,7 @@ export function SupportFinderWidget() {
 
           <div className="estimatorNotice">
             <p>
-              💡 Rates match standard NDIS Pricing Arrangements (1:1 Assistance in Self-Care / Social &amp; Community Access). Actual billing strictly follows the agreed Schedule of Supports in your Opus Care Service Agreement.
+              💡 Rates match standard NDIS Pricing Arrangements (1:1 Assistance in Self-Care / Social & Community Access). Actual billing strictly follows the agreed Schedule of Supports in your Opus Care Service Agreement.
             </p>
           </div>
 

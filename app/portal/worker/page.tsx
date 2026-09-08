@@ -334,7 +334,7 @@ function WorkerPortalContent() {
               border: tab === 'shifts' ? 'none' : '1px solid #E2E8F0',
             }}
           >
-            <Calendar size={16} /> My Shifts &amp; Progress Notes
+            <Calendar size={16} /> My Shifts & Progress Notes
           </button>
           <button
             onClick={() => setTab('report_incident')}
@@ -612,7 +612,7 @@ function WorkerPortalContent() {
 
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
-                    Date &amp; Time of Incident *
+                    Date & Time of Incident *
                   </label>
                   <input
                     type="datetime-local"
@@ -747,7 +747,7 @@ function WorkerPortalContent() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
-                    Witnesses (Names &amp; Roles)
+                    Witnesses (Names & Roles)
                   </label>
                   <input
                     type="text"

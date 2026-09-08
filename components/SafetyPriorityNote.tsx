@@ -34,7 +34,7 @@ export function SafetyPriorityNote() {
             <UserCheck2 size={26} className="safetyIconSvg" />
           </div>
           <div className="safetyTextWrap">
-            <h4 className="safetyPillTitle">Vetted &amp; Onboarded</h4>
+            <h4 className="safetyPillTitle">Vetted & Onboarded</h4>
             <p className="safetyPillDesc">
               Every worker must provide two verified professional references and complete our comprehensive induction before meeting participants.
             </p>

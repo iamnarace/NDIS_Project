@@ -38,7 +38,7 @@ export default function ServiceAreasPage() {
           <div className="shell">
             <div className="areasHeroCenter">
               <span className="greenCategoryTag">
-                <MapPin size={14} /> NSW NORTH COAST &amp; NORTHERN RIVERS
+                <MapPin size={14} /> NSW NORTH COAST & NORTHERN RIVERS
               </span>
               <h1 className="sectionSerifTitle">
                 Supporting participants across the NSW North Coast and Northern Rivers
@@ -91,7 +91,7 @@ export default function ServiceAreasPage() {
                   </div>
 
                   <div className="allSuburbsSection">
-                    <span className="suburbsListLabel">Covered Suburbs &amp; Localities:</span>
+                    <span className="suburbsListLabel">Covered Suburbs & Localities:</span>
                     <div className="suburbsPillsWrap">
                       {region.suburbs.map(sub => (
                         <span key={sub} className="suburbTag">

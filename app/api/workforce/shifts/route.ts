@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidUuid, resolveParticipantUuid, resolveStaffUuid } from '@/lib/uuid';
 
 async function generateShiftReference(supabase: ReturnType<typeof createAdminClient>): Promise<string> {
   const year = new Date().getFullYear();
@@ -28,6 +29,16 @@ export async function GET(req: Request) {
   const staffId = searchParams.get('staff_id');
   const status = searchParams.get('status');
 
+  let resolvedPart = participantId;
+  if (resolvedPart && !isValidUuid(resolvedPart)) {
+    resolvedPart = (await resolveParticipantUuid(supabase, resolvedPart)) || resolvedPart;
+  }
+
+  let resolvedStaff = staffId;
+  if (resolvedStaff && !isValidUuid(resolvedStaff)) {
+    resolvedStaff = (await resolveStaffUuid(supabase, resolvedStaff)) || resolvedStaff;
+  }
+
   let query = supabase
     .from('shifts')
     .select(`
@@ -53,7 +64,7 @@ export async function GET(req: Request) {
 
   if (start) query = query.gte('start_time', start);
   if (end) query = query.lte('end_time', end);
-  if (participantId) query = query.eq('participant_id', participantId);
+  if (resolvedPart && isValidUuid(resolvedPart)) query = query.eq('participant_id', resolvedPart);
   if (status && status !== 'all') query = query.eq('status', status);
 
   const { data, error } = await query;
@@ -96,6 +107,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Missing required shift fields.' }, { status: 400 });
     }
 
+    let resolvedParticipantId = participant_id;
+    if (!isValidUuid(participant_id)) {
+      resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
+    }
+    if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
+      return NextResponse.json({ message: `Invalid participant_id: '${participant_id}' could not be resolved to a valid UUID.` }, { status: 400 });
+    }
+
+    let resolvedStaffId = staff_id;
+    if (resolvedStaffId && !isValidUuid(resolvedStaffId)) {
+      resolvedStaffId = await resolveStaffUuid(supabase, resolvedStaffId);
+    }
+
     const startDate = new Date(start_time);
     const endDate = new Date(end_time);
     if (endDate <= startDate) {
@@ -106,11 +130,11 @@ export async function POST(req: Request) {
 
     // Double booking detection if staff_id is provided
     let conflictWarning = null;
-    if (staff_id) {
+    if (resolvedStaffId) {
       const { data: overlapping } = await supabase
         .from('shift_assignments')
         .select('id, shift:shifts(id, shift_reference, start_time, end_time, service_type)')
-        .eq('staff_id', staff_id)
+        .eq('staff_id', resolvedStaffId)
         .neq('status', 'cancelled');
 
       const hasOverlap = (overlapping || []).some((item: any) => {
@@ -141,7 +165,7 @@ export async function POST(req: Request) {
         .from('shifts')
         .insert({
           shift_reference: ref,
-          participant_id,
+          participant_id: resolvedParticipantId,
           service_type,
           ndis_support_item_code,
           start_time: shiftStart.toISOString(),
@@ -150,7 +174,7 @@ export async function POST(req: Request) {
           location_suburb,
           location_address,
           special_instructions,
-          status: staff_id ? 'assigned' : 'unassigned',
+          status: resolvedStaffId ? 'assigned' : 'unassigned',
         })
         .select()
         .single();
@@ -159,12 +183,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ message: shiftError.message }, { status: 500 });
       }
 
-      if (staff_id && newShift) {
+      if (resolvedStaffId && newShift) {
         await supabase
           .from('shift_assignments')
           .insert({
             shift_id: newShift.id,
-            staff_id,
+            staff_id: resolvedStaffId,
             assigned_by: 'Admin',
             status: 'rostered',
             confirmed_by_worker: false,

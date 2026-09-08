@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Source_Sans_3 } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const sourceSans = Source_Sans_3({
-  subsets: ['latin'],
-  variable: '--font-source-sans',
-  weight: ['300', '400', '500', '600', '700', '800'],
+const geistSans = localFont({
+  src: '../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2',
+  variable: '--font-geist-sans',
   display: 'swap',
 });
 
@@ -61,7 +60,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={sourceSans.variable}>
+    <html lang="en" className={geistSans.variable}>
       <head>
         <link rel="icon" href="/brand/favicon.ico" sizes="any" />
       </head>

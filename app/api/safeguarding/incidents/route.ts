@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { logAuditEvent } from '@/lib/audit';
+import { isValidUuid, resolveParticipantUuid, resolveStaffUuid, resolveShiftUuid } from '@/lib/uuid';
 
 export async function GET(request: NextRequest) {
   try {
@@ -109,6 +110,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Defensive resolution of UUIDs
+    let resolvedParticipantId = participant_id;
+    if (!isValidUuid(participant_id)) {
+      resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
+    }
+    if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
+      return NextResponse.json({ error: `Invalid participant_id: '${participant_id}' could not be resolved to a valid UUID.` }, { status: 400 });
+    }
+
+    let resolvedWorkerId = worker_id || null;
+    if (resolvedWorkerId && !isValidUuid(resolvedWorkerId)) {
+      resolvedWorkerId = await resolveStaffUuid(supabase, resolvedWorkerId);
+    }
+
+    let resolvedShiftId = shift_id || null;
+    if (resolvedShiftId && !isValidUuid(resolvedShiftId)) {
+      resolvedShiftId = await resolveShiftUuid(supabase, resolvedShiftId);
+    }
+
     // Generate unique reference INC-YYYY-XXXX
     const year = new Date().getFullYear();
     const { count } = await supabase
@@ -120,9 +140,9 @@ export async function POST(request: NextRequest) {
       .from('incidents')
       .insert({
         incident_reference: ref,
-        participant_id,
-        worker_id: worker_id || null,
-        shift_id: shift_id || null,
+        participant_id: resolvedParticipantId,
+        worker_id: resolvedWorkerId,
+        shift_id: resolvedShiftId,
         reported_by: actorType === 'worker' ? actorId : null,
         incident_at: incident_at || new Date().toISOString(),
         location: location || null,

@@ -30,10 +30,10 @@ export function SiteFooter() {
             <div className="footerLocationsList">
               <span className="locItem"><MapPin size={13} className="locPin" /> Coffs Harbour NSW</span>
               <span className="locItem"><MapPin size={13} className="locPin" /> Woolgoolga NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Grafton &amp; Clarence Valley</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Maclean &amp; Yamba</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Casino &amp; Richmond Valley</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Lismore &amp; Ballina</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Grafton & Clarence Valley</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Maclean & Yamba</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Casino & Richmond Valley</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Lismore & Ballina</span>
             </div>
 
             <div className="footerDirectContact">
@@ -65,13 +65,13 @@ export function SiteFooter() {
               <li><span className="bulletDot"></span><Link href="/portal"><strong>Participant Portal</strong></Link></li>
               <li><span className="bulletDot"></span><Link href="/admin">Staff CRM Portal</Link></li>
               <li><span className="bulletDot"></span><Link href="/about">About Opus Care</Link></li>
-              <li><span className="bulletDot"></span><Link href="/services">Services &amp; Supports</Link></li>
+              <li><span className="bulletDot"></span><Link href="/services">Services & Supports</Link></li>
               <li><span className="bulletDot"></span><Link href="/service-areas">Areas We Serve</Link></li>
-              <li><span className="bulletDot"></span><Link href="/faq">Pricing &amp; FAQs</Link></li>
+              <li><span className="bulletDot"></span><Link href="/faq">Pricing & FAQs</Link></li>
               <li><span className="bulletDot"></span><Link href="/referral">Make a Referral</Link></li>
               <li><span className="bulletDot"></span><Link href="/contact">Contact Our Team</Link></li>
               <li><span className="bulletDot"></span><Link href="/privacy">Privacy Policy</Link></li>
-              <li><span className="bulletDot"></span><Link href="/complaints">Feedback &amp; Complaints</Link></li>
+              <li><span className="bulletDot"></span><Link href="/complaints">Feedback & Complaints</Link></li>
             </ul>
           </div>
 
@@ -80,11 +80,11 @@ export function SiteFooter() {
             <h4 className="footerColTitle">Services</h4>
             <ul className="footerBulletList">
               <li><span className="bulletDot"></span><Link href="/services">Assistance with Daily Life</Link></li>
-              <li><span className="bulletDot"></span><Link href="/services">Community &amp; Social Participation</Link></li>
-              <li><span className="bulletDot"></span><Link href="/services">Life Skills &amp; Capacity Development</Link></li>
-              <li><span className="bulletDot"></span><Link href="/services">Transport &amp; Travel Assistance</Link></li>
+              <li><span className="bulletDot"></span><Link href="/services">Community & Social Participation</Link></li>
+              <li><span className="bulletDot"></span><Link href="/services">Life Skills & Capacity Development</Link></li>
+              <li><span className="bulletDot"></span><Link href="/services">Transport & Travel Assistance</Link></li>
               <li><span className="bulletDot"></span><Link href="/services">In-Home Respite Support</Link></li>
-              <li><span className="bulletDot"></span><Link href="/services">1-on-1 Mentoring &amp; Coaching</Link></li>
+              <li><span className="bulletDot"></span><Link href="/services">1-on-1 Mentoring & Coaching</Link></li>
             </ul>
 
             {/* Clean, Full-Width Funding Badge Box */}
@@ -104,7 +104,7 @@ export function SiteFooter() {
             {/* Supporting Self & Plan Managed */}
             <div className="cleanStatusBadgeCard">
               <Heart size={18} className="badgeHeartIcon" />
-              <span>Supporting Self &amp; Plan-Managed</span>
+              <span>Supporting Self & Plan-Managed</span>
             </div>
 
             {/* Portal Direct Access */}

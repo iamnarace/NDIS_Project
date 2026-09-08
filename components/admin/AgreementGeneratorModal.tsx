@@ -5,6 +5,16 @@ import {
   X, Check, AlertTriangle, Shield, FileText, ArrowRight, ArrowLeft, 
   UserCheck, Users, Printer, Sparkles, CheckCircle2, Lock, Download, PenTool
 } from 'lucide-react';
+import {
+  FormField,
+  TextInput,
+  DatePicker,
+  RadioCard,
+  FormStepper,
+  ReviewSummary,
+  InlineValidation,
+  Checkbox,
+} from '@/components/ui/form';
 
 interface AgreementGeneratorModalProps {
   participants: any[];
@@ -32,14 +42,28 @@ export default function AgreementGeneratorModal({
   variationOf = null,
 }: AgreementGeneratorModalProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(variationOf ? 3 : 1);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(variationOf ? variationOf.template?.template_code || 'DOC-PART-01' : initialTemplateCode);
-  const [ownerType, setOwnerType] = useState<'participant' | 'staff' | 'contractor'>(
-    variationOf ? variationOf.owner_type : initialTemplateCode.includes('WRK') ? 'staff' : initialTemplateCode.includes('CTR') ? 'contractor' : 'participant'
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(
+    variationOf ? variationOf.template?.template_code || 'DOC-PART-01' : initialTemplateCode
   );
-  const [selectedOwnerId, setSelectedOwnerId] = useState<string>(variationOf ? variationOf.owner_id : '');
+  const [ownerType, setOwnerType] = useState<'participant' | 'staff' | 'contractor'>(
+    variationOf
+      ? variationOf.owner_type
+      : initialTemplateCode.includes('WRK')
+      ? 'staff'
+      : initialTemplateCode.includes('CTR')
+      ? 'contractor'
+      : 'participant'
+  );
+
+  // Selected owner state - MUST strictly hold the database UUID
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string>(
+    variationOf ? variationOf.owner_id : ''
+  );
 
   // Recipient info
-  const [recipientName, setRecipientName] = useState<string>(variationOf?.questionnaire_data?.participant_name || '');
+  const [recipientName, setRecipientName] = useState<string>(
+    variationOf?.questionnaire_data?.participant_name || variationOf?.questionnaire_data?.worker_name || ''
+  );
   const [ndisNumber, setNdisNumber] = useState<string>(variationOf?.questionnaire_data?.ndis_number || '');
   const [fundingType, setFundingType] = useState<string>(variationOf?.questionnaire_data?.funding_type || 'Plan-Managed');
   const [planManagerName, setPlanManagerName] = useState<string>(variationOf?.questionnaire_data?.plan_manager_name || '');
@@ -80,7 +104,6 @@ export default function AgreementGeneratorModal({
   const [expiryDate, setExpiryDate] = useState<string>('');
 
   // Signing state
-  const [signingTab, setSigningTab] = useState<'canvas' | 'link' | 'wet'>('canvas');
   const [signerName, setSignerName] = useState<string>('');
   const [signerTitle, setSignerTitle] = useState<string>('Participant');
   const [providerSignerName, setProviderSignerName] = useState<string>('Director of Operations');
@@ -92,26 +115,31 @@ export default function AgreementGeneratorModal({
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
 
-  // Auto-fill when owner selected
-  const handleOwnerChange = (id: string) => {
-    setSelectedOwnerId(id);
+  // Auto-fill when owner selected - guarantees resolving to database UUID
+  const handleOwnerChange = (idOrRef: string) => {
     if (ownerType === 'participant') {
-      const p = participants.find((item) => item.id === id);
+      const p = participants.find((item) => item.id === idOrRef || item.referenceNumber === idOrRef);
       if (p) {
+        setSelectedOwnerId(p.id); // store actual UUID
         setRecipientName(p.name);
         setNdisNumber(p.ndisNumber || '');
         setFundingType(p.fundingType || 'Plan-Managed');
         setPlanManagerName(p.planManager || '');
         setSignerName(p.name);
         setSignerTitle('Participant');
+      } else {
+        setSelectedOwnerId(idOrRef);
       }
     } else {
-      const w = staff.find((item) => item.id === id);
+      const w = staff.find((item) => item.id === idOrRef || item.referenceNumber === idOrRef);
       if (w) {
+        setSelectedOwnerId(w.id); // store actual UUID
         setRecipientName(w.name);
         setWorkerRate(w.hourlyRate || 38.50);
         setSignerName(w.name);
         setSignerTitle(w.role || 'Support Worker');
+      } else {
+        setSelectedOwnerId(idOrRef);
       }
     }
   };
@@ -204,14 +232,36 @@ export default function AgreementGeneratorModal({
     setSubmitting(true);
     setError('');
 
-    // 1. Fetch template ID
     try {
+      // Resolve true UUID
+      let targetOwnerUuid = selectedOwnerId;
+      if (ownerType === 'participant') {
+        const p = participants.find((item) => item.id === selectedOwnerId || item.referenceNumber === selectedOwnerId);
+        if (p?.id) targetOwnerUuid = p.id;
+      } else {
+        const w = staff.find((item) => item.id === selectedOwnerId || item.referenceNumber === selectedOwnerId);
+        if (w?.id) targetOwnerUuid = w.id;
+      }
+
+      if (!targetOwnerUuid) {
+        setError(`Please select a registered ${ownerType === 'participant' ? 'participant' : 'support worker'} from the register.`);
+        setSubmitting(false);
+        return;
+      }
+
+      if (!recipientName.trim()) {
+        setError('Recipient Full Legal Name is required.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Fetch template
       const tmplRes = await fetch(`/api/crm/agreements/templates?category=all`);
       const tmpls = await tmplRes.json();
       const matchTmpl = tmpls.find((t: any) => t.template_code === selectedTemplate) || tmpls[0];
 
       if (!matchTmpl) {
-        setError('Template not found');
+        setError('Template configuration not found.');
         setSubmitting(false);
         return;
       }
@@ -253,7 +303,7 @@ export default function AgreementGeneratorModal({
         body: JSON.stringify({
           template_id: matchTmpl.id,
           owner_type: ownerType,
-          owner_id: selectedOwnerId || '00000000-0000-0000-0000-000000000000',
+          owner_id: targetOwnerUuid,
           title,
           questionnaire_data: qData,
           compiled_clauses: compiledClauses,
@@ -310,7 +360,7 @@ export default function AgreementGeneratorModal({
       onCreated(newAgr);
       onClose();
     } catch (err: unknown) {
-      setError('Network error while saving agreement.');
+      setError('Network error while saving agreement. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -318,141 +368,92 @@ export default function AgreementGeneratorModal({
 
   return (
     <div className="crmModalOverlay" onClick={onClose}>
-      <div className="crmModalBox" style={{ maxWidth: 840, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
+      <div
+        className="crmModalBox"
+        style={{ maxWidth: 840, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="crmModalHeader" style={{ flexShrink: 0 }}>
           <div>
-            <span className="refIdTag">
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {variationOf ? `AGREEMENT VARIATION (v${variationOf.version_number + 1})` : 'OPUS CARE AGREEMENT ENGINE'}
             </span>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>
+            <h3 className="crmSectionTitle" style={{ margin: 0 }}>
               {step === 1 && 'Step 1: Select Document or Onboarding Pack'}
               {step === 2 && 'Step 2: Select Recipient & Stakeholders'}
               {step === 3 && 'Step 3: Customise Terms & Schedule of Supports'}
-              {step === 4 && 'Step 4: Review, Execute &amp; Sign'}
+              {step === 4 && 'Step 4: Review & Sign'}
             </h3>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 4 }}>
             <X size={20} />
           </button>
         </div>
 
-        {/* Wizard Steps Indicator */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', padding: '8px 24px', flexShrink: 0 }}>
-          {[
+        {/* Stepper */}
+        <FormStepper
+          steps={[
             { num: 1, label: 'Document Type' },
             { num: 2, label: 'Recipient' },
             { num: 3, label: 'Terms & Schedule' },
-            { num: 4, label: 'Review & Sign' }
-          ].map((s) => {
-            const active = step === s.num;
-            const completed = step > s.num;
-            return (
-              <div key={s.num} style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 24 }}>
-                <span style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  background: active ? '#0284C7' : completed ? '#10B981' : '#CBD5E1',
-                  color: '#FFFFFF',
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {completed ? '✓' : s.num}
-                </span>
-                <span style={{ fontSize: '0.8rem', fontWeight: active ? 800 : 600, color: active ? '#0F172A' : '#64748B' }}>
-                  {s.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+            { num: 4, label: 'Review & Sign' },
+          ]}
+          currentStep={step}
+          onStepClick={(s) => {
+            if (s < step) setStep(s as any);
+          }}
+        />
 
         {/* Body Content */}
         <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
           {error && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', marginBottom: 16 }}>
-              {error}
+            <div style={{ marginBottom: 16 }}>
+              <InlineValidation type="error" message={error} />
             </div>
           )}
 
-          {/* STEP 1: SELECT DOCUMENT OR PACK */}
+          {/* STEP 1: SELECT DOCUMENT */}
           {step === 1 && (
-            <div>
-              <div style={{ marginBottom: 16 }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#162E56', margin: '0 0 4px' }}>
-                  A. Turnkey Multi-Document Onboarding Packs
-                </h4>
-                <p style={{ fontSize: '0.8rem', color: '#64748B', margin: 0 }}>
-                  Pre-assembled compliance bundles generated from a single unified questionnaire.
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>All-in-One Onboarding Packs</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Recommended: Generate a comprehensive compliance pack bundled with all statutory consents.
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
-                <div
-                  onClick={() => {
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <RadioCard
+                  selected={selectedTemplate === 'PACK-PART-01'}
+                  onSelect={() => {
                     setSelectedTemplate('PACK-PART-01');
                     setOwnerType('participant');
                   }}
-                  style={{
-                    border: selectedTemplate === 'PACK-PART-01' ? '2px solid #0284C7' : '1px solid #E2E8F0',
-                    background: selectedTemplate === 'PACK-PART-01' ? '#F0F9FF' : '#FFFFFF',
-                    borderRadius: 10,
-                    padding: 16,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(15,23,42,0.03)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#E0F2FE', color: '#0284C7', padding: '2px 6px', borderRadius: 4 }}>
-                      NEW PARTICIPANT PACK
-                    </span>
-                    {selectedTemplate === 'PACK-PART-01' && <Check size={16} style={{ color: '#0284C7' }} />}
-                  </div>
-                  <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.95rem', marginBottom: 4 }}>
-                    New Participant Onboarding Pack (All-in-One)
-                  </div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748B', lineHeight: 1.4 }}>
-                    Includes Service Agreement, Schedule of Supports, Privacy Consent, Authority to Communicate, Emergency Plan, Risk Assessment &amp; Transport/Media Consents.
-                  </div>
-                </div>
+                  title="New Participant Onboarding Pack"
+                  description="Includes Service Agreement, Schedule of Supports, Privacy Consent, Authority to Communicate, Risk Assessment & Transport/Media Consents."
+                  badge="PARTICIPANT PACK"
+                  icon={<Users size={20} />}
+                />
 
-                <div
-                  onClick={() => {
+                <RadioCard
+                  selected={selectedTemplate === 'PACK-WRK-01'}
+                  onSelect={() => {
                     setSelectedTemplate('PACK-WRK-01');
                     setOwnerType('staff');
                   }}
-                  style={{
-                    border: selectedTemplate === 'PACK-WRK-01' ? '2px solid #059669' : '1px solid #E2E8F0',
-                    background: selectedTemplate === 'PACK-WRK-01' ? '#ECFDF5' : '#FFFFFF',
-                    borderRadius: 10,
-                    padding: 16,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(15,23,42,0.03)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#D1FAE5', color: '#059669', padding: '2px 6px', borderRadius: 4 }}>
-                      NEW WORKER PACK
-                    </span>
-                    {selectedTemplate === 'PACK-WRK-01' && <Check size={16} style={{ color: '#059669' }} />}
-                  </div>
-                  <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.95rem', marginBottom: 4 }}>
-                    New Worker Onboarding Pack (All-in-One)
-                  </div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748B', lineHeight: 1.4 }}>
-                    Includes SCHADS Employment Agreement, Position Description, NDIS Code of Conduct, Confidentiality Deed, Conflict of Interest &amp; Clearance Verification.
-                  </div>
-                </div>
+                  title="New Worker Onboarding Pack"
+                  description="Includes SCHADS Employment Agreement, Position Description, NDIS Code of Conduct, Confidentiality Deed & Clearance Verification."
+                  badge="WORKER PACK"
+                  icon={<UserCheck size={20} />}
+                />
               </div>
 
-              <div style={{ marginBottom: 12 }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#162E56', margin: '0 0 4px' }}>
-                  B. Standalone Agreements
-                </h4>
+              <div style={{ marginTop: 6 }}>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Standalone Contracts & Schedules</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Generate individual legally binding schedules or employment agreements.
+                </p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
@@ -471,16 +472,17 @@ export default function AgreementGeneratorModal({
                         setOwnerType(item.cat as any);
                       }}
                       style={{
-                        border: active ? '2px solid #0284C7' : '1px solid #E2E8F0',
+                        border: active ? '2px solid #0284C7' : '1.5px solid #E2E8F0',
                         background: active ? '#F0F9FF' : '#FFFFFF',
                         borderRadius: 8,
                         padding: 12,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 700, color: '#0284C7' }}>{item.code}</span>
-                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0F172A', margin: '2px 0' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{item.desc}</div>
+                      <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: 600, color: '#0284C7' }}>{item.code}</span>
+                      <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0F172A', margin: '2px 0' }}>{item.title}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{item.desc}</div>
                     </div>
                   );
                 })}
@@ -490,83 +492,76 @@ export default function AgreementGeneratorModal({
 
           {/* STEP 2: SELECT RECIPIENT */}
           {step === 2 && (
-            <div>
-              <div style={{ marginBottom: 20 }}>
-                <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#162E56', margin: '0 0 6px' }}>
-                  Select {ownerType === 'participant' ? 'Participant' : 'Worker / Contractor'}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>
+                  Select {ownerType === 'participant' ? 'Participant' : 'Support Worker / Contractor'}
                 </h4>
-                <p style={{ fontSize: '0.82rem', color: '#64748B', margin: 0 }}>
-                  Choosing an existing profile automatically pulls their NDIS details, funding type, rates, and contact info.
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Selecting a registered record pulls their verified database UUID, contact info, and pricing profile.
                 </p>
               </div>
 
               {ownerType === 'participant' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <label className="crmFormLabel">Choose Registered Participant</label>
-                  <select
-                    value={selectedOwnerId}
-                    onChange={(e) => handleOwnerChange(e.target.value)}
-                    className="crmFormInput"
-                  >
-                    <option value="">-- Select Participant from Directory --</option>
-                    {participants.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.referenceNumber || 'NDIS'}) — {p.suburb} ({p.fundingType || 'Plan-Managed'})
-                      </option>
-                    ))}
-                  </select>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <FormField label="Choose Registered Participant from Directory *" hint="Populates official NDIS numbers and funding details">
+                    <select
+                      value={selectedOwnerId}
+                      onChange={(e) => handleOwnerChange(e.target.value)}
+                      className="crmFormSelect"
+                    >
+                      <option value="">-- Select Participant from Directory --</option>
+                      {participants.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.referenceNumber || 'NDIS'}) — {p.suburb} ({p.fundingType || 'Plan-Managed'})
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 10 }}>
-                    <div>
-                      <label className="crmFormLabel">Participant Legal Full Name *</label>
-                      <input
-                        type="text"
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <FormField label="Participant Legal Full Name *" required>
+                      <TextInput
                         value={recipientName}
                         onChange={(e) => setRecipientName(e.target.value)}
-                        className="crmFormInput"
                         placeholder="Full Legal Name"
                         required
                       />
-                    </div>
-                    <div>
-                      <label className="crmFormLabel">NDIS Number</label>
-                      <input
-                        type="text"
+                    </FormField>
+                    <FormField label="NDIS Number">
+                      <TextInput
                         value={ndisNumber}
                         onChange={(e) => setNdisNumber(e.target.value)}
-                        className="crmFormInput"
                         placeholder="e.g. 430 982 104"
                       />
-                    </div>
+                    </FormField>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <label className="crmFormLabel">Choose Support Worker from Team</label>
-                  <select
-                    value={selectedOwnerId}
-                    onChange={(e) => handleOwnerChange(e.target.value)}
-                    className="crmFormInput"
-                  >
-                    <option value="">-- Select Worker from Register --</option>
-                    {staff.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name} ({w.role}) — ${w.hourlyRate || 38.50}/hr
-                      </option>
-                    ))}
-                  </select>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <FormField label="Choose Support Worker from Team *" hint="Guarantees valid worker UUID foreign key binding">
+                    <select
+                      value={selectedOwnerId}
+                      onChange={(e) => handleOwnerChange(e.target.value)}
+                      className="crmFormSelect"
+                    >
+                      <option value="">-- Select Worker from Register --</option>
+                      {staff.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name} ({w.referenceNumber || 'STF'}) — ${w.hourlyRate || 38.50}/hr ({w.role})
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
 
-                  <div>
-                    <label className="crmFormLabel">Worker Full Legal Name *</label>
-                    <input
-                      type="text"
+                  <FormField label="Worker Full Legal Name *" required>
+                    <TextInput
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
-                      className="crmFormInput"
                       placeholder="Full Legal Name"
                       required
                     />
-                  </div>
+                  </FormField>
                 </div>
               )}
             </div>
@@ -574,481 +569,373 @@ export default function AgreementGeneratorModal({
 
           {/* STEP 3: CUSTOMISE TERMS & SCHEDULE */}
           {step === 3 && (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* SHAM CONTRACTING WARNING GATE FOR CONTRACTORS */}
               {selectedTemplate === 'DOC-CTR-01' && (
-                <div style={{ background: '#FEF2F2', border: '1.5px solid #F87171', borderRadius: 10, padding: 18, marginBottom: 20 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#991B1B', fontWeight: 800, fontSize: '0.95rem', marginBottom: 6 }}>
-                    <AlertTriangle size={18} />
-                    <span>MANDATORY LEGAL WARNING: Independent Contractor Assessment</span>
+                <div style={{ background: '#FEF2F2', border: '1.5px solid #F87171', borderRadius: 10, padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <AlertTriangle size={18} style={{ color: '#DC2626' }} />
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#991B1B' }}>
+                      Independent Contractor Verification Gate
+                    </span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#7F1D1D', margin: '0 0 12px', lineHeight: 1.4 }}>
-                    Under the <em>Fair Work Act 2009</em> and High Court precedent, holding an ABN or issuing an invoice does NOT establish an independent contractor relationship. You must confirm the following 4 criteria before generating a contractor agreement:
+                  <p style={{ fontSize: '0.8125rem', color: '#7F1D1D', margin: '0 0 12px', lineHeight: 1.45 }}>
+                    To prevent sham contracting under the Fair Work Act, verify all 4 criteria before issuing a subcontractor agreement:
                   </p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {[
-                      { key: 'independentBiz', text: 'Worker operates a genuinely independent business and is free to accept or refuse assignments.' },
-                      { key: 'toolsAndInsurances', text: 'Worker maintains their own mandatory Public Liability ($10M+) and Professional Indemnity insurances.' },
-                      { key: 'delegationRight', text: 'Worker retains the genuine contractual right to delegate or subcontract the performance of the work.' },
-                      { key: 'paidForOutcome', text: 'Worker is engaged for a specific project/outcome, rather than subservient hourly direct labour.' }
-                    ].map((item) => (
-                      <label key={item.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '0.82rem', color: '#991B1B', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={(contractorChecks as any)[item.key]}
-                          onChange={(e) => setContractorChecks({ ...contractorChecks, [item.key]: e.target.checked })}
-                          style={{ marginTop: 2 }}
-                        />
-                        <span>{item.text}</span>
-                      </label>
-                    ))}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <Checkbox
+                      checked={contractorChecks.independentBiz}
+                      onChange={(v) => setContractorChecks({ ...contractorChecks, independentBiz: v })}
+                      label="Operates an independent commercial business with active ABN"
+                    />
+                    <Checkbox
+                      checked={contractorChecks.toolsAndInsurances}
+                      onChange={(v) => setContractorChecks({ ...contractorChecks, toolsAndInsurances: v })}
+                      label="Maintains own insurance, vehicle, and work equipment"
+                    />
+                    <Checkbox
+                      checked={contractorChecks.delegationRight}
+                      onChange={(v) => setContractorChecks({ ...contractorChecks, delegationRight: v })}
+                      label="Has genuine right to delegate or subcontract support shifts"
+                    />
+                    <Checkbox
+                      checked={contractorChecks.paidForOutcome}
+                      onChange={(v) => setContractorChecks({ ...contractorChecks, paidForOutcome: v })}
+                      label="Remunerated on invoice for service outcomes, not hourly wage"
+                    />
                   </div>
-
-                  {!isContractorGatePassed && (
-                    <div style={{ marginTop: 10, fontSize: '0.75rem', fontWeight: 700, color: '#B91C1C' }}>
-                      ⚠️ All 4 checkboxes must be confirmed before proceeding. Otherwise, worker must be engaged as an employee under SCHADS.
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* PARTICIPANT QUESTIONNAIRE */}
+              {/* PARTICIPANT SCHEDULE OF SUPPORTS */}
               {ownerType === 'participant' && (
                 <div>
-                  {/* Funding Type */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
-                    <div>
-                      <label className="crmFormLabel">NDIS Funding Administration *</label>
-                      <select
-                        value={fundingType}
-                        onChange={(e) => setFundingType(e.target.value)}
-                        className="crmFormInput"
-                      >
-                        <option value="Plan-Managed">Plan-Managed (Direct Invoice to Plan Manager)</option>
-                        <option value="Self-Managed">Self-Managed (Participant Invoiced on 7-Day Terms)</option>
-                        <option value="NDIA Managed">NDIA Managed (PACE / Agency Claiming)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="crmFormLabel">Commencement Date *</label>
-                      <input
-                        type="date"
-                        value={commencementDate}
-                        onChange={(e) => setCommencementDate(e.target.value)}
-                        className="crmFormInput"
-                        required
-                      />
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <h4 className="crmCardTitle" style={{ margin: 0 }}>
+                      Schedule of Supports & Mutually Agreed Pricing
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={addScheduleRow}
+                      className="crmSecondaryBtn"
+                      style={{ minHeight: 34, padding: '4px 12px', fontSize: '0.8rem' }}
+                    >
+                      + Add Service Line
+                    </button>
                   </div>
 
-                  {fundingType === 'Plan-Managed' && (
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 14, marginBottom: 20 }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0284C7', display: 'block', marginBottom: 8 }}>
-                        Plan Management Invoicing Protocol
-                      </span>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <div>
-                          <label className="crmFormLabel">Plan Manager Company</label>
-                          <input
-                            type="text"
-                            value={planManagerName}
-                            onChange={(e) => setPlanManagerName(e.target.value)}
-                            className="crmFormInput"
-                            placeholder="e.g. Peak Plan Management"
-                          />
-                        </div>
-                        <div>
-                          <label className="crmFormLabel">Invoices Email</label>
-                          <input
-                            type="email"
-                            value={planManagerEmail}
-                            onChange={(e) => setPlanManagerEmail(e.target.value)}
-                            className="crmFormInput"
-                            placeholder="invoices@peakplan.com.au"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Schedule of Supports Line Items */}
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#162E56' }}>
-                        Schedule of Supports &amp; Mutually Agreed Pricing
-                      </span>
-                      <button
-                        type="button"
-                        onClick={addScheduleRow}
-                        className="crmSecondaryBtn"
-                        style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                      >
-                        + Add Support Item
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {scheduleItems.map((row: any, idx: number) => {
-                        return (
-                          <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.8fr 3fr 1fr 1.2fr auto', gap: 8, alignItems: 'center', background: '#F8FAFC', padding: 8, borderRadius: 8, border: '1px solid #E2E8F0' }}>
-                            <select
-                              value={row.item_code}
-                              onChange={(e) => {
-                                const match = NDIS_SERVICES.find(s => s.code === e.target.value);
-                                if (match) {
-                                  updateScheduleItem(idx, 'item_code', match.code);
-                                  updateScheduleItem(idx, 'description', match.description);
-                                  updateScheduleItem(idx, 'agreed_rate', match.refRate);
-                                }
-                              }}
-                              className="crmFormInput"
-                              style={{ padding: '4px 8px', fontSize: '0.8rem', fontFamily: 'monospace' }}
-                            >
-                              {NDIS_SERVICES.map(s => (
-                                <option key={s.code} value={s.code}>{s.code}</option>
-                              ))}
-                            </select>
-
-                            <input
-                              type="text"
-                              value={row.description}
-                              onChange={(e) => updateScheduleItem(idx, 'description', e.target.value)}
-                              className="crmFormInput"
-                              style={{ padding: '4px 8px', fontSize: '0.8rem' }}
-                            />
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <input
-                                type="number"
-                                step="0.5"
-                                min="0"
-                                value={row.hours_pw}
-                                onChange={(e) => updateScheduleItem(idx, 'hours_pw', Number(e.target.value))}
-                                className="crmFormInput"
-                                style={{ padding: '4px 6px', fontSize: '0.8rem', textAlign: 'center' }}
-                              />
-                              <span style={{ fontSize: '0.75rem', color: '#64748B' }}>h/wk</span>
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ fontSize: '0.8rem', color: '#64748B' }}>$</span>
-                              <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={row.agreed_rate}
-                                onChange={(e) => updateScheduleItem(idx, 'agreed_rate', Number(e.target.value))}
-                                className="crmFormInput"
-                                style={{ padding: '4px 6px', fontSize: '0.8rem', textAlign: 'right' }}
-                              />
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => removeScheduleRow(idx)}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626' }}
-                              title="Remove item"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div style={{ marginTop: 10, textAlign: 'right', fontSize: '0.85rem', color: '#0F172A' }}>
-                      <strong>Estimated Total Annual Commitment: </strong>
-                      <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#059669' }}>
-                        ${totalAnnualBudget.toLocaleString('en-AU', { minimumFractionDigits: 2 })} AUD
-                      </span>
-                    </div>
+                  <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden', marginBottom: 14 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                      <thead>
+                        <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#64748B' }}>
+                          <th style={{ padding: '8px 12px' }}>NDIS Support Item</th>
+                          <th style={{ padding: '8px 12px', width: 100 }}>Hours/Wk</th>
+                          <th style={{ padding: '8px 12px', width: 110 }}>Agreed Rate</th>
+                          <th style={{ padding: '8px 12px', width: 110 }}>Weekly Est.</th>
+                          <th style={{ padding: '8px 12px', width: 40 }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scheduleItems.map((item: any, idx: number) => {
+                          const weeklyTotal = (Number(item.hours_pw || 0) * Number(item.agreed_rate || 0)).toFixed(2);
+                          return (
+                            <tr key={idx} style={{ borderBottom: '1px solid #EEF2F6' }}>
+                              <td style={{ padding: '6px 12px' }}>
+                                <select
+                                  value={item.item_code}
+                                  onChange={(e) => {
+                                    const match = NDIS_SERVICES.find((s) => s.code === e.target.value);
+                                    if (match) {
+                                      updateScheduleItem(idx, 'item_code', match.code);
+                                      updateScheduleItem(idx, 'description', match.description);
+                                      updateScheduleItem(idx, 'agreed_rate', match.refRate);
+                                    }
+                                  }}
+                                  className="crmFormSelect"
+                                  style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
+                                >
+                                  {NDIS_SERVICES.map((ns) => (
+                                    <option key={ns.code} value={ns.code}>
+                                      {ns.description} ({ns.code})
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td style={{ padding: '6px 12px' }}>
+                                <input
+                                  type="number"
+                                  step="0.5"
+                                  min="0"
+                                  value={item.hours_pw}
+                                  onChange={(e) => updateScheduleItem(idx, 'hours_pw', parseFloat(e.target.value) || 0)}
+                                  className="crmFormInput"
+                                  style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
+                                />
+                              </td>
+                              <td style={{ padding: '6px 12px' }}>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={item.agreed_rate}
+                                  onChange={(e) => updateScheduleItem(idx, 'agreed_rate', parseFloat(e.target.value) || 0)}
+                                  className="crmFormInput"
+                                  style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
+                                />
+                              </td>
+                              <td style={{ padding: '6px 12px', fontWeight: 600, color: '#0F172A' }}>
+                                ${weeklyTotal}
+                              </td>
+                              <td style={{ padding: '6px 12px' }}>
+                                {scheduleItems.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeScheduleRow(idx)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
 
-                  {/* Consent Toggles */}
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: 14 }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A', display: 'block', marginBottom: 10 }}>
-                      Conditional Schedules &amp; Consents
-                    </span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={transportIncluded}
-                          onChange={(e) => setTransportIncluded(e.target.checked)}
-                        />
-                        <span><strong>Include Transport Assistance Schedule</strong> (Vehicular travel &amp; mileage allowances)</span>
-                      </label>
+                  <div style={{ background: '#F8FAFC', padding: '10px 14px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#64748B' }}>Estimated Annual Budget Commitment (52 Weeks):</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>${totalAnnualBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
 
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={mediaConsent}
-                          onChange={(e) => setMediaConsent(e.target.checked)}
-                        />
-                        <span><strong>Include Photography &amp; Media Release</strong> (Optional marketing consent schedule)</span>
-                      </label>
-                    </div>
+                  {/* Consents */}
+                  <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <Checkbox
+                      checked={transportIncluded}
+                      onChange={setTransportIncluded}
+                      label="Include Transport Assistance Schedule"
+                      description="Authorizes travel allowances and mileage billing under standard NDIS price limits."
+                    />
+                    <Checkbox
+                      checked={mediaConsent}
+                      onChange={setMediaConsent}
+                      label="Include Photography & Media Consent Schedule"
+                      description="Optional consent for Opus Care community stories and updates."
+                    />
                   </div>
                 </div>
               )}
 
-              {/* WORKFORCE QUESTIONNAIRE */}
-              {ownerType === 'staff' && (
+              {/* WORKER / CONTRACTOR TERMS */}
+              {ownerType !== 'participant' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <div>
-                      <label className="crmFormLabel">Employment Type (SCHADS Award) *</label>
+                    <FormField label="Classification / Award Level">
+                      <TextInput
+                        value={workerClassification}
+                        onChange={(e) => setWorkerClassification(e.target.value)}
+                        placeholder="Level 2 Support Worker"
+                      />
+                    </FormField>
+
+                    <FormField label="Employment Basis">
                       <select
                         value={workerBasis}
                         onChange={(e) => setWorkerBasis(e.target.value as any)}
-                        className="crmFormInput"
+                        className="crmFormSelect"
                       >
-                        <option value="casual">Casual (includes 25% casual loading)</option>
-                        <option value="part_time">Permanent Part-Time (Agreed pattern of hours)</option>
-                        <option value="full_time">Permanent Full-Time (38 hrs/week)</option>
+                        <option value="casual">Casual (25% loading included)</option>
+                        <option value="part_time">Part-Time (Permanent contracted hours)</option>
+                        <option value="full_time">Full-Time (38 hrs/wk standard)</option>
                       </select>
-                    </div>
-
-                    <div>
-                      <label className="crmFormLabel">Award Classification</label>
-                      <select
-                        value={workerClassification}
-                        onChange={(e) => setWorkerClassification(e.target.value)}
-                        className="crmFormInput"
-                      >
-                        <option value="Level 2 Support Worker">Level 2 Support Worker</option>
-                        <option value="Level 3 Support Worker">Level 3 Senior Support Worker</option>
-                      </select>
-                    </div>
+                    </FormField>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <div>
-                      <label className="crmFormLabel">Agreed Base Hourly Rate ($/hr)</label>
-                      <input
+                    <FormField label="Base Hourly Rate ($ AUD)" required>
+                      <TextInput
                         type="number"
                         step="0.5"
                         value={workerRate}
-                        onChange={(e) => setWorkerRate(Number(e.target.value))}
-                        className="crmFormInput"
+                        onChange={(e) => setWorkerRate(parseFloat(e.target.value) || 0)}
                       />
-                    </div>
-                    <div>
-                      <label className="crmFormLabel">Superannuation Guarantee (%)</label>
-                      <input
+                    </FormField>
+
+                    <FormField label="Superannuation Guarantee (%)">
+                      <TextInput
                         type="number"
                         step="0.1"
                         value={superRate}
-                        onChange={(e) => setSuperRate(Number(e.target.value))}
-                        className="crmFormInput"
+                        onChange={(e) => setSuperRate(parseFloat(e.target.value) || 0)}
                       />
-                    </div>
+                    </FormField>
                   </div>
 
-                  {/* Restraint of Trade Flag */}
-                  <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: 12, borderRadius: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#FEF3C7', color: '#B45309', padding: '2px 6px', borderRadius: 4 }}>
-                        LEGAL REVIEW REQUIRED
-                      </span>
-                      <strong style={{ fontSize: '0.85rem', color: '#92400E' }}>Non-Solicitation &amp; Restraint Clause</strong>
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: '#92400E', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={includeRestraintClause}
-                        onChange={(e) => setIncludeRestraintClause(e.target.checked)}
-                      />
-                      <span>Include reasonable 6-month post-employment participant non-solicitation clause</span>
-                    </label>
-                  </div>
+                  <Checkbox
+                    checked={includeRestraintClause}
+                    onChange={setIncludeRestraintClause}
+                    label="Include Non-Solicitation & Restraint Clause (Fair Work Act compliant)"
+                    description="12-month post-employment restraint prohibiting direct solicitation of Opus Care participants."
+                  />
                 </div>
               )}
+
+              {/* Dates */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 10 }}>
+                <FormField label="Commencement Date" required>
+                  <DatePicker
+                    value={commencementDate}
+                    onChange={(e) => setCommencementDate(e.target.value)}
+                  />
+                </FormField>
+
+                <FormField label="Annual Review Date">
+                  <DatePicker
+                    value={reviewDate}
+                    onChange={(e) => setReviewDate(e.target.value)}
+                  />
+                </FormField>
+
+                <FormField label="Expiry Date">
+                  <DatePicker
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                  />
+                </FormField>
+              </div>
             </div>
           )}
 
           {/* STEP 4: REVIEW & SIGN */}
           {step === 4 && (
-            <div>
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 18, marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase' }}>Draft Ready for Execution</span>
-                    <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>{recipientName}</h4>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748B' }}>Effective Date</span>
-                    <div style={{ fontWeight: 800, color: '#0F172A' }}>{commencementDate}</div>
-                  </div>
-                </div>
-
-                {ownerType === 'participant' && (
-                  <div style={{ fontSize: '0.82rem', color: '#475569', borderTop: '1px solid #E2E8F0', paddingTop: 10 }}>
-                    Schedule: <strong>{scheduleItems.length} support lines</strong> • Annual Commitment: <strong>${totalAnnualBudget.toLocaleString('en-AU', { minimumFractionDigits: 2 })} AUD</strong>
-                  </div>
-                )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Review & Sign</h4>
+                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: '#64748B' }}>
+                  Review agreement terms and complete execution with compliant digital signature.
+                </p>
               </div>
 
-              {/* Execution Options */}
-              <div style={{ marginBottom: 16 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#162E56', display: 'block', marginBottom: 8 }}>
-                  Execution Pathway
-                </span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setSigningTab('canvas')}
-                    style={{
-                      flex: 1,
-                      padding: 10,
-                      borderRadius: 8,
-                      border: signingTab === 'canvas' ? '2px solid #0284C7' : '1px solid #CBD5E1',
-                      background: signingTab === 'canvas' ? '#F0F9FF' : '#FFFFFF',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      cursor: 'pointer',
-                      color: signingTab === 'canvas' ? '#0284C7' : '#475569'
-                    }}
-                  >
-                    On-Screen E-Signature
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSigningTab('link')}
-                    style={{
-                      flex: 1,
-                      padding: 10,
-                      borderRadius: 8,
-                      border: signingTab === 'link' ? '2px solid #0284C7' : '1px solid #CBD5E1',
-                      background: signingTab === 'link' ? '#F0F9FF' : '#FFFFFF',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      cursor: 'pointer',
-                      color: signingTab === 'link' ? '#0284C7' : '#475569'
-                    }}
-                  >
-                    Send Remote Signing Link
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSigningTab('wet')}
-                    style={{
-                      flex: 1,
-                      padding: 10,
-                      borderRadius: 8,
-                      border: signingTab === 'wet' ? '2px solid #0284C7' : '1px solid #CBD5E1',
-                      background: signingTab === 'wet' ? '#F0F9FF' : '#FFFFFF',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      cursor: 'pointer',
-                      color: signingTab === 'wet' ? '#0284C7' : '#475569'
-                    }}
-                  >
-                    Download for Wet Signature
-                  </button>
-                </div>
-              </div>
+              <ReviewSummary
+                sections={[
+                  {
+                    title: 'Contract Details',
+                    fields: [
+                      { label: 'Document Template', value: selectedTemplate },
+                      { label: 'Recipient Name', value: recipientName },
+                      { label: 'Commencement Date', value: commencementDate },
+                      {
+                        label: 'Total Value / Rate',
+                        value: ownerType === 'participant' ? `$${totalAnnualBudget.toLocaleString()} / year` : `$${workerRate} / hour`,
+                      },
+                    ],
+                  },
+                ]}
+              />
 
-              {/* CANVAS DRAWING AREA */}
-              {signingTab === 'canvas' && (
-                <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: 10, padding: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A' }}>
-                      Sign with finger or mouse:
-                    </label>
+              {/* Digital Signature Canvas */}
+              <div
+                style={{
+                  background: '#F8FAFC',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: 10,
+                  padding: 16,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <PenTool size={18} style={{ color: '#0284C7' }} />
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0F172A' }}>
+                      Digital Signature Canvas ({ownerType === 'participant' ? 'Participant / Guardian' : 'Support Worker'})
+                    </span>
+                  </div>
+                  {hasDrawn && (
                     <button
                       type="button"
                       onClick={clearCanvas}
-                      style={{ background: 'none', border: 'none', color: '#0284C7', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                      style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '0.78rem', cursor: 'pointer' }}
                     >
                       Clear Canvas
                     </button>
-                  </div>
+                  )}
+                </div>
 
-                  <div style={{ background: '#FFFFFF', border: '1.5px dashed #94A3B8', borderRadius: 8, overflow: 'hidden' }}>
-                    <canvas
-                      ref={canvasRef}
-                      width={500}
-                      height={120}
-                      style={{ width: '100%', height: 120, touchAction: 'none', cursor: 'crosshair' }}
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
-                      onTouchEnd={stopDrawing}
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1.5px dashed #CBD5E1',
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    height: 140,
+                    cursor: 'crosshair',
+                  }}
+                >
+                  <canvas
+                    ref={canvasRef}
+                    width={760}
+                    height={140}
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    style={{ width: '100%', height: '100%', display: 'block' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <FormField label="Signatory Name">
+                    <TextInput
+                      value={signerName || recipientName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      placeholder="Signatory Name"
                     />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
-                    <div>
-                      <label className="crmFormLabel">Signer Full Legal Name</label>
-                      <input
-                        type="text"
-                        value={signerName}
-                        onChange={(e) => setSignerName(e.target.value)}
-                        className="crmFormInput"
-                        placeholder="Signer Legal Name"
-                      />
-                    </div>
-                    <div>
-                      <label className="crmFormLabel">Signer Authority / Role</label>
-                      <input
-                        type="text"
-                        value={signerTitle}
-                        onChange={(e) => setSignerTitle(e.target.value)}
-                        className="crmFormInput"
-                        placeholder="e.g. Participant, Plan Nominee"
-                      />
-                    </div>
-                  </div>
+                  </FormField>
+                  <FormField label="Signatory Capacity">
+                    <TextInput
+                      value={signerTitle}
+                      onChange={(e) => setSignerTitle(e.target.value)}
+                      placeholder="e.g. Participant / Support Worker"
+                    />
+                  </FormField>
                 </div>
-              )}
-
-              {signingTab === 'link' && (
-                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: 18, color: '#1E40AF', fontSize: '0.85rem' }}>
-                  <strong>Remote Digital Signing Link:</strong>
-                  <p style={{ margin: '6px 0 12px' }}>
-                    Upon saving, a cryptographically signed, secure token link will be generated. You can email or SMS this link directly to the recipient to execute on their mobile device without requiring a login.
-                  </p>
-                  <span style={{ fontSize: '0.78rem', background: '#DBEAFE', padding: '4px 8px', borderRadius: 4, fontFamily: 'monospace' }}>
-                    https://opuscare.com.au/sign?token=SECURE_TOKEN_PENDING
-                  </span>
-                </div>
-              )}
-
-              {signingTab === 'wet' && (
-                <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', borderRadius: 10, padding: 18, fontSize: '0.85rem', color: '#334155' }}>
-                  <strong>Physical Wet-Ink Execution:</strong>
-                  <p style={{ margin: '6px 0 12px' }}>
-                    Save this agreement as a draft, open it, and print. Once physically signed by the participant and provider representative, upload the scanned copy to seal the agreement into the immutable private vault.
-                  </p>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Footer Navigation */}
-        <div style={{ padding: '16px 24px', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        {/* Modal Footer Controls */}
+        <div
+          style={{
+            padding: '14px 24px',
+            borderTop: '1px solid #E2E8F0',
+            background: '#F8FAFC',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+          }}
+        >
           <div>
             {step > 1 && (
               <button
                 type="button"
-                onClick={() => setStep((step - 1) as any)}
+                onClick={() => setStep((prev) => Math.max(prev - 1, 1) as any)}
                 className="crmSecondaryBtn"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
-                <ArrowLeft size={15} />
+                <ArrowLeft size={16} />
                 <span>Back</span>
               </button>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
               type="button"
               onClick={onClose}
@@ -1061,22 +948,14 @@ export default function AgreementGeneratorModal({
               <button
                 type="button"
                 disabled={step === 3 && selectedTemplate === 'DOC-CTR-01' && !isContractorGatePassed}
-                onClick={() => {
-                  if (step === 2 && !recipientName.trim()) {
-                    setError('Recipient name is required.');
-                    return;
-                  }
-                  setError('');
-                  setStep((step + 1) as any);
-                }}
+                onClick={() => setStep((prev) => Math.min(prev + 1, 4) as any)}
                 className="crmActionBtnPrimary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
                 <span>Continue</span>
-                <ArrowRight size={15} />
+                <ArrowRight size={16} />
               </button>
             ) : (
-              <div style={{ display: 'flex', gap: 8 }}>
+              <>
                 <button
                   type="button"
                   disabled={submitting}
@@ -1085,18 +964,23 @@ export default function AgreementGeneratorModal({
                 >
                   Save as Draft
                 </button>
-
                 <button
                   type="button"
                   disabled={submitting}
                   onClick={() => handleSaveAndExecute(true)}
                   className="crmActionBtnPrimary"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  style={{ background: '#059669' }}
                 >
-                  <PenTool size={15} />
-                  <span>{submitting ? 'Executing...' : 'Sign & Seal Agreement'}</span>
+                  {submitting ? (
+                    <span>Executing Agreement...</span>
+                  ) : (
+                    <>
+                      <Check size={16} />
+                      <span>Execute & Activate</span>
+                    </>
+                  )}
                 </button>
-              </div>
+              </>
             )}
           </div>
         </div>

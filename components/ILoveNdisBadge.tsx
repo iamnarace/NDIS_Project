@@ -55,10 +55,10 @@ export function ILoveNdisBadge({ className = '', variant = 'pill' }: ILoveNdisBa
       <div className="iLoveNdisTextWrap">
         <div className="iLoveNdisTitleRow">
           <span className="iLoveNdisTitle">NDIS Support Provider</span>
-          <span className="iLoveNdisTag">Self &amp; Plan-Managed</span>
+          <span className="iLoveNdisTag">Self & Plan-Managed</span>
         </div>
         <p className="iLoveNdisSubtext">
-          Proudly supporting participants across Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers.
+          Proudly supporting participants across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers.
         </p>
       </div>
     </div>

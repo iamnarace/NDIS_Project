@@ -53,7 +53,7 @@ export function NdisFundingSection() {
               <span className="includesLabel">Includes:</span>
               <div className="bulletTwoColGrid">
                 <div className="bulletItem"><span className="bulletDot purple"></span> Support coordination</div>
-                <div className="bulletItem"><span className="bulletDot purple"></span> Training &amp; education</div>
+                <div className="bulletItem"><span className="bulletDot purple"></span> Training & education</div>
                 <div className="bulletItem"><span className="bulletDot purple"></span> Therapy services</div>
                 <div className="bulletItem"><span className="bulletDot purple"></span> Employment support</div>
               </div>

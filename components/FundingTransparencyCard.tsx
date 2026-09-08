@@ -20,7 +20,7 @@ export function FundingTransparencyCard() {
         {/* Plan-Managed Card Pane */}
         <div className="controlledCardPane fundingPlanCard featured">
           <div className="planHeader">
-            <span className="planPopularTag">Most Popular &amp; Seamless</span>
+            <span className="planPopularTag">Most Popular & Seamless</span>
             <h3>Plan-Managed</h3>
             <span className="statusTag green">Fully Supported ✅</span>
             <p>Your independent Plan Manager (e.g. Plan Partners, My Plan Manager, Leap in!) pays invoices directly on your behalf.</p>

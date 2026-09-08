@@ -56,12 +56,12 @@ export default function WelcomePackPage() {
                   <p className="contractEntityDetails">
                     <strong>Opus Care Support Services Pty Ltd</strong><br />
                     Supporting Self-Managed and Plan-Managed Participants<br />
-                    Coffs Coast, Clarence Valley, Richmond Valley &amp; Northern Rivers NSW
+                    Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers NSW
                   </p>
                 </div>
                 <div className="contractBadgeBox">
                   <span className="contractStatusTag">CLIENT HANDBOOK</span>
-                  <h1 className="contractMainTitle">WELCOME &amp; ONBOARDING PACK</h1>
+                  <h1 className="contractMainTitle">WELCOME & ONBOARDING PACK</h1>
                   <span className="contractSubTag">Your Guide to Quality NDIS Support</span>
                 </div>
               </div>
@@ -94,7 +94,7 @@ export default function WelcomePackPage() {
             </section>
 
             <section className="contractSection">
-              <h2 className="sectionClauseTitle">3. Safety, Screening &amp; Insurance</h2>
+              <h2 className="sectionClauseTitle">3. Safety, Screening & Insurance</h2>
               <p className="clauseText">
                 Every Opus Care support worker has completed:
               </p>
@@ -103,7 +103,7 @@ export default function WelcomePackPage() {
                 <li>NDIS Worker Screening Check (NDISWC)</li>
                 <li>Working with Children Check (WWCC)</li>
                 <li>Verified Professional Reference Checks</li>
-                <li>Comprehensive Public Liability &amp; Personal Accident Insurance</li>
+                <li>Comprehensive Public Liability & Personal Accident Insurance</li>
               </ul>
             </section>
 
@@ -113,14 +113,14 @@ export default function WelcomePackPage() {
                 Our support team is based right here on the North Coast of NSW:
               </p>
               <div className="calloutRuleBox">
-                <strong>General Inquiries &amp; Care Coordination:</strong> support@opuscare.com.au<br />
+                <strong>General Inquiries & Care Coordination:</strong> support@opuscare.com.au<br />
                 <strong>Participant Portal:</strong> portal.opuscare.com.au<br />
                 <strong>Urgent Shift Adjustments:</strong> Mon–Fri 8am–6pm (response within 2 business hours)
               </div>
             </section>
 
             <footer className="contractFooterLegal">
-              <p>Opus Care Support Services Pty Ltd · NSW North Coast &amp; Northern Rivers · support@opuscare.com.au</p>
+              <p>Opus Care Support Services Pty Ltd · NSW North Coast & Northern Rivers · support@opuscare.com.au</p>
             </footer>
 
           </div>

@@ -30,7 +30,7 @@ export default function CodeOfConductPage() {
                 </p>
                 <div className="conductGrid">
                   <div className="conductItem">
-                    <strong>1. Respect Choice &amp; Self-Determination</strong>
+                    <strong>1. Respect Choice & Self-Determination</strong>
                     <p>Act with respect for individual rights to freedom of expression, self-determination, and decision-making in accordance with relevant laws and conventions.</p>
                   </div>
                   <div className="conductItem">
@@ -38,15 +38,15 @@ export default function CodeOfConductPage() {
                     <p>Respect the privacy of people with disability in all interactions, record-keeping, and communication.</p>
                   </div>
                   <div className="conductItem">
-                    <strong>3. Safe &amp; Competent Support</strong>
+                    <strong>3. Safe & Competent Support</strong>
                     <p>Provide supports and services in a safe and competent manner, with care and skill.</p>
                   </div>
                   <div className="conductItem">
-                    <strong>4. Integrity, Honesty &amp; Transparency</strong>
+                    <strong>4. Integrity, Honesty & Transparency</strong>
                     <p>Act with integrity, honesty, and transparency in all financial, service agreement, and delivery matters.</p>
                   </div>
                   <div className="conductItem">
-                    <strong>5. Prevent Violence, Abuse &amp; Neglect</strong>
+                    <strong>5. Prevent Violence, Abuse & Neglect</strong>
                     <p>Promptly take steps to raise and act on concerns about matters that may impact the quality and safety of supports provided.</p>
                   </div>
                   <div className="conductItem">

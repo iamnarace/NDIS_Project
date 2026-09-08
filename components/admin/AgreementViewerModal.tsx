@@ -120,7 +120,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
               </div>
 
               <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>Term &amp; Value</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748B' }}>Term & Value</span>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F172A' }}>
                   Commencement: {agreement.commencement_date}
                 </div>
@@ -135,7 +135,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
           {clauses.service_schedule && clauses.service_schedule.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#162E56', marginBottom: 10, borderBottom: '1px solid #EEF2F6', paddingBottom: 6 }}>
-                Schedule of Supports &amp; Mutually Agreed Pricing
+                Schedule of Supports & Mutually Agreed Pricing
               </h4>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
                 <thead>
@@ -171,7 +171,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
           {/* Legal Clauses Section */}
           <div style={{ marginBottom: 28, fontSize: '0.88rem', color: '#334155' }}>
             <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#162E56', marginBottom: 12, borderBottom: '1px solid #EEF2F6', paddingBottom: 6 }}>
-              Key Operational &amp; Legal Terms
+              Key Operational & Legal Terms
             </h4>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -183,7 +183,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
               </div>
 
               <div>
-                <strong style={{ color: '#0F172A' }}>2. Participant Responsibilities &amp; Safe Workplace:</strong>
+                <strong style={{ color: '#0F172A' }}>2. Participant Responsibilities & Safe Workplace:</strong>
                 <p style={{ margin: '4px 0 0' }}>
                   The participant agrees to treat support workers with respect and maintain a safe home environment complying with NSW Work Health and Safety laws during support visits.
                 </p>
@@ -197,7 +197,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
               </div>
 
               <div>
-                <strong style={{ color: '#0F172A' }}>4. Feedback, Complaints &amp; Safeguarding:</strong>
+                <strong style={{ color: '#0F172A' }}>4. Feedback, Complaints & Safeguarding:</strong>
                 <p style={{ margin: '4px 0 0' }}>
                   If you have feedback or complaints, you can contact Opus Care Management directly on 1300 895 210 or via email. You also have the right to contact the NDIS Quality and Safeguards Commission at any time on 1800 035 544.
                 </p>
@@ -205,7 +205,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
 
               {qData.transport_included && (
                 <div>
-                  <strong style={{ color: '#0F172A' }}>5. Transport &amp; Vehicle Travel:</strong>
+                  <strong style={{ color: '#0F172A' }}>5. Transport & Vehicle Travel:</strong>
                   <p style={{ margin: '4px 0 0' }}>
                     Where transport support is provided in a support worker&apos;s vehicle, the vehicle is comprehensively insured and registered in NSW. Activity travel is billed in accordance with the agreed Schedule of Supports.
                   </p>
@@ -217,7 +217,7 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
           {/* Signatures Block */}
           <div style={{ borderTop: '2px solid #E2E8F0', paddingTop: 20, marginTop: 24 }}>
             <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#162E56', marginBottom: 14 }}>
-              Execution &amp; Signature Record
+              Execution & Signature Record
             </h4>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>

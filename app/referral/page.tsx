@@ -31,7 +31,7 @@ export default function ReferralPage() {
             {/* Left Side: Intake Guide Pane */}
             <div className="intakeGuideCardPane">
               <span className="guideSubBadge">DIRECT INTAKE GUIDE</span>
-              <h2>Simple, Respectful &amp; Confidential</h2>
+              <h2>Simple, Respectful & Confidential</h2>
               <p className="guideIntro">
                 Please keep this first enquiry brief. We do not require complex diagnostic files or medical history upfront. We will arrange a friendly conversation at your convenience.
               </p>
@@ -49,7 +49,7 @@ export default function ReferralPage() {
                 <div className="guideStepItem">
                   <div className="guideStepNum">2</div>
                   <div className="guideStepContent">
-                    <strong>Initial Conversation &amp; Fit Check</strong>
+                    <strong>Initial Conversation & Fit Check</strong>
                     <p>We discuss goals, routine preferences, schedule, and preferred support worker qualities.</p>
                   </div>
                 </div>
@@ -71,7 +71,7 @@ export default function ReferralPage() {
                 </div>
                 <div className="guideContactLine">
                   <MapPin size={16} className="gIcon" />
-                  <span>Yamba, Grafton &amp; Northern Rivers NSW</span>
+                  <span>Yamba, Grafton & Northern Rivers NSW</span>
                 </div>
                 <div className="guideContactLine">
                   <Clock size={16} className="gIcon" />

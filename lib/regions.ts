@@ -75,3 +75,61 @@ export const MAJOR_LOCATIONS = [
   'Coffs Harbour', 'Woolgoolga', 'Grafton', 'Maclean', 'Yamba', 
   'Casino', 'Lismore', 'Alstonville', 'Lennox Head', 'Ballina'
 ];
+
+export interface SuburbEntry {
+  suburb: string;
+  regionId: string;
+  regionName: string;
+  isMajor: boolean;
+}
+
+export function getAllServiceSuburbs(): SuburbEntry[] {
+  const result: SuburbEntry[] = [];
+  const seen = new Set<string>();
+
+  for (const reg of REGIONS) {
+    for (const sub of reg.suburbs) {
+      const clean = sub.trim();
+      if (!seen.has(clean.toLowerCase())) {
+        seen.add(clean.toLowerCase());
+        result.push({
+          suburb: clean,
+          regionId: reg.id,
+          regionName: reg.name,
+          isMajor: MAJOR_LOCATIONS.includes(clean) || reg.majorTowns.includes(clean),
+        });
+      }
+    }
+  }
+  return result.sort((a, b) => a.suburb.localeCompare(b.suburb));
+}
+
+export function checkServiceArea(inputSuburb: string): {
+  inServiceArea: boolean;
+  matchedSuburb?: string;
+  regionName?: string;
+} {
+  if (!inputSuburb || typeof inputSuburb !== 'string') {
+    return { inServiceArea: false };
+  }
+
+  const clean = inputSuburb.toLowerCase().trim();
+  // Strip postcodes, 'NSW', Australia etc.
+  const core = clean.replace(/\\b(nsw|australia|24\\d\\d)\\b/gi, '').trim();
+
+  for (const reg of REGIONS) {
+    for (const sub of reg.suburbs) {
+      const subLower = sub.toLowerCase();
+      if (clean === subLower || core === subLower || clean.includes(subLower) || subLower.includes(core)) {
+        return {
+          inServiceArea: true,
+          matchedSuburb: sub,
+          regionName: reg.name,
+        };
+      }
+    }
+  }
+
+  return { inServiceArea: false };
+}
+

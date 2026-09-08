@@ -11,9 +11,9 @@ export default function IncidentManagementPage() {
         <section className="pageHero">
           <div className="shell">
             <span className="eyebrow">
-              <ShieldCheck size={15} /> Safety &amp; Safeguards
+              <ShieldCheck size={15} /> Safety & Safeguards
             </span>
-            <h1>Incident Management &amp; Safety Framework</h1>
+            <h1>Incident Management & Safety Framework</h1>
             <p>
               How Opus Care Support Services identifies, manages, records, and prevents incidents to ensure the safety, health, and wellbeing of every participant.
             </p>
@@ -31,14 +31,14 @@ export default function IncidentManagementPage() {
               </div>
 
               <div className="policySection">
-                <h2>2. Immediate Response &amp; First Aid</h2>
+                <h2>2. Immediate Response & First Aid</h2>
                 <p>
                   In the event of an incident or injury, our support workers are trained to prioritize immediate participant safety and first aid, notify emergency services if needed, contact nominees/family, and report the event immediately to senior management.
                 </p>
               </div>
 
               <div className="policySection">
-                <h2>3. Investigation &amp; Corrective Actions</h2>
+                <h2>3. Investigation & Corrective Actions</h2>
                 <p>
                   Every reported incident undergoes a root-cause review within 48 hours to determine contributing factors, update participant risk profiles, adjust support procedures, and implement preventative measures to ensure it does not happen again.
                 </p>

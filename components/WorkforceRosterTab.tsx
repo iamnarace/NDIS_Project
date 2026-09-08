@@ -445,11 +445,11 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               NDIS Workforce Hub
             </span>
             <span style={{ fontSize: '0.85rem', color: '#64748B' }}>
-              Clarence Valley &amp; Northern Rivers
+              Clarence Valley & Northern Rivers
             </span>
           </div>
           <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
-            Rostering &amp; Shift Scheduling
+            Rostering & Shift Scheduling
           </h2>
         </div>
 
@@ -901,8 +901,8 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 <th style={{ padding: '12px 16px' }}>Ref / Date</th>
                 <th style={{ padding: '12px 16px' }}>Participant</th>
-                <th style={{ padding: '12px 16px' }}>Service &amp; Line Item</th>
-                <th style={{ padding: '12px 16px' }}>Time &amp; Hours</th>
+                <th style={{ padding: '12px 16px' }}>Service & Line Item</th>
+                <th style={{ padding: '12px 16px' }}>Time & Hours</th>
                 <th style={{ padding: '12px 16px' }}>Suburb</th>
                 <th style={{ padding: '12px 16px' }}>Assigned Worker</th>
                 <th style={{ padding: '12px 16px' }}>Status</th>
@@ -1154,7 +1154,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                 {selectedStaffRecord && !workerConflict && (
                   <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: '#059669', background: '#ECFDF5', padding: '6px 12px', borderRadius: 8 }}>
                     <CheckCircle2 size={15} />
-                    <span>Compliance Verified: NDIS Screening &amp; First Aid Active</span>
+                    <span>Compliance Verified: NDIS Screening & First Aid Active</span>
                   </div>
                 )}
               </div>
@@ -1177,7 +1177,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
               {/* Special Instructions */}
               <div>
-                <label className="crmFormLabel">Care Notes &amp; Special Instructions</label>
+                <label className="crmFormLabel">Care Notes & Special Instructions</label>
                 <textarea
                   value={formInstructions}
                   onChange={(e) => setFormInstructions(e.target.value)}
@@ -1230,7 +1230,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
               <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', fontWeight: 700 }}>Date &amp; Time</span>
+                    <span style={{ fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', fontWeight: 700 }}>Date & Time</span>
                     <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0F172A' }}>
                       {new Date(selectedShift.start_time).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>

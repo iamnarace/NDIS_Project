@@ -23,7 +23,7 @@ export function RegionalCoverageChecker() {
     <div className="coverageCardWrapper">
       <div className="coverageCardHeader">
         <div className="coverageBadgeRow">
-          <span className="coverageBadge"><MapPin size={15} /> NSW North Coast &amp; Northern Rivers</span>
+          <span className="coverageBadge"><MapPin size={15} /> NSW North Coast & Northern Rivers</span>
           <span className="coveragePill">🟢 Taking Referrals Across All Hubs</span>
         </div>
         <h3 className="coverageTitle">Supporting participants across the NSW North Coast and Northern Rivers</h3>
@@ -125,7 +125,7 @@ export function RegionalCoverageChecker() {
 
         <div className="regionActionFooter">
           <Link href="/service-areas" className="viewAllAreasLink">
-            <span>Explore Complete Suburb &amp; Town Directory</span>
+            <span>Explore Complete Suburb & Town Directory</span>
             <ArrowRight size={14} />
           </Link>
           <Link href="/referral" className="button primary sm regionReferBtn">
