@@ -453,5 +453,106 @@ create policy "Allow all on staff_availability" on public.staff_availability for
 create policy "Allow all on staff_leave" on public.staff_leave for all using (true) with check (true);
 create policy "Allow all on shift_progress_notes" on public.shift_progress_notes for all using (true) with check (true);
 
+-- ============================================================================
+-- AGREEMENT ENGINE, DOCUMENT PACKS & GOVERNANCE (PHASE 1)
+-- ============================================================================
+
+create table if not exists public.provider_config (
+  id uuid primary key default gen_random_uuid(),
+  legal_name text not null,
+  trading_name text not null default 'Opus Care Support Services',
+  abn text not null,
+  acn text,
+  registered_address text not null,
+  phone text not null,
+  email text not null,
+  ndis_registration_status text not null default 'unregistered',
+  ndis_provider_number text,
+  designated_signatory_name text not null,
+  designated_signatory_title text not null,
+  bank_name text,
+  bank_bsb text,
+  bank_account_number text,
+  min_public_liability_limit numeric(12,2) default 10000000.00,
+  min_professional_indemnity_limit numeric(12,2) default 2000000.00,
+  default_super_rate_pct numeric(4,2) default 11.50,
+  cancellation_policy_version text default '2026.1',
+  cancellation_clause_text text not null,
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.document_templates (
+  id uuid primary key default gen_random_uuid(),
+  template_code text not null unique,
+  title text not null,
+  category text not null,
+  template_version text not null,
+  effective_date date not null,
+  source_basis text not null,
+  legal_review_date date,
+  last_reviewed_by text,
+  next_review_due date not null,
+  clause_schema jsonb not null,
+  is_active boolean not null default true,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.agreement_records (
+  id uuid primary key default gen_random_uuid(),
+  agreement_reference text not null unique,
+  template_id uuid not null references public.document_templates(id),
+  template_version text not null,
+  document_pack_id uuid,
+  owner_type text not null,
+  owner_id uuid not null,
+  title text not null,
+  version_number integer not null default 1,
+  superseded_by_id uuid references public.agreement_records(id),
+  questionnaire_data jsonb not null,
+  compiled_clauses jsonb not null,
+  commencement_date date not null,
+  review_date date,
+  expiry_date date,
+  estimated_budget numeric(10,2),
+  status text not null default 'draft' check (status in (
+    'draft', 'ready_for_review', 'sent_for_signature', 'partially_signed', 'fully_signed', 'active', 'superseded', 'expired', 'terminated'
+  )),
+  draft_pdf_path text,
+  executed_pdf_path text,
+  executed_hash_sha256 text,
+  executed_at timestamptz,
+  created_by text not null default 'Admin',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.agreement_signatures (
+  id uuid primary key default gen_random_uuid(),
+  agreement_id uuid not null references public.agreement_records(id) on delete cascade,
+  party_role text not null,
+  signer_name text not null,
+  signer_title text,
+  signer_email text,
+  signer_phone text,
+  signing_method text not null,
+  signature_image_data text,
+  ip_address text,
+  user_agent text,
+  signed_at timestamptz default now(),
+  is_verified boolean default true
+);
+
+alter table public.provider_config enable row level security;
+alter table public.document_templates enable row level security;
+alter table public.agreement_records enable row level security;
+alter table public.agreement_signatures enable row level security;
+
+create policy "Allow all on provider_config" on public.provider_config for all using (true) with check (true);
+create policy "Allow all on document_templates" on public.document_templates for all using (true) with check (true);
+create policy "Allow all on agreement_records" on public.agreement_records for all using (true) with check (true);
+create policy "Allow all on agreement_signatures" on public.agreement_signatures for all using (true) with check (true);
+
+
 
 

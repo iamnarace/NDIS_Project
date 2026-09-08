@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import fs from 'fs';
@@ -67,14 +67,21 @@ export async function POST(req: Request) {
     const supabase = createAdminClient();
     if (supabase) {
       try {
+        const { count } = await supabase.from('participants').select('*', { count: 'exact', head: true });
+        const refNum = body.referenceNumber || `PAR-${String((count ?? 0) + 1).padStart(5, '0')}`;
+
         const { data, error } = await supabase
           .from('participants')
           .insert({
+            reference_number: refNum,
             full_name: body.name,
             ndis_number: body.ndisNumber || null,
-            suburb: body.suburb || 'Yamba / Northern Rivers',
+            date_of_birth: body.dateOfBirth || null,
+            suburb: body.suburb || 'Yamba NSW',
+            street_address: body.streetAddress || null,
             funding_type: body.fundingType || 'Plan-Managed',
             plan_manager_name: body.planManager || null,
+            plan_manager_email: body.planManagerEmail || null,
             allocated_weekly_hours: Number(body.allocatedHours) || 0,
             phone: body.phone || null,
             email: body.email || null,

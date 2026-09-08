@@ -4,6 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import WorkforceRosterTab from '@/components/WorkforceRosterTab';
+import AddParticipantModal from '@/components/admin/AddParticipantModal';
+import AddWorkerModal from '@/components/admin/AddWorkerModal';
+import AgreementGeneratorModal from '@/components/admin/AgreementGeneratorModal';
+import AgreementViewerModal from '@/components/admin/AgreementViewerModal';
 import { 
   Users, UserCheck, FileText, Phone, Mail, MapPin, Calendar, 
   CheckCircle2, Clock, AlertCircle, ArrowRight, Search, Filter, 
@@ -170,6 +174,13 @@ export default function AdminCrmPage() {
   const [statusNotice, setStatusNotice] = useState('');
 
   const [tab, setTab] = useState<TabType>('dashboard');
+  const [agreements, setAgreements] = useState<any[]>([]);
+  const [agreementsLoading, setAgreementsLoading] = useState(false);
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [showAddWorker, setShowAddWorker] = useState(false);
+  const [showAgreementGenerator, setShowAgreementGenerator] = useState(false);
+  const [selectedAgreementToView, setSelectedAgreementToView] = useState<any | null>(null);
+  const [variationTarget, setVariationTarget] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [viewMode, setViewMode] = useState<'pipeline' | 'table'>('pipeline');
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -231,6 +242,8 @@ export default function AdminCrmPage() {
   useEffect(() => {
     if (tab === 'compliance') {
       loadTrainingData();
+    } else if (tab === 'agreements') {
+      loadAgreements();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
@@ -313,18 +326,32 @@ export default function AdminCrmPage() {
   async function loadAllData() {
     setLoading(true);
     try {
-      const [refRes, partRes, staffRes] = await Promise.all([
+      const [refRes, partRes, staffRes, agrRes] = await Promise.all([
         fetch('/api/referral'),
         fetch('/api/crm/participants'),
         fetch('/api/crm/staff'),
+        fetch('/api/crm/agreements'),
       ]);
       if (refRes.ok) setReferrals(await refRes.json());
       if (partRes.ok) setParticipants(await partRes.json());
       if (staffRes.ok) setStaff(await staffRes.json());
+      if (agrRes.ok) setAgreements(await agrRes.json());
     } catch (err) {
       console.error('Failed to load CRM data', err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadAgreements() {
+    setAgreementsLoading(true);
+    try {
+      const res = await fetch('/api/crm/agreements');
+      if (res.ok) setAgreements(await res.json());
+    } catch (err) {
+      console.error('Failed to load agreements', err);
+    } finally {
+      setAgreementsLoading(false);
     }
   }
 
@@ -1525,70 +1552,205 @@ export default function AdminCrmPage() {
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
                 <div>
-                  <h2 className="crmPanelTitle">Service Agreements &amp; Pricing Arrangements</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#E0F2FE', color: '#0284C7', padding: '2px 8px', borderRadius: 4, textTransform: 'uppercase' }}>
+                      Contract &amp; Agreement Engine
+                    </span>
+                    <span style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                      Immutable Private Vault &bull; Version Controlled
+                    </span>
+                  </div>
+                  <h2 className="crmPanelTitle">Service Agreements &amp; Document Packs</h2>
                   <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748B' }}>
-                    Generate, track, and execute official NDIS Service Agreements configured with 2024/25 Pricing Schedules.
+                    Generate, execute, and version NDIS Service Agreements, Schedules of Supports, and Workforce Contracts with digital e-signatures.
                   </p>
                 </div>
                 <button
-                  onClick={() => alert('Agreement generator template opened.')}
+                  onClick={() => {
+                    setVariationTarget(null);
+                    setShowAgreementGenerator(true);
+                  }}
                   className="headerCtaBtn"
-                  style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                  style={{ padding: '9px 20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  <Plus size={15} /> <span>New Service Agreement</span>
+                  <Plus size={16} /> <span>New Agreement / Pack</span>
                 </button>
               </div>
 
-              {/* Service Agreement Pricing Reference Table */}
-              <div className="crmTableWrapper" style={{ marginBottom: 24 }}>
+              {/* Agreement Metric Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Active Executed Agreements</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A' }}>
+                    {agreements.filter((a: any) => a.status === 'active' || a.status === 'fully_signed').length}
+                  </div>
+                </div>
+
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Pending Execution / Drafts</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#D97706' }}>
+                    {agreements.filter((a: any) => a.status !== 'active' && a.status !== 'fully_signed' && a.status !== 'superseded').length}
+                  </div>
+                </div>
+
+                <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Committed Plan Funding</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669' }}>
+                    ${agreements.reduce((acc: number, a: any) => acc + (Number(a.estimated_budget) || 0), 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 500, marginLeft: 4 }}>AUD</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Agreements Table */}
+              <div className="crmTableWrapper" style={{ marginBottom: 28 }}>
                 <table className="crmTable">
                   <thead>
                     <tr>
-                      <th>Line Item Code</th>
-                      <th>Support Item Description</th>
-                      <th>Category</th>
-                      <th>NSW / QLD Price Limit</th>
-                      <th>Unit</th>
+                      <th>Ref &amp; Date</th>
+                      <th>Recipient / Owner</th>
+                      <th>Document Title &amp; Version</th>
+                      <th>Committed Budget</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><span className="refIdTag">01_011_0107_1_1</span></td>
-                      <td><strong>Assistance with Self-Care Activities - Standard - Weekday Daytime</strong></td>
-                      <td><span className="fundingPillMini">Core Supports</span></td>
-                      <td><strong style={{ color: '#0F172A' }}>$67.56</strong></td>
-                      <td>Hour</td>
-                    </tr>
-                    <tr>
-                      <td><span className="refIdTag">01_015_0107_1_1</span></td>
-                      <td><strong>Assistance with Self-Care Activities - Standard - Weekday Evening</strong></td>
-                      <td><span className="fundingPillMini">Core Supports</span></td>
-                      <td><strong style={{ color: '#0F172A' }}>$74.44</strong></td>
-                      <td>Hour</td>
-                    </tr>
-                    <tr>
-                      <td><span className="refIdTag">01_013_0107_1_1</span></td>
-                      <td><strong>Assistance with Self-Care Activities - Saturday</strong></td>
-                      <td><span className="fundingPillMini">Core Supports</span></td>
-                      <td><strong style={{ color: '#0F172A' }}>$95.07</strong></td>
-                      <td>Hour</td>
-                    </tr>
-                    <tr>
-                      <td><span className="refIdTag">01_014_0107_1_1</span></td>
-                      <td><strong>Assistance with Self-Care Activities - Sunday</strong></td>
-                      <td><span className="fundingPillMini">Core Supports</span></td>
-                      <td><strong style={{ color: '#0F172A' }}>$122.59</strong></td>
-                      <td>Hour</td>
-                    </tr>
-                    <tr>
-                      <td><span className="refIdTag">04_104_0125_6_1</span></td>
-                      <td><strong>Access Community, Social and Rec Activities - Standard - Weekday Daytime</strong></td>
-                      <td><span className="fundingPillMini">Capacity Building</span></td>
-                      <td><strong style={{ color: '#0F172A' }}>$67.56</strong></td>
-                      <td>Hour</td>
-                    </tr>
+                    {agreements.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ padding: 36, textAlign: 'center', color: '#94A3B8' }}>
+                          No agreements created yet. Click <strong>+ New Agreement / Pack</strong> to generate your first document.
+                        </td>
+                      </tr>
+                    ) : (
+                      agreements.map((agr: any) => {
+                        const isExecuted = agr.status === 'active' || agr.status === 'fully_signed';
+                        const isSuperseded = agr.status === 'superseded';
+                        const ownerName = agr.questionnaire_data?.participant_name || agr.questionnaire_data?.worker_name || 'Participant';
+
+                        return (
+                          <tr key={agr.id} style={{ opacity: isSuperseded ? 0.65 : 1 }}>
+                            <td>
+                              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284C7', fontSize: '0.85rem' }}>
+                                {agr.agreement_reference}
+                              </span>
+                              <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{agr.commencement_date}</div>
+                            </td>
+                            <td>
+                              <strong style={{ color: '#0F172A' }}>{ownerName}</strong>
+                              <div style={{ fontSize: '0.78rem', color: '#64748B', textTransform: 'capitalize' }}>
+                                {agr.owner_type} &bull; {agr.questionnaire_data?.funding_type || 'Agreed'}
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: 600, color: '#0F172A', fontSize: '0.9rem' }}>{agr.title}</div>
+                              <span style={{ fontSize: '0.75rem', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: 4 }}>
+                                Version {agr.version_number}.0 ({agr.template_version})
+                              </span>
+                            </td>
+                            <td>
+                              {agr.estimated_budget ? (
+                                <strong style={{ color: '#059669', fontSize: '0.92rem' }}>
+                                  ${Number(agr.estimated_budget).toLocaleString('en-AU', { minimumFractionDigits: 2 })}
+                                </strong>
+                              ) : (
+                                <span style={{ color: '#94A3B8' }}>—</span>
+                              )}
+                            </td>
+                            <td>
+                              <span style={{
+                                display: 'inline-block',
+                                padding: '3px 10px',
+                                borderRadius: 20,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                background: isExecuted ? '#ECFDF5' : isSuperseded ? '#F1F5F9' : '#FFFBEB',
+                                color: isExecuted ? '#059669' : isSuperseded ? '#64748B' : '#B45309',
+                              }}>
+                                {agr.status}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <button
+                                onClick={() => setSelectedAgreementToView(agr)}
+                                className="crmSecondaryBtn"
+                                style={{ padding: '5px 12px', fontSize: '0.8rem' }}
+                              >
+                                View / Print
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Collapsible Pricing Reference Table */}
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#162E56', margin: 0 }}>
+                      NDIS Support Catalogue &bull; NSW Northern Rivers Price Limits (2026 Reference)
+                    </h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748B' }}>
+                      Statutory price limits serve as reference benchmarks; all client rates in the Schedule of Supports are mutually agreed.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="crmTableWrapper">
+                  <table className="crmTable" style={{ fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr>
+                        <th>Line Item Code</th>
+                        <th>Support Item Description</th>
+                        <th>Category</th>
+                        <th>NSW Regional Price Limit</th>
+                        <th>Unit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span className="refIdTag">01_011_0107_1_1</span></td>
+                        <td><strong>Assistance with Self-Care Activities - Standard - Weekday Daytime</strong></td>
+                        <td><span className="fundingPillMini">Core Supports</span></td>
+                        <td><strong style={{ color: '#0F172A' }}>$67.56</strong></td>
+                        <td>Hour</td>
+                      </tr>
+                      <tr>
+                        <td><span className="refIdTag">01_015_0107_1_1</span></td>
+                        <td><strong>Assistance with Self-Care Activities - Standard - Weekday Evening</strong></td>
+                        <td><span className="fundingPillMini">Core Supports</span></td>
+                        <td><strong style={{ color: '#0F172A' }}>$74.44</strong></td>
+                        <td>Hour</td>
+                      </tr>
+                      <tr>
+                        <td><span className="refIdTag">01_013_0107_1_1</span></td>
+                        <td><strong>Assistance with Self-Care Activities - Saturday</strong></td>
+                        <td><span className="fundingPillMini">Core Supports</span></td>
+                        <td><strong style={{ color: '#0F172A' }}>$95.07</strong></td>
+                        <td>Hour</td>
+                      </tr>
+                      <tr>
+                        <td><span className="refIdTag">04_104_0125_6_1</span></td>
+                        <td><strong>Access Community, Social and Rec Activities - Standard - Weekday Daytime</strong></td>
+                        <td><span className="fundingPillMini">Capacity Building</span></td>
+                        <td><strong style={{ color: '#0F172A' }}>$67.56</strong></td>
+                        <td>Hour</td>
+                      </tr>
+                      <tr>
+                        <td><span className="refIdTag">01_019_0120_1_1</span></td>
+                        <td><strong>House Cleaning &amp; Other Household Activities</strong></td>
+                        <td><span className="fundingPillMini">Core Supports</span></td>
+                        <td><strong style={{ color: '#0F172A' }}>$58.45</strong></td>
+                        <td>Hour</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1604,7 +1766,7 @@ export default function AdminCrmPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => alert('Add Participant modal: you can also convert any Referral directly.')}
+                  onClick={() => setShowAddParticipant(true)}
                   className="headerCtaBtn"
                   style={{ padding: '8px 18px', fontSize: '0.85rem' }}
                 >
@@ -1760,7 +1922,7 @@ export default function AdminCrmPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => alert('Worker registration modal')}
+                  onClick={() => setShowAddWorker(true)}
                   className="headerCtaBtn"
                   style={{ padding: '8px 18px', fontSize: '0.85rem' }}
                 >
@@ -2715,6 +2877,54 @@ export default function AdminCrmPage() {
             </div>
           </div>
         </div>
+      )}
+      {/* ADD PARTICIPANT MODAL */}
+      {showAddParticipant && (
+        <AddParticipantModal
+          onClose={() => setShowAddParticipant(false)}
+          onCreated={(newP) => {
+            loadAllData();
+          }}
+        />
+      )}
+
+      {/* ADD WORKER MODAL */}
+      {showAddWorker && (
+        <AddWorkerModal
+          onClose={() => setShowAddWorker(false)}
+          onCreated={(newW) => {
+            loadAllData();
+          }}
+        />
+      )}
+
+      {/* AGREEMENT GENERATOR MODAL */}
+      {showAgreementGenerator && (
+        <AgreementGeneratorModal
+          participants={participants}
+          staff={staff}
+          onClose={() => {
+            setShowAgreementGenerator(false);
+            setVariationTarget(null);
+          }}
+          variationOf={variationTarget}
+          onCreated={(newA) => {
+            loadAgreements();
+          }}
+        />
+      )}
+
+      {/* AGREEMENT VIEWER MODAL */}
+      {selectedAgreementToView && (
+        <AgreementViewerModal
+          agreement={selectedAgreementToView}
+          onClose={() => setSelectedAgreementToView(null)}
+          onCreateVariation={(agr) => {
+            setSelectedAgreementToView(null);
+            setVariationTarget(agr);
+            setShowAgreementGenerator(true);
+          }}
+        />
       )}
     </div>
   );

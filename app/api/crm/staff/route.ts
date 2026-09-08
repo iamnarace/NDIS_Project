@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import fs from 'fs';
@@ -72,13 +72,17 @@ export async function POST(req: Request) {
     const supabase = createAdminClient();
     if (supabase) {
       try {
+        const { count } = await supabase.from('staff').select('*', { count: 'exact', head: true });
+        const refNum = body.referenceNumber || `STF-${String((count ?? 0) + 1).padStart(5, '0')}`;
+
         const { data, error } = await supabase
           .from('staff')
           .insert({
+            reference_number: refNum,
             full_name: body.name,
             role: body.role || 'Support Worker',
-            phone: body.phone,
-            email: body.email,
+            phone: body.phone || '0400 000 000',
+            email: body.email || 'staff@opuscare.com.au',
             suburbs: body.suburbs || ['Yamba', 'Maclean'],
             ndis_screening: body.ndisScreening || 'Verified',
             ndis_screening_expiry: body.ndisScreeningExpiry || null,
