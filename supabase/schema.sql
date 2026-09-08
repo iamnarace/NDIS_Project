@@ -372,4 +372,86 @@ create policy "Anyone can read active external courses" on public.external_cours
 create policy "Admin manage external courses" on public.external_courses
   for all using (public.is_opus_admin());
 
+-- ============================================================================
+-- WORKFORCE ROSTERING & SHIFT SCHEDULING (PHASE 1)
+-- ============================================================================
+
+create table if not exists public.shifts (
+  id uuid primary key default gen_random_uuid(),
+  shift_reference text unique not null,
+  participant_id uuid not null references public.participants(id) on delete cascade,
+  service_type text not null,
+  ndis_support_item_code text default '01_011_0107_1_1',
+  start_time timestamptz not null,
+  end_time timestamptz not null,
+  hours numeric(4,2) not null,
+  location_suburb text not null,
+  location_address text,
+  special_instructions text,
+  status text not null default 'unassigned' check (status in ('unassigned', 'assigned', 'confirmed', 'in_progress', 'completed', 'cancelled')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.shift_assignments (
+  id uuid primary key default gen_random_uuid(),
+  shift_id uuid not null references public.shifts(id) on delete cascade,
+  staff_id uuid not null references public.staff(id) on delete cascade,
+  assigned_by text default 'Admin',
+  assigned_at timestamptz default now(),
+  confirmed_by_worker boolean default false,
+  confirmed_at timestamptz,
+  status text not null default 'rostered' check (status in ('rostered', 'confirmed', 'declined', 'clocked_in', 'clocked_out', 'completed', 'cancelled')),
+  clock_in_at timestamptz,
+  clock_out_at timestamptz,
+  actual_hours numeric(4,2),
+  worker_notes text,
+  constraint unique_active_shift_assignment unique (shift_id, staff_id)
+);
+
+create table if not exists public.staff_availability (
+  id uuid primary key default gen_random_uuid(),
+  staff_id uuid not null references public.staff(id) on delete cascade,
+  day_of_week integer not null check (day_of_week between 0 and 6),
+  start_time time not null default '07:00',
+  end_time time not null default '19:00',
+  is_active boolean default true,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.staff_leave (
+  id uuid primary key default gen_random_uuid(),
+  staff_id uuid not null references public.staff(id) on delete cascade,
+  start_date date not null,
+  end_date date not null,
+  leave_type text not null check (leave_type in ('annual', 'sick', 'unpaid', 'other')),
+  status text not null default 'approved' check (status in ('pending', 'approved', 'rejected')),
+  reason text,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.shift_progress_notes (
+  id uuid primary key default gen_random_uuid(),
+  shift_id uuid not null references public.shifts(id) on delete cascade,
+  staff_id uuid not null references public.staff(id) on delete cascade,
+  participant_id uuid not null references public.participants(id) on delete cascade,
+  note_text text not null,
+  goals_supported text,
+  incident_occurred boolean default false,
+  created_at timestamptz default now()
+);
+
+alter table public.shifts enable row level security;
+alter table public.shift_assignments enable row level security;
+alter table public.staff_availability enable row level security;
+alter table public.staff_leave enable row level security;
+alter table public.shift_progress_notes enable row level security;
+
+create policy "Allow all on shifts" on public.shifts for all using (true) with check (true);
+create policy "Allow all on shift_assignments" on public.shift_assignments for all using (true) with check (true);
+create policy "Allow all on staff_availability" on public.staff_availability for all using (true) with check (true);
+create policy "Allow all on staff_leave" on public.staff_leave for all using (true) with check (true);
+create policy "Allow all on shift_progress_notes" on public.shift_progress_notes for all using (true) with check (true);
+
+
 

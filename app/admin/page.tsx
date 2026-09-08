@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import WorkforceRosterTab from '@/components/WorkforceRosterTab';
 import { 
   Users, UserCheck, FileText, Phone, Mail, MapPin, Calendar, 
   CheckCircle2, Clock, AlertCircle, ArrowRight, Search, Filter, 
@@ -151,7 +152,7 @@ interface TrainingCompletion {
 }
 
 
-type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'invoicing' | 'quotes' | 'staff' | 'compliance' | 'settings';
+type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
 
 const PIPELINE_STAGES = [
   { id: 'new', label: 'New Inbound', color: '#0284C7', bg: '#E0F2FE' },
@@ -851,6 +852,15 @@ export default function AdminCrmPage() {
           </button>
 
           <button
+            onClick={() => setTab('workforce')}
+            className={`crmNavItem ${tab === 'workforce' ? 'active' : ''}`}
+            title="Workforce Rostering & Shift Scheduling"
+          >
+            <CalendarClock size={18} />
+            {!sidebarCollapsed && <span>Roster</span>}
+          </button>
+
+          <button
             onClick={() => setTab('compliance')}
             className={`crmNavItem ${tab === 'compliance' ? 'active' : ''}`}
             title="Compliance & Audit Register"
@@ -901,6 +911,7 @@ export default function AdminCrmPage() {
                 {tab === 'invoicing' && 'NDIS PACE Invoicing & Line Items'}
                 {tab === 'quotes' && 'Quotes & Budget Estimator'}
                 {tab === 'staff' && 'Support Workers & Compliance Register'}
+                {tab === 'workforce' && 'Workforce Rostering & Shift Scheduling'}
                 {tab === 'compliance' && 'NDIS Practice Standards & Safeguards'}
                 {tab === 'settings' && 'System Health & Security Gate'}
               </h1>
@@ -1821,6 +1832,33 @@ export default function AdminCrmPage() {
                 </table>
               </div>
             </div>
+          )}
+
+          {/* TAB: WORKFORCE ROSTERING & SHIFT SCHEDULING */}
+          {tab === 'workforce' && (
+            <WorkforceRosterTab
+              participants={participants.map((p) => ({
+                id: p.id,
+                referenceNumber: p.referenceNumber,
+                name: p.name,
+                suburb: p.suburb,
+                allocatedHours: p.allocatedHours,
+                fundingType: p.fundingType,
+              }))}
+              staff={staff.map((st) => ({
+                id: st.id,
+                referenceNumber: st.referenceNumber,
+                name: st.name,
+                role: st.role,
+                phone: st.phone,
+                suburbs: st.suburbs,
+                ndisScreening: st.ndisScreening,
+                ndisScreeningExpiry: st.ndisScreeningExpiry,
+                firstAidExpiry: st.firstAidExpiry,
+                cprExpiry: st.cprExpiry,
+                hourlyRate: st.hourlyRate,
+              }))}
+            />
           )}
 
           {/* TAB 7: TRAINING & COMPLIANCE MANAGEMENT */}
