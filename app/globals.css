@@ -10287,3 +10287,122 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   VERTICAL LEFT DOCK LAYOUT (USER REQUESTED VERTICAL LEFT SIDE NAV)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.vsWindowHorizontal {
+  max-width: 1440px;
+  width: 100%;
+  background: #F8F9FB;
+  border-radius: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.07);
+  display: flex;
+  min-height: 90vh;
+  overflow: hidden;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .vsWindowHorizontal {
+    flex-direction: column;
+    border-radius: 20px;
+  }
+}
+
+.vsLeftDock {
+  width: 250px;
+  min-width: 250px;
+  background: #FFFFFF;
+  border-right: 1px solid rgba(226, 232, 240, 0.85);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .vsLeftDock {
+    width: 100%;
+    min-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+    padding: 16px 14px;
+  }
+}
+
+.vsNavListVertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 900px) {
+  .vsNavListVertical {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .vsNavListVertical::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.vsDockBtnVertical {
+  border-radius: 9999px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  color: #475569;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .vsDockBtnVertical {
+    width: auto;
+    padding: 8px 14px;
+  }
+}
+
+.vsDockBtnVertical:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.vsDockBtnVertical.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.2);
+}
+
+.vsDockBtnVertical.active .vsDockBadge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.vsDockBtnVertical:not(.active) .vsDockBadge {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.vsMainPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #F8F9FB;
+}
