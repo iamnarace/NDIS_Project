@@ -50,3 +50,13 @@ No records were saved, emails sent, agreements signed, shifts completed, invoice
 5. Legacy inline colours/layouts remain in some components. Settings and notification sample content, existing browser confirmation/prompt flows, and `/staff` need further review against the brief. No claim of comprehensive screen-by-screen completion is made.
 
 The development server was stopped before the production build to avoid concurrent writes to `.next`. Resume with a local server that can reach the configured backend, then complete the remaining visual review and refinement. Production/store acceptance is not implied by the successful build.
+
+## Follow-up: portal login attempt and cleanup
+
+The production build was subsequently started locally with network access. The user supplied four temporary Auth logins; live inspection found their application profiles missing. Temporary linked worker/participant profiles were added for the test.
+
+Worker authentication succeeded, but profile access failed because the existing profile SELECT policies exclude the worker and participant roles. The browser fell through to the participant dashboard and displayed a profile-load error. Authenticated portal visual acceptance remains blocked.
+
+All four test logins and temporary profiles have now been removed. Database verification confirmed zero remaining test Auth/profile rows and preservation of the two staff and two participant records. No operational records were submitted. The unrelated untracked account-creation script was left untouched.
+
+See `PORTAL_ACCESS_REPAIR_PROPOSAL.md` for the exact proposed policy and bounded application repair. No access policy or application authentication change has been applied.
