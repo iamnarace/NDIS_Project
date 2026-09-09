@@ -1,29 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import fs from 'fs';
-import path from 'path';
-
-const activitiesFile = path.join(process.cwd(), 'data', 'activities.json');
-
-function getActivities() {
-  try {
-    if (!fs.existsSync(activitiesFile)) return [];
-    return JSON.parse(fs.readFileSync(activitiesFile, 'utf-8'));
-  } catch {
-    return [];
-  }
-}
-
-function saveActivities(data: any) {
-  try {
-    const dir = path.dirname(activitiesFile);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(activitiesFile, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error writing activities.json:', err);
-  }
-}
+import { userFacingError } from '@/lib/userFacingError';
 
 export async function GET(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
@@ -36,30 +14,13 @@ export async function GET(req: Request) {
   const participantId = searchParams.get('participantId');
 
   const supabase = createAdminClient();
-  if (supabase) {
-    try {
-      let query = supabase.from('activities').select('*').order('created_at', { ascending: false });
-      if (referralId) query = query.eq('referral_id', referralId);
-      if (participantId) query = query.eq('participant_id', participantId);
-
-      const { data, error } = await query;
-      if (!error && data) {
-        return NextResponse.json(data);
-      }
-    } catch (sbErr) {
-      console.warn('Supabase activities query fallback to JSON:', sbErr);
-    }
-  }
-
-  // Fallback to local activities
-  const all = getActivities();
-  const filtered = all.filter((a: any) => {
-    if (referralId && (a.referralId === referralId || a.referral_id === referralId)) return true;
-    if (participantId && (a.participantId === participantId || a.participant_id === participantId)) return true;
-    return !referralId && !participantId;
-  });
-
-  return NextResponse.json(filtered);
+  if (!supabase) return NextResponse.json({ message: 'Activity history could not be loaded.' }, { status: 503 });
+  let query = supabase.from('activities').select('*').order('created_at', { ascending: false });
+  if (referralId) query = query.eq('referral_id', referralId);
+  if (participantId) query = query.eq('participant_id', participantId);
+  const { data, error } = await query;
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+  return NextResponse.json(data || []);
 }
 
 export async function POST(req: Request) {
@@ -77,9 +38,8 @@ export async function POST(req: Request) {
     }
 
     const supabase = createAdminClient();
-    if (supabase) {
-      try {
-        const { data, error } = await supabase
+    if (!supabase) return NextResponse.json({ message: 'Activity could not be saved.' }, { status: 503 });
+    const { data, error } = await supabase
           .from('activities')
           .insert({
             referral_id: referralId || null,
@@ -91,34 +51,9 @@ export async function POST(req: Request) {
           })
           .select()
           .single();
-
-        if (data && !error) {
-          return NextResponse.json({ ok: true, activity: data });
-        }
-      } catch (sbErr) {
-        console.warn('Supabase activity insert fallback to JSON:', sbErr);
-      }
-    }
-
-    // Local JSON fallback
-    const activities = getActivities();
-    const newActivity = {
-      id: `ACT-${Date.now()}`,
-      referralId: referralId || null,
-      participantId: participantId || null,
-      activity_type: activityType || 'note',
-      title,
-      description: description || '',
-      author_name: authorName || 'Opus Admin',
-      created_at: new Date().toISOString(),
-    };
-
-    activities.unshift(newActivity);
-    saveActivities(activities);
-
-    return NextResponse.json({ ok: true, activity: newActivity });
-  } catch (err) {
-    console.error('Error saving activity:', err);
-    return NextResponse.json({ message: 'Failed to create activity.' }, { status: 500 });
+    if (error || !data) return NextResponse.json({ message: userFacingError(error?.message || 'Activity insert returned no record.') }, { status: 500 });
+    return NextResponse.json({ ok: true, activity: data });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: userFacingError(err) }, { status: 500 });
   }
 }

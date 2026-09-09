@@ -2,29 +2,9 @@ import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidUuid, resolveParticipantUuid, resolveStaffUuid } from '@/lib/uuid';
-import fs from 'fs';
-import path from 'path';
+import { userFacingError } from '@/lib/userFacingError';
 
-const localDocsFile = path.join(process.cwd(), 'data', 'documents.json');
-
-function getLocalDocs() {
-  try {
-    if (!fs.existsSync(localDocsFile)) return [];
-    return JSON.parse(fs.readFileSync(localDocsFile, 'utf-8'));
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalDocs(data: any) {
-  try {
-    const dir = path.dirname(localDocsFile);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(localDocsFile, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error saving local documents metadata:', err);
-  }
-}
+const allowedDocumentTypes = new Set(['application/pdf', 'image/jpeg', 'image/png']);
 
 export async function GET(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
@@ -41,54 +21,26 @@ export async function GET(req: Request) {
   }
 
   const supabase = createAdminClient();
-  if (supabase) {
-    try {
-      let resolvedOwnerId = ownerId;
-      if (!isValidUuid(ownerId)) {
-        if (ownerType === 'participant') {
-          resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
-        } else if (ownerType === 'staff' || ownerType === 'contractor') {
-          resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
-        }
-      }
-
-      let query = supabase.from('documents').select('*').order('created_at', { ascending: false });
-      if (ownerType) query = query.eq('owner_type', ownerType);
-      if (isValidUuid(resolvedOwnerId)) {
-        query = query.eq('owner_id', resolvedOwnerId);
-      } else {
-        query = query.eq('owner_id', ownerId);
-      }
-
-      const { data, error } = await query;
-      if (!error && data) {
-        // Generate signed URLs for private file access (valid for 1 hour)
-        const docsWithUrls = await Promise.all(
-          data.map(async (doc: any) => {
-            try {
-              const { data: signedData } = await supabase.storage
-                .from('crm-documents')
-                .createSignedUrl(doc.storage_path, 3600);
-              return {
-                ...doc,
-                downloadUrl: signedData?.signedUrl || null,
-              };
-            } catch {
-              return { ...doc, downloadUrl: null };
-            }
-          })
-        );
-        return NextResponse.json(docsWithUrls);
-      }
-    } catch (sbErr) {
-      console.warn('Supabase documents query fallback to JSON:', sbErr);
-    }
+  if (!supabase) return NextResponse.json({ message: 'Documents could not be loaded.' }, { status: 503 });
+  let resolvedOwnerId = ownerId;
+  if (!isValidUuid(ownerId)) {
+    if (ownerType === 'participant') resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
+    else if (ownerType === 'staff' || ownerType === 'contractor') resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
   }
+  if (!isValidUuid(resolvedOwnerId)) return NextResponse.json({ message: 'The selected record is invalid. Please refresh and try again.' }, { status: 400 });
 
-  // Fallback to local documents
-  const all = getLocalDocs();
-  const filtered = all.filter((d: any) => d.ownerId === ownerId || d.owner_id === ownerId);
-  return NextResponse.json(filtered);
+  let query = supabase.from('documents').select('*').order('created_at', { ascending: false });
+  if (ownerType) query = query.eq('owner_type', ownerType);
+  query = query.eq('owner_id', resolvedOwnerId);
+
+  const { data, error } = await query;
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+  const docsWithUrls = await Promise.all((data || []).map(async (doc: any) => {
+    const { data: signedData, error: signedError } = await supabase.storage.from('crm-documents').createSignedUrl(doc.storage_path, 3600);
+    if (signedError) console.error('Document signed URL failed:', signedError.message);
+    return { ...doc, downloadUrl: signedData?.signedUrl || null };
+  }));
+  return NextResponse.json(docsWithUrls);
 }
 
 export async function POST(req: Request) {
@@ -109,16 +61,17 @@ export async function POST(req: Request) {
     if (!file || !ownerId) {
       return NextResponse.json({ message: 'File and Owner ID are required.' }, { status: 400 });
     }
+    if (!allowedDocumentTypes.has(file.type)) {
+      return NextResponse.json({ message: 'Please choose a PDF, JPG, or PNG file.' }, { status: 400 });
+    }
 
     const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const storagePath = `${ownerType}/${ownerId}/${Date.now()}_${safeFileName}`;
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     const supabase = createAdminClient();
-    if (supabase) {
-      try {
-        let resolvedOwnerId = ownerId;
+    if (!supabase) return NextResponse.json({ message: 'Document could not be uploaded.' }, { status: 503 });
+    let resolvedOwnerId = ownerId;
         if (!isValidUuid(ownerId)) {
           if (ownerType === 'participant') {
             resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
@@ -127,20 +80,19 @@ export async function POST(req: Request) {
           }
         }
 
-        // 1. Upload to Supabase Storage bucket: crm-documents
-        const { error: uploadErr } = await supabase.storage
+    if (!isValidUuid(resolvedOwnerId)) return NextResponse.json({ message: 'The selected record is invalid. Please refresh and try again.' }, { status: 400 });
+
+    const resolvedStoragePath = `${ownerType}/${resolvedOwnerId}/${Date.now()}_${safeFileName}`;
+    const { error: uploadErr } = await supabase.storage
           .from('crm-documents')
-          .upload(storagePath, buffer, {
+          .upload(resolvedStoragePath, buffer, {
             contentType: file.type || 'application/octet-stream',
             upsert: false,
           });
 
-        if (uploadErr) {
-          console.error('Supabase storage upload error:', uploadErr);
-        }
+    if (uploadErr) return NextResponse.json({ message: userFacingError(uploadErr.message) }, { status: 500 });
 
-        // 2. Insert metadata into public.documents
-        const { data: docRecord, error: docErr } = await supabase
+    const { data: docRecord, error: docErr } = await supabase
           .from('documents')
           .insert({
             owner_type: ownerType,
@@ -148,7 +100,7 @@ export async function POST(req: Request) {
             file_name: file.name,
             file_size: file.size,
             file_type: file.type || 'application/octet-stream',
-            storage_path: storagePath,
+            storage_path: resolvedStoragePath,
             category,
             expiry_date: expiryDate ? expiryDate : null,
             notes: notes || null,
@@ -157,60 +109,34 @@ export async function POST(req: Request) {
           .select()
           .single();
 
-        if (docRecord && !docErr) {
-          // 3. Log an activity entry
-          await supabase.from('activities').insert({
-            participant_id: ownerType === 'participant' ? ownerId : null,
-            referral_id: ownerType === 'referral' ? ownerId : null,
+    if (docErr || !docRecord) {
+      await supabase.storage.from('crm-documents').remove([resolvedStoragePath]);
+      return NextResponse.json({ message: userFacingError(docErr?.message || 'Document metadata insert returned no record.') }, { status: 500 });
+    }
+
+    const { error: activityError } = await supabase.from('activities').insert({
+            participant_id: ownerType === 'participant' ? resolvedOwnerId : null,
+            referral_id: ownerType === 'referral' ? resolvedOwnerId : null,
             activity_type: 'note',
             title: `Document Uploaded: ${file.name}`,
             description: `Document category: ${category.replace('_', ' ').toUpperCase()}${expiryDate ? ` (Expires: ${expiryDate})` : ''}`,
             author_name: 'Opus Staff',
-          });
+    });
+    if (activityError) console.error('Document activity log failed:', activityError.message);
 
-          const { data: signed } = await supabase.storage
+    const { data: signed, error: signedError } = await supabase.storage
             .from('crm-documents')
-            .createSignedUrl(storagePath, 3600);
+            .createSignedUrl(resolvedStoragePath, 3600);
+    if (signedError) console.error('Document signed URL failed:', signedError.message);
 
-          return NextResponse.json({
+    return NextResponse.json({
             ok: true,
             document: {
               ...docRecord,
               downloadUrl: signed?.signedUrl || null,
             },
-          });
-        }
-      } catch (sbErr) {
-        console.warn('Supabase documents upload fallback to local:', sbErr);
-      }
-    }
-
-    // Local JSON fallback
-    const all = getLocalDocs();
-    const newDoc = {
-      id: `DOC-${Date.now()}`,
-      owner_type: ownerType,
-      owner_id: ownerId,
-      ownerType,
-      ownerId,
-      file_name: file.name,
-      file_size: file.size,
-      file_type: file.type,
-      storage_path: storagePath,
-      category,
-      expiry_date: expiryDate,
-      notes,
-      uploaded_by: 'Opus Staff',
-      created_at: new Date().toISOString(),
-      downloadUrl: '#',
-    };
-
-    all.unshift(newDoc);
-    saveLocalDocs(all);
-
-    return NextResponse.json({ ok: true, document: newDoc });
-  } catch (err) {
-    console.error('Document upload error:', err);
-    return NextResponse.json({ message: 'Failed to upload document.' }, { status: 500 });
+    });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: userFacingError(err) }, { status: 500 });
   }
 }

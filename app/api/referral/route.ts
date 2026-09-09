@@ -2,36 +2,13 @@ import { sendReferralClientConfirmation, sendReferralAdminAlert } from '@/lib/em
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { userFacingError } from '@/lib/userFacingError';
+import { nextReferenceNumber } from '@/lib/referenceNumber';
 
 const required = ['name', 'phone', 'email'] as const;
 
 function text(value: unknown, max = 1000) {
   return String(value ?? '').trim().slice(0, max);
-}
-
-const dataFilePath = path.join(process.cwd(), 'data', 'referrals.json');
-
-function getReferrals() {
-  try {
-    if (!fs.existsSync(dataFilePath)) return [];
-    const raw = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error('Error reading referrals.json', err);
-    return [];
-  }
-}
-
-function saveReferrals(items: any[]) {
-  try {
-    const dir = path.dirname(dataFilePath);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(dataFilePath, JSON.stringify(items, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error writing referrals.json', err);
-  }
 }
 
 export async function GET(request: Request) {
@@ -40,17 +17,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
-  // 1. Attempt to fetch from Supabase if connected
   const supabase = createAdminClient();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('referrals')
-        .select('*')
-        .order('created_at', { ascending: false });
+  if (!supabase) return NextResponse.json({ message: 'Referral data could not be loaded.' }, { status: 503 });
 
-      if (!error && data && data.length > 0) {
-        const mapped = data.map((r: any) => ({
+  const { data, error } = await supabase
+    .from('referrals')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+
+  const mapped = (data || []).map((r: any) => ({
           id: r.id,
           referenceNumber: r.reference_number || r.id,
           name: r.referrer_name,
@@ -65,17 +42,8 @@ export async function GET(request: Request) {
           message: r.notes || '',
           status: r.status,
           createdAt: r.created_at,
-        }));
-        return NextResponse.json(mapped);
-      }
-    } catch (sbErr) {
-      console.warn('Supabase referral query fallback to JSON:', sbErr);
-    }
-  }
-
-  // Fallback to local data
-  const referrals = getReferrals();
-  return NextResponse.json(referrals);
+  }));
+  return NextResponse.json(mapped);
 }
 
 export async function POST(request: Request) {
@@ -88,20 +56,14 @@ export async function POST(request: Request) {
       }
     }
 
-    const referrals = getReferrals();
-    const fallbackSeq = 1000 + referrals.length + 1;
-    const fallbackRef = `REF-${fallbackSeq}`;
-
-    let recordId = fallbackRef;
-    let refNumber = fallbackRef;
-
-    // 1. Insert into Supabase if connected
     const supabase = createAdminClient();
-    if (supabase) {
-      try {
-        const { data: inserted, error: insertErr } = await supabase
+    if (!supabase) return NextResponse.json({ message: 'We could not submit your referral right now. Please try again.' }, { status: 503 });
+    const referenceNumber = await nextReferenceNumber(supabase, 'referrals', 'REF');
+
+    const { data: inserted, error: insertErr } = await supabase
           .from('referrals')
           .insert({
+            reference_number: referenceNumber,
             referrer_name: text(body.name, 120),
             referrer_role: text(body.role, 120) || 'Participant',
             phone: text(body.phone, 80),
@@ -117,18 +79,13 @@ export async function POST(request: Request) {
           .select()
           .single();
 
-        if (inserted && !insertErr) {
-          recordId = inserted.id;
-          refNumber = inserted.reference_number || fallbackRef;
-        }
-      } catch (sbErr) {
-        console.warn('Supabase referral insert fallback to JSON:', sbErr);
-      }
+    if (insertErr || !inserted) {
+      return NextResponse.json({ message: userFacingError(insertErr?.message || 'Referral insert returned no record.') }, { status: 500 });
     }
 
     const newReferral = {
-      id: recordId,
-      referenceNumber: refNumber,
+      id: inserted.id,
+      referenceNumber: inserted.reference_number,
       name: text(body.name, 120),
       role: text(body.role, 120) || 'Participant',
       phone: text(body.phone, 80),
@@ -143,9 +100,6 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    referrals.unshift(newReferral);
-    saveReferrals(referrals);
-
     // Send Resend notification emails (Client confirmation + Admin alert)
     try {
       await Promise.allSettled([
@@ -158,7 +112,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       ok: true, 
-      id: refNumber,
+      id: inserted.reference_number,
       message: 'Referral submitted successfully and recorded in Opus Care CRM.' 
     });
   } catch (err) {
@@ -181,37 +135,15 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ message: 'Missing referral ID or status.' }, { status: 400 });
     }
 
-    // 1. Update in Supabase if connected
     const supabase = createAdminClient();
-    if (supabase) {
-      try {
-        const updatePayload: any = { status, updated_at: new Date().toISOString() };
-        if (notes !== undefined) updatePayload.notes = notes;
-
-        // Try updating by UUID or reference_number
-        await supabase
-          .from('referrals')
-          .update(updatePayload)
-          .or(`id.eq.${id},reference_number.eq.${id}`);
-      } catch (sbErr) {
-        console.warn('Supabase referral PATCH fallback to JSON:', sbErr);
-      }
-    }
-
-    // 2. Also update local JSON mirror
-    const referrals = getReferrals();
-    const index = referrals.findIndex((r: any) => r.id === id || r.referenceNumber === id);
-
-    if (index !== -1) {
-      referrals[index].status = status;
-      if (notes) referrals[index].notes = notes;
-      referrals[index].updatedAt = new Date().toISOString();
-      saveReferrals(referrals);
-      return NextResponse.json({ ok: true, referral: referrals[index] });
-    }
-
-    return NextResponse.json({ ok: true, message: 'Referral updated.' });
-  } catch (err) {
-    return NextResponse.json({ message: 'Error updating referral.' }, { status: 500 });
+    if (!supabase) return NextResponse.json({ message: 'Referral could not be updated.' }, { status: 503 });
+    const updatePayload: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
+    if (notes !== undefined) updatePayload.notes = notes;
+    const { data, error } = await supabase.from('referrals').update(updatePayload).or(`id.eq.${id},reference_number.eq.${id}`).select().maybeSingle();
+    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+    if (!data) return NextResponse.json({ message: 'Referral not found.' }, { status: 404 });
+    return NextResponse.json({ ok: true, referral: data });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: userFacingError(err) }, { status: 500 });
   }
 }

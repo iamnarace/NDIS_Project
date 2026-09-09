@@ -1,19 +1,8 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import fs from 'fs';
-import path from 'path';
-
-const file = path.join(process.cwd(), 'data', 'staff.json');
-
-function getData() {
-  try {
-    if (!fs.existsSync(file)) return [];
-    return JSON.parse(fs.readFileSync(file, 'utf-8'));
-  } catch {
-    return [];
-  }
-}
+import { userFacingError } from '@/lib/userFacingError';
+import { nextReferenceNumber } from '@/lib/referenceNumber';
 
 export async function GET(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
@@ -22,42 +11,40 @@ export async function GET(req: Request) {
   }
 
   const supabase = createAdminClient();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('staff')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        const mapped = data.map((s: any) => ({
-          id: s.id,
-          referenceNumber: s.reference_number || s.id,
-          name: s.full_name,
-          role: s.role,
-          phone: s.phone,
-          email: s.email,
-          suburbs: Array.isArray(s.suburbs) ? s.suburbs : ['Yamba', 'Maclean'],
-          ndisScreening: s.ndis_screening || 'Verified',
-          ndisScreeningExpiry: s.ndis_screening_expiry,
-          wwcc: s.wwcc_number || 'Pending',
-          wwccExpiry: s.wwcc_expiry,
-          policeCheckDate: s.police_check_date,
-          firstAid: s.first_aid_expiry ? `Valid to ${s.first_aid_expiry}` : 'Current',
-          firstAidExpiry: s.first_aid_expiry,
-          cprExpiry: s.cpr_expiry,
-          hourlyRate: Number(s.hourly_rate) || 38.50,
-          status: s.status,
-          createdAt: s.created_at,
-        }));
-        return NextResponse.json(mapped);
-      }
-    } catch (sbErr) {
-      console.warn('Supabase staff query fallback to JSON:', sbErr);
-    }
+  if (!supabase) {
+    return NextResponse.json({ message: 'Worker data could not be loaded.' }, { status: 503 });
   }
 
-  return NextResponse.json(getData());
+  const { data, error } = await supabase
+    .from('staff')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+  }
+
+  const mapped = (data || []).map((s: any) => ({
+    id: s.id,
+    referenceNumber: s.reference_number || s.id,
+    name: s.full_name,
+    role: s.role,
+    phone: s.phone,
+    email: s.email,
+    suburbs: Array.isArray(s.suburbs) ? s.suburbs : ['Yamba', 'Maclean'],
+    ndisScreening: s.ndis_screening || 'Verified',
+    ndisScreeningExpiry: s.ndis_screening_expiry,
+    wwcc: s.wwcc_number || 'Pending',
+    wwccExpiry: s.wwcc_expiry,
+    policeCheckDate: s.police_check_date,
+    firstAid: s.first_aid_expiry ? `Valid to ${s.first_aid_expiry}` : 'Current',
+    firstAidExpiry: s.first_aid_expiry,
+    cprExpiry: s.cpr_expiry,
+    hourlyRate: Number(s.hourly_rate) || 38.50,
+    status: s.status,
+    createdAt: s.created_at,
+  }));
+  return NextResponse.json(mapped);
 }
 
 export async function POST(req: Request) {
@@ -70,14 +57,15 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const supabase = createAdminClient();
-    if (supabase) {
-      try {
-        const { count } = await supabase.from('staff').select('*', { count: 'exact', head: true });
-        const refNum = body.referenceNumber || `STF-${String((count ?? 0) + 1).padStart(5, '0')}`;
+    if (!supabase) {
+      return NextResponse.json({ message: 'Worker record could not be saved.' }, { status: 503 });
+    }
 
-        const { data, error } = await supabase
-          .from('staff')
-          .insert({
+    const refNum = body.referenceNumber || await nextReferenceNumber(supabase, 'staff', 'STF');
+
+    const { data, error } = await supabase
+      .from('staff')
+      .insert({
             reference_number: refNum,
             full_name: body.name,
             role: body.role || 'Support Worker',
@@ -93,25 +81,16 @@ export async function POST(req: Request) {
             cpr_expiry: body.cprExpiry || null,
             hourly_rate: Number(body.hourlyRate) || 38.50,
             status: 'active',
-          })
-          .select()
-          .single();
+      })
+      .select()
+      .single();
 
-        if (data && !error) {
-          return NextResponse.json({ ok: true, staff: data });
-        }
-      } catch (sbErr) {
-        console.warn('Supabase staff insert fallback to JSON:', sbErr);
-      }
+    if (error || !data) {
+      return NextResponse.json({ message: userFacingError(error?.message || 'Worker insert returned no record.') }, { status: 500 });
     }
 
-    const data = getData();
-    const newId = `STF-${String(data.length + 1).padStart(3, '0')}`;
-    const newStaff = { id: newId, ...body, status: 'active', createdAt: new Date().toISOString() };
-    data.push(newStaff);
-    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
-    return NextResponse.json({ ok: true, staff: newStaff });
-  } catch (err) {
-    return NextResponse.json({ message: 'Failed to create staff' }, { status: 500 });
+    return NextResponse.json({ ok: true, staff: data });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: userFacingError(err) }, { status: 500 });
   }
 }

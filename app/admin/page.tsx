@@ -4860,6 +4860,7 @@ export default function AdminCrmPage() {
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                       <input className="ocField"
                         type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
                         ref={fileInputRef}
                         onChange={handleFileUpload}
                         disabled={uploadingDoc}
@@ -4867,7 +4868,7 @@ export default function AdminCrmPage() {
                       />
                       {uploadingDoc && (
                         <span style={{ fontSize: '0.8125rem', color: 'var(--oc-info)', fontWeight: 600 }}>
-                          Encrypting & uploading...
+                          Uploading...
                         </span>
                       )}
                     </div>

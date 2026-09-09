@@ -1,19 +1,8 @@
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import fs from 'fs';
-import path from 'path';
-
-const file = path.join(process.cwd(), 'data', 'participants.json');
-
-function getData() {
-  try {
-    if (!fs.existsSync(file)) return [];
-    return JSON.parse(fs.readFileSync(file, 'utf-8'));
-  } catch {
-    return [];
-  }
-}
+import { userFacingError } from '@/lib/userFacingError';
+import { nextReferenceNumber } from '@/lib/referenceNumber';
 
 export async function GET(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
@@ -22,15 +11,20 @@ export async function GET(req: Request) {
   }
 
   const supabase = createAdminClient();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('participants')
-        .select('*')
-        .order('created_at', { ascending: false });
+  if (!supabase) {
+    return NextResponse.json({ message: 'Participant data could not be loaded.' }, { status: 503 });
+  }
 
-      if (!error && data && data.length > 0) {
-        const mapped = data.map((p: any) => ({
+  const { data, error } = await supabase
+    .from('participants')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+  }
+
+  const mapped = (data || []).map((p: any) => ({
           id: p.id,
           referenceNumber: p.reference_number || p.id,
           name: p.full_name,
@@ -51,15 +45,8 @@ export async function GET(req: Request) {
           allergies: p.allergies || undefined,
           workerInstructions: p.worker_instructions || undefined,
           communicationPreferences: p.communication_preferences || undefined,
-        }));
-        return NextResponse.json(mapped);
-      }
-    } catch (sbErr) {
-      console.warn('Supabase participants query fallback to JSON:', sbErr);
-    }
-  }
-
-  return NextResponse.json(getData());
+  }));
+  return NextResponse.json(mapped);
 }
 
 export async function POST(req: Request) {
@@ -72,14 +59,15 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const supabase = createAdminClient();
-    if (supabase) {
-      try {
-        const { count } = await supabase.from('participants').select('*', { count: 'exact', head: true });
-        const refNum = body.referenceNumber || `PAR-${String((count ?? 0) + 1).padStart(5, '0')}`;
+    if (!supabase) {
+      return NextResponse.json({ message: 'Participant record could not be saved.' }, { status: 503 });
+    }
 
-        const { data, error } = await supabase
-          .from('participants')
-          .insert({
+    const refNum = body.referenceNumber || await nextReferenceNumber(supabase, 'participants', 'PAR');
+
+    const { data, error } = await supabase
+      .from('participants')
+      .insert({
             reference_number: refNum,
             full_name: body.name,
             ndis_number: body.ndisNumber || null,
@@ -104,26 +92,17 @@ export async function POST(req: Request) {
             allergies: body.allergies || null,
             worker_instructions: body.workerInstructions || body.worker_instructions || null,
             communication_preferences: body.communicationPreferences || body.communication_preferences || null,
-          })
-          .select()
-          .single();
+      })
+      .select()
+      .single();
 
-        if (data && !error) {
-          return NextResponse.json({ ok: true, participant: data });
-        }
-      } catch (sbErr) {
-        console.warn('Supabase participant insert fallback to JSON:', sbErr);
-      }
+    if (error || !data) {
+      return NextResponse.json({ message: userFacingError(error?.message || 'Participant insert returned no record.') }, { status: 500 });
     }
 
-    const data = getData();
-    const newId = `PAR-${String(data.length + 1).padStart(3, '0')}`;
-    const newPart = { id: newId, ...body, status: 'active', createdAt: new Date().toISOString() };
-    data.push(newPart);
-    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
-    return NextResponse.json({ ok: true, participant: newPart });
-  } catch (err) {
-    return NextResponse.json({ message: 'Failed to create participant' }, { status: 500 });
+    return NextResponse.json({ ok: true, participant: data });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: userFacingError(err) }, { status: 500 });
   }
 }
 
@@ -141,8 +120,10 @@ export async function PATCH(req: Request) {
     }
 
     const supabase = createAdminClient();
-    if (supabase) {
-      const dbUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
+    if (!supabase) {
+      return NextResponse.json({ message: 'Participant record could not be saved.' }, { status: 503 });
+    }
+    const dbUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
       if (updates.name !== undefined) dbUpdates.full_name = updates.name;
       if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
       if (updates.email !== undefined) dbUpdates.email = updates.email;
@@ -191,23 +172,12 @@ export async function PATCH(req: Request) {
         .select()
         .single();
 
-      if (!error && data) {
-        return NextResponse.json({ ok: true, participant: data });
-      }
+    if (error) {
+      return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
     }
-
-    // Fallback JSON update
-    const data = getData();
-    const idx = data.findIndex((p: any) => p.id === id);
-    if (idx !== -1) {
-      data[idx] = { ...data[idx], ...updates, updatedAt: new Date().toISOString() };
-      fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8');
-      return NextResponse.json({ ok: true, participant: data[idx] });
-    }
-
-    return NextResponse.json({ message: 'Participant not found' }, { status: 404 });
-  } catch (err) {
-    return NextResponse.json({ message: 'Failed to update participant' }, { status: 500 });
+    return NextResponse.json({ ok: true, participant: data });
+  } catch (err: unknown) {
+    return NextResponse.json({ message: userFacingError(err) }, { status: 500 });
   }
 }
 
