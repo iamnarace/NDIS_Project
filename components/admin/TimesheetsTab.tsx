@@ -223,6 +223,11 @@ export default function TimesheetsTab() {
     }
   }
 
+  const submittedTimesheets = timesheets.filter(
+    (t) => (t.status || '').toLowerCase() === 'submitted'
+  );
+  const submittedCount = submittedTimesheets.length;
+
   const filtered = timesheets.filter((t) => {
     const q = search.toLowerCase();
     if (!q) return true;
@@ -234,9 +239,9 @@ export default function TimesheetsTab() {
   });
 
   const statusColors: Record<string, { bg: string; text: string }> = {
-    Draft: { bg: 'var(--oc-subtle)', text: 'var(--oc-secondary)' },
-    Submitted: { bg: '#FEF3C7', text: '#B45309' },
-    Approved: { bg: '#ECFDF5', text: '#065F46' },
+    Draft: { bg: 'var(--oc-bg-canvas)', text: 'var(--oc-muted)' },
+    Submitted: { bg: 'var(--oc-warning-soft)', text: 'var(--oc-warning)' },
+    Approved: { bg: 'var(--oc-success-soft)', text: 'var(--oc-success)' },
     Rejected: { bg: 'var(--oc-danger-soft)', text: 'var(--oc-danger)' },
     Adjusted: { bg: 'var(--oc-info-soft)', text: 'var(--oc-accent)' },
     Exported: { bg: '#F5F3FF', text: '#6D28D9' },
@@ -254,19 +259,25 @@ export default function TimesheetsTab() {
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={handleBatchApproveClean}
-            disabled={actionLoading}
+            disabled={actionLoading || submittedCount === 0}
             className="vsBtnBlack"
-            style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.82rem',
+              opacity: (actionLoading || submittedCount === 0) ? 0.5 : 1,
+              cursor: (actionLoading || submittedCount === 0) ? 'not-allowed' : 'pointer',
+            }}
+            title={submittedCount === 0 ? 'No submitted timesheets awaiting approval' : `Approve all ${submittedCount} submitted timesheets`}
           >
             <CheckCircle2 size={14} style={{ marginRight: 6 }} />
-            Batch Approve Submitted
+            Batch Approve Submitted {submittedCount > 0 ? `(${submittedCount})` : ''}
           </button>
         </div>
       </div>
 
       {notice && (
         <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46', padding: '10px 16px', borderRadius: 10, marginBottom: 16, fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
-          <span>? {notice}</span>
+          <span>✓ {notice}</span>
           <button onClick={() => setNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>&times;</button>
         </div>
       )}

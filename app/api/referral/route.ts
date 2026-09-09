@@ -113,6 +113,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       ok: true, 
       id: inserted.reference_number,
+      reference_number: inserted.reference_number,
+      referral_id: inserted.id,
       message: 'Referral submitted successfully and recorded in Opus Care CRM.' 
     });
   } catch (err) {

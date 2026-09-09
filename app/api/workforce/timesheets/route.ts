@@ -225,8 +225,25 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: 'timesheet_ids array is required.' }, { status: 400 });
       }
 
-      for (const tId of timesheet_ids) {
-        if (!isValidUuid(tId)) continue;
+      const validIds = timesheet_ids.filter((tId: any) => typeof tId === 'string' && isValidUuid(tId));
+      if (validIds.length === 0) {
+        return NextResponse.json({ error: 'No valid timesheet IDs provided.' }, { status: 400 });
+      }
+
+      // Enforce backend eligibility: only timesheets that are currently Submitted
+      const { data: eligibleTimesheets, error: fetchErr } = await supabase
+        .from('timesheets')
+        .select('id, status')
+        .in('id', validIds)
+        .ilike('status', 'submitted');
+
+      if (fetchErr || !eligibleTimesheets || eligibleTimesheets.length === 0) {
+        return NextResponse.json({ error: 'No eligible submitted timesheets found for batch approval.' }, { status: 400 });
+      }
+
+      const eligibleIds = eligibleTimesheets.map((t: any) => t.id);
+
+      for (const tId of eligibleIds) {
         await supabase
           .from('timesheets')
           .update({
@@ -270,7 +287,7 @@ export async function PATCH(request: NextRequest) {
         });
       }
 
-      return NextResponse.json({ success: true, count: timesheet_ids.length });
+      return NextResponse.json({ success: true, count: eligibleIds.length });
     }
 
     // 4. Adjust Individual Timesheet Entry (Requires Reason & Logs Audit Event)

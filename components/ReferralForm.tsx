@@ -32,6 +32,7 @@ export function ReferralForm() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [stepError, setStepError] = useState('');
+  const [submittedReferenceNumber, setSubmittedReferenceNumber] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -68,6 +69,7 @@ export function ReferralForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (status === 'sending') return;
     setStatus('sending');
     setMessage('');
     try {
@@ -82,6 +84,7 @@ export function ReferralForm() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Unable to send referral');
+      setSubmittedReferenceNumber(result.id || result.reference_number || '');
       setStatus('success');
       setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you within 24 business hours.');
     } catch (error) {
@@ -99,6 +102,14 @@ export function ReferralForm() {
         <h3>Referral Received!</h3>
         <p className="successLead">{message}</p>
         <div className="successDetailsBox">
+          {submittedReferenceNumber && (
+            <div>
+              <strong>Reference Number:</strong>{' '}
+              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--oc-brand, #2563EB)' }}>
+                {submittedReferenceNumber}
+              </span>
+            </div>
+          )}
           <div><strong>Participant:</strong> {formData.participantName || formData.name}</div>
           <div><strong>Contact Phone:</strong> {formData.phone}</div>
           <div><strong>Suburbs:</strong> {formData.suburb || 'Yamba / Northern Rivers'}</div>
@@ -109,6 +120,7 @@ export function ReferralForm() {
           onClick={() => {
             setStatus('idle');
             setStepError('');
+            setSubmittedReferenceNumber('');
             setStep(1);
             setFormData({
               role: 'participant',

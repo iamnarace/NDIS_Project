@@ -59,14 +59,26 @@ export default function CanonicalDashboard({
           if (shiftsRes.ok) {
             const sData = await shiftsRes.json();
             const list = Array.isArray(sData) ? sData : [];
-            // Sort by start_time ascending
-            list.sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
-            setUpcomingShifts(list);
+            const now = Date.now();
+            // Filter start_time >= current time, exclude cancelled / completed
+            const filtered = list.filter((shift: any) => {
+              if (!shift.start_time) return false;
+              const shiftTime = new Date(shift.start_time).getTime();
+              if (isNaN(shiftTime) || shiftTime < now) return false;
+              const status = (shift.status || '').toLowerCase();
+              if (status === 'cancelled' || status === 'completed') return false;
+              return true;
+            });
+            filtered.sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+            setUpcomingShifts(filtered);
           }
           if (tsRes.ok) {
             const tData = await tsRes.json();
             const tsList = Array.isArray(tData) ? tData : tData.timesheets || [];
-            const pending = tsList.filter((t: any) => t.status === 'submitted' || t.status === 'pending').length;
+            const pending = tsList.filter((t: any) => {
+              const st = (t.status || '').toLowerCase();
+              return st === 'submitted' || st === 'pending';
+            }).length;
             setPendingTimesheetsCount(pending);
           }
         }
@@ -84,23 +96,49 @@ export default function CanonicalDashboard({
     };
   }, []);
 
+  // Factual participant status check
+  const hasParticipantStatus = participants.some(
+    (p) => typeof p.status === 'string' && p.status.trim() !== ''
+  );
+  const activeParticipantsCount = hasParticipantStatus
+    ? participants.filter((p) => (p.status || '').toLowerCase() === 'active').length
+    : participants.length;
+  const participantKpiLabel = hasParticipantStatus ? 'Active Participants' : 'Participants';
+
   // Factual live compliance calculations
+  const staffCount = staff.length;
+  const hasExpiryData = staff.some(
+    (s) => s.ndisScreeningExpiry || s.ndis_screening_expiry
+  );
   const clearedStaffCount = staff.filter((s) => {
-    const scr = (s.ndisScreening || '').toLowerCase();
-    return scr.includes('clear') || scr.includes('valid') || scr.includes('verified') || scr === 'current';
+    const expiry = s.ndisScreeningExpiry || s.ndis_screening_expiry;
+    if (expiry) {
+      const expiryTime = new Date(expiry).getTime();
+      return !isNaN(expiryTime) && expiryTime > Date.now();
+    }
+    const scr = (s.ndisScreening || s.ndis_screening || '').toLowerCase().trim();
+    return scr === 'verified' || scr === 'cleared' || scr === 'current';
   }).length;
 
-  const clearedStaffPct = staff.length > 0 ? Math.round((clearedStaffCount / staff.length) * 100) : 100;
+  const clearedStaffPct =
+    staffCount > 0 ? Math.round((clearedStaffCount / staffCount) * 100) : 0;
+
+  const activeAgreements = agreements.filter(
+    (a) => a.status === 'active' || a.status === 'executed'
+  ).length;
 
   const pendingAgreements = agreements.filter(
-    (a) => a.status === 'draft' || a.status === 'pending_signature' || a.status === 'in_review'
+    (a) =>
+      a.status === 'draft' ||
+      a.status === 'pending_signature' ||
+      a.status === 'in_review'
   ).length;
 
   const attentionTasksCount =
     (countNew > 0 ? 1 : 0) +
     (pendingAgreements > 0 ? 1 : 0) +
     (pendingTimesheetsCount > 0 ? 1 : 0) +
-    (staff.length - clearedStaffCount > 0 ? 1 : 0);
+    (staffCount > 0 && staffCount > clearedStaffCount ? 1 : 0);
 
   return (
     <div>
@@ -139,12 +177,16 @@ export default function CanonicalDashboard({
         {/* 1. Active Participants (Sky / Cyan) */}
         <div className="kpi-card cyan">
           <div className="kpi-head">
-            <span className="kpi-label">Active Participants</span>
+            <span className="kpi-label">{participantKpiLabel}</span>
             <Users className="kpi-icon" size={24} />
           </div>
-          <div className="kpi-number">{participants.length}</div>
+          <div className="kpi-number">{activeParticipantsCount}</div>
           <div className="kpi-bottom-row">
-            <span className="kpi-badge">Plan &amp; Self-Managed</span>
+            <span className="kpi-badge">
+              {hasParticipantStatus && participants.length !== activeParticipantsCount
+                ? `${activeParticipantsCount} of ${participants.length} Active`
+                : 'Plan & Self-Managed'}
+            </span>
             <button
               type="button"
               className="kpi-link"
@@ -162,7 +204,7 @@ export default function CanonicalDashboard({
             <span className="kpi-label">New Referrals</span>
             <UserPlus className="kpi-icon" size={24} />
           </div>
-          <div className="kpi-number">{referrals.length}</div>
+          <div className="kpi-number">{countNew}</div>
           <div className="kpi-bottom-row">
             <span className="kpi-badge">{countNew} Awaiting Intake</span>
             <button
@@ -182,9 +224,17 @@ export default function CanonicalDashboard({
             <span className="kpi-label">Workforce</span>
             <UserCheck className="kpi-icon" size={24} />
           </div>
-          <div className="kpi-number">{staff.length}</div>
+          <div className="kpi-number">{staffCount}</div>
           <div className="kpi-bottom-row">
-            <span className="kpi-badge">{clearedStaffPct}% NDISWC Cleared</span>
+            <span className="kpi-badge">
+              {staffCount === 0
+                ? 'No workers registered'
+                : hasExpiryData
+                ? `${clearedStaffPct}% NDISWC Cleared`
+                : clearedStaffCount > 0
+                ? `${clearedStaffCount} Verified Active`
+                : 'Credential review available'}
+            </span>
             <button
               type="button"
               className="kpi-link"
@@ -199,13 +249,15 @@ export default function CanonicalDashboard({
         {/* 4. Agreements (Lavender / Purple) */}
         <div className="kpi-card lavender">
           <div className="kpi-head">
-            <span className="kpi-label">Agreements</span>
+            <span className="kpi-label">Active Agreements</span>
             <FileText className="kpi-icon" size={24} />
           </div>
-          <div className="kpi-number">{agreements.length}</div>
+          <div className="kpi-number">{activeAgreements}</div>
           <div className="kpi-bottom-row">
             <span className="kpi-badge">
-              {pendingAgreements > 0 ? `${pendingAgreements} Pending Review` : `${agreements.length} Total`}
+              {pendingAgreements > 0
+                ? `${pendingAgreements} Pending Review`
+                : `${activeAgreements} Active in Effect`}
             </span>
             <button
               type="button"
@@ -230,96 +282,137 @@ export default function CanonicalDashboard({
                 <AlertCircle size={18} color="#4F46E5" />
                 Things Needing Attention
               </h2>
-              <button
-                type="button"
-                className="card-link-muted"
-                onClick={() => onSelectTab(countNew > 0 ? 'referrals' : 'agreements')}
-              >
-                View all tasks ({Math.max(attentionTasksCount, 1)})
-              </button>
+              {attentionTasksCount > 0 ? (
+                <button
+                  type="button"
+                  className="card-link-muted"
+                  onClick={() =>
+                    onSelectTab(
+                      countNew > 0
+                        ? 'referrals'
+                        : pendingAgreements > 0
+                        ? 'agreements'
+                        : pendingTimesheetsCount > 0
+                        ? 'timesheets'
+                        : 'staff'
+                    )
+                  }
+                >
+                  View all tasks ({attentionTasksCount})
+                </button>
+              ) : (
+                <span style={{ fontSize: 12.5, color: '#059669', fontWeight: 600 }}>
+                  All caught up
+                </span>
+              )}
             </div>
 
-            <div className="attention-list">
-              {/* Intake Item */}
-              <div className="attention-item">
-                <div className="att-meta">
-                  <div
-                    className={`att-status-indicator ${
-                      countNew > 0 ? 'indicator-amber' : 'indicator-mint'
-                    }`}
-                  />
-                  <div>
-                    <div className="att-title">
-                      Intake &amp; Onboarding: Participant Referral{countNew > 1 ? 's' : ''}
-                    </div>
-                    <div className="att-desc">
-                      {countNew > 0
-                        ? `${countNew} intake document${countNew === 1 ? '' : 's'} received • Needs coordinator allocation`
-                        : 'Intake referrals are up to date'}
-                    </div>
-                  </div>
+            {attentionTasksCount === 0 ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-heading)', marginBottom: 4 }}>
+                  All operational tasks completed
                 </div>
-                <button
-                  type="button"
-                  className="btn-table-action"
-                  onClick={() => onSelectTab('referrals')}
-                >
-                  Review Intake
-                </button>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+                  No pending intake referrals, agreement drafts, timesheet approvals, or clearance alerts requiring immediate action.
+                </p>
               </div>
+            ) : (
+              <div className="attention-list">
+                {/* Intake Item */}
+                {countNew > 0 && (
+                  <div className="attention-item">
+                    <div className="att-meta">
+                      <div className="att-status-indicator indicator-amber" />
+                      <div>
+                        <div className="att-title">
+                          Intake &amp; Onboarding: Participant Referral{countNew > 1 ? 's' : ''}
+                        </div>
+                        <div className="att-desc">
+                          {countNew} intake document{countNew === 1 ? '' : 's'} received • Needs coordinator allocation
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-table-action"
+                      onClick={() => onSelectTab('referrals')}
+                    >
+                      Review Intake
+                    </button>
+                  </div>
+                )}
 
-              {/* Agreement Item */}
-              <div className="attention-item">
-                <div className="att-meta">
-                  <div
-                    className={`att-status-indicator ${
-                      pendingAgreements > 0 ? 'indicator-brand' : 'indicator-mint'
-                    }`}
-                  />
-                  <div>
-                    <div className="att-title">
-                      Schedule of Supports: Service Agreement Draft{pendingAgreements > 1 ? 's' : ''}
+                {/* Agreement Item */}
+                {pendingAgreements > 0 && (
+                  <div className="attention-item">
+                    <div className="att-meta">
+                      <div className="att-status-indicator indicator-brand" />
+                      <div>
+                        <div className="att-title">
+                          Schedule of Supports: Service Agreement Draft{pendingAgreements > 1 ? 's' : ''}
+                        </div>
+                        <div className="att-desc">
+                          {pendingAgreements} agreement draft{pendingAgreements === 1 ? '' : 's'} awaiting coordinator or recipient sign-off
+                        </div>
+                      </div>
                     </div>
-                    <div className="att-desc">
-                      {pendingAgreements > 0
-                        ? `${pendingAgreements} agreement draft${pendingAgreements === 1 ? '' : 's'} awaiting coordinator or recipient sign-off`
-                        : `${agreements.length} active service agreements in effect`}
-                    </div>
+                    <button
+                      type="button"
+                      className="btn-table-action"
+                      onClick={() => onSelectTab('agreements')}
+                    >
+                      Open Agreements
+                    </button>
                   </div>
-                </div>
-                <button
-                  type="button"
-                  className="btn-table-action"
-                  onClick={() => onSelectTab('agreements')}
-                >
-                  Open Agreements
-                </button>
-              </div>
+                )}
 
-              {/* Clearance Item */}
-              <div className="attention-item">
-                <div className="att-meta">
-                  <div
-                    className={`att-status-indicator ${
-                      staff.length > clearedStaffCount ? 'indicator-amber' : 'indicator-mint'
-                    }`}
-                  />
-                  <div>
-                    <div className="att-title">Worker Clearance Validation</div>
-                    <div className="att-desc">
-                      {clearedStaffCount} of {staff.length} active support workers verified with NDIS Commission
+                {/* Timesheet Approval Item */}
+                {pendingTimesheetsCount > 0 && (
+                  <div className="attention-item">
+                    <div className="att-meta">
+                      <div className="att-status-indicator indicator-amber" />
+                      <div>
+                        <div className="att-title">Timesheet Authorization</div>
+                        <div className="att-desc">
+                          {pendingTimesheetsCount} timesheet{pendingTimesheetsCount === 1 ? '' : 's'} awaiting manager billing authorization
+                        </div>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      className="btn-table-action"
+                      onClick={() => onSelectTab('timesheets')}
+                    >
+                      Review Timesheets
+                    </button>
                   </div>
-                </div>
-                <button
-                  type="button"
-                  className="btn-table-action"
-                  onClick={() => onSelectTab('staff')}
-                >
-                  View Workers
-                </button>
+                )}
+
+                {/* Clearance Item */}
+                {staffCount > 0 && staffCount > clearedStaffCount && (
+                  <div className="attention-item">
+                    <div className="att-meta">
+                      <div className="att-status-indicator indicator-amber" />
+                      <div>
+                        <div className="att-title">Worker Clearance Validation</div>
+                        <div className="att-desc">
+                          {hasExpiryData
+                            ? `${clearedStaffCount} of ${staffCount} active support workers verified with valid NDISWC`
+                            : `${staffCount - clearedStaffCount} worker${staffCount - clearedStaffCount === 1 ? '' : 's'} require credential review`}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-table-action"
+                      onClick={() => onSelectTab('staff')}
+                    >
+                      View Workers
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
 
           {/* Section 2: Upcoming Shifts */}
@@ -371,13 +464,15 @@ export default function CanonicalDashboard({
                     const participantName =
                       shift.participant?.full_name ||
                       participants.find((p) => p.id === shift.participant_id)?.name ||
+                      shift.participant_name ||
                       'Participant';
 
                     const workerName =
-                      staff.find((s) => s.id === shift.staff_id)?.name ||
+                      shift.assignments?.[0]?.staff?.full_name ||
+                      staff.find((s) => s.id === shift.staff_id || s.id === shift.assignments?.[0]?.staff_id)?.name ||
                       shift.worker_name ||
                       shift.assigned_worker?.name ||
-                      'Support Worker';
+                      'Unassigned';
 
                     const startTime = shift.start_time ? new Date(shift.start_time) : null;
                     const formattedTime = startTime
@@ -391,6 +486,11 @@ export default function CanonicalDashboard({
                         })}`
                       : 'Scheduled';
 
+                    const locationText =
+                      shift.location_suburb ||
+                      shift.location_address ||
+                      'Location not recorded';
+
                     const isConfirmed = shift.status === 'confirmed' || shift.status === 'completed';
 
                     return (
@@ -399,7 +499,7 @@ export default function CanonicalDashboard({
                           {participantName}
                         </td>
                         <td>{workerName}</td>
-                        <td>{shift.location_suburb || 'Yamba'}</td>
+                        <td>{locationText}</td>
                         <td>{formattedTime}</td>
                         <td>
                           <span
@@ -458,7 +558,7 @@ export default function CanonicalDashboard({
                     maximumFractionDigits: 2,
                   })}
                 </div>
-                <div className="stat-meta-note success">NDIS claims valid</div>
+                <div className="stat-meta-note success">Invoices issued</div>
               </div>
 
               {/* Paid Claims */}
@@ -471,7 +571,7 @@ export default function CanonicalDashboard({
                     maximumFractionDigits: 2,
                   })}
                 </div>
-                <div className="stat-meta-note">Remittance verified</div>
+                <div className="stat-meta-note">Payments recorded</div>
               </div>
 
               {/* Unbilled Value */}
@@ -520,7 +620,7 @@ export default function CanonicalDashboard({
                 style={{ justifyContent: 'center', width: '100%' }}
                 onClick={() => onSelectTab('invoicing')}
               >
-                Generate NDIS Invoices
+                Generate Invoices
               </button>
             </div>
           </div>

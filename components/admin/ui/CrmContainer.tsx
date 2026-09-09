@@ -13,7 +13,6 @@ import {
   CalendarClock,
   FileCheck,
   Clock,
-  CircleDollarSign,
   Calculator,
   Receipt,
   FileText,
@@ -21,7 +20,6 @@ import {
   AlertCircle,
   ShieldCheck,
   UserCheck,
-  GraduationCap,
   Sparkles,
   Layers,
   Settings,
@@ -100,26 +98,12 @@ export default function CrmContainer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleTabClick = (tabKey: string) => {
+  const handleTabClick = (tabKey: CrmTab) => {
     setMobileNavOpen(false);
-    if (tabKey === 'incidents') {
-      onSelectTab('safeguarding');
-    } else if (tabKey === 'funding') {
-      onSelectTab('quotes');
-    } else if (tabKey === 'training') {
-      onSelectTab('compliance');
-    } else if (tabKey === 'credentials') {
-      onSelectTab('staff');
-    } else {
-      onSelectTab(tabKey as CrmTab);
-    }
+    onSelectTab(tabKey);
   };
 
-  const isTabActive = (tabKey: string) => {
-    if (tabKey === 'safeguarding' && currentTab === 'safeguarding') return true;
-    if (tabKey === 'incidents' && currentTab === 'safeguarding') return false;
-    if (tabKey === 'training' && currentTab === 'compliance') return true;
-    if (tabKey === 'compliance' && currentTab === 'compliance') return true;
+  const isTabActive = (tabKey: CrmTab) => {
     return currentTab === tabKey;
   };
 
@@ -292,20 +276,8 @@ export default function CrmContainer({
                 onClick={() => handleTabClick('quotes')}
               >
                 <div className="nav-link-left">
-                  <CircleDollarSign size={17} />
-                  <span>Funding</span>
-                </div>
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`nav-link ${isTabActive('quotes') ? 'active' : ''}`}
-                onClick={() => handleTabClick('quotes')}
-              >
-                <div className="nav-link-left">
                   <Calculator size={17} />
-                  <span>Quotes</span>
+                  <span>Quotes &amp; Funding</span>
                 </div>
               </button>
             </li>
@@ -336,7 +308,7 @@ export default function CrmContainer({
           </ul>
 
           {/* Group 4: Quality & Governance */}
-          <div className="nav-group-label">Quality & Governance</div>
+          <div className="nav-group-label">Quality &amp; Governance</div>
           <ul className="nav-list">
             <li>
               <button
@@ -346,19 +318,7 @@ export default function CrmContainer({
               >
                 <div className="nav-link-left">
                   <Shield size={17} />
-                  <span>Safeguarding</span>
-                </div>
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`nav-link ${currentTab === 'safeguarding' ? 'active' : ''}`}
-                onClick={() => handleTabClick('incidents')}
-              >
-                <div className="nav-link-left">
-                  <AlertCircle size={17} />
-                  <span>Incidents</span>
+                  <span>Safeguarding &amp; Incidents</span>
                 </div>
               </button>
             </li>
@@ -370,7 +330,7 @@ export default function CrmContainer({
               >
                 <div className="nav-link-left">
                   <ShieldCheck size={17} />
-                  <span>Compliance</span>
+                  <span>Compliance &amp; Training</span>
                 </div>
               </button>
             </li>
@@ -387,35 +347,11 @@ export default function CrmContainer({
               >
                 <div className="nav-link-left">
                   <UserCheck size={17} />
-                  <span>Workers</span>
+                  <span>Workers &amp; Credentials</span>
                 </div>
                 {staffCount > 0 && (
                   <span className="nav-counter">{staffCount}</span>
                 )}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`nav-link ${isTabActive('compliance') ? 'active' : ''}`}
-                onClick={() => handleTabClick('compliance')}
-              >
-                <div className="nav-link-left">
-                  <GraduationCap size={17} />
-                  <span>Training</span>
-                </div>
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`nav-link ${isTabActive('staff') ? 'active' : ''}`}
-                onClick={() => handleTabClick('credentials')}
-              >
-                <div className="nav-link-left">
-                  <FileCheck size={17} />
-                  <span>Credentials</span>
-                </div>
               </button>
             </li>
           </ul>
