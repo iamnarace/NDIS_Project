@@ -28,17 +28,16 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const participantId = searchParams.get('participant_id');
 
+    const complaintFields = isAdmin
+      ? '*, participant:participants(id, full_name, reference_number), linked_incident:incidents(id, incident_reference, severity, status)'
+      : 'id, complaint_reference, participant_id, complainant_name, complainant_role, received_date, summary, status, acknowledgement_date, resolution_summary, closed_at, created_at, updated_at, participant:participants(id, full_name, reference_number)';
     let query = supabase
       .from('complaints')
-      .select(`
-        *,
-        participant:participants(id, full_name, reference_number),
-        linked_incident:incidents(id, incident_reference, severity, status)
-      `)
+      .select(complaintFields)
       .order('received_date', { ascending: false });
 
     if (status && status !== 'all') query = query.eq('status', status);
-    if (participantId) query = query.eq('participant_id', participantId);
+    if (isAdmin && participantId) query = query.eq('participant_id', participantId);
 
     const { data, error } = await query;
     if (error) {
@@ -59,6 +58,7 @@ export async function POST(request: NextRequest) {
     let supabase: any = null;
     let actorId = 'admin';
     let actorType = 'admin';
+    let portalParticipantId: string | null = null;
 
     if (isAdmin) {
       supabase = createAdminClient();
@@ -70,10 +70,18 @@ export async function POST(request: NextRequest) {
 
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (user) {
-        actorId = user.id;
-        actorType = 'portal_user';
+      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      actorId = user.id;
+      actorType = 'participant';
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('portal_participant_id, role, is_active')
+        .eq('id', user.id)
+        .single();
+      if (!profile?.is_active || profile.role !== 'participant' || !profile.portal_participant_id) {
+        return NextResponse.json({ error: 'Your account does not have participant portal access.' }, { status: 403 });
       }
+      portalParticipantId = profile.portal_participant_id;
     }
 
     const body = await request.json();
@@ -103,13 +111,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let resolvedParticipantId = participant_id || null;
-    if (resolvedParticipantId && !isValidUuid(resolvedParticipantId)) {
+    let resolvedParticipantId = portalParticipantId || participant_id || null;
+    if (isAdmin && resolvedParticipantId && !isValidUuid(resolvedParticipantId)) {
       resolvedParticipantId = await resolveParticipantUuid(supabase, resolvedParticipantId);
     }
 
     let resolvedLinkedIncidentId = linked_incident_id || null;
-    if (resolvedLinkedIncidentId && !isValidUuid(resolvedLinkedIncidentId)) {
+    if (!isAdmin) {
+      resolvedLinkedIncidentId = null;
+      supabase = createAdminClient();
+      if (!supabase) return NextResponse.json({ error: 'We could not submit your complaint right now.' }, { status: 503 });
+    } else if (resolvedLinkedIncidentId && !isValidUuid(resolvedLinkedIncidentId)) {
       resolvedLinkedIncidentId = await resolveIncidentUuid(supabase, resolvedLinkedIncidentId);
     }
 
@@ -134,14 +146,12 @@ export async function POST(request: NextRequest) {
         details: resolvedDetails,
         immediate_safety_issue: Boolean(immediate_safety_issue),
         linked_incident_id: resolvedLinkedIncidentId,
-        assigned_manager: assigned_manager || null,
+        assigned_manager: isAdmin ? (assigned_manager || null) : null,
         status: 'Received',
       })
-      .select(`
-        *,
-        participant:participants(id, full_name, reference_number),
-        linked_incident:incidents(id, incident_reference, severity, status)
-      `)
+      .select(isAdmin
+        ? '*, participant:participants(id, full_name, reference_number), linked_incident:incidents(id, incident_reference, severity, status)'
+        : 'id, complaint_reference, participant_id, complainant_name, complainant_role, received_date, summary, status, acknowledgement_date, resolution_summary, closed_at, created_at, updated_at, participant:participants(id, full_name, reference_number)')
       .single();
 
     if (error) {

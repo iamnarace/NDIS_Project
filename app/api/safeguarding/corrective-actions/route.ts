@@ -1,6 +1,5 @@
 import { userFacingError } from '@/lib/userFacingError';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { logAuditEvent } from '@/lib/audit';
@@ -9,20 +8,10 @@ import { isValidUuid, resolveIncidentUuid } from '@/lib/uuid';
 export async function GET(request: NextRequest) {
   try {
     const isAdmin = await isAuthenticatedAdmin(request);
-    let supabase: any = null;
-
-    if (isAdmin) {
-      supabase = createAdminClient();
-    } else {
-      supabase = await createClient();
-    }
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 403 });
+    const supabase: any = createAdminClient();
 
     if (!supabase) return NextResponse.json({ actions: [] });
-
-    if (!isAdmin) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
-    }
 
     const { searchParams } = new URL(request.url);
     const sourceType = searchParams.get('source_type');
@@ -57,19 +46,10 @@ export async function POST(request: NextRequest) {
     let supabase: any = null;
     let actorId = 'admin';
 
-    if (isAdmin) {
-      supabase = createAdminClient();
-    } else {
-      supabase = await createClient();
-    }
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 403 });
+    supabase = createAdminClient();
 
     if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
-
-    if (!isAdmin) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
-      actorId = user.id;
-    }
 
     const body = await request.json();
     const {
@@ -155,19 +135,10 @@ export async function PATCH(request: NextRequest) {
     let supabase: any = null;
     let actorId = 'admin';
 
-    if (isAdmin) {
-      supabase = createAdminClient();
-    } else {
-      supabase = await createClient();
-    }
+    if (!isAdmin) return NextResponse.json({ error: 'Unauthorised' }, { status: 403 });
+    supabase = createAdminClient();
 
     if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
-
-    if (!isAdmin) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
-      actorId = user.id;
-    }
 
     const body = await request.json();
     const { id, ...updates } = body;

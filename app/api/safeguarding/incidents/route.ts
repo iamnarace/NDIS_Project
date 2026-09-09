@@ -32,13 +32,13 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get('severity');
     const workerId = searchParams.get('worker_id');
 
+    const incidentFields = isAdmin
+      ? `*, participant:participants(id, full_name, reference_number, funding_type, suburb), worker:staff(id, full_name, reference_number, role)`
+      : `id, incident_reference, participant_id, worker_id, shift_id, reported_by, incident_at, location, category, severity, description, immediate_actions_taken, injury_or_harm_details, emergency_services_contacted, emergency_services_details, witnesses, attachment_urls, status, created_at, updated_at, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, reference_number, role)`;
+
     let query = supabase
       .from('incidents')
-      .select(`
-        *,
-        participant:participants(id, full_name, reference_number, funding_type, suburb),
-        worker:staff(id, full_name, reference_number, role)
-      `)
+      .select(incidentFields)
       .order('incident_at', { ascending: false });
 
     if (participantId) query = query.eq('participant_id', participantId);
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     let supabase: any = null;
     let actorId = 'admin';
     let actorType = 'admin';
+    let workerStaffId: string | null = null;
 
     if (isAdmin) {
       supabase = createAdminClient();
@@ -84,6 +85,15 @@ export async function POST(request: NextRequest) {
       if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
       actorId = user.id;
       actorType = 'worker';
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('portal_staff_id, role, is_active')
+        .eq('id', user.id)
+        .single();
+      if (!profile?.is_active || profile.role !== 'worker' || !profile.portal_staff_id) {
+        return NextResponse.json({ error: 'Your account does not have worker portal access.' }, { status: 403 });
+      }
+      workerStaffId = profile.portal_staff_id;
     }
 
     const body = await request.json();
@@ -111,23 +121,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Defensive resolution of UUIDs
-    let resolvedParticipantId = participant_id;
-    if (!isValidUuid(participant_id)) {
-      resolvedParticipantId = await resolveParticipantUuid(supabase, participant_id);
+    let resolvedParticipantId: string | null;
+    let resolvedWorkerId: string | null;
+    let resolvedShiftId: string | null;
+    if (!isAdmin) {
+      if (!isValidUuid(shift_id)) {
+        return NextResponse.json({ error: 'Select one of your assigned shifts.' }, { status: 400 });
+      }
+      const { data: assignedShift } = await supabase
+        .from('shifts')
+        .select('id, participant_id')
+        .eq('id', shift_id)
+        .maybeSingle();
+      if (!assignedShift) {
+        return NextResponse.json({ error: 'This shift is not assigned to you.' }, { status: 403 });
+      }
+      resolvedParticipantId = assignedShift.participant_id;
+      resolvedWorkerId = workerStaffId;
+      resolvedShiftId = assignedShift.id;
+      supabase = createAdminClient();
+      if (!supabase) return NextResponse.json({ error: 'We could not submit this report right now.' }, { status: 503 });
+    } else {
+      resolvedParticipantId = isValidUuid(participant_id)
+        ? participant_id
+        : await resolveParticipantUuid(supabase, participant_id);
+      resolvedWorkerId = isValidUuid(worker_id)
+        ? worker_id
+        : await resolveStaffUuid(supabase, worker_id);
+      resolvedShiftId = isValidUuid(shift_id)
+        ? shift_id
+        : await resolveShiftUuid(supabase, shift_id);
     }
     if (!resolvedParticipantId || !isValidUuid(resolvedParticipantId)) {
-      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
-    }
-
-    let resolvedWorkerId = worker_id || null;
-    if (resolvedWorkerId && !isValidUuid(resolvedWorkerId)) {
-      resolvedWorkerId = await resolveStaffUuid(supabase, resolvedWorkerId);
-    }
-
-    let resolvedShiftId = shift_id || null;
-    if (resolvedShiftId && !isValidUuid(resolvedShiftId)) {
-      resolvedShiftId = await resolveShiftUuid(supabase, resolvedShiftId);
+      return NextResponse.json({ error: 'Select a valid participant.' }, { status: 400 });
     }
 
     // Generate unique reference INC-YYYY-XXXX
@@ -160,11 +186,9 @@ export async function POST(request: NextRequest) {
         reportable_assessment: 'Pending Review',
         external_notification_status: 'Not Required',
       })
-      .select(`
-        *,
-        participant:participants(id, full_name, reference_number),
-        worker:staff(id, full_name, role)
-      `)
+      .select(isAdmin
+        ? '*, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, role)'
+        : 'id, incident_reference, participant_id, worker_id, shift_id, reported_by, incident_at, location, category, severity, description, immediate_actions_taken, injury_or_harm_details, emergency_services_contacted, emergency_services_details, witnesses, attachment_urls, status, created_at, updated_at, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, role)')
       .single();
 
     if (error) {
