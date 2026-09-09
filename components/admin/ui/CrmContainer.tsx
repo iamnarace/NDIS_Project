@@ -30,6 +30,7 @@ import {
   X,
   Plus,
   CheckCircle2,
+  Menu,
 } from 'lucide-react';
 import CrmNotificationItem from './CrmNotificationItem';
 
@@ -84,6 +85,7 @@ export default function CrmContainer({
   onOpenNewAgreement,
 }: CrmContainerProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Global Cmd+K shortcut to focus search
@@ -99,6 +101,7 @@ export default function CrmContainer({
   }, []);
 
   const handleTabClick = (tabKey: string) => {
+    setMobileNavOpen(false);
     if (tabKey === 'incidents') {
       onSelectTab('safeguarding');
     } else if (tabKey === 'funding') {
@@ -127,8 +130,17 @@ export default function CrmContainer({
         Skip to content
       </a>
 
+      {/* Mobile Backdrop Overlay */}
+      {mobileNavOpen && (
+        <div
+          className="mobile-sidebar-overlay"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ================= CANONICAL SIDEBAR ================= */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileNavOpen ? 'mobile-open' : ''}`}>
         {/* Brand Header */}
         <div className="brand-header">
           <Link href="/" className="brand-title-wrap" title="Return to Public Website">
@@ -482,6 +494,27 @@ export default function CrmContainer({
       <main className="main-viewport">
         {/* Top Action Bar */}
         <header className="top-action-bar">
+          <div className="top-bar-left-cluster">
+            {/* Mobile Hamburger Button */}
+            <button
+              type="button"
+              className="mobile-menu-toggle"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              aria-label={mobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileNavOpen}
+            >
+              {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+
+            {/* Mobile Brand Link */}
+            <Link href="/" className="mobile-brand-title" title="Return to Public Site">
+              <div className="brand-logo-mark" style={{ width: 28, height: 28 }}>
+                <Activity size={16} strokeWidth={2.4} />
+              </div>
+              <span>Opus Care</span>
+            </Link>
+          </div>
+
           <div className="search-container">
             <Search size={16} />
             <input
