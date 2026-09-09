@@ -393,7 +393,13 @@ export default function AgreementGeneratorModal({
           (isPart
             ? `NDIS Service Agreement & Schedule of Supports - ${recipientName}`
             : `Workforce Support Agreement - ${recipientName}`),
-        template_id: sourceAgreement?.template_id || null,
+        template_id:
+          sourceAgreement?.template_id ||
+          (isPart
+            ? 'f11ede83-fc58-4171-a6ab-d5751f4c6807'
+            : ownerType === 'contractor'
+            ? 'd58eaf68-c545-4606-8ca2-a31a04caca8c'
+            : 'b17b956a-0802-4fb3-a034-fd3a1668fa98'),
         owner_type: ownerType,
         owner_id: selectedOwnerId,
         commencement_date: commencementDate,

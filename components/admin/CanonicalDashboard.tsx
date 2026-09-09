@@ -107,17 +107,23 @@ export default function CanonicalDashboard({
 
   // Factual live compliance calculations
   const staffCount = staff.length;
-  const hasExpiryData = staff.some(
-    (s) => s.ndisScreeningExpiry || s.ndis_screening_expiry
-  );
+  const hasAuthoritativeStatus = staff.some((s) => {
+    const scr = (s.ndisScreening || s.ndis_screening || '').toLowerCase().trim();
+    return scr === 'verified' || scr === 'cleared' || scr === 'current';
+  });
+
   const clearedStaffCount = staff.filter((s) => {
+    const scr = (s.ndisScreening || s.ndis_screening || '').toLowerCase().trim();
+    const isCleared = scr === 'verified' || scr === 'cleared' || scr === 'current';
+    if (!isCleared) return false;
+
+    // A future expiry date alone does not imply cleared; if expiry is present, it must also be valid
     const expiry = s.ndisScreeningExpiry || s.ndis_screening_expiry;
     if (expiry) {
       const expiryTime = new Date(expiry).getTime();
-      return !isNaN(expiryTime) && expiryTime > Date.now();
+      if (isNaN(expiryTime) || expiryTime <= Date.now()) return false;
     }
-    const scr = (s.ndisScreening || s.ndis_screening || '').toLowerCase().trim();
-    return scr === 'verified' || scr === 'cleared' || scr === 'current';
+    return true;
   }).length;
 
   const clearedStaffPct =
@@ -229,11 +235,9 @@ export default function CanonicalDashboard({
             <span className="kpi-badge">
               {staffCount === 0
                 ? 'No workers registered'
-                : hasExpiryData
-                ? `${clearedStaffPct}% NDISWC Cleared`
-                : clearedStaffCount > 0
-                ? `${clearedStaffCount} Verified Active`
-                : 'Credential review available'}
+                : !hasAuthoritativeStatus
+                ? 'Credential review required'
+                : `${clearedStaffPct}% NDISWC Cleared`}
             </span>
             <button
               type="button"
@@ -396,9 +400,9 @@ export default function CanonicalDashboard({
                       <div>
                         <div className="att-title">Worker Clearance Validation</div>
                         <div className="att-desc">
-                          {hasExpiryData
-                            ? `${clearedStaffCount} of ${staffCount} active support workers verified with valid NDISWC`
-                            : `${staffCount - clearedStaffCount} worker${staffCount - clearedStaffCount === 1 ? '' : 's'} require credential review`}
+                          {!hasAuthoritativeStatus
+                            ? 'Screening status unverified • Credential review required'
+                            : `${clearedStaffCount} of ${staffCount} active support workers verified with valid NDISWC`}
                         </div>
                       </div>
                     </div>

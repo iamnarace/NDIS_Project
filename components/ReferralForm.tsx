@@ -86,7 +86,7 @@ export function ReferralForm() {
       if (!response.ok) throw new Error(result.message || 'Unable to send referral');
       setSubmittedReferenceNumber(result.id || result.reference_number || '');
       setStatus('success');
-      setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you within 24 business hours.');
+      setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you shortly.');
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please email us at referrals@opuscare.com.au.');
@@ -113,7 +113,7 @@ export function ReferralForm() {
           <div><strong>Participant:</strong> {formData.participantName || formData.name}</div>
           <div><strong>Contact Phone:</strong> {formData.phone}</div>
           <div><strong>Suburbs:</strong> {formData.suburb || 'Yamba / Northern Rivers'}</div>
-          <div><strong>Response Time:</strong> Within 24 Business Hours</div>
+          <div><strong>Response Time:</strong> Our intake team will contact you shortly</div>
         </div>
         <button
           type="button"
@@ -157,8 +157,8 @@ export function ReferralForm() {
           </h3>
         </div>
         <div className="wizardProgressBarTrack">
-          <div 
-            className="wizardProgressBarFill" 
+          <div
+            className="wizardProgressBarFill"
             style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>

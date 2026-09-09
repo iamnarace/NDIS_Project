@@ -6,14 +6,20 @@ import { isValidUuid, resolveStaffUuid, resolveParticipantUuid } from '@/lib/uui
 
 async function generateAgreementRef(supabase: ReturnType<typeof createAdminClient>): Promise<string> {
   const year = new Date().getFullYear();
-  if (!supabase) return `AGR-${year}-${Math.floor(1000 + Math.random() * 9000)}`;
-  
-  const { count } = await supabase
+  const prefix = `AGR-${year}`;
+  if (!supabase) return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  const { data } = await supabase
     .from('agreement_records')
-    .select('*', { count: 'exact', head: true });
-    
-  const nextNum = ((count ?? 0) + 1).toString().padStart(4, '0');
-  return `AGR-${year}-${nextNum}`;
+    .select('agreement_reference');
+
+  const matcher = new RegExp(`^${prefix}-(\\d+)$`);
+  const highest = (data || []).reduce((max: number, row: any) => {
+    const match = row.agreement_reference?.match(matcher);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+
+  return `${prefix}-${String(highest + 1).padStart(4, '0')}`;
 }
 
 export async function GET(req: Request) {
