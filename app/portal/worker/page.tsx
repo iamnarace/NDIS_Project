@@ -28,6 +28,7 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
+  BookOpen,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -68,15 +69,48 @@ interface WorkerIncident {
   };
 }
 
+interface WorkerTrainingCourse {
+  id: string;
+  title: string;
+  description?: string | null;
+  course_type: 'read_acknowledge' | 'read_quiz' | 'external_cert';
+  material_type?: string | null;
+  material_url?: string | null;
+  is_mandatory: boolean;
+  is_active: boolean;
+}
+
+interface WorkerTrainingAssignment {
+  id: string;
+  course_id: string;
+  due_date?: string | null;
+  assigned_at: string;
+  training_courses?: WorkerTrainingCourse | null;
+}
+
+interface WorkerTrainingCompletion {
+  id: string;
+  course_id: string;
+  completed_at: string;
+  passed: boolean;
+  expires_at?: string | null;
+  certificate_id?: string | null;
+}
+
 function WorkerPortalContent() {
   const router = useRouter();
-  const [tab, setTab] = useState<'shifts' | 'timesheets' | 'report_incident' | 'my_incidents'>('shifts');
+  const [tab, setTab] = useState<'shifts' | 'training' | 'timesheets' | 'report_incident' | 'my_incidents'>('shifts');
   const [isLoading, setIsLoading] = useState(true);
   const [workerName, setWorkerName] = useState('');
   const [workerStaffId, setWorkerStaffId] = useState('');
   const [shifts, setShifts] = useState<AssignedShift[]>([]);
   const [incidents, setIncidents] = useState<WorkerIncident[]>([]);
   const [statusNotice, setStatusNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const [trainingAssignments, setTrainingAssignments] = useState<WorkerTrainingAssignment[]>([]);
+  const [trainingCompletions, setTrainingCompletions] = useState<WorkerTrainingCompletion[]>([]);
+  const [trainingLoading, setTrainingLoading] = useState(false);
+  const [trainingError, setTrainingError] = useState('');
 
   // Timesheets tab state
   const [timesheets, setTimesheets] = useState<any[]>([]);
@@ -145,6 +179,23 @@ function WorkerPortalContent() {
     }
   }, [workerStaffId]);
 
+  const loadTraining = useCallback(async () => {
+    setTrainingLoading(true);
+    setTrainingError('');
+    try {
+      const response = await fetch('/api/portal/worker/training');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Training request failed');
+      setTrainingAssignments(Array.isArray(data.assignments) ? data.assignments : []);
+      setTrainingCompletions(Array.isArray(data.completions) ? data.completions : []);
+    } catch (error) {
+      console.error('Worker training load error:', error);
+      setTrainingError('Training data could not be loaded');
+    } finally {
+      setTrainingLoading(false);
+    }
+  }, []);
+
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -181,13 +232,14 @@ function WorkerPortalContent() {
       if (staffId) {
         loadTimesheets(staffId);
       }
+      loadTraining();
     } catch (err) {
       console.error('Worker portal load error:', err);
       setStatusNotice({ type: 'error', text: "We couldn't load your dashboard. Please refresh and try again." });
     } finally {
       setIsLoading(false);
     }
-  }, [router, loadTimesheets]);
+  }, [router, loadTimesheets, loadTraining]);
 
   useEffect(() => {
     loadData();
@@ -499,6 +551,18 @@ function WorkerPortalContent() {
             <Calendar size={16} /> My Shifts & Progress Notes
           </button>
           <button
+            onClick={() => setTab('training')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '9px 18px', borderRadius: 8, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
+              background: tab === 'training' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+              color: tab === 'training' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+              border: tab === 'training' ? 'none' : '1px solid var(--oc-border)',
+            }}
+          >
+            <BookOpen size={16} /> My Training ({trainingAssignments.length})
+          </button>
+          <button
             onClick={() => setTab('timesheets')}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
@@ -617,6 +681,72 @@ function WorkerPortalContent() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: MY TRAINING */}
+        {tab === 'training' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+              <div>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 4px', color: 'var(--oc-text)' }}>My Training</h2>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
+                  Review your assigned learning and completed courses.
+                </p>
+              </div>
+              <button
+                onClick={loadTraining}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '7px 14px', fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-secondary)', cursor: 'pointer' }}
+              >
+                <RefreshCw size={14} /> Refresh
+              </button>
+            </div>
+
+            {trainingLoading ? (
+              <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--oc-muted)' }}>Loading training…</div>
+            ) : trainingError ? (
+              <div role="alert" style={{ padding: 20, border: '1px solid #FECACA', borderRadius: 12, background: 'var(--oc-danger-soft)', color: '#991B1B' }}>
+                {trainingError}
+              </div>
+            ) : trainingAssignments.length === 0 ? (
+              <div style={{ background: 'var(--oc-surface)', padding: '48px 24px', borderRadius: 12, textAlign: 'center', border: '1px solid var(--oc-border)' }}>
+                <BookOpen size={40} style={{ color: 'var(--oc-border)', marginBottom: 12 }} />
+                <h3 style={{ margin: '0 0 6px', color: 'var(--oc-secondary)' }}>No training assigned</h3>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--oc-muted)' }}>Your assigned courses will appear here.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {trainingAssignments.map((assignment) => {
+                  const course = assignment.training_courses;
+                  if (!course) return null;
+                  const completion = trainingCompletions.find((item) => item.course_id === assignment.course_id && item.passed);
+                  return (
+                    <div key={assignment.id} style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                      <div style={{ flex: '1 1 520px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+                          <strong style={{ color: 'var(--oc-text)' }}>{course.title}</strong>
+                          {course.is_mandatory && <span style={{ background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', borderRadius: 9999, padding: '2px 8px', fontSize: '0.75rem', fontWeight: 600 }}>Required</span>}
+                          <span style={{ background: completion ? 'var(--oc-success-soft)' : 'var(--oc-subtle)', color: completion ? 'var(--oc-success)' : 'var(--oc-secondary)', borderRadius: 9999, padding: '2px 8px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            {completion ? 'Completed' : 'To do'}
+                          </span>
+                        </div>
+                        {course.description && <p style={{ margin: '0 0 8px', color: 'var(--oc-muted)', fontSize: '0.84rem' }}>{course.description}</p>}
+                        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', color: 'var(--oc-muted)', fontSize: '0.78rem' }}>
+                          <span>{course.course_type === 'read_quiz' ? 'Reading and quiz' : course.course_type === 'external_cert' ? 'External certificate' : 'Read and acknowledge'}</span>
+                          {assignment.due_date && <span>Due {new Date(assignment.due_date).toLocaleDateString('en-AU')}</span>}
+                          {completion && <span>Completed {new Date(completion.completed_at).toLocaleDateString('en-AU')}</span>}
+                        </div>
+                      </div>
+                      {course.material_url && (
+                        <Link href={course.material_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--oc-accent)', color: 'var(--oc-surface)', borderRadius: 8, padding: '8px 14px', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
+                          <ExternalLink size={14} /> Open course material
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
