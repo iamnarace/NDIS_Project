@@ -4,6 +4,19 @@ import DialogPanel from '@/components/ui/DialogPanel';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
+  FormDrawer,
+  DrawerHeader,
+  FormSection,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormGrid2,
+  FormGrid3,
+  FormError,
+  StickyFormFooter,
+} from '@/components/admin/forms';
+import {
   Calendar as CalendarIcon, Clock, UserCheck, AlertCircle, AlertTriangle,
   CheckCircle2, Plus, ChevronLeft, ChevronRight, Filter, Search,
   MapPin, DollarSign, ShieldAlert, Sparkles, RefreshCw, X, Trash2,
@@ -990,134 +1003,112 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
         </div>
       )}
 
-      {/* 6. MODAL: SCHEDULE NEW SHIFT */}
-      {showScheduleModal && (
-        <div className="crmModalOverlay" onClick={() => setShowScheduleModal(false)}>
-          <DialogPanel onClose={() => setShowScheduleModal(false)} label="Schedule NDIS Shift" className="crmModalBox" style={{ maxWidth: 620 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <span className="refIdTag">NEW SHIFT ROSTER</span>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-text)' }}>Schedule NDIS Shift</h3>
-              </div>
-              <button onClick={() => setShowScheduleModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                <X size={20} />
-              </button>
-            </div>
+      {/* 6. DRAWER: SCHEDULE NEW SHIFT */}
+      <FormDrawer
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+      >
+        <DrawerHeader
+          title="Schedule NDIS Shift"
+          description="Allocate participant care hours, verify worker compliance, and check calendar availability."
+          badge={<span className="refIdTag">NEW SHIFT ROSTER</span>}
+          onClose={() => setShowScheduleModal(false)}
+        />
 
-            <form onSubmit={handleScheduleSubmit} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {formError && (
-                <div style={{ background: 'var(--oc-danger-soft)', border: '1px solid #FCA5A5', color: '#991B1B', padding: '12px 16px', borderRadius: 8, fontSize: '0.85rem' }}>
-                  {formError}
-                </div>
-              )}
+        <form onSubmit={handleScheduleSubmit} style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 73px)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {formError && <FormError message={formError} />}
 
-              {/* Participant Selection */}
-              <div>
-                <label className="crmFormLabel">Participant *</label>
-                <select aria-label="Participant *"
+            <FormSection title="1. Participant & Support Item">
+              <FormField label="Participant" required>
+                <FormSelect
                   value={formParticipantId}
                   onChange={(e) => handleParticipantChange(e.target.value)}
-                  className="crmFormInput"
                   required
                 >
                   {participants.map((p) => (
                     <option key={p.id} value={p.id}>{p.name} ({p.referenceNumber || 'NDIS'} — {p.suburb})</option>
                   ))}
-                </select>
-              </div>
+                </FormSelect>
+              </FormField>
 
-              {/* Service Type & Item Code */}
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="crmFormLabel">Service Type *</label>
-                  <select aria-label="Service Type *"
+              <FormGrid2>
+                <FormField label="Service Type" required>
+                  <FormSelect
                     value={formServiceType}
                     onChange={(e) => handleServiceChange(e.target.value)}
-                    className="crmFormInput"
                     required
                   >
                     {SERVICE_TYPES.map((st) => (
                       <option key={st.label} value={st.label}>{st.label}</option>
                     ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="crmFormLabel">NDIS Line Item Code</label>
-                  <input aria-label="NDIS Line Item Code"
+                  </FormSelect>
+                </FormField>
+
+                <FormField label="NDIS Line Item Code" hint="Auto-filled from catalogue">
+                  <FormInput
                     type="text"
                     value={formItemCode}
                     onChange={(e) => setFormItemCode(e.target.value)}
-                    className="crmFormInput"
                     style={{ fontFamily: 'monospace' }}
                   />
-                </div>
-              </div>
+                </FormField>
+              </FormGrid2>
+            </FormSection>
 
-              {/* Date & Time Pickers */}
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="crmFormLabel">Date *</label>
-                  <input aria-label="Date *"
+            <FormSection title="2. Date, Time & Venue">
+              <FormGrid3>
+                <FormField label="Date" required>
+                  <FormInput
                     type="date"
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="crmFormInput"
                     required
                   />
-                </div>
-                <div>
-                  <label className="crmFormLabel">Start Time *</label>
-                  <input aria-label="Start Time *"
+                </FormField>
+                <FormField label="Start Time" required>
+                  <FormInput
                     type="time"
                     value={formStartTime}
                     onChange={(e) => setFormStartTime(e.target.value)}
-                    className="crmFormInput"
                     required
                   />
-                </div>
-                <div>
-                  <label className="crmFormLabel">End Time *</label>
-                  <input aria-label="End Time *"
+                </FormField>
+                <FormField label="End Time" required>
+                  <FormInput
                     type="time"
                     value={formEndTime}
                     onChange={(e) => setFormEndTime(e.target.value)}
-                    className="crmFormInput"
                     required
                   />
-                </div>
-              </div>
+                </FormField>
+              </FormGrid3>
 
-              {/* Suburb & Address */}
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
-                <div>
-                  <label className="crmFormLabel">Suburb *</label>
-                  <input aria-label="Suburb *"
+              <FormGrid2>
+                <FormField label="Suburb" required>
+                  <FormInput
                     type="text"
                     value={formSuburb}
                     onChange={(e) => setFormSuburb(e.target.value)}
-                    className="crmFormInput"
                     required
                   />
-                </div>
-                <div>
-                  <label className="crmFormLabel">Street Address / Venue</label>
-                  <input aria-label="Street Address / Venue"
+                </FormField>
+                <FormField label="Street Address / Venue">
+                  <FormInput
                     type="text"
                     value={formAddress}
                     onChange={(e) => setFormAddress(e.target.value)}
-                    className="crmFormInput"
                     placeholder="e.g. 14 Ocean View Dr, Yamba"
                   />
-                </div>
-              </div>
+                </FormField>
+              </FormGrid2>
+            </FormSection>
 
-              {/* Worker Assignment Selector with Live Guard */}
-              <div>
-                <label className="crmFormLabel">Assign Support Worker (Optional)</label>
-                <select aria-label="Assign Support Worker (Optional)"
+            <FormSection title="3. Workforce Assignment & Safeguards">
+              <FormField label="Assign Support Worker (Optional)">
+                <FormSelect
                   value={formStaffId}
                   onChange={(e) => setFormStaffId(e.target.value)}
-                  className="crmFormInput"
                 >
                   <option value="">-- Leave Unassigned (Open Coverage) --</option>
                   {staff.map((st) => (
@@ -1125,138 +1116,117 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                       {st.name} ({st.role}) — Suburbs: {st.suburbs?.join(', ')}
                     </option>
                   ))}
-                </select>
+                </FormSelect>
+              </FormField>
 
-                {/* Worker Conflict Banner */}
-                {workerConflict && (
-                  <div style={{ marginTop: 8, background: '#FEF3C7', border: '1px solid #FCD34D', padding: '10px 14px', borderRadius: 8, fontSize: '0.82rem', color: '#92400E' }}>
-                    <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <AlertTriangle size={15} style={{ color: 'var(--oc-warning)' }} />
-                      Warning: Schedule Overlap Detected
-                    </div>
-                    <span>{selectedStaffRecord?.name} is already assigned to {workerConflict.shift_reference} on this date.</span>
-                    <div style={{ marginTop: 8 }}>
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 600 }}>
-                        <input aria-label="Allow double-booking override"
-                          type="checkbox"
-                          checked={conflictOverride}
-                          onChange={(e) => setConflictOverride(e.target.checked)}
-                        />
-                        Allow double-booking override
-                      </label>
-                    </div>
+              {/* Worker Conflict Banner */}
+              {workerConflict && (
+                <div style={{ background: '#FEF3C7', border: '1px solid #FCD34D', padding: '12px 14px', borderRadius: 8, fontSize: '0.82rem', color: '#92400E' }}>
+                  <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <AlertTriangle size={15} style={{ color: 'var(--oc-warning)' }} />
+                    Warning: Schedule Overlap Detected
                   </div>
-                )}
-
-                {/* Worker Compliance Verification Pill */}
-                {selectedStaffRecord && !workerConflict && (
-                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8125rem', color: '#059669', background: '#ECFDF5', padding: '6px 12px', borderRadius: 8 }}>
-                    <CheckCircle2 size={15} />
-                    <span>Compliance Verified: NDIS Screening & First Aid Active</span>
+                  <span>{selectedStaffRecord?.name} is already assigned to {workerConflict.shift_reference} on this date.</span>
+                  <div style={{ marginTop: 8 }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontWeight: 600 }}>
+                      <input
+                        type="checkbox"
+                        checked={conflictOverride}
+                        onChange={(e) => setConflictOverride(e.target.checked)}
+                      />
+                      Allow double-booking override
+                    </label>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Repeat Shift Option */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--oc-background)', padding: '12px 16px', borderRadius: 8 }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)' }}>Repeat weekly:</span>
-                <select aria-label="Single Shift (No Repeat)"
+              {/* Worker Compliance Verification Pill */}
+              {selectedStaffRecord && !workerConflict && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8125rem', color: '#059669', background: '#ECFDF5', padding: '8px 12px', borderRadius: 8 }}>
+                  <CheckCircle2 size={16} />
+                  <span>Compliance Verified: NDIS Screening & First Aid Active</span>
+                </div>
+              )}
+
+              <FormField label="Recurring Schedule">
+                <FormSelect
                   value={formRepeatWeeks}
                   onChange={(e) => setFormRepeatWeeks(Number(e.target.value))}
-                  className="crmFormInput"
-                  style={{ width: 'auto', padding: '4px 10px', fontSize: '0.85rem' }}
                 >
                   <option value={1}>Single Shift (No Repeat)</option>
                   <option value={2}>Repeat for 2 Weeks</option>
                   <option value={4}>Repeat for 4 Weeks (1 Month)</option>
                   <option value={8}>Repeat for 8 Weeks (2 Months)</option>
-                </select>
-              </div>
+                </FormSelect>
+              </FormField>
 
-              {/* Special Instructions */}
-              <div>
-                <label className="crmFormLabel">Care Notes & Special Instructions</label>
-                <textarea aria-label="Care Notes & Special Instructions"
+              <FormField label="Care Notes & Special Instructions">
+                <FormTextarea
                   value={formInstructions}
                   onChange={(e) => setFormInstructions(e.target.value)}
-                  className="crmFormInput"
                   rows={2}
                   placeholder="e.g. Assist with morning mobility routine, bring transport vehicle, accompany to clinic."
                 />
-              </div>
+              </FormField>
+            </FormSection>
+          </div>
 
-              {/* Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowScheduleModal(false)}
-                  className="crmSecondaryBtn"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={formSubmitting}
-                  className="crmActionBtnPrimary"
-                >
-                  {formSubmitting ? 'Scheduling...' : 'Confirm & Schedule'}
-                </button>
-              </div>
-            </form>
-          </DialogPanel>
-        </div>
-      )}
+          <StickyFormFooter
+            cancelLabel="Cancel"
+            onCancel={() => setShowScheduleModal(false)}
+            primaryLabel={formSubmitting ? 'Scheduling...' : 'Confirm & Schedule'}
+            loading={formSubmitting}
+          />
+        </form>
+      </FormDrawer>
 
-      {/* 7. MODAL: SHIFT DETAIL & REASSIGNMENT */}
-      {selectedShift && (
-        <div className="crmModalOverlay" onClick={() => setSelectedShift(null)}>
-          <DialogPanel onClose={() => setSelectedShift(null)} label="Record details" className="crmModalBox" style={{ maxWidth: 580 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <span className="refIdTag">{selectedShift.shift_reference}</span>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                  {selectedShift.participant?.full_name}
-                </h3>
-              </div>
-              <button onClick={() => setSelectedShift(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                <X size={20} />
-              </button>
-            </div>
+      {/* 7. DRAWER: SHIFT DETAIL & REASSIGNMENT */}
+      <FormDrawer
+        isOpen={!!selectedShift}
+        onClose={() => setSelectedShift(null)}
+      >
+        {selectedShift && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <DrawerHeader
+              title={selectedShift.participant?.full_name || 'Shift Record'}
+              description={`Shift Reference: ${selectedShift.shift_reference}`}
+              badge={<span className="refIdTag">SHIFT RECORD</span>}
+              onClose={() => setSelectedShift(null)}
+            />
 
-            <div style={{ padding: 24 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* Date & Location summary */}
-              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
+              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 12 }}>
                   <div>
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Date & Time</span>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>Date & Time</span>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
                       {new Date(selectedShift.start_time).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)', marginTop: 2 }}>
                       {new Date(selectedShift.start_time).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true })} – {new Date(selectedShift.end_time).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true })} ({selectedShift.hours} hrs)
                     </div>
                   </div>
 
                   <div>
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Location</span>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>Location</span>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
                       {selectedShift.location_suburb}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)', marginTop: 2 }}>
                       {selectedShift.location_address || 'Address on file'}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid #EEF2F6', paddingTop: 8, display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
+                <div style={{ borderTop: '1px solid var(--oc-border)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
                   <span>Service: <strong style={{ color: 'var(--oc-text)' }}>{selectedShift.service_type}</strong></span>
                   <span style={{ fontFamily: 'monospace' }}>Code: {selectedShift.ndis_support_item_code}</span>
                 </div>
               </div>
 
               {/* Assigned Worker Section */}
-              <div style={{ marginBottom: 20 }}>
-                <span className="crmFormLabel">Assigned Support Worker</span>
+              <FormSection title="Assigned Support Worker">
                 {selectedShift.assignments && selectedShift.assignments.length > 0 && selectedShift.assignments[0].staff ? (
                   <div style={{
                     background: '#ECFDF5',
@@ -1301,23 +1271,21 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
                 {/* Quick Reassign Dropdown */}
                 <div style={{ marginTop: 12 }}>
-                  <label style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                    Reassign to another worker:
-                  </label>
-                  <select aria-label="Reassign to another worker:"
-                    onChange={(e) => {
-                      if (e.target.value) handleReassignWorker(selectedShift.id, e.target.value);
-                    }}
-                    className="crmFormInput"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>-- Select Worker to Assign --</option>
-                    {staff.map((st) => (
-                      <option key={st.id} value={st.id}>{st.name} ({st.role})</option>
-                    ))}
-                  </select>
+                  <FormField label="Reassign to another worker">
+                    <FormSelect
+                      onChange={(e) => {
+                        if (e.target.value) handleReassignWorker(selectedShift.id, e.target.value);
+                      }}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>-- Select Worker to Assign --</option>
+                      {staff.map((st) => (
+                        <option key={st.id} value={st.id}>{st.name} ({st.role})</option>
+                      ))}
+                    </FormSelect>
+                  </FormField>
                 </div>
-              </div>
+              </FormSection>
 
               {/* Progress Note if exists */}
               {selectedShift.progress_notes && selectedShift.progress_notes.length > 0 && (
@@ -1325,17 +1293,16 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                   background: selectedShift.progress_notes[0].incident_occurred ? 'var(--oc-danger-soft)' : 'var(--oc-background)',
                   border: selectedShift.progress_notes[0].incident_occurred ? '1px solid #FECACA' : '1px solid var(--oc-border)',
                   borderRadius: 10,
-                  padding: 14,
-                  marginBottom: 20
+                  padding: 16
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--oc-text)', fontWeight: 600, fontSize: '0.88rem' }}>
-                      <FileText size={15} style={{ color: selectedShift.progress_notes[0].incident_occurred ? 'var(--oc-danger)' : 'var(--oc-info)' }} />
+                      <FileText size={16} style={{ color: selectedShift.progress_notes[0].incident_occurred ? 'var(--oc-danger)' : 'var(--oc-info)' }} />
                       <span>Shift Progress Note Logged</span>
                     </div>
                     {selectedShift.progress_notes[0].incident_occurred && (
                       <span style={{
-                        fontSize: '0.8125rem',
+                        fontSize: '0.75rem',
                         fontWeight: 600,
                         padding: '2px 8px',
                         borderRadius: 6,
@@ -1364,7 +1331,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                       color: '#B91C1C',
                       fontWeight: 600,
                       marginTop: 8,
-                      padding: '6px 10px',
+                      padding: '8px 12px',
                       borderRadius: 6,
                       background: '#FFF',
                       border: '1px solid #FCA5A5',
@@ -1377,7 +1344,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                         <span>Linked Incident: <strong>{selectedShift.progress_notes[0].incident?.incident_reference || selectedShift.progress_notes[0].incident_id}</strong></span>
                       </div>
                       {selectedShift.progress_notes[0].incident?.status && (
-                        <span style={{ fontSize: '0.8125rem', padding: '1px 6px', borderRadius: 4, background: '#FEE2E2' }}>
+                        <span style={{ fontSize: '0.75rem', padding: '1px 6px', borderRadius: 4, background: '#FEE2E2' }}>
                           {selectedShift.progress_notes[0].incident.status}
                         </span>
                       )}
@@ -1385,39 +1352,41 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                   )}
                 </div>
               )}
-
-              {/* Actions: Cancel Shift */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--oc-border)', paddingTop: 16 }}>
-                <button
-                  onClick={() => handleDeleteShift(selectedShift.id)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--oc-danger)',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Trash2 size={15} />
-                  <span>Delete Shift</span>
-                </button>
-
-                <button
-                  onClick={() => setSelectedShift(null)}
-                  className="crmActionBtnPrimary"
-                  style={{ padding: '8px 18px' }}
-                >
-                  Done
-                </button>
-              </div>
             </div>
-          </DialogPanel>
-        </div>
-      )}
+
+            {/* Drawer Footer Actions */}
+            <div className="drawer-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => handleDeleteShift(selectedShift.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--oc-danger)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer'
+                }}
+              >
+                <Trash2 size={15} />
+                <span>Delete Shift</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedShift(null)}
+                className="canonical-btn canonical-btn-primary"
+                style={{ padding: '8px 20px' }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        )}
+      </FormDrawer>
     </div>
   );
 }

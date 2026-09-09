@@ -1,207 +1,1273 @@
-/* Shared product styles. Public marketing pages retain their existing design. */
+/* ═════════════════════════════════════════════════════════════════════════════
+   OPUS CARE DESIGN SYSTEM — CANONICAL TOKENS & APPLICATION WORKBENCH
+   Locked Visual Direction: High-Clarity Operations Platform & Form Drawers
+   ═════════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  --oc-background: #f5f7f8;
-  --oc-surface: #ffffff;
-  --oc-raised: #ffffff;
-  --oc-subtle: #edf2f4;
-  --oc-border: #d7e0e5;
-  --oc-border-subtle: #e8edef;
-  --oc-text: #172e40;
-  --oc-secondary: #425b6b;
-  --oc-muted: #607583;
-  --oc-accent: #176b68;
-  --oc-accent-hover: #105451;
-  --oc-accent-soft: #e8f3f0;
-  --oc-success: #236545;
-  --oc-success-soft: #edf6ef;
-  --oc-warning: #885a13;
-  --oc-warning-soft: #fff5df;
-  --oc-danger: #b1353c;
-  --oc-danger-soft: #fff0f0;
-  --oc-info: #265f8d;
-  --oc-info-soft: #edf4fa;
+  /* Canvas & Structural Surfaces */
+  --bg-canvas: #F4F7FE;
+  --surface-card: #FFFFFF;
+  --surface: #FFFFFF;
+  --border-card: #E2E8F0;
+  --border-subtle: #F1F5F9;
+  --border: #E2E8F0;
+  --border-hover: #CBD5E1;
+
+  /* High-Contrast Typography */
+  --text-heading: #0F172A;
+  --text-body: #334155;
+  --text-muted: #64748B;
+  --text-subtle: #94A3B8;
+  --text-placeholder: #94A3B8;
+
+  /* Opus Brand Accent */
+  --brand-primary: #4F46E5;
+  --brand-primary-hover: #4338CA;
+  --brand-hover: #4338CA;
+  --brand-subtle: #EEF2FF;
+
+  /* The 4 Curated Pastel KPI Gradients */
+  --kpi-cyan: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
+  --kpi-amber: linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%);
+  --kpi-mint: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+  --kpi-lavender: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
+
+  /* Semantic Functional Colors */
+  --status-mint: #059669;
+  --status-mint-bg: #ECFDF5;
+  --mint-text: #059669;
+  --mint-bg: #ECFDF5;
+
+  --status-amber: #D97706;
+  --status-amber-bg: #FFFBEB;
+  --amber-text: #D97706;
+  --amber-bg: #FFFBEB;
+
+  --status-rose: #E11D48;
+  --status-rose-bg: #FFF1F2;
+  --rose-text: #E11D48;
+  --rose-bg: #FFF1F2;
+
+  --status-indigo: #4F46E5;
+  --status-indigo-bg: #EEF2FF;
+
+  /* Structural Radius & Elevation */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.02);
+  --shadow-card-hover: 0 4px 14px rgba(15, 23, 42, 0.06);
+  --shadow-drawer: -10px 0 35px rgba(0, 0, 0, 0.12);
+
+  /* Backwards Compatibility Token Aliases */
+  --oc-background: #F4F7FE;
+  --oc-surface: #FFFFFF;
+  --oc-raised: #FFFFFF;
+  --oc-subtle: #F1F5F9;
+  --oc-border: #E2E8F0;
+  --oc-border-subtle: #F1F5F9;
+  --oc-text: #0F172A;
+  --oc-secondary: #334155;
+  --oc-muted: #64748B;
+  --oc-accent: #4F46E5;
+  --oc-accent-hover: #4338CA;
+  --oc-accent-soft: #EEF2FF;
+  --oc-success: #059669;
+  --oc-success-soft: #ECFDF5;
+  --oc-warning: #D97706;
+  --oc-warning-soft: #FFFBEB;
+  --oc-danger: #E11D48;
+  --oc-danger-soft: #FFF1F2;
+  --oc-info: #4F46E5;
+  --oc-info-soft: #EEF2FF;
   --oc-radius-control: 8px;
   --oc-radius-panel: 12px;
   --oc-radius-dialog: 16px;
-  --oc-shadow: 0 16px 48px #172e4024;
-  --oc-space-1: 4px;
-  --oc-space-2: 8px;
-  --oc-space-3: 12px;
-  --oc-space-4: 16px;
-  --oc-space-5: 20px;
-  --oc-space-6: 24px;
-  --oc-space-8: 32px;
+  --oc-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
-.opusApp { font-family: var(--font-geist-sans), system-ui, sans-serif; font-size: 15px; line-height: 1.55; color: var(--oc-text); background: var(--oc-background); min-height: 100vh; }
-.opusApp :where(button, input, select, textarea) { font-family: inherit; }
-.opusApp :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid var(--oc-accent); outline-offset: 3px; }
-.opusApp :where(button):disabled { cursor: not-allowed; opacity: .55; }
-.opusApp :where(h1,h2,h3,h4) { line-height: 1.3; text-wrap: balance; }
-.opusApp :where(p) { text-wrap: pretty; }
-.opusApp .vsCanvas { display: block; padding: 0; background: var(--oc-background); min-height: 100vh; }
-.opusApp .vsWindowHorizontal { max-width: none; min-height: 100vh; border: 0; border-radius: 0; box-shadow: none; overflow: visible; background: var(--oc-background); }
-.opusApp .vsLeftDock { width: 232px; min-width: 232px; padding: 24px 12px 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; border-color: var(--oc-border); }
-.opusApp .vsNavListVertical { gap: 2px; }
-.opusApp .vsDockBtnVertical { font-size: 14px; font-weight: 500; padding: 10px 12px; min-height: 40px; border-radius: 6px; color: var(--oc-secondary); box-shadow: none; }
-.opusApp .vsDockBtnVertical.active { color: var(--oc-accent-hover); background: var(--oc-accent-soft); box-shadow: none; }
-.opusApp .vsDockBtnVertical:hover { background: var(--oc-subtle); }
-.opusApp .vsDockBadge { border-radius: 5px; font-size: 12px; font-variant-numeric: tabular-nums; }
-.ocNavGroup { margin: 16px 12px 6px; color: var(--oc-muted); font-size: 12px; font-weight: 500; letter-spacing: .04em; }
-.opusApp .vsBrandName { font-size: 18px; font-weight: 600; color: var(--oc-text); }
-.opusApp .vsTagCrm { background: var(--oc-subtle); color: var(--oc-secondary); border-radius: 4px; box-shadow: none; font-size: 11px; font-weight: 500; }
-.opusApp .vsMainPanel { min-width: 0; flex: 1; }
-.opusApp .vsTopBar { background: var(--oc-surface); border-bottom: 1px solid var(--oc-border-subtle); padding: 16px 32px; border-radius: 0; }
-.opusApp .vsTopBarRow { gap: 20px; }
-.opusApp .vsSearchBar { border: 1px solid var(--oc-border); border-radius: 8px; background: var(--oc-background); padding: 0 12px; min-height: 44px; box-shadow: none; }
-.opusApp .vsSearchInput { font-size: 14px; color: var(--oc-text); }
-.opusApp .vsSearchInput::placeholder { color: var(--oc-muted); }
-.opusApp .vsBellBtn { width: 44px; height: 44px; border-radius: 8px; box-shadow: none; }
-.opusApp .ocMain { padding: 32px; max-width: 1600px; margin: 0 auto; }
-.ocPageHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
-.ocPageHeading h1 { font-size: 28px; font-weight: 600; letter-spacing: -.035em; margin: 4px 0 8px; }
-.ocPageHeading p { color: var(--oc-secondary); max-width: 660px; }
-.ocEyebrow { font-size: 13px; font-weight: 500; color: var(--oc-accent); }
-.ocAttention { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 20px; margin-bottom: 24px; background: var(--oc-accent-soft); border: 1px solid var(--oc-border); border-left: 3px solid var(--oc-accent); border-radius: 8px; }
-.ocAttention p { color: var(--oc-secondary); font-size: 14px; }
-.opusApp .vsPillBar { gap: 4px; padding: 0 0 16px; background: transparent; }
-.opusApp .vsPill { border-radius: 6px; font-size: 13px; font-weight: 500; min-height: 40px; box-shadow: none; }
-.opusApp .vsPill.active { background: var(--oc-text); }
-.opusApp .vsCard { background: var(--oc-surface); border: 1px solid var(--oc-border); border-radius: 12px; padding: 20px; box-shadow: none; }
-.opusApp .vsCard:hover { box-shadow: none; transform: none; }
-.opusApp .vsGrid4 { gap: 16px; margin-bottom: 24px; }
-.opusApp .vsGrid2ColBento { gap: 24px; align-items: start; }
-.opusApp .vsHeroCard { border: 1px solid var(--oc-border); background: var(--oc-surface); border-radius: 12px; padding: 24px; box-shadow: none; }
-.opusApp .vsSquircle { width: 36px; height: 36px; border-radius: 8px; box-shadow: none; background: var(--oc-accent-soft); color: var(--oc-accent); border: 0; }
-.ocMetric { display: flex; flex-direction: column; gap: 12px; }
-.ocMetricTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.ocMetric h3 { font-size: 14px; font-weight: 500; color: var(--oc-secondary); }
-.ocMetricValue { font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
-.ocMetric p { font-size: 13px; color: var(--oc-muted); }
-.ocMetricFooter { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--oc-border-subtle); padding-top: 12px; margin-top: auto; }
-.ocMetricMeta { font-size: 13px; color: var(--oc-muted); }
-.ocBadge { display: inline-flex; align-items: center; border-radius: 5px; padding: 3px 7px; background: var(--oc-subtle); color: var(--oc-secondary); font-size: 12px; font-weight: 500; }
-.ocPanelHeading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--oc-border-subtle); }
-.ocPanelHeading h3 { font-size: 17px; font-weight: 600; }
-.ocPanelHeading p { font-size: 14px; color: var(--oc-muted); margin-top: 4px; }
-.ocPanelBody { padding: 24px; }
-.opusApp :is(.vsBtnBlack,.vsBtnOutline,.vsBtnTinted,.crmPrimaryBtn,.crmSecondaryBtn,.crmModalSubmitBtn,.crmModalCancelBtn) { min-height: 44px; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 500; box-shadow: none; transform: none; line-height: 1.35; }
-.opusApp :is(.vsBtnBlack,.crmPrimaryBtn,.crmModalSubmitBtn) { background: var(--oc-accent); color: white; border: 1px solid var(--oc-accent); }
-.opusApp :is(.vsBtnBlack,.crmPrimaryBtn,.crmModalSubmitBtn):hover { background: var(--oc-accent-hover); }
-.opusApp :is(.vsBtnOutline,.crmSecondaryBtn,.crmModalCancelBtn) { background: var(--oc-surface); color: var(--oc-text); border: 1px solid var(--oc-border); }
-.opusApp .vsBtnTinted { background: var(--oc-accent-soft); color: var(--oc-accent-hover); border: 1px solid var(--oc-border); }
-.ocTextButton { border: 0; padding: 8px 0; background: transparent; color: var(--oc-accent); font-size: 14px; font-weight: 500; cursor: pointer; min-height: 40px; }
-.opusApp .crmSectionTitle { font-size: 26px; font-weight: 600; letter-spacing: -.025em; color: var(--oc-text); }
-.opusApp .crmTableWrapper { border: 1px solid var(--oc-border); border-radius: 12px; box-shadow: none; overflow-x: auto; background: var(--oc-surface); }
-.opusApp .crmTable { border-collapse: collapse; width: 100%; font-size: 14px; }
-.opusApp .crmTable th { padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--oc-secondary); background: var(--oc-background); text-transform: none; letter-spacing: 0; white-space: nowrap; }
-.opusApp .crmTable td { padding: 16px; color: var(--oc-text); border-bottom: 1px solid var(--oc-border-subtle); line-height: 1.5; }
-.opusApp .crmTable tbody tr:last-child td { border-bottom: 0; }
-.opusApp .crmTable tbody tr:hover { background: #f6faf8; }
-.opusApp .crmTable :is(strong,b) { font-weight: 600; }
-.opusApp .crmTable button { min-height: 36px; border-radius: 6px; font-size: 13px; }
-.ocNumeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.opusApp :is(.crmFormInput,.crmFormSelect,.crmFormTextarea,.crmKeyInput,.portalInputField) { min-height: 46px; border: 1px solid var(--oc-border); border-radius: 8px; background-color: var(--oc-surface); color: var(--oc-text); font-size: 15px; box-shadow: none; padding: 11px 14px; }
-.opusApp :is(.crmFormInput,.crmFormSelect,.crmFormTextarea,.portalInputField):focus { border-color: var(--oc-accent); outline: 3px solid var(--oc-accent-soft); }
-.opusApp :is(.crmFormInput,.crmFormTextarea)::placeholder { color: var(--oc-muted); }
-.opusApp .crmFormLabel { font-size: 14px; font-weight: 500; color: var(--oc-secondary); }
-.opusApp :is(.crmFormHelper,.crmFormError) { font-size: 13px; line-height: 1.5; }
-.opusApp .crmFormHelper { color: var(--oc-muted); }
-.opusApp .crmFormError { color: var(--oc-danger); }
-.opusApp .hasError { border-color: var(--oc-danger); }
-.opusApp .crmModalOverlay { background: #172e4066; backdrop-filter: none; padding: 24px; overflow-y: auto; }
-.opusApp .crmModalBox { border-radius: 16px; border: 1px solid var(--oc-border); box-shadow: var(--oc-shadow); width: 100%; }
-.opusApp .crmModalHeader { padding: 24px; background: var(--oc-surface); border-bottom: 1px solid var(--oc-border-subtle); }
-.opusApp .crmModalHeader .crmSectionTitle { font-size: 22px; }
-.opusApp .crmModalFooter { padding: 16px 24px; background: var(--oc-surface); border-top: 1px solid var(--oc-border); position: sticky; bottom: 0; }
-.opusApp .crmModalBody { padding: 24px; }
-.ocSkipLink { position: fixed; top: 8px; left: 12px; z-index: 2000; transform: translateY(-160%); background: var(--oc-text); color: white; padding: 12px 20px; border-radius: 8px; }
-.ocSkipLink:focus { transform: none; }
-.ocToastRegion { position: fixed; right: 24px; bottom: 24px; z-index: 3000; display: grid; gap: 12px; width: min(420px, calc(100vw - 32px)); }
-.ocToast { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--oc-surface); border: 1px solid var(--oc-border); border-left: 4px solid var(--oc-accent); box-shadow: var(--oc-shadow); border-radius: 10px; color: var(--oc-text); }
-.ocToast p { flex: 1; overflow-wrap: anywhere; }
-.ocToast button { background: none; border: 0; color: var(--oc-secondary); cursor: pointer; padding: 4px; }
-.ocCombobox { position: relative; width: 100%; }
-.ocComboTrigger { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; cursor: pointer; }
-.ocComboMenu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 1100; background: var(--oc-raised); border: 1px solid var(--oc-border); border-radius: 10px; box-shadow: var(--oc-shadow); overflow: hidden; }
-.ocComboSearch { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--oc-border-subtle); }
-.ocComboSearch input { width: 100%; border: 0; font-size: 15px; background: transparent; color: var(--oc-text); }
-.ocComboList { max-height: 240px; overflow-y: auto; padding: 4px; }
-.ocComboOption { padding: 10px 12px; min-height: 44px; border-radius: 6px; display: flex; justify-content: space-between; gap: 12px; cursor: pointer; }
-.ocComboOption[data-active=true] { background: var(--oc-accent-soft); }
-.ocComboOption small { display: block; font-size: 13px; color: var(--oc-muted); }
-.ocComboClear { border: 0; background: none; color: var(--oc-accent); cursor: pointer; min-height: 36px; padding: 8px 0; font-size: 13px; }
-.ocSkeleton { display: grid; gap: 12px; padding: 24px; }
-.ocSkeleton span { display: block; height: 16px; border-radius: 4px; background: var(--oc-subtle); animation: ocPulse 1.5s ease-in-out infinite alternate; }
-.ocSkeleton span:nth-child(2) { width: 75%; }
-.ocSkeleton span:nth-child(3) { width: 45%; }
-@keyframes ocPulse { to { opacity: .45; } }
-.opusApp .portalLoginWrapper { background: var(--oc-background); }
-.opusApp .portalAuthCard { background: var(--oc-surface); border: 1px solid var(--oc-border); border-radius: 16px; box-shadow: 0 8px 32px #172e400a; }
-.opusApp .portalAuthHeading { font-size: 28px; font-weight: 600; color: var(--oc-text); }
-.opusApp .portalAuthSubhead { font-size: 15px; color: var(--oc-secondary); }
-.opusApp .portalSubmitBtn { background: var(--oc-accent); border-radius: 8px; min-height: 48px; box-shadow: none; }
-.opusApp .portalRoleToggle { background: var(--oc-background); border-radius: 8px; }
-.opusApp .portalTabBtn { border-radius: 6px; font-weight: 500; min-height: 44px; }
-.ocPortalTabs { overflow-x: auto; scrollbar-width: thin; }
-.ocPortalTabs button { flex-shrink: 0; min-height: 44px; }
-.ocPortalHeader { gap: 16px; }
-.opusApp .crmModalBackdrop { position: fixed; inset: 0; z-index: 1000; background: #172e4066; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.opusApp .crmModalCard { width: 100%; max-height: calc(100dvh - 48px); overflow-y: auto; background: var(--oc-surface); border: 1px solid var(--oc-border); border-radius: 16px; box-shadow: var(--oc-shadow); }
-.opusApp .crmModalTitle { font-size: 22px; font-weight: 600; color: var(--oc-text); }
-.opusApp :is(.crmModalCloseBtn,.crmModalClose) { width: 40px; height: 40px; flex-shrink: 0; border: 1px solid var(--oc-border); border-radius: 8px; background: var(--oc-surface); color: var(--oc-secondary); font-size: 24px; cursor: pointer; }
-.opusApp .ocRecordOverlay { justify-content: flex-end; padding: 0; }
-.opusApp .ocRecordDrawer { max-width: 840px; width: min(840px,100vw); height: 100dvh; max-height: 100dvh; border-radius: 0; display: flex; flex-direction: column; overflow-y: auto; margin: 0; }
-.opusApp .ocRecordDrawer .crmModalHeader { position: sticky; top: 0; z-index: 1; }
-.opusApp .ocRecordDrawer .crmModalHeader h3 { font-size: 26px; font-weight: 600; }
-.ocRecordTabs { display: flex; gap: 20px; padding: 0 24px; overflow-x: auto; flex-shrink: 0; border-bottom: 1px solid var(--oc-border); }
-.ocEmpty { padding: 32px 24px; text-align: center; }
-.ocEmpty strong { display: block; font-size: 17px; font-weight: 600; color: var(--oc-text); margin-bottom: 8px; }
-.ocEmpty p { font-size: 14px; color: var(--oc-muted); max-width: 420px; margin: 0 auto; }
-.opusApp :where(main, [role=dialog]) select { min-height: 44px; font-family: inherit; border-radius: 8px; padding: 10px 32px 10px 12px; border: 1px solid var(--oc-border); background-color: var(--oc-surface); color: var(--oc-text); font-size: 14px; }
-.opusApp :where([role=dialog]) :where(input:not([type=checkbox]):not([type=radio]):not([type=file]),textarea) { min-height: 44px; font-size: 15px; }
-.opusApp :where([role=dialog]) label { line-height: 1.5; }
-.ocDialogHeader { position: sticky; top: 0; background: var(--oc-surface); z-index: 1; }
-.ocStepper { list-style: none; display: grid; gap: 12px; padding: 16px 24px; margin: 0; background: var(--oc-background); border-bottom: 1px solid var(--oc-border); }
-.ocStepper li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--oc-muted); line-height: 1.4; min-width: 0; }
-.ocStepper li[aria-current=step] { color: var(--oc-text); font-weight: 600; }
-.ocStepNumber { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; background: var(--oc-border); color: var(--oc-secondary); }
-.ocStepper li[aria-current=step] .ocStepNumber { background: var(--oc-accent); color: white; }
-.ocStepper li[data-complete=true] .ocStepNumber { background: var(--oc-accent-soft); color: var(--oc-accent); }
-.ocStepper button { border: 0; background: transparent; font-size: inherit; color: var(--oc-accent); cursor: pointer; text-align: left; }
-/* Existing wizard actions carry inline colours; these product variants own them. */
-.opusApp .crmPrimaryBtn { background: var(--oc-accent) !important; border-color: var(--oc-accent) !important; }
-.opusApp .crmPrimaryBtn:hover { background: var(--oc-accent-hover) !important; }
-.opusApp .ocField { min-height: 44px; border: 1px solid var(--oc-border); border-radius: 8px; background-color: var(--oc-surface); color: var(--oc-text); font-size: 15px; padding: 10px 12px; }
-.opusApp .crmActionBtnPrimary { background: var(--oc-accent); color: white; border: 1px solid var(--oc-accent); min-height: 44px; border-radius: 8px; font-size: 14px; font-weight: 500; padding: 10px 16px; box-shadow: none; }
-.opusApp .crmActionBtnPrimary:hover { background: var(--oc-accent-hover); transform: none; box-shadow: none; }
-.opusApp .ocInlineDialog { max-height: calc(100dvh - 32px); overflow-y: auto; border: 1px solid var(--oc-border); }
-.opusApp .crmTable th.ocNumeric { text-align: right; }
-@media (max-width:600px) { .ocStepper { padding: 12px 16px; gap: 8px; } .ocStepper li { flex-direction: column; font-size: 12px; } .ocStepper li:not([aria-current=step]) > span:last-child { display: none; } .opusApp .crmModalBackdrop { padding: 8px; } .opusApp .crmModalCard { max-height: calc(100dvh - 16px); } }
-@media (min-width: 901px) { .opusApp .vsLeftDock { flex-shrink: 0; } }
-@media (max-width: 1100px) { .opusApp .vsTopBar { padding: 16px 20px; } .opusApp .ocMain { padding: 24px 20px; } .opusApp .vsTopBarRow { flex-wrap: wrap; } .opusApp .vsGrid2ColBento { grid-template-columns: 1fr; } }
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   BASE APPLICATION RESET
+   ═════════════════════════════════════════════════════════════════════════════ */
+.opusApp {
+  font-family: var(--font-geist-sans), 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-body);
+  background-color: var(--bg-canvas);
+  min-height: 100vh;
+  display: flex;
+}
+
+.opusApp :where(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+.opusApp :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.opusApp :where(button):disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   CANONICAL SHELL: SIDEBAR & TOP BAR
+   ═════════════════════════════════════════════════════ */
+aside.sidebar {
+  width: 260px;
+  background: #FFFFFF;
+  border-right: 1px solid var(--border-card);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.brand-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo-mark {
+  width: 34px;
+  height: 34px;
+  background: var(--brand-primary);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+
+.brand-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  background: var(--brand-subtle);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.nav-tree-scroller {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 14px;
+  padding-right: 2px;
+}
+
+.nav-group-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-subtle);
+  padding: 16px 10px 6px;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-body);
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.nav-link-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-link svg {
+  width: 17px;
+  height: 17px;
+  stroke: var(--text-muted);
+  transition: stroke 0.15s ease;
+  flex-shrink: 0;
+}
+
+.nav-link:hover {
+  background: var(--bg-canvas);
+  color: var(--text-heading);
+}
+
+.nav-link:hover svg {
+  stroke: var(--text-heading);
+}
+
+.nav-link.active {
+  background: var(--brand-subtle);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.nav-link.active svg {
+  stroke: var(--brand-primary);
+}
+
+.nav-counter {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 12px;
+  background: var(--border-card);
+  color: var(--text-heading);
+}
+
+.nav-counter.alert {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.sidebar-footer {
+  padding-top: 14px;
+  border-top: 1px solid var(--border-card);
+}
+
+.user-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #0F172A;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.user-meta-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-heading);
+  line-height: 1.2;
+}
+
+.user-meta-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   CANONICAL MAIN VIEWPORT & TOP ACTION BAR
+   ═════════════════════════════════════════════════════ */
+main.main-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-width: 0;
+  height: 100vh;
+}
+
+header.top-action-bar {
+  height: 64px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  width: 440px;
+  transition: all 0.15s ease;
+}
+
+.search-container:focus-within {
+  background: #FFFFFF;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.search-container svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--text-subtle);
+  flex-shrink: 0;
+}
+
+.search-container input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--text-heading);
+  width: 100%;
+}
+
+.shortcut-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-subtle);
+  background: #FFFFFF;
+  border: 1px solid var(--border-card);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-surface {
+  background: #FFFFFF;
+  border-color: var(--border-card);
+  color: var(--text-heading);
+}
+
+.btn-surface:hover {
+  background: var(--bg-canvas);
+  border-color: var(--text-subtle);
+}
+
+.btn-primary {
+  background: var(--brand-primary);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover {
+  background: var(--brand-primary-hover);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   WORKSPACE CONTENT & CANONICAL DASHBOARD
+   ═════════════════════════════════════════════════════ */
+.workspace-content {
+  padding: 28px 36px 48px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.page-header-row {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-heading);
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Priority Alert Banner */
+.priority-alert-banner {
+  background: #312E81;
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #FFFFFF;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(49, 46, 129, 0.18);
+}
+
+.alert-left-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alert-bell-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.alert-text-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.btn-alert-review {
+  background: #FFFFFF;
+  color: #312E81;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease;
+}
+
+.btn-alert-review:hover {
+  background: #EEF2FF;
+}
+
+/* 4 Pastel KPI Cards */
+.kpi-row-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 148px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow-subtle);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.kpi-card.cyan { background: var(--kpi-cyan); }
+.kpi-card.amber { background: var(--kpi-amber); }
+.kpi-card.mint { background: var(--kpi-mint); }
+.kpi-card.lavender { background: var(--kpi-lavender); }
+
+.kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.85);
+  letter-spacing: -0.01em;
+}
+
+.kpi-icon {
+  width: 24px;
+  height: 24px;
+  stroke: rgba(15, 23, 42, 0.7);
+}
+
+.kpi-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1;
+  margin: 10px 0 6px;
+  letter-spacing: -0.03em;
+}
+
+.kpi-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-badge {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(4px);
+  color: #0F172A;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.kpi-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0F172A;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.kpi-link svg {
+  width: 13px;
+  height: 13px;
+  stroke: #0F172A;
+}
+
+/* 65% / 35% Operational Workbench */
+.operational-workbench {
+  display: grid;
+  grid-template-columns: 65fr 35fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.workbench-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.workbench-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.white-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.card-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-header-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.card-link-muted {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand-primary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.card-link-muted:hover {
+  color: var(--brand-primary-hover);
+}
+
+/* Attention List */
+.attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.attention-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-card);
+}
+
+.att-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.att-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.indicator-amber { background: var(--status-amber); }
+.indicator-mint { background: var(--status-mint); }
+.indicator-brand { background: var(--brand-primary); }
+
+.att-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.att-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.btn-table-action {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-card);
+  background: #FFFFFF;
+  color: var(--text-heading);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-table-action:hover {
+  border-color: var(--text-subtle);
+  background: var(--bg-canvas);
+}
+
+/* Simple Data Table */
+.data-table-simple {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table-simple th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.data-table-simple td {
+  font-size: 13px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-body);
+}
+
+.data-table-simple tr:last-child td {
+  border-bottom: none;
+}
+
+.pill-semantic {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.pill-mint { background: var(--status-mint-bg); color: var(--status-mint); }
+.pill-amber { background: var(--status-amber-bg); color: var(--status-amber); }
+.pill-rose { background: var(--status-rose-bg); color: var(--status-rose); }
+
+/* Delivery & Billing Stats */
+.billing-grid-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+.billing-stat-box {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.stat-label-tiny {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-value-prominent {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+
+.stat-meta-note {
+  font-size: 11px;
+  margin-top: 4px;
+  color: var(--text-muted);
+}
+
+.stat-meta-note.danger {
+  color: var(--status-rose);
+  font-weight: 600;
+}
+
+.stat-meta-note.success {
+  color: var(--status-mint);
+  font-weight: 600;
+}
+
+.ts-alert-strip {
+  background: #F8FAFC;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.ts-left {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   CANONICAL FORM SYSTEM (RIGHT-SIDE DRAWER)
+   ═════════════════════════════════════════════════════ */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drawer-container {
+  width: 640px;
+  max-width: 100%;
+  height: 100%;
+  background: var(--surface);
+  box-shadow: var(--shadow-drawer);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1001;
+}
+
+.drawer-container-wide {
+  width: 820px;
+  max-width: 100%;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* 1. Drawer Header */
+.drawer-header {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #FFFFFF;
+}
+
+.header-title-block h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.header-title-block p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.btn-close-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-close-icon:hover {
+  background: var(--bg-canvas);
+  color: var(--text-heading);
+}
+
+/* 2. Stepper Bar */
+.stepper-bar {
+  display: flex;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 28px;
+  gap: 16px;
+  overflow-x: auto;
+}
+
+.step-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.step-pill.active {
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.step-pill.active .step-num {
+  background: var(--brand-primary);
+  color: #FFFFFF;
+}
+
+.step-pill.completed .step-num {
+  background: var(--status-mint-bg);
+  color: var(--status-mint);
+}
+
+/* 3. Form Body */
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compliance-pill {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--mint-bg);
+  color: var(--mint-text);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.form-label span.req {
+  color: var(--rose-text);
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  color: var(--text-heading);
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.form-input::placeholder, .form-textarea::placeholder {
+  color: var(--text-placeholder);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+.helper-text {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.form-error-text {
+  font-size: 11.5px;
+  color: var(--status-rose);
+  font-weight: 500;
+}
+
+/* Summary Card */
+.summary-calc-card {
+  background: #F8FAFC;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.calc-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.calc-total {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 4. Sticky Footer */
+.drawer-footer {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border);
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 4px;
+}
+
+.btn-link:hover {
+  color: var(--text-heading);
+}
+
+.footer-action-cluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-heading);
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-canvas);
+}
+
+.btn-primary-action {
+  background: var(--brand-primary);
+  border: none;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
+  transition: background 0.15s ease;
+}
+
+.btn-primary-action:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+
+.btn-primary-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   TABLES & RECORD VIEWS
+   ═════════════════════════════════════════════════════ */
+.opusApp .crmTableWrapper {
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  background: #FFFFFF;
+  box-shadow: var(--shadow-subtle);
+}
+
+.opusApp .crmTable {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13.5px;
+}
+
+.opusApp .crmTable th {
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--border-card);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.opusApp .crmTable td {
+  padding: 14px 16px;
+  color: var(--text-body);
+  border-bottom: 1px solid var(--border-subtle);
+  line-height: 1.45;
+}
+
+.opusApp .crmTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.opusApp .crmTable tbody tr:hover {
+  background: #F8FAFC;
+}
+
+/* Toast & Feedback */
+.ocToastRegion {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 3000;
+  display: grid;
+  gap: 12px;
+  width: min(420px, calc(100vw - 32px));
+}
+
+.ocToast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-card);
+  border-left: 4px solid var(--brand-primary);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  border-radius: var(--radius-sm);
+  color: var(--text-heading);
+}
+
+/* Portal Compatibility */
+.opusApp .portalLoginWrapper { background: var(--bg-canvas); }
+.opusApp .portalAuthCard { background: #FFFFFF; border: 1px solid var(--border-card); border-radius: 16px; box-shadow: var(--shadow-subtle); }
+.opusApp .portalAuthHeading { font-size: 28px; font-weight: 600; color: var(--text-heading); }
+.opusApp .portalAuthSubhead { font-size: 15px; color: var(--text-muted); }
+.opusApp .portalSubmitBtn { background: var(--brand-primary); border-radius: 8px; min-height: 48px; }
+.opusApp .portalRoleToggle { background: var(--bg-canvas); border-radius: 8px; }
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .kpi-row-grid { grid-template-columns: repeat(2, 1fr); }
+  .operational-workbench { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 900px) {
-  .opusApp .vsWindowHorizontal { flex-direction: column; }
-  .opusApp .vsLeftDock { position: static; height: auto; width: 100%; min-width: 0; padding: 16px; gap: 12px; }
-  .opusApp .vsLeftDock > div:first-child { gap: 12px !important; }
-  .opusApp .vsLeftDock > div:last-child { display: none !important; }
-  .opusApp .vsNavListVertical { flex-direction: row; overflow-x: auto; gap: 4px; scrollbar-width: thin; }
-  .opusApp .vsDockBtnVertical { width: auto; }
-  .ocNavGroup { display: none; }
-  .opusApp .vsGrid4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .opusApp { flex-direction: column; }
+  aside.sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border-card);
+    padding: 14px;
+  }
+  .nav-tree-scroller { max-height: 200px; }
+  header.top-action-bar { padding: 0 16px; }
+  .workspace-content { padding: 20px 16px; }
+  .search-container { width: 100%; }
 }
-@media (max-width: 600px) {
-  .opusApp .ocMain { padding: 20px 16px; }
-  .ocPageHeading, .ocAttention { flex-direction: column; gap: 12px; }
-  .ocPageHeading h1 { font-size: 26px; }
-  .opusApp .vsTopActions { flex-wrap: wrap; }
-  .opusApp .vsGrid4 { grid-template-columns: 1fr; }
-  .opusApp .crmModalOverlay { padding: 8px; }
-  .opusApp .crmModalBox { max-height: calc(100dvh - 16px) !important; }
-  .opusApp :is(.crmModalHeader,.crmModalBody,.crmModalFooter) { padding: 16px; }
-  .opusApp .crmModalFooter { flex-wrap: wrap; gap: 12px; }
-  .ocFormGrid { grid-template-columns: 1fr !important; }
-  .ocPortalHeader { flex-wrap: wrap; height: auto !important; min-height: 64px; padding: 12px 16px !important; position: static !important; }
-  .ocPortalHeader > div { flex-wrap: wrap; }
-  .ocPortalHero { flex-wrap: wrap; padding: 20px !important; }
+
+@media (max-width: 640px) {
+  .kpi-row-grid { grid-template-columns: 1fr; }
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+  .drawer-container, .drawer-container-wide { width: 100%; }
+  .stepper-bar { padding: 10px 16px; }
+  .drawer-body { padding: 20px 16px; }
+  .drawer-footer { padding: 14px 16px; }
 }
-@media (prefers-reduced-motion: reduce) { .opusApp *, .opusApp *::before, .opusApp *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

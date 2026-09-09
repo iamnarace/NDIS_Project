@@ -7,6 +7,16 @@ import DialogPanel from '@/components/ui/DialogPanel';
 import { notify } from '@/components/ui/ProductFeedback';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FormDrawer,
+  DrawerHeader,
+  FormSection,
+  FormField,
+  FormInput,
+  FormTextarea,
+  FormGrid2,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 import { 
   Calendar, Clock, User, CheckCircle2, AlertTriangle, 
   XCircle, Filter, Search, Check, Edit3, ArrowRight, Eye, RefreshCw
@@ -135,13 +145,14 @@ export default function TimesheetsTab() {
 
   async function handleBatchApproveClean() {
     const cleanIds = timesheets
-      .filter((t) => t.status === 'Submitted')
+      .filter((t) => (t.status || '').toLowerCase() === 'submitted')
       .map((t) => t.id);
 
     if (cleanIds.length === 0) {
       notify('No submitted timesheets awaiting approval.');
       return;
     }
+
 
     if (!confirm(`Batch approve ${cleanIds.length} submitted timesheets?`)) return;
 
@@ -401,25 +412,24 @@ export default function TimesheetsTab() {
         </table>
       </div>
 
-      {/* Inspect Entries Modal */}
-      {selectedTimesheet && (
-        <div className="crmModalBackdrop" onClick={() => setSelectedTimesheet(null)}>
-          <DialogPanel onClose={() => setSelectedTimesheet(null)} label="Timesheet Details:" className="crmModalCard" style={{ maxWidth: 780 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <h3 className="crmModalTitle">
-                  Timesheet Details: {selectedTimesheet.staff?.full_name}
-                </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                  Week {selectedTimesheet.week_start} to {selectedTimesheet.week_end} &bull; Status: <strong>{selectedTimesheet.status}</strong>
-                </p>
-              </div>
-              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setSelectedTimesheet(null)}>&times;</button>
-            </div>
+      {/* Inspect Entries Drawer */}
+      <FormDrawer
+        isOpen={!!selectedTimesheet}
+        onClose={() => setSelectedTimesheet(null)}
+        wide={true}
+      >
+        {selectedTimesheet && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <DrawerHeader
+              title={`Timesheet: ${selectedTimesheet.staff?.full_name || 'Staff'}`}
+              description={`Week ${selectedTimesheet.week_start} to ${selectedTimesheet.week_end} • Status: ${selectedTimesheet.status}`}
+              badge={<span className="refIdTag">${selectedTimesheet.status.toUpperCase()}</span>}
+              onClose={() => setSelectedTimesheet(null)}
+            />
 
-            <div className="crmModalBody">
-              <div className="crmTableWrapper" style={{ marginBottom: 16 }}>
-                <table className="crmTable">
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+              <div className="crmTableWrapper" style={{ border: '1px solid var(--oc-border)', borderRadius: 10, overflow: 'hidden' }}>
+                <table className="crmTable" style={{ margin: 0 }}>
                   <thead>
                     <tr>
                       <th>Shift / Participant</th>
@@ -445,7 +455,7 @@ export default function TimesheetsTab() {
                         <td>
                           <div style={{ fontSize: '0.8125rem' }}>
                             {entry.actual_start ? new Date(entry.actual_start).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : '-'}
-                            {' � '}
+                            {' – '}
                             {entry.actual_end ? new Date(entry.actual_end).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' }) : '-'}
                           </div>
                         </td>
@@ -459,8 +469,10 @@ export default function TimesheetsTab() {
                         <td>{entry.kilometres || 0} km</td>
                         <td>
                           <button
+                            type="button"
                             onClick={() => startAdjust(entry)}
-                            style={{ background: 'var(--oc-info-soft)', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: '0.8125rem', color: 'var(--oc-accent)', fontWeight: 600, cursor: 'pointer' }}
+                            className="canonical-btn canonical-btn-subtle"
+                            style={{ fontSize: '0.75rem', padding: '4px 10px' }}
                           >
                             Adjust
                           </button>
@@ -472,12 +484,20 @@ export default function TimesheetsTab() {
               </div>
             </div>
 
-            <div className="crmModalFooter" style={{ display: 'flex', justifyContent: 'space-between', padding: 16 }}>
+            <div className="drawer-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                {selectedTimesheet.status === 'Submitted' && (
+                {selectedTimesheet.status.toLowerCase() === 'submitted' && (
                   <button
+                    type="button"
                     onClick={() => handleReject(selectedTimesheet.id)}
-                    style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #FECACA', background: 'var(--oc-danger-soft)', color: 'var(--oc-danger)', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--oc-danger)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.85rem'
+                    }}
                   >
                     Reject Timesheet
                   </button>
@@ -487,104 +507,82 @@ export default function TimesheetsTab() {
                 <button
                   type="button"
                   onClick={() => setSelectedTimesheet(null)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
+                  className="canonical-btn canonical-btn-secondary"
                 >
                   Close
                 </button>
-                {selectedTimesheet.status === 'Submitted' && (
+                {selectedTimesheet.status.toLowerCase() === 'submitted' && (
                   <button
+                    type="button"
                     onClick={() => handleApprove(selectedTimesheet.id)}
-                    style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: 'var(--oc-accent)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
+                    className="canonical-btn canonical-btn-primary"
                   >
                     Approve & Move to Ready for Billing
                   </button>
                 )}
               </div>
             </div>
-          </DialogPanel>
-        </div>
-      )}
+          </div>
+        )}
+      </FormDrawer>
 
-      {/* Adjust Entry Modal */}
-      {adjustingEntry && (
-        <div className="crmModalBackdrop" onClick={() => setAdjustingEntry(null)}>
-          <DialogPanel onClose={() => setAdjustingEntry(null)} label="Manual Hours Adjustment" className="crmModalCard" style={{ maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <h3 className="crmModalTitle">Manual Hours Adjustment</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-danger)' }}>
-                  * Any manual adjustment requires a documented reason and records the change in the activity history.
-                </p>
-              </div>
-              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setAdjustingEntry(null)}>&times;</button>
-            </div>
+      {/* Adjust Entry Drawer */}
+      <FormDrawer
+        isOpen={!!adjustingEntry}
+        onClose={() => setAdjustingEntry(null)}
+      >
+        <DrawerHeader
+          title="Manual Hours Adjustment"
+          description="Any manual adjustment requires a documented reason and records the change in the activity history."
+          badge={<span style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>AUDIT CONTROLLED</span>}
+          onClose={() => setAdjustingEntry(null)}
+        />
 
-            <form onSubmit={handleSaveAdjustment}>
-              <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                      Adjusted Actual Hours *
-                    </label>
-                    <input className="ocField" aria-label="Adjusted Actual Hours *"
-                      type="number"
-                      step="0.05"
-                      min="0.1"
-                      value={adjustHours}
-                      onChange={(e) => setAdjustHours(Number(e.target.value))}
-                      required
-                      style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                      Break Minutes
-                    </label>
-                    <input className="ocField" aria-label="Break Minutes"
-                      type="number"
-                      min="0"
-                      value={adjustBreak}
-                      onChange={(e) => setAdjustBreak(Number(e.target.value))}
-                      style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-danger)', marginBottom: 4 }}>
-                    Mandatory Reason for Adjustment *
-                  </label>
-                  <textarea className="ocField" aria-label="Mandatory Reason for Adjustment *"
-                    rows={3}
-                    placeholder="e.g. Worker forgot to end shift on time, corrected by mutual agreement with coordinator"
-                    value={adjustReason}
-                    onChange={(e) => setAdjustReason(e.target.value)}
+        <form onSubmit={handleSaveAdjustment} style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 73px)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <FormSection title="Adjusted Times & Break">
+              <FormGrid2>
+                <FormField label="Adjusted Actual Hours" required>
+                  <FormInput
+                    type="number"
+                    step="0.05"
+                    min="0.1"
+                    value={adjustHours}
+                    onChange={(e) => setAdjustHours(Number(e.target.value))}
                     required
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid #FCA5A5', background: 'var(--oc-danger-soft)', padding: 10, fontSize: '0.85rem' }}
                   />
-                </div>
-              </div>
+                </FormField>
+                <FormField label="Break Minutes">
+                  <FormInput
+                    type="number"
+                    min="0"
+                    value={adjustBreak}
+                    onChange={(e) => setAdjustBreak(Number(e.target.value))}
+                  />
+                </FormField>
+              </FormGrid2>
+            </FormSection>
 
-              <div className="crmModalFooter" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: 16 }}>
-                <button
-                  type="button"
-                  onClick={() => setAdjustingEntry(null)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: 'var(--oc-info)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  {actionLoading ? 'Saving...' : 'Save & Adjust Service Record'}
-                </button>
-              </div>
-            </form>
-          </DialogPanel>
-        </div>
-      )}
+            <FormSection title="Clinical & Compliance Justification">
+              <FormField label="Mandatory Reason for Adjustment" hint="Will be logged in immutable audit history" required>
+                <FormTextarea
+                  rows={3}
+                  placeholder="e.g. Worker forgot to end shift on time, corrected by mutual agreement with coordinator"
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  required
+                />
+              </FormField>
+            </FormSection>
+          </div>
+
+          <StickyFormFooter
+            cancelLabel="Cancel"
+            onCancel={() => setAdjustingEntry(null)}
+            primaryLabel="Save Adjustment & Log Reason"
+          />
+        </form>
+      </FormDrawer>
     </div>
   );
 }

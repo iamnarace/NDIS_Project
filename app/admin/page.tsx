@@ -16,6 +16,17 @@ import InvoicingTab from '@/components/admin/InvoicingTab';
 import QuotesTab from '@/components/admin/QuotesTab';
 import TimesheetsTab from '@/components/admin/TimesheetsTab';
 import ProgressNotesTab from '@/components/admin/ProgressNotesTab';
+import CanonicalDashboard from '@/components/admin/CanonicalDashboard';
+import {
+  FormDrawer,
+  DrawerHeader,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormGrid2,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 import CrmContainer, { CrmTab } from '@/components/admin/ui/CrmContainer';
 import CrmPillBar from '@/components/admin/ui/CrmPillBar';
 import CrmSquircleCard from '@/components/admin/ui/CrmSquircleCard';
@@ -1269,394 +1280,23 @@ export default function AdminCrmPage() {
           <span>{statusNotice}</span>
         </div>
       )}
-          {/* TAB 0: DASHBOARD (IDURAR STYLE) */}
+          {/* TAB 0: DASHBOARD (CANONICAL LOCKED REFERENCE) */}
           {tab === 'dashboard' && (
-        <div>
-          <header className="ocPageHeading"><div><span className="ocEyebrow">OPUS CARE · OPERATIONS</span><h1>Your care operations, at a glance</h1><p>Review incoming referrals, coordinate your team, and keep participant support moving.</p></div></header>
-          <section className="ocAttention" aria-label="Intake attention"><div><strong>{countNew > 0 ? `${countNew} new referral${countNew === 1 ? '' : 's'} to review` : 'Your intake review is up to date'}</strong><p>Start with the people waiting to take their next step.</p></div><button type="button" className="vsBtnBlack" onClick={() => setTab('referrals')}>Review intake <ArrowRight size={16} /></button></section>
-          {/* Operational shortcuts */}
-          <CrmPillBar
-            items={[
-              { id: 'all', label: 'All Operations', count: participants.length + referrals.length },
-              { id: 'urgent', label: 'Urgent Actions', count: countNew },
-              { id: 'intake', label: 'Intake Pipeline', count: referrals.length },
-              { id: 'participants', label: 'Active Participants', count: participants.length },
-              { id: 'roster', label: 'Workforce Roster', count: staff.length },
-            ]}
-            selectedId={filterStatus === 'all' ? 'all' : filterStatus}
-            onSelect={(id) => {
-              if (id === 'intake' || id === 'urgent') setTab('referrals');
-              else if (id === 'participants') setTab('participants');
-              else if (id === 'roster') setTab('workforce');
-            }}
-            className="mb-4"
-          />
-
-          {/* Row 1: Top 4 Squircle KPI Cards (VibeStore Screen 1 Style) */}
-          <div className="vsGrid4">
-            <CrmSquircleCard
-              title="Active Participants"
-              value={participants.length}
-              subtitle="People receiving support"
-              meta="Plan-Managed & Self-Managed"
-              icon={<Users size={24} />}
-              tint="sky"
-              actionLabel="Directory"
-              onAction={() => setTab('participants')}
+            <CanonicalDashboard
+              participants={participants}
+              referrals={referrals}
+              staff={staff}
+              agreements={agreements}
+              countNew={countNew}
+              financeMetrics={financeMetrics}
+              onSelectTab={(newTab) => setTab(newTab)}
+              onOpenAgreementGenerator={() => setShowAgreementGenerator(true)}
+              onOpenAddParticipant={() => setShowAddParticipant(true)}
+              onOpenAddWorker={() => setShowAddWorker(true)}
             />
+          )}
 
-            <CrmSquircleCard
-              title="Inbound Referrals"
-              value={referrals.length}
-              subtitle={`${countNew} new referrals awaiting intake review`}
-              meta="Intake pipeline active"
-              icon={<UserPlus size={24} />}
-              tint="emerald"
-              actionLabel="Review"
-              badge={countNew > 0 ? `${countNew} New` : undefined}
-              onAction={() => setTab('referrals')}
-            />
-
-            <CrmSquircleCard
-              title="Workforce & Staff"
-              value={staff.length}
-              subtitle="Support workers & verified clearances"
-              meta="NDISWC & WWCC active"
-              icon={<UserCheck size={24} />}
-              tint="amber"
-              actionLabel="Manage"
-              onAction={() => setTab('staff')}
-            />
-
-            <CrmSquircleCard
-              title="Service Agreements"
-              value={agreements.length}
-              subtitle="Participant and workforce agreements"
-              meta="Document packs"
-              icon={<FileText size={24} />}
-              tint="indigo"
-              actionLabel="Agreements"
-              badge="Documents"
-              onAction={() => setTab('agreements')}
-            />
-          </div>
-
-          {/* Row 2: Two-Column Bento Layout */}
-          <div className="vsGrid2ColBento">
-            {/* Left Column: Hero Callouts & Intake Funnel */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {/* Feature Hero 1: Agreement Engine Callout (Matching Screen 1 Huppy Box) */}
-              <div className="vsHeroCard lavender">
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span className="vsTagCrm">AGREEMENTS</span>
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4F46E5' }}>Participant onboarding</span>
-                    </div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                      Prepare a service agreement
-                    </h3>
-                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--oc-secondary)', lineHeight: 1.5, maxWidth: 520 }}>
-                      Prepare participant agreements, schedules of supports, and worker contracts in one guided workflow.
-                    </p>
-                  </div>
-                  <div className="vsSquircle indigo" style={{ width: 56, height: 56, borderRadius: 18 }}>
-                    <FileText size={28} />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowAgreementGenerator(true)}
-                    className="vsBtnBlack"
-                    style={{ padding: '8px 20px', fontSize: '0.82rem' }}
-                  >
-                    + New Agreement / Pack
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTab('agreements')}
-                    className="vsBtnOutline"
-                    style={{ padding: '8px 18px', fontSize: '0.82rem' }}
-                  >
-                    View All ({agreements.length})
-                  </button>
-                </div>
-              </div>
-
-              {/* Feature Hero 2: Workforce Roster Callout */}
-              <div className="vsHeroCard teal">
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span style={{ background: '#CCFBF1', color: 'var(--oc-accent)', fontSize: '0.8125rem', fontWeight: 600, padding: '2px 7px', borderRadius: 9999 }}>
-                        ROSTER
-                      </span>
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-accent)' }}>Live Roster</span>
-                    </div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: '1.15rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                      Plan the week ahead
-                    </h3>
-                    <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--oc-secondary)', lineHeight: 1.5, maxWidth: 520 }}>
-                      Roster support shifts across Yamba, Maclean, Grafton, and Iluka with instant conflict checks and compliance clearance validation.
-                    </p>
-                  </div>
-                  <div className="vsSquircle teal" style={{ width: 56, height: 56, borderRadius: 18 }}>
-                    <CalendarClock size={28} />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => setTab('workforce')}
-                    className="vsBtnBlack"
-                    style={{ padding: '8px 20px', fontSize: '0.82rem' }}
-                  >
-                    Open Shift Roster
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddWorker(true)}
-                    className="vsBtnOutline"
-                    style={{ padding: '8px 18px', fontSize: '0.82rem' }}
-                  >
-                    + Register Worker
-                  </button>
-                </div>
-              </div>
-
-              {/* Pipeline Funnel Bento Pane */}
-              <CrmBentoPane
-                title="Intake & Conversion Pipeline"
-                subtitle="Live status distribution across all inbound referrals"
-                action={
-                  <button
-                    type="button"
-                    onClick={() => setTab('referrals')}
-                    className="vsBtnOutline"
-                    style={{ padding: '4px 12px', fontSize: '0.8125rem' }}
-                  >
-                    Manage Pipeline &rarr;
-                  </button>
-                }
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div className="crmPreviewRow">
-                    <div className="crmPreviewRowMeta">
-                      <span className="crmPreviewLabel">1. New Inbound Intake</span>
-                      <span className="crmPreviewPct">{pctNew}% ({countNew})</span>
-                    </div>
-                    <div className="crmProgressBarTrack">
-                      <div className="crmProgressBarFill slate" style={{ width: `${pctNew}%` }} />
-                    </div>
-                  </div>
-
-                  <div className="crmPreviewRow">
-                    <div className="crmPreviewRowMeta">
-                      <span className="crmPreviewLabel">2. Contacted & Initial Consult</span>
-                      <span className="crmPreviewPct">{pctContacted}% ({countContacted})</span>
-                    </div>
-                    <div className="crmProgressBarTrack">
-                      <div className="crmProgressBarFill amber" style={{ width: `${pctContacted}%` }} />
-                    </div>
-                  </div>
-
-                  <div className="crmPreviewRow">
-                    <div className="crmPreviewRowMeta">
-                      <span className="crmPreviewLabel">3. Participant Assessment & Goals</span>
-                      <span className="crmPreviewPct">{pctAssessment}% ({countAssessment})</span>
-                    </div>
-                    <div className="crmProgressBarTrack">
-                      <div className="crmProgressBarFill blue" style={{ width: `${pctAssessment}%` }} />
-                    </div>
-                  </div>
-
-                  <div className="crmPreviewRow">
-                    <div className="crmPreviewRowMeta">
-                      <span className="crmPreviewLabel">4. Service Agreement Sent</span>
-                      <span className="crmPreviewPct">{pctAgreements}% ({countAgreements})</span>
-                    </div>
-                    <div className="crmProgressBarTrack">
-                      <div className="crmProgressBarFill teal" style={{ width: `${pctAgreements}%` }} />
-                    </div>
-                  </div>
-
-                  <div className="crmPreviewRow">
-                    <div className="crmPreviewRowMeta">
-                      <span className="crmPreviewLabel">5. Active / Enrolled Participant</span>
-                      <span className="crmPreviewPct">{pctActive}% ({countActive})</span>
-                    </div>
-                    <div className="crmProgressBarTrack">
-                      <div className="crmProgressBarFill green" style={{ width: `${pctActive}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </CrmBentoPane>
-            </div>
-
-            {/* Right Column: Quick Operations & Recent Activity */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {/* Live Service Delivery & Financial Overview */}
-              <CrmBentoPane
-                title="Delivery & billing"
-                subtitle="Live metrics derived from verified service records & invoices"
-                action={
-                  <button
-                    type="button"
-                    onClick={() => setTab('invoicing')}
-                    className="vsBtnOutline"
-                    style={{ padding: '4px 12px', fontSize: '0.8125rem' }}
-                  >
-                    Invoicing &rarr;
-                  </button>
-                }
-              >
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Delivered Hours (MTD)</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 4 }}>
-                      {(financeMetrics?.delivered_hours_mtd || 0).toFixed(1)} hrs
-                    </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-accent)', marginTop: 2 }}>Verified by completed shifts</div>
-                  </div>
-
-                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Gross Invoiced (MTD)</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-success)', marginTop: 4 }}>
-                      ${(financeMetrics?.gross_invoiced_mtd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>NDIS tax invoices issued</div>
-                  </div>
-
-                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Paid Claims</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--oc-info)', marginTop: 4 }}>
-                      ${(financeMetrics?.paid_claims_mtd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 2 }}>Remittance confirmed</div>
-                  </div>
-
-                  <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)' }}>Unbilled support value</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#E11D48', marginTop: 4 }}>
-                      ${(financeMetrics?.unbilled_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    <div style={{ fontSize: '0.8125rem', color: '#E11D48', marginTop: 2 }}>
-                      {(financeMetrics?.unbilled_hours || 0).toFixed(1)} hrs awaiting billing
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                  <button
-                    type="button"
-                    onClick={() => setTab('timesheets')}
-                    className="vsBtnBlack"
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.8125rem', justifyContent: 'center' }}
-                  >
-                    Timesheets & Approval
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTab('invoicing')}
-                    className="vsBtnOutline"
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.8125rem', justifyContent: 'center' }}
-                  >
-                    Generate Invoices
-                  </button>
-                </div>
-              </CrmBentoPane>
-
-              {/* Pinned Quick Intake Controls */}
-              <CrmBentoPane
-                title="Quick actions"
-                subtitle="Direct intake & registration actions"
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddParticipant(true)}
-                    className="vsBtnOutline"
-                    style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 14 }}
-                  >
-                    <div className="vsSquircle sky" style={{ width: 32, height: 32, borderRadius: 10, marginRight: 8 }}>
-                      <UserPlus size={16} />
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                      <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--oc-text)' }}>+ Add New Participant</strong>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Register participant & plan details</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAddWorker(true)}
-                    className="vsBtnOutline"
-                    style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 14 }}
-                  >
-                    <div className="vsSquircle amber" style={{ width: 32, height: 32, borderRadius: 10, marginRight: 8 }}>
-                      <UserCheck size={16} />
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                      <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--oc-text)' }}>+ Add worker</strong>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Add staff member & clearances</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAgreementGenerator(true)}
-                    className="vsBtnOutline"
-                    style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 14 }}
-                  >
-                    <div className="vsSquircle indigo" style={{ width: 32, height: 32, borderRadius: 10, marginRight: 8 }}>
-                      <FileText size={16} />
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                      <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--oc-text)' }}>+ Generate Agreement Pack</strong>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Guided agreement preparation</span>
-                    </div>
-                  </button>
-                </div>
-              </CrmBentoPane>
-
-              {/* Supabase Live Infrastructure Card */}
-              <CrmBentoPane
-                title="Workspace information"
-                subtitle="Data and document services"
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className="vsLiveDot" />
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Care records</span>
-                    </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#059669' }}>Workspace</span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <FolderLock size={14} color="var(--oc-info)" />
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Documents</span>
-                    </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)' }}>Record library</span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--oc-background)', borderRadius: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Shield size={14} color="#7C3AED" />
-                      <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)' }}>Compliance tasks</span>
-                    </div>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#7C3AED' }}>Review regularly</span>
-                  </div>
-                </div>
-              </CrmBentoPane>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 1: REFERRALS PIPELINE */}
+          {/* TAB 1: REFERRALS PIPELINE */}
           {tab === 'referrals' && (
             <div className="crmTabPanel">
               <div className="crmPanelHeader">
@@ -3620,149 +3260,127 @@ export default function AdminCrmPage() {
             </div>
           )}
 
-          {/* ADD CORRECTIVE ACTION MODAL */}
-          {showAddActionModal && (
-            <div style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16,
-            }}>
-              <DialogPanel className="ocInlineDialog" onClose={() => setShowAddActionModal(false)} label="Create corrective action" style={{ background: 'var(--oc-surface)', borderRadius: 12, width: '100%', maxWidth: 500, padding: 22 }}>
-                <h3 style={{ margin: '0 0 14px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                  Create Corrective Action
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Action Description *</label>
-                    <textarea className="ocField" aria-label="Action Description *"
-                      rows={3}
-                      value={newActionForm.action_description}
-                      onChange={e => setNewActionForm(prev => ({ ...prev, action_description: e.target.value }))}
-                      placeholder="e.g. Conduct refresher manual handling training for support team"
-                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                    />
-                  </div>
-                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    <div>
-                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Owner *</label>
-                      <input className="ocField" aria-label="Owner *"
-                        type="text"
-                        value={newActionForm.owner}
-                        onChange={e => setNewActionForm(prev => ({ ...prev, owner: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Due Date *</label>
-                      <input className="ocField" aria-label="Due Date *"
-                        type="date"
-                        value={newActionForm.due_date}
-                        onChange={e => setNewActionForm(prev => ({ ...prev, due_date: e.target.value }))}
-                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Priority</label>
-                    <select className="ocField" aria-label="Priority"
-                      value={newActionForm.priority}
-                      onChange={e => setNewActionForm(prev => ({ ...prev, priority: e.target.value }))}
-                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                      <option value="Urgent">Urgent</option>
-                    </select>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
-                  <button
-                    onClick={() => setShowAddActionModal(false)}
-                    style={{ background: 'var(--oc-subtle)', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => createCorrectiveAction(newActionForm)}
-                    disabled={!newActionForm.action_description.trim() || !newActionForm.owner || !newActionForm.due_date}
-                    style={{ background: 'var(--oc-accent)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    Create Action
-                  </button>
-                </div>
-              </DialogPanel>
-            </div>
-          )}
+          {/* ADD CORRECTIVE ACTION DRAWER */}
+          <FormDrawer
+            isOpen={showAddActionModal}
+            onClose={() => setShowAddActionModal(false)}
+          >
+            <DrawerHeader
+              title="Create Corrective Action"
+              description="Assign continuous improvement and compliance remediation actions to workforce leads."
+              badge={<span className="refIdTag">GOVERNANCE</span>}
+              onClose={() => setShowAddActionModal(false)}
+            />
+            <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20, height: 'calc(100% - 73px)', overflowY: 'auto' }}>
+              <FormField label="Action Description" required>
+                <FormTextarea
+                  rows={3}
+                  value={newActionForm.action_description}
+                  onChange={e => setNewActionForm(prev => ({ ...prev, action_description: e.target.value }))}
+                  placeholder="e.g. Conduct refresher manual handling training for support team"
+                />
+              </FormField>
 
-          {/* ESCALATE COMPLAINT TO INCIDENT MODAL */}
-          {showEscalateComplaintModal && selectedComplaint && (
-            <div style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16,
-            }}>
-              <DialogPanel className="ocInlineDialog" onClose={() => setSelectedComplaint(null)} label="Complaint details" style={{ background: 'var(--oc-surface)', borderRadius: 12, width: '100%', maxWidth: 520, padding: 22 }}>
-                <h3 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-danger)' }}>
-                  ⚠️ Escalate Complaint to Incident
-                </h3>
-                <p style={{ margin: '0 0 14px', fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
-                  Creates an official Incident record linked to complaint {selectedComplaint.complaint_reference} for formal investigation.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Category</label>
-                    <select className="ocField" aria-label="Category"
+              <FormGrid2>
+                <FormField label="Owner / Lead" required>
+                  <FormInput
+                    type="text"
+                    value={newActionForm.owner}
+                    onChange={e => setNewActionForm(prev => ({ ...prev, owner: e.target.value }))}
+                  />
+                </FormField>
+                <FormField label="Due Date" required>
+                  <FormInput
+                    type="date"
+                    value={newActionForm.due_date}
+                    onChange={e => setNewActionForm(prev => ({ ...prev, due_date: e.target.value }))}
+                  />
+                </FormField>
+              </FormGrid2>
+
+              <FormField label="Priority">
+                <FormSelect
+                  value={newActionForm.priority}
+                  onChange={e => setNewActionForm(prev => ({ ...prev, priority: e.target.value }))}
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </FormSelect>
+              </FormField>
+            </div>
+            <StickyFormFooter
+              cancelLabel="Cancel"
+              onCancel={() => setShowAddActionModal(false)}
+              primaryLabel="Create Action"
+              primaryDisabled={!newActionForm.action_description.trim() || !newActionForm.owner || !newActionForm.due_date}
+              onPrimary={() => createCorrectiveAction(newActionForm)}
+            />
+          </FormDrawer>
+
+          {/* ESCALATE COMPLAINT TO INCIDENT DRAWER */}
+          <FormDrawer
+            isOpen={showEscalateComplaintModal && !!selectedComplaint}
+            onClose={() => setShowEscalateComplaintModal(false)}
+          >
+            {selectedComplaint && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <DrawerHeader
+                  title="Escalate Complaint to Incident"
+                  description={`Creates an official Incident record linked to complaint ${selectedComplaint.complaint_reference} for formal investigation.`}
+                  badge={<span style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>ESCALATION</span>}
+                  onClose={() => setShowEscalateComplaintModal(false)}
+                />
+                <div style={{ flex: 1, padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto' }}>
+                  <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: 14, fontSize: '0.85rem', color: '#991B1B' }}>
+                    <strong>Notice:</strong> Escalating will create a formal NDIS reportable incident candidate and notify quality governance.
+                  </div>
+
+                  <FormField label="Category" required>
+                    <FormSelect
                       value={escalateIncidentForm.category}
                       onChange={e => setEscalateIncidentForm(prev => ({ ...prev, category: e.target.value }))}
-                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
                     >
                       <option value="allegation_abuse_neglect">Allegation of Abuse / Neglect / Exploitation</option>
                       <option value="injury">Physical Harm or Injury</option>
                       <option value="medication_error">Medication Issue</option>
                       <option value="behaviour_of_concern">Behaviour of Concern</option>
                       <option value="other">Other Incident</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Severity</label>
-                    <select className="ocField" aria-label="Severity"
+                    </FormSelect>
+                  </FormField>
+
+                  <FormField label="Severity Rating" required>
+                    <FormSelect
                       value={escalateIncidentForm.severity}
                       onChange={e => setEscalateIncidentForm(prev => ({ ...prev, severity: e.target.value as any }))}
-                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem' }}
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
                       <option value="High">High</option>
                       <option value="Critical">Critical</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.8125rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Incident Summary / Note</label>
-                    <textarea className="ocField" aria-label="Incident Summary / Note"
-                      rows={2}
+                    </FormSelect>
+                  </FormField>
+
+                  <FormField label="Incident Summary / Note">
+                    <FormTextarea
+                      rows={3}
                       value={escalateIncidentForm.description}
                       onChange={e => setEscalateIncidentForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Add any specific context for this escalation..."
-                      style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 6, padding: '8px 10px', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
-                  </div>
+                  </FormField>
                 </div>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
-                  <button
-                    onClick={() => setShowEscalateComplaintModal(false)}
-                    style={{ background: 'var(--oc-subtle)', border: 'none', borderRadius: 6, padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => escalateComplaintToIncident(selectedComplaint)}
-                    style={{ background: 'var(--oc-danger)', color: '#fff', border: 'none', borderRadius: 6, padding: '7px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    Confirm Escalation
-                  </button>
-                </div>
-              </DialogPanel>
-            </div>
-          )}
+
+                <StickyFormFooter
+                  cancelLabel="Cancel"
+                  onCancel={() => setShowEscalateComplaintModal(false)}
+                  primaryLabel="Confirm Escalation"
+                  onPrimary={() => escalateComplaintToIncident(selectedComplaint)}
+                />
+              </div>
+            )}
+          </FormDrawer>
 
           {/* TAB: INVOICING & CLAIMS */}
           {tab === 'invoicing' && (

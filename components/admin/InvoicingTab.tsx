@@ -7,6 +7,17 @@ import DialogPanel from '@/components/ui/DialogPanel';
 import { notify } from '@/components/ui/ProductFeedback';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FormDrawer,
+  DrawerHeader,
+  FormSection,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormGrid2,
+  FormSummaryCard,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 import { 
   Receipt, Plus, Printer, Send, CheckCircle2, 
   AlertCircle, DollarSign, Calendar, Clock, ArrowRight, Eye, RefreshCw
@@ -345,168 +356,149 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         </table>
       </div>
 
-      {/* Generate Invoice Modal */}
-      {showGenModal && (
-        <div className="crmModalBackdrop" onClick={() => setShowGenModal(false)}>
-          <DialogPanel onClose={() => setShowGenModal(false)} label="Generate Tax Invoice" className="crmModalCard" style={{ maxWidth: 740 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <h3 className="crmModalTitle">Generate Tax Invoice</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                  Billing is created exclusively from approved service delivery records.
-                </p>
-              </div>
-              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setShowGenModal(false)}>&times;</button>
-            </div>
+      {/* Generate Invoice Drawer */}
+      <FormDrawer
+        isOpen={showGenModal}
+        onClose={() => setShowGenModal(false)}
+        wide={true}
+      >
+        <DrawerHeader
+          title="Generate Tax Invoice"
+          description="Billing is generated directly from verified and approved support shift records."
+          badge={<span className="refIdTag">BILLING & CLAIMS</span>}
+          onClose={() => setShowGenModal(false)}
+        />
 
-            <form onSubmit={handleGenerateInvoice}>
-              <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                      Select Participant *
-                    </label>
-                    <select className="ocField" aria-label="Select Participant *"
-                      value={selectedParticipantId}
-                      onChange={(e) => setSelectedParticipantId(e.target.value)}
-                      required
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem', background: '#FFF' }}
-                    >
-                      <option value="">Select participant...</option>
-                      {participants.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.referenceNumber || 'PAR'}) - {p.fundingType || 'Plan-Managed'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                      Payment Terms (Due in Days)
-                    </label>
-                    <input className="ocField" aria-label="Payment Terms (Due in Days)"
-                      type="number"
-                      value={dueDays}
-                      onChange={(e) => setDueDays(Number(e.target.value))}
-                      min="1"
-                      max="60"
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
+        <form onSubmit={handleGenerateInvoice} style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 73px)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <FormSection title="1. Participant & Payment Terms">
+              <FormGrid2>
+                <FormField label="Select Participant" required>
+                  <FormSelect
+                    value={selectedParticipantId}
+                    onChange={(e) => setSelectedParticipantId(e.target.value)}
+                    required
+                  >
+                    <option value="">Select participant...</option>
+                    {participants.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.referenceNumber || 'PAR'}) - {p.fundingType || 'Plan-Managed'}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </FormField>
 
-                {/* Approved Service Records to Bill */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 8 }}>
-                    Approved Shifts Ready to Bill ({readyRecords.length})
-                  </label>
-
-                  {loadingRecords ? (
-                    <div style={{ padding: 20, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
-                      Querying approved service records...
-                    </div>
-                  ) : readyRecords.length === 0 ? (
-                    <div style={{ background: 'var(--oc-background)', border: '1px dashed var(--oc-border)', borderRadius: 8, padding: 24, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
-                      No approved service records are currently ready for billing for this participant.
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 4 }}>
-                        (Tip: Check Workforce &gt; Timesheets and approve completed shifts first.)
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ border: '1px solid var(--oc-border)', borderRadius: 8, overflow: 'hidden' }}>
-                      <table className="crmTable" style={{ margin: 0 }}>
-                        <thead>
-                          <tr>
-                            <th style={{ width: 40 }}>
-                              <input
-                                type="checkbox"
-                                checked={selectedRecordIds.length === readyRecords.length}
-                                onChange={(e) => {
-                                  if (e.target.checked) setSelectedRecordIds(readyRecords.map((r) => r.id));
-                                  else setSelectedRecordIds([]);
-                                }}
-                              />
-                            </th>
-                            <th>Service Date</th>
-                            <th>Support Description</th>
-                            <th>Quantity (hrs)</th>
-                            <th className="ocNumeric">Unit Rate</th>
-                            <th className="ocNumeric" style={{ textAlign: 'right' }}>Line Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {readyRecords.map((rec) => (
-                            <tr key={rec.id}>
-                              <td>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedRecordIds.includes(rec.id)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) setSelectedRecordIds([...selectedRecordIds, rec.id]);
-                                    else setSelectedRecordIds(selectedRecordIds.filter((id) => id !== rec.id));
-                                  }}
-                                />
-                              </td>
-                              <td style={{ fontSize: '0.82rem' }}>{new Date(rec.service_date).toLocaleDateString('en-AU')}</td>
-                              <td style={{ fontSize: '0.82rem', fontWeight: 600 }}>{rec.support_item_name}</td>
-                              <td>{rec.quantity} hrs</td>
-                              <td className="ocNumeric">${Number(rec.unit_rate).toFixed(2)}</td>
-                              <td className="ocNumeric" style={{ textAlign: 'right', fontWeight: 600 }}>
-                                ${(Number(rec.subtotal) + Number(rec.travel_amount || 0)).toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-
-                {readyRecords.length > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--oc-success-soft)', border: '1px solid #BBF7D0', borderRadius: 8, padding: '12px 18px' }}>
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--oc-success)' }}>
-                      Selected ({selectedRecordIds.length} of {readyRecords.length} records)
-                    </span>
-                    <strong style={{ fontSize: '1.15rem', color: '#15803D' }}>
-                      Invoice Total: ${selectedTotal.toFixed(2)} AUD
-                    </strong>
-                  </div>
-                )}
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                    Invoice Notes / Remittance Reference
-                  </label>
-                  <input className="ocField" aria-label="Invoice Notes / Remittance Reference"
-                    type="text"
-                    placeholder="e.g. Fortnightly personal care and community access"
-                    value={invoiceNotes}
-                    onChange={(e) => setInvoiceNotes(e.target.value)}
-                    style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem' }}
+                <FormField label="Payment Terms (Due in Days)" hint="Standard terms: 14 days">
+                  <FormInput
+                    type="number"
+                    value={dueDays}
+                    onChange={(e) => setDueDays(Number(e.target.value))}
+                    min="1"
+                    max="60"
                   />
-                </div>
+                </FormField>
+              </FormGrid2>
+            </FormSection>
+
+            <FormSection title="2. Approved Shifts Ready to Bill">
+              <div style={{ marginBottom: 8, fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
+                Showing approved shift records for the selected participant ({readyRecords.length} available)
               </div>
 
-              <div className="crmModalFooter" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: 16 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowGenModal(false)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={generating || selectedRecordIds.length === 0}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'var(--oc-accent)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  {generating ? 'Generating...' : `Generate Invoice ($${selectedTotal.toFixed(2)})`}
-                </button>
-              </div>
-            </form>
-          </DialogPanel>
-        </div>
-      )}
+              {loadingRecords ? (
+                <div style={{ padding: 24, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
+                  Querying approved service delivery records...
+                </div>
+              ) : readyRecords.length === 0 ? (
+                <div style={{ background: 'var(--oc-background)', border: '1px dashed var(--oc-border)', borderRadius: 10, padding: 24, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
+                  No approved service records are currently ready for billing for this participant.
+                  <div style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', marginTop: 6 }}>
+                    Tip: Verify shifts in Workforce &gt; Timesheets and approve completed shifts first.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ border: '1px solid var(--oc-border)', borderRadius: 10, overflow: 'hidden' }}>
+                  <table className="crmTable" style={{ margin: 0 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: 40 }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedRecordIds.length === readyRecords.length}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedRecordIds(readyRecords.map((r) => r.id));
+                              else setSelectedRecordIds([]);
+                            }}
+                          />
+                        </th>
+                        <th>Service Date</th>
+                        <th>Support Description</th>
+                        <th>Hours</th>
+                        <th className="ocNumeric">Unit Rate</th>
+                        <th className="ocNumeric" style={{ textAlign: 'right' }}>Line Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {readyRecords.map((rec) => (
+                        <tr key={rec.id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={selectedRecordIds.includes(rec.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedRecordIds([...selectedRecordIds, rec.id]);
+                                else setSelectedRecordIds(selectedRecordIds.filter((id) => id !== rec.id));
+                              }}
+                            />
+                          </td>
+                          <td style={{ fontSize: '0.82rem' }}>{new Date(rec.service_date).toLocaleDateString('en-AU')}</td>
+                          <td style={{ fontSize: '0.82rem', fontWeight: 600 }}>{rec.support_item_name}</td>
+                          <td>{rec.quantity} hrs</td>
+                          <td className="ocNumeric">$${Number(rec.unit_rate).toFixed(2)}</td>
+                          <td className="ocNumeric" style={{ textAlign: 'right', fontWeight: 600 }}>
+                            $${(Number(rec.subtotal) + Number(rec.travel_amount || 0)).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </FormSection>
+
+            {readyRecords.length > 0 && (
+              <FormSummaryCard
+                title="Invoice Billing Breakdown"
+                rows={[
+                  { label: 'Selected Shift Records', value: `${selectedRecordIds.length} of ${readyRecords.length} items` },
+                  { label: 'Total Billed Amount', value: `$${selectedTotal.toFixed(2)}`, isBold: true },
+                ]}
+                totalLabel="Invoice Payable"
+                totalValue={`$${selectedTotal.toFixed(2)} AUD`}
+              />
+            )}
+
+            <FormSection title="3. Remittance & Reference">
+              <FormField label="Invoice Notes / Remittance Reference">
+                <FormInput
+                  type="text"
+                  placeholder="e.g. Fortnightly personal care and community access"
+                  value={invoiceNotes}
+                  onChange={(e) => setInvoiceNotes(e.target.value)}
+                />
+              </FormField>
+            </FormSection>
+          </div>
+
+          <StickyFormFooter
+            cancelLabel="Cancel"
+            onCancel={() => setShowGenModal(false)}
+            primaryLabel={generating ? 'Generating...' : `Generate Invoice ($${selectedTotal.toFixed(2)})`}
+            primaryDisabled={generating || selectedRecordIds.length === 0}
+            loading={generating}
+          />
+        </form>
+      </FormDrawer>
     </div>
   );
 }

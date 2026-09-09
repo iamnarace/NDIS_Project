@@ -1,22 +1,33 @@
 'use client';
 
-import useDialogFocus from '@/components/ui/useDialogFocus';
-
-import React, { useState, useMemo, useRef } from 'react';
-import { 
-  X, Check, AlertTriangle, Shield, FileText, ArrowRight, ArrowLeft, 
-  UserCheck, Users, Printer, Sparkles, CheckCircle2, Lock, Download, PenTool
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import {
+  FileText,
+  UserCheck,
+  Users,
+  Check,
+  PenTool,
+  Lock,
+  Calendar,
+  AlertCircle,
+  Plus,
+  Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import {
-  FormField,
-  TextInput,
-  DatePicker,
-  RadioCard,
+  FormDrawer,
+  DrawerHeader,
   FormStepper,
-  ReviewSummary,
-  InlineValidation,
-  Checkbox,
-} from '@/components/ui/form';
+  FormSection,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormGrid2,
+  FormSummaryCard,
+  FormError,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 
 interface AgreementGeneratorModalProps {
   participants: any[];
@@ -28,12 +39,12 @@ interface AgreementGeneratorModalProps {
   draftAgreement?: any;
 }
 
-const NDIS_SERVICES = [
-  { code: '01_011_0107_1_1', description: 'Assistance with Daily Personal Activities (Standard)', refRate: 67.56, defaultHours: 6.0 },
-  { code: '04_104_0125_6_1', description: 'Access Community, Social and Civic Activities', refRate: 67.56, defaultHours: 4.0 },
-  { code: '01_019_0120_1_1', description: 'House Cleaning & Other Household Activities', refRate: 58.45, defaultHours: 2.0 },
-  { code: '01_013_0107_1_1', description: 'Weekend Support Saturday (Core)', refRate: 94.82, defaultHours: 3.0 },
-  { code: '02_051_0108_1_1', description: 'Transport - Activity Based Transport Assistance', refRate: 45.00, defaultHours: 1.0 },
+const DEFAULT_SUPPORT_ITEMS = [
+  { code: '01_011_0107_1_1', description: 'Assistance with Daily Personal Activities (Standard)', refRate: 67.56, defaultHours: 6.0, category: 'Core' },
+  { code: '04_104_0125_6_1', description: 'Access Community, Social and Civic Activities', refRate: 67.56, defaultHours: 4.0, category: 'Capacity Building' },
+  { code: '01_019_0120_1_1', description: 'House Cleaning & Other Household Activities', refRate: 58.45, defaultHours: 2.0, category: 'Core' },
+  { code: '01_013_0107_1_1', description: 'Weekend Support Saturday (Core)', refRate: 94.82, defaultHours: 3.0, category: 'Core' },
+  { code: '02_051_0108_1_1', description: 'Transport - Activity Based Transport Assistance', refRate: 45.00, defaultHours: 1.0, category: 'Capital' },
 ];
 
 export default function AgreementGeneratorModal({
@@ -45,12 +56,14 @@ export default function AgreementGeneratorModal({
   variationOf = null,
   draftAgreement = null,
 }: AgreementGeneratorModalProps) {
-  const dialogRef = useDialogFocus(onClose);
   const sourceAgreement = draftAgreement || variationOf;
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(sourceAgreement ? 3 : 1);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(
-    sourceAgreement ? sourceAgreement.template?.template_code || 'DOC-PART-01' : initialTemplateCode
-  );
+  const [step, setStep] = useState<number>(sourceAgreement ? 3 : 1);
+
+  // Loaded support catalogue items
+  const [supportCatalogue, setSupportCatalogue] = useState<any[]>(DEFAULT_SUPPORT_ITEMS);
+  const [pricingLoaded, setPricingLoaded] = useState(false);
+
+  // Template & Owner Type
   const [ownerType, setOwnerType] = useState<'participant' | 'staff' | 'contractor'>(
     sourceAgreement
       ? sourceAgreement.owner_type
@@ -61,159 +74,254 @@ export default function AgreementGeneratorModal({
       : 'participant'
   );
 
-  // Selected owner state - MUST strictly hold the database UUID
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(
+    sourceAgreement ? sourceAgreement.template?.template_code || 'DOC-PART-01' : initialTemplateCode
+  );
+
+  // Selected owner state
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>(
     sourceAgreement ? sourceAgreement.owner_id : ''
   );
 
   // Recipient info
   const [recipientName, setRecipientName] = useState<string>(
-    sourceAgreement?.questionnaire_data?.participant_name || sourceAgreement?.questionnaire_data?.worker_name || ''
+    sourceAgreement?.questionnaire_data?.participant_name ||
+      sourceAgreement?.questionnaire_data?.worker_name ||
+      ''
   );
   const [ndisNumber, setNdisNumber] = useState<string>(sourceAgreement?.questionnaire_data?.ndis_number || '');
-  const [fundingType, setFundingType] = useState<string>(sourceAgreement?.questionnaire_data?.funding_type || 'Plan-Managed');
-  const [planManagerName, setPlanManagerName] = useState<string>(sourceAgreement?.questionnaire_data?.plan_manager_name || '');
-  const [planManagerEmail, setPlanManagerEmail] = useState<string>(sourceAgreement?.questionnaire_data?.plan_manager_email || '');
-  
-  // Schedule of Supports items
-  const [scheduleItems, setScheduleItems] = useState(
-    sourceAgreement?.compiled_clauses?.service_schedule || [
-      { item_code: '01_011_0107_1_1', description: 'Assistance with Daily Personal Activities (Standard)', hours_pw: 6.0, agreed_rate: 67.56 },
-      { item_code: '04_104_0125_6_1', description: 'Access Community, Social and Civic Activities', hours_pw: 4.0, agreed_rate: 67.56 },
-    ]
+  const [fundingType, setFundingType] = useState<string>(
+    sourceAgreement?.questionnaire_data?.funding_type || 'Plan-Managed'
   );
-
-  // Participant Consent toggles
-  const [transportIncluded, setTransportIncluded] = useState<boolean>(sourceAgreement?.questionnaire_data?.transport_included ?? true);
-  const [mediaConsent, setMediaConsent] = useState<boolean>(sourceAgreement?.questionnaire_data?.media_consent ?? false);
-
-  // Workforce & Contractor fields
-  const [workerClassification, setWorkerClassification] = useState(sourceAgreement?.questionnaire_data?.worker_classification || 'Level 2 Support Worker');
-  const [workerBasis, setWorkerBasis] = useState<'full_time' | 'part_time' | 'casual'>(sourceAgreement?.questionnaire_data?.worker_basis || 'casual');
-  const [workerRate, setWorkerRate] = useState<number>(sourceAgreement?.questionnaire_data?.hourly_rate || 38.50);
-  const [superRate, setSuperRate] = useState<number>(sourceAgreement?.questionnaire_data?.super_rate_pct || 11.50);
-  const [includeRestraintClause, setIncludeRestraintClause] = useState<boolean>(sourceAgreement?.questionnaire_data?.include_restraint_clause ?? false);
-
-  // Sham Contracting Checklist (Contractor Gate)
-  const [contractorChecks, setContractorChecks] = useState({
-    independentBiz: false,
-    toolsAndInsurances: false,
-    delegationRight: false,
-    paidForOutcome: false,
-  });
+  const [planManagerName, setPlanManagerName] = useState<string>(
+    sourceAgreement?.questionnaire_data?.plan_manager_name || ''
+  );
+  const [planManagerEmail, setPlanManagerEmail] = useState<string>(
+    sourceAgreement?.questionnaire_data?.plan_manager_email || ''
+  );
 
   // Dates
   const [commencementDate, setCommencementDate] = useState<string>(
     sourceAgreement?.commencement_date || new Date().toISOString().split('T')[0]
   );
-  const [reviewDate, setReviewDate] = useState<string>(sourceAgreement?.review_date || '');
-  const [expiryDate, setExpiryDate] = useState<string>(sourceAgreement?.expiry_date || '');
+  const [reviewDate, setReviewDate] = useState<string>(
+    sourceAgreement?.review_date ||
+      new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
 
-  // Signing state
-  const [signerName, setSignerName] = useState<string>('');
-  const [signerTitle, setSignerTitle] = useState<string>('Participant');
-  const [providerSignerName, setProviderSignerName] = useState<string>('Director of Operations');
+  // Schedule of Supports items
+  const [scheduleItems, setScheduleItems] = useState<any[]>(
+    sourceAgreement?.compiled_clauses?.service_schedule || [
+      {
+        item_code: '01_011_0107_1_1',
+        description: 'Assistance with Daily Personal Activities (Standard)',
+        hours_pw: 6.0,
+        agreed_rate: 67.56,
+      },
+      {
+        item_code: '04_104_0125_6_1',
+        description: 'Access Community, Social and Civic Activities',
+        hours_pw: 4.0,
+        agreed_rate: 67.56,
+      },
+    ]
+  );
+
+  const [travelNonLabourCap, setTravelNonLabourCap] = useState<number>(
+    sourceAgreement?.questionnaire_data?.travel_non_labour_cap ?? 1200
+  );
+  const [transportIncluded, setTransportIncluded] = useState<boolean>(
+    sourceAgreement?.questionnaire_data?.transport_included ?? true
+  );
+  const [mediaConsent, setMediaConsent] = useState<boolean>(
+    sourceAgreement?.questionnaire_data?.media_consent ?? false
+  );
+
+  // Workforce & Contractor fields
+  const [workerClassification, setWorkerClassification] = useState(
+    sourceAgreement?.questionnaire_data?.worker_classification || 'Disability Support Worker (Level 2)'
+  );
+  const [workerBasis, setWorkerBasis] = useState<'full_time' | 'part_time' | 'casual'>(
+    sourceAgreement?.questionnaire_data?.worker_basis || 'casual'
+  );
+  const [workerRate, setWorkerRate] = useState<number>(
+    sourceAgreement?.questionnaire_data?.hourly_rate || 38.50
+  );
+  const [superRate, setSuperRate] = useState<number>(
+    sourceAgreement?.questionnaire_data?.super_rate_pct || 11.50
+  );
+  const [workerAgreedHours, setWorkerAgreedHours] = useState<number>(
+    sourceAgreement?.questionnaire_data?.agreed_weekly_hours || 20
+  );
+
+  // Execution & Signature State
+  const [executeNow, setExecuteNow] = useState(false);
+  const [signerName, setSignerName] = useState('');
+  const [signerTitle, setSignerTitle] = useState('Recipient / Participant');
+  const [providerSignerName, setProviderSignerName] = useState('Naresh Admin');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Canvas drawing
+  // Canvas
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
 
-  // Auto-fill when owner selected - guarantees resolving to database UUID
-  const handleOwnerChange = (idOrRef: string) => {
+  // Fetch live support items from database catalogue
+  useEffect(() => {
+    async function loadCatalogue() {
+      try {
+        const res = await fetch('/api/billing/support-items');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.items) && data.items.length > 0) {
+            const mapped = data.items.map((item: any) => ({
+              code: item.support_item_code,
+              description: item.support_item_name,
+              refRate: Number(item.reference_rate) || 67.56,
+              defaultHours: 4.0,
+              category: item.category || 'Core',
+            }));
+            setSupportCatalogue(mapped);
+            setPricingLoaded(true);
+          }
+        }
+      } catch (err) {
+        console.error('Could not load support items catalogue', err);
+      }
+    }
+    loadCatalogue();
+  }, []);
+
+  // When owner is selected from dropdown, update form defaults
+  const handleOwnerSelect = (ownerId: string) => {
+    setSelectedOwnerId(ownerId);
     if (ownerType === 'participant') {
-      const p = participants.find((item) => item.id === idOrRef || item.referenceNumber === idOrRef);
-      if (p) {
-        setSelectedOwnerId(p.id); // store actual UUID
-        setRecipientName(p.name);
-        setNdisNumber(p.ndisNumber || '');
-        setFundingType(p.fundingType || 'Plan-Managed');
-        setPlanManagerName(p.planManager || '');
-        setSignerName(p.name);
-        setSignerTitle('Participant');
-      } else {
-        setSelectedOwnerId(idOrRef);
+      const part = participants.find((p) => p.id === ownerId);
+      if (part) {
+        setRecipientName(part.name);
+        setNdisNumber(part.ndisNumber || '');
+        setFundingType(part.fundingType || 'Plan-Managed');
+        setPlanManagerName(part.planManager || '');
+        setSignerName(part.name);
       }
     } else {
-      const w = staff.find((item) => item.id === idOrRef || item.referenceNumber === idOrRef);
+      const w = staff.find((s) => s.id === ownerId);
       if (w) {
-        setSelectedOwnerId(w.id); // store actual UUID
         setRecipientName(w.name);
         setWorkerRate(w.hourlyRate || 38.50);
         setSignerName(w.name);
-        setSignerTitle(w.role || 'Support Worker');
-      } else {
-        setSelectedOwnerId(idOrRef);
       }
     }
   };
 
-  // Calculate annual budget commitment
-  const totalAnnualBudget = useMemo(() => {
-    const weekly = scheduleItems.reduce((acc: number, item: any) => {
-      return acc + (Number(item.hours_pw || 0) * Number(item.agreed_rate || 0));
-    }, 0);
-    return weekly * 52;
+  // Schedule Calculations
+  const calculatedDurationWeeks = useMemo(() => {
+    if (!commencementDate || !reviewDate) return 52;
+    const start = new Date(commencementDate).getTime();
+    const end = new Date(reviewDate).getTime();
+    const diffDays = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+    return Math.max(1, Math.round(diffDays / 7));
+  }, [commencementDate, reviewDate]);
+
+  const totalWeeklyHours = useMemo(() => {
+    return scheduleItems.reduce((acc, item) => acc + (Number(item.hours_pw) || 0), 0);
   }, [scheduleItems]);
 
-  // Update schedule row
-  const updateScheduleItem = (index: number, field: string, value: any) => {
-    const updated = [...scheduleItems];
-    updated[index] = { ...updated[index], [field]: value };
-    setScheduleItems(updated);
-  };
+  const totalLabourValue = useMemo(() => {
+    return scheduleItems.reduce((acc, item) => {
+      const hrs = Number(item.hours_pw) || 0;
+      const rate = Number(item.agreed_rate) || 0;
+      return acc + hrs * rate * calculatedDurationWeeks;
+    }, 0);
+  }, [scheduleItems, calculatedDurationWeeks]);
 
-  const addScheduleRow = () => {
-    setScheduleItems([
-      ...scheduleItems,
-      { item_code: '01_011_0107_1_1', description: 'Assistance with Daily Living', hours_pw: 2.0, agreed_rate: 67.56 }
+  const totalAgreementBudget = useMemo(() => {
+    if (ownerType === 'participant') {
+      return totalLabourValue + Number(travelNonLabourCap || 0);
+    }
+    return Number(workerRate || 0) * Number(workerAgreedHours || 0) * calculatedDurationWeeks;
+  }, [ownerType, totalLabourValue, travelNonLabourCap, workerRate, workerAgreedHours, calculatedDurationWeeks]);
+
+  // Stepper items based on owner type
+  const steps = useMemo(() => {
+    if (ownerType === 'participant') {
+      return [
+        { num: 1, label: 'Recipient' },
+        { num: 2, label: 'Agreement Details' },
+        { num: 3, label: 'Support Items' },
+        { num: 4, label: 'Schedule' },
+        { num: 5, label: 'Review & Sign' },
+      ];
+    }
+    return [
+      { num: 1, label: 'Recipient & Role' },
+      { num: 2, label: 'Engagement Basis' },
+      { num: 3, label: 'Classification & Rate' },
+      { num: 4, label: 'Clearances & Terms' },
+      { num: 5, label: 'Review & Sign' },
+    ];
+  }, [ownerType]);
+
+  // Support item row actions
+  const addSupportItem = (code: string) => {
+    const found = supportCatalogue.find((c) => c.code === code);
+    if (!found) return;
+    setScheduleItems((prev) => [
+      ...prev,
+      {
+        item_code: found.code,
+        description: found.description,
+        hours_pw: found.defaultHours,
+        agreed_rate: found.refRate,
+      },
     ]);
   };
 
-  const removeScheduleRow = (idx: number) => {
-    if (scheduleItems.length > 1) {
-      setScheduleItems(scheduleItems.filter((_: any, i: number) => i !== idx));
-    }
+  const removeSupportItem = (index: number) => {
+    setScheduleItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  // Canvas events
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true);
+  const updateSupportItem = (index: number, field: string, val: any) => {
+    setScheduleItems((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: val };
+      return copy;
+    });
+  };
+
+  // Canvas drawing handlers
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#0F172A';
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    setIsDrawing(true);
+    setHasDrawn(true);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-    ctx.strokeStyle = '#162E56';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineTo(x, y);
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
     ctx.stroke();
-    setHasDrawn(true);
   };
 
   const stopDrawing = () => {
     setIsDrawing(false);
   };
 
-  const clearCanvas = () => {
+  const clearSignature = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -222,805 +330,732 @@ export default function AgreementGeneratorModal({
     setHasDrawn(false);
   };
 
-  // Sham contracting gate check
-  const isContractorGatePassed = useMemo(() => {
-    if (selectedTemplate !== 'DOC-CTR-01') return true;
-    return (
-      contractorChecks.independentBiz &&
-      contractorChecks.toolsAndInsurances &&
-      contractorChecks.delegationRight &&
-      contractorChecks.paidForOutcome
-    );
-  }, [selectedTemplate, contractorChecks]);
+  const validateStep = (s: number): boolean => {
+    setError('');
+    if (s === 1) {
+      if (!selectedOwnerId) {
+        setError(`Please select a ${ownerType === 'participant' ? 'participant' : 'support worker'} to continue.`);
+        return false;
+      }
+    }
+    if (s === 2 && ownerType === 'participant') {
+      if (!commencementDate) {
+        setError('Agreement commencement date is required.');
+        return false;
+      }
+    }
+    if (s === 3 && ownerType === 'participant') {
+      if (scheduleItems.length === 0) {
+        setError('At least one NDIS support item must be included in the schedule.');
+        return false;
+      }
+    }
+    if (s === 5 && executeNow) {
+      if (!signerName.trim()) {
+        setError('Signer name is required to execute agreement.');
+        return false;
+      }
+      if (!hasDrawn) {
+        setError('A drawn digital signature is required to execute immediately.');
+        return false;
+      }
+    }
+    return true;
+  };
 
-  // Submit and Create/Execute Agreement
-  const handleSaveAndExecute = async (executeNow: boolean) => {
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep((prev) => Math.min(prev + 1, 5));
+    }
+  };
+
+  const handleBack = () => {
+    setError('');
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = async (saveAsDraftOnly: boolean = false) => {
+    if (!saveAsDraftOnly && !validateStep(step)) {
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
     try {
-      if (executeNow && !hasDrawn) {
-        setError('Please add the participant or worker signature before executing this agreement.');
-        return;
-      }
+      const isPart = ownerType === 'participant';
+      const shouldExecute = !saveAsDraftOnly && executeNow && hasDrawn;
 
-      // Resolve true UUID
-      let targetOwnerUuid = selectedOwnerId;
-      if (ownerType === 'participant') {
-        const p = participants.find((item) => item.id === selectedOwnerId || item.referenceNumber === selectedOwnerId);
-        if (p?.id) targetOwnerUuid = p.id;
-      } else {
-        const w = staff.find((item) => item.id === selectedOwnerId || item.referenceNumber === selectedOwnerId);
-        if (w?.id) targetOwnerUuid = w.id;
-      }
-
-      if (!targetOwnerUuid) {
-        setError(`Please select a registered ${ownerType === 'participant' ? 'participant' : 'support worker'} from the register.`);
-        setSubmitting(false);
-        return;
-      }
-
-      if (!recipientName.trim()) {
-        setError('Recipient Full Legal Name is required.');
-        setSubmitting(false);
-        return;
-      }
-
-      // Fetch template
-      const tmplRes = await fetch(`/api/crm/agreements/templates?category=all`);
-      const tmpls = await tmplRes.json();
-      if (!tmplRes.ok || !Array.isArray(tmpls)) {
-        setError(tmpls?.message || 'Agreement templates could not be loaded. Please try again.');
-        return;
-      }
-      const matchTmpl = tmpls.find((t: any) => t.template_code === selectedTemplate) || tmpls[0];
-
-      if (!matchTmpl) {
-        setError('Template configuration not found.');
-        setSubmitting(false);
-        return;
-      }
-
-      // Compile questionnaire data
-      const qData: Record<string, any> = {
-        participant_name: ownerType === 'participant' ? recipientName : undefined,
-        worker_name: ownerType !== 'participant' ? recipientName : undefined,
-        ndis_number: ownerType === 'participant' ? ndisNumber : undefined,
-        funding_type: ownerType === 'participant' ? fundingType : undefined,
-        plan_manager_name: ownerType === 'participant' && fundingType === 'Plan-Managed' ? planManagerName : undefined,
-        plan_manager_email: ownerType === 'participant' && fundingType === 'Plan-Managed' ? planManagerEmail : undefined,
-        transport_included: transportIncluded,
-        media_consent: mediaConsent,
-        worker_classification: workerClassification,
-        worker_basis: workerBasis,
-        hourly_rate: workerRate,
-        super_rate_pct: superRate,
-        include_restraint_clause: includeRestraintClause,
+      const agreementPayload: any = {
+        ...(draftAgreement ? { id: draftAgreement.id } : {}),
+        title:
+          sourceAgreement?.title ||
+          (isPart
+            ? `NDIS Service Agreement & Schedule of Supports - ${recipientName}`
+            : `Workforce Support Agreement - ${recipientName}`),
+        template_id: sourceAgreement?.template_id || null,
+        owner_type: ownerType,
+        owner_id: selectedOwnerId,
+        commencement_date: commencementDate,
+        review_date: reviewDate,
+        expiry_date: reviewDate,
+        estimated_budget: totalAgreementBudget,
+        status: shouldExecute ? 'fully_signed' : 'draft',
+        compiled_clauses: isPart
+          ? {
+              service_schedule: scheduleItems,
+              cancellation_window_days: 2,
+              duration_weeks: calculatedDurationWeeks,
+            }
+          : {
+              basis: workerBasis,
+              classification: workerClassification,
+              hourly_rate: workerRate,
+              super_pct: superRate,
+            },
+        questionnaire_data: isPart
+          ? {
+              participant_name: recipientName,
+              ndis_number: ndisNumber,
+              funding_type: fundingType,
+              plan_manager_name: fundingType === 'Plan-Managed' ? planManagerName : null,
+              plan_manager_email: fundingType === 'Plan-Managed' ? planManagerEmail : null,
+              transport_included: transportIncluded,
+              media_consent: mediaConsent,
+              travel_non_labour_cap: travelNonLabourCap,
+              duration_weeks: calculatedDurationWeeks,
+            }
+          : {
+              worker_name: recipientName,
+              worker_classification: workerClassification,
+              worker_basis: workerBasis,
+              hourly_rate: workerRate,
+              super_rate_pct: superRate,
+              agreed_weekly_hours: workerAgreedHours,
+            },
+        ...(variationOf
+          ? {
+              is_variation: true,
+              prior_agreement_id: variationOf.id,
+            }
+          : {}),
       };
 
-      const compiledClauses: Record<string, any> = {
-        service_schedule: ownerType === 'participant' ? scheduleItems : [],
-        total_annual_budget: totalAnnualBudget,
-      };
-      if (draftAgreement?.compiled_clauses?.variation_of_agreement_id) {
-        compiledClauses.variation_of_agreement_id = draftAgreement.compiled_clauses.variation_of_agreement_id;
-      }
-
-      const title = draftAgreement
-        ? draftAgreement.title
-        : variationOf
-        ? `${variationOf.title} (Variation v${variationOf.version_number + 1})`
-        : selectedTemplate === 'PACK-PART-01'
-        ? `New Participant Pack - ${recipientName}`
-        : selectedTemplate === 'PACK-WRK-01'
-        ? `New Worker Pack - ${recipientName}`
-        : `${matchTmpl.title} - ${recipientName}`;
-
-      const agreementPayload = {
-          ...(draftAgreement ? { id: draftAgreement.id } : {}),
-          template_id: matchTmpl.id,
-          owner_type: ownerType,
-          owner_id: targetOwnerUuid,
-          title,
-          questionnaire_data: qData,
-          compiled_clauses: compiledClauses,
-          commencement_date: commencementDate,
-          review_date: reviewDate || null,
-          expiry_date: expiryDate || null,
-          estimated_budget: ownerType === 'participant' ? totalAnnualBudget : null,
-          status: 'draft',
-          ...(!draftAgreement ? {
-            is_variation: !!variationOf,
-            prior_agreement_id: variationOf?.id || null,
-          } : {}),
-      };
-
-      const createRes = await fetch('/api/crm/agreements', {
+      const res = await fetch('/api/crm/agreements', {
         method: draftAgreement ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(agreementPayload),
       });
 
-      const createData = await createRes.json();
-      if (!createRes.ok) {
-        setError(createData.message || 'Failed to generate agreement.');
-        setSubmitting(false);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to save agreement record.');
         return;
       }
 
-      const newAgr = createData.agreement;
-      let savedAgreement = newAgr;
+      const savedAgr = data.agreement;
+      let finalAgreement = savedAgr;
 
-      // If user provided a digital signature on canvas
-      if (executeNow && newAgr && hasDrawn && canvasRef.current) {
+      // Handle dual signing if executeNow is active
+      if (shouldExecute && savedAgr && canvasRef.current) {
         const sigData = canvasRef.current.toDataURL('image/png');
-        // Sign as participant / worker
-        const partySignRes = await fetch('/api/crm/agreements/sign', {
+
+        // 1. Recipient Signature
+        const recipientSignRes = await fetch('/api/crm/agreements/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            agreement_id: newAgr.id,
-            party_role: ownerType === 'participant' ? 'participant' : 'worker',
-            signer_name: signerName || recipientName,
+            agreement_id: savedAgr.id,
+            signer_type: ownerType,
+            signer_name: signerName.trim() || recipientName,
             signer_title: signerTitle,
             signing_method: 'digital_canvas',
             signature_image_data: sigData,
           }),
         });
-        const partySignData = await partySignRes.json();
-        if (!partySignRes.ok) {
-          setError(partySignData.message || 'The agreement was saved, but the recipient signature could not be recorded.');
+
+        const recSignData = await recipientSignRes.json();
+        if (!recipientSignRes.ok) {
+          setError(recSignData.message || 'Agreement saved, but recipient signature could not be verified.');
           return;
         }
 
-        // Sign as provider rep to fully execute!
+        // 2. Provider Rep Signature
         const providerSignRes = await fetch('/api/crm/agreements/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            agreement_id: newAgr.id,
-            party_role: 'provider_rep',
+            agreement_id: savedAgr.id,
+            signer_type: 'provider_rep',
             signer_name: providerSignerName,
             signer_title: 'Managing Director, Opus Care Support Services',
             signing_method: 'digital_canvas',
           }),
         });
-        const providerSignData = await providerSignRes.json();
-        if (!providerSignRes.ok || !providerSignData.is_fully_signed) {
-          setError(providerSignData.message || 'The recipient signature was saved, but provider execution could not be completed.');
+
+        const provSignData = await providerSignRes.json();
+        if (!providerSignRes.ok || !provSignData.is_fully_signed) {
+          setError(provSignData.message || 'Recipient signature recorded, but provider execution could not be finalized.');
           return;
         }
-        savedAgreement = providerSignData.agreement;
+
+        finalAgreement = provSignData.agreement;
       }
 
-      onCreated(savedAgreement);
+      onCreated(finalAgreement);
       onClose();
     } catch (err: unknown) {
-      setError('Network error while saving agreement. Please try again.');
+      setError('Network communication error while executing agreement.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="crmModalOverlay" onClick={onClose}>
-      <div
-        className="crmModalBox" ref={dialogRef} role="dialog" aria-modal="true" aria-label="New agreement" tabIndex={-1}
-        style={{ maxWidth: 840, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="crmModalHeader" style={{ flexShrink: 0 }}>
+    <FormDrawer isOpen onClose={onClose} wide>
+      <DrawerHeader
+        title={
+          draftAgreement
+            ? 'Continue Draft Agreement'
+            : variationOf
+            ? `Agreement Variation (v${(variationOf.version_number || 1) + 1})`
+            : ownerType === 'participant'
+            ? 'New Service Agreement'
+            : 'New Workforce Agreement'
+        }
+        description={
+          ownerType === 'participant'
+            ? 'Create a schedule of supports compliant with NDIS Pricing Arrangements.'
+            : 'Generate employment or contractor terms with verified compliance.'
+        }
+        onClose={onClose}
+        badge={
+          <span className="compliance-pill">
+            {pricingLoaded ? 'Pricing Reference Loaded' : 'Verified Catalogue Active'}
+          </span>
+        }
+      />
+
+      <FormStepper
+        steps={steps}
+        currentStep={step}
+        onStepClick={(num) => {
+          if (num < step) setStep(num);
+        }}
+      />
+
+      <div className="drawer-body">
+        {error && <FormError message={error} onDismiss={() => setError('')} />}
+
+        {/* STEP 1: RECIPIENT & DOCUMENT TYPE */}
+        {step === 1 && (
           <div>
-            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {draftAgreement ? 'CONTINUE DRAFT AGREEMENT' : variationOf ? `AGREEMENT VARIATION (v${variationOf.version_number + 1})` : 'OPUS CARE AGREEMENT ENGINE'}
-            </span>
-            <h3 className="crmSectionTitle" style={{ margin: 0 }}>
-              {step === 1 && 'Step 1: Select Document or Onboarding Pack'}
-              {step === 2 && 'Step 2: Select Recipient & Stakeholders'}
-              {step === 3 && 'Step 3: Customise Terms & Schedule of Supports'}
-              {step === 4 && 'Step 4: Review & Sign'}
-            </h3>
-          </div>
-          <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', padding: 4 }}>
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Stepper */}
-        <FormStepper
-          steps={[
-            { num: 1, label: 'Document Type' },
-            { num: 2, label: 'Recipient' },
-            { num: 3, label: 'Terms & Schedule' },
-            { num: 4, label: 'Review & Sign' },
-          ]}
-          currentStep={step}
-          onStepClick={(s) => {
-            if (s < step) setStep(s as any);
-          }}
-        />
-
-        {/* Body Content */}
-        <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
-          {error && (
-            <div style={{ marginBottom: 16 }}>
-              <InlineValidation type="error" message={error} />
-            </div>
-          )}
-
-          {/* STEP 1: SELECT DOCUMENT */}
-          {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <div>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>All-in-One Onboarding Packs</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Prepare the relevant agreements and consent forms for review.
-                </p>
-              </div>
-
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <RadioCard
-                  selected={selectedTemplate === 'PACK-PART-01'}
-                  onSelect={() => {
-                    setSelectedTemplate('PACK-PART-01');
-                    setOwnerType('participant');
-                  }}
-                  title="New Participant Onboarding Pack"
-                  description="Includes Service Agreement, Schedule of Supports, Privacy Consent, Authority to Communicate, Risk Assessment & Transport/Media Consents."
-                  badge="PARTICIPANT PACK"
-                  icon={<Users size={20} />}
-                />
-
-                <RadioCard
-                  selected={selectedTemplate === 'PACK-WRK-01'}
-                  onSelect={() => {
-                    setSelectedTemplate('PACK-WRK-01');
-                    setOwnerType('staff');
-                  }}
-                  title="New Worker Onboarding Pack"
-                  description="Includes SCHADS Employment Agreement, Position Description, NDIS Code of Conduct, Confidentiality Deed & Clearance Verification."
-                  badge="WORKER PACK"
-                  icon={<UserCheck size={20} />}
-                />
-              </div>
-
-              <div style={{ marginTop: 6 }}>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Standalone Contracts & Schedules</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Generate individual legally binding schedules or employment agreements.
-                </p>
-              </div>
-
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-                {[
-                  { code: 'DOC-PART-01', title: 'NDIS Service Agreement', cat: 'participant', desc: 'Standard terms, rights, cancellations' },
-                  { code: 'DOC-PART-02', title: 'Schedule of Supports', cat: 'participant', desc: 'Itemised lines, agreed prices, hours' },
-                  { code: 'DOC-WRK-01', title: 'SCHADS Worker Agreement', cat: 'staff', desc: 'Permanent or Casual employee contract' },
-                  { code: 'DOC-CTR-01', title: 'Independent Contractor Agreement', cat: 'contractor', desc: 'ABN Sole Trader / Subcontractor' },
-                ].map((item) => {
-                  const active = selectedTemplate === item.code;
-                  return (
-                    <div
-                      key={item.code}
-                      onClick={() => {
-                        setSelectedTemplate(item.code);
-                        setOwnerType(item.cat as any);
-                      }}
-                      style={{
-                        border: active ? '2px solid var(--oc-info)' : '1.5px solid var(--oc-border)',
-                        background: active ? '#F0F9FF' : 'var(--oc-surface)',
-                        borderRadius: 8,
-                        padding: 12,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span style={{ fontSize: '0.8125rem', fontFamily: 'monospace', fontWeight: 600, color: 'var(--oc-info)' }}>{item.code}</span>
-                      <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--oc-text)', margin: '2px 0' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>{item.desc}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: SELECT RECIPIENT */}
-          {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>
-                  Select {ownerType === 'participant' ? 'Participant' : 'Support Worker / Contractor'}
-                </h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Select an existing record to use their contact information and agreed rates.
-                </p>
-              </div>
-
-              {ownerType === 'participant' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <FormField label="Choose Registered Participant from Directory *" hint="Populates official NDIS numbers and funding details">
-                    <select aria-label="-- Select Participant from Directory --"
-                      value={selectedOwnerId}
-                      onChange={(e) => handleOwnerChange(e.target.value)}
-                      className="crmFormSelect"
-                    >
-                      <option value="">-- Select Participant from Directory --</option>
-                      {participants.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.referenceNumber || 'NDIS'}) — {p.suburb} ({p.fundingType || 'Plan-Managed'})
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-
-                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <FormField label="Participant Legal Full Name *" required>
-                      <TextInput
-                        value={recipientName}
-                        onChange={(e) => setRecipientName(e.target.value)}
-                        placeholder="Full Legal Name"
-                        required
-                      />
-                    </FormField>
-                    <FormField label="NDIS Number">
-                      <TextInput
-                        value={ndisNumber}
-                        onChange={(e) => setNdisNumber(e.target.value)}
-                        placeholder="e.g. 430 982 104"
-                      />
-                    </FormField>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <FormField label="Choose Support Worker from Team *" hint="Select the worker this agreement is for.">
-                    <select aria-label="-- Select Worker from Register --"
-                      value={selectedOwnerId}
-                      onChange={(e) => handleOwnerChange(e.target.value)}
-                      className="crmFormSelect"
-                    >
-                      <option value="">-- Select Worker from Register --</option>
-                      {staff.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.name} ({w.referenceNumber || 'STF'}) — ${w.hourlyRate || 38.50}/hr ({w.role})
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-
-                  <FormField label="Worker Full Legal Name *" required>
-                    <TextInput
-                      value={recipientName}
-                      onChange={(e) => setRecipientName(e.target.value)}
-                      placeholder="Full Legal Name"
-                      required
-                    />
-                  </FormField>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 3: CUSTOMISE TERMS & SCHEDULE */}
-          {step === 3 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* SHAM CONTRACTING WARNING GATE FOR CONTRACTORS */}
-              {selectedTemplate === 'DOC-CTR-01' && (
-                <div style={{ background: 'var(--oc-danger-soft)', border: '1.5px solid #F87171', borderRadius: 10, padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <AlertTriangle size={18} style={{ color: 'var(--oc-danger)' }} />
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#991B1B' }}>
-                      Independent Contractor Verification Gate
-                    </span>
-                  </div>
-                  <p style={{ fontSize: '0.8125rem', color: '#7F1D1D', margin: '0 0 12px', lineHeight: 1.45 }}>
-                    To prevent sham contracting under the Fair Work Act, verify all 4 criteria before issuing a subcontractor agreement:
-                  </p>
-                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <Checkbox
-                      checked={contractorChecks.independentBiz}
-                      onChange={(v) => setContractorChecks({ ...contractorChecks, independentBiz: v })}
-                      label="Operates an independent commercial business with active ABN"
-                    />
-                    <Checkbox
-                      checked={contractorChecks.toolsAndInsurances}
-                      onChange={(v) => setContractorChecks({ ...contractorChecks, toolsAndInsurances: v })}
-                      label="Maintains own insurance, vehicle, and work equipment"
-                    />
-                    <Checkbox
-                      checked={contractorChecks.delegationRight}
-                      onChange={(v) => setContractorChecks({ ...contractorChecks, delegationRight: v })}
-                      label="Has genuine right to delegate or subcontract support shifts"
-                    />
-                    <Checkbox
-                      checked={contractorChecks.paidForOutcome}
-                      onChange={(v) => setContractorChecks({ ...contractorChecks, paidForOutcome: v })}
-                      label="Remunerated on invoice for service outcomes, not hourly wage"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* PARTICIPANT SCHEDULE OF SUPPORTS */}
-              {ownerType === 'participant' && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <h4 className="crmCardTitle" style={{ margin: 0 }}>
-                      Schedule of Supports & Mutually Agreed Pricing
-                    </h4>
-                    <button
-                      type="button"
-                      onClick={addScheduleRow}
-                      className="crmSecondaryBtn"
-                      style={{ minHeight: 34, padding: '4px 12px', fontSize: '0.8125rem' }}
-                    >
-                      + Add Service Line
-                    </button>
-                  </div>
-
-                  <div style={{ border: '1px solid var(--oc-border)', borderRadius: 8, overflow: 'hidden', marginBottom: 14 }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-                      <thead>
-                        <tr style={{ background: 'var(--oc-background)', borderBottom: '1px solid var(--oc-border)', textAlign: 'left', color: 'var(--oc-muted)' }}>
-                          <th style={{ padding: '8px 12px' }}>NDIS Support Item</th>
-                          <th style={{ padding: '8px 12px', width: 100 }}>Hours/Wk</th>
-                          <th style={{ padding: '8px 12px', width: 110 }}>Agreed Rate</th>
-                          <th style={{ padding: '8px 12px', width: 110 }}>Weekly Est.</th>
-                          <th style={{ padding: '8px 12px', width: 40 }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {scheduleItems.map((item: any, idx: number) => {
-                          const weeklyTotal = (Number(item.hours_pw || 0) * Number(item.agreed_rate || 0)).toFixed(2);
-                          return (
-                            <tr key={idx} style={{ borderBottom: '1px solid #EEF2F6' }}>
-                              <td style={{ padding: '6px 12px' }}>
-                                <select
-                                  value={item.item_code}
-                                  onChange={(e) => {
-                                    const match = NDIS_SERVICES.find((s) => s.code === e.target.value);
-                                    if (match) {
-                                      updateScheduleItem(idx, 'item_code', match.code);
-                                      updateScheduleItem(idx, 'description', match.description);
-                                      updateScheduleItem(idx, 'agreed_rate', match.refRate);
-                                    }
-                                  }}
-                                  className="crmFormSelect"
-                                  style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
-                                >
-                                  {NDIS_SERVICES.map((ns) => (
-                                    <option key={ns.code} value={ns.code}>
-                                      {ns.description} ({ns.code})
-                                    </option>
-                                  ))}
-                                </select>
-                              </td>
-                              <td style={{ padding: '6px 12px' }}>
-                                <input
-                                  type="number"
-                                  step="0.5"
-                                  min="0"
-                                  value={item.hours_pw}
-                                  onChange={(e) => updateScheduleItem(idx, 'hours_pw', parseFloat(e.target.value) || 0)}
-                                  className="crmFormInput"
-                                  style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
-                                />
-                              </td>
-                              <td style={{ padding: '6px 12px' }}>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  value={item.agreed_rate}
-                                  onChange={(e) => updateScheduleItem(idx, 'agreed_rate', parseFloat(e.target.value) || 0)}
-                                  className="crmFormInput"
-                                  style={{ minHeight: 36, padding: '4px 8px', fontSize: '0.8125rem' }}
-                                />
-                              </td>
-                              <td style={{ padding: '6px 12px', fontWeight: 600, color: 'var(--oc-text)' }}>
-                                ${weeklyTotal}
-                              </td>
-                              <td style={{ padding: '6px 12px' }}>
-                                {scheduleItems.length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => removeScheduleRow(idx)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)' }}
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div style={{ background: 'var(--oc-background)', padding: '10px 14px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--oc-muted)' }}>Estimated Annual Budget Commitment (52 Weeks):</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--oc-text)' }}>${totalAnnualBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-
-                  {/* Consents */}
-                  <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Checkbox
-                      checked={transportIncluded}
-                      onChange={setTransportIncluded}
-                      label="Include Transport Assistance Schedule"
-                      description="Authorizes travel allowances and mileage billing under standard NDIS price limits."
-                    />
-                    <Checkbox
-                      checked={mediaConsent}
-                      onChange={setMediaConsent}
-                      label="Include Photography & Media Consent Schedule"
-                      description="Optional consent for Opus Care community stories and updates."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* WORKER / CONTRACTOR TERMS */}
-              {ownerType !== 'participant' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <FormField label="Classification / Award Level">
-                      <TextInput
-                        value={workerClassification}
-                        onChange={(e) => setWorkerClassification(e.target.value)}
-                        placeholder="Level 2 Support Worker"
-                      />
-                    </FormField>
-
-                    <FormField label="Employment Basis">
-                      <select aria-label="Casual (25% loading included)"
-                        value={workerBasis}
-                        onChange={(e) => setWorkerBasis(e.target.value as any)}
-                        className="crmFormSelect"
-                      >
-                        <option value="casual">Casual (25% loading included)</option>
-                        <option value="part_time">Part-Time (Permanent contracted hours)</option>
-                        <option value="full_time">Full-Time (38 hrs/wk standard)</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                    <FormField label="Base Hourly Rate ($ AUD)" required>
-                      <TextInput
-                        type="number"
-                        step="0.5"
-                        value={workerRate}
-                        onChange={(e) => setWorkerRate(parseFloat(e.target.value) || 0)}
-                      />
-                    </FormField>
-
-                    <FormField label="Superannuation Guarantee (%)">
-                      <TextInput
-                        type="number"
-                        step="0.1"
-                        value={superRate}
-                        onChange={(e) => setSuperRate(parseFloat(e.target.value) || 0)}
-                      />
-                    </FormField>
-                  </div>
-
-                  <Checkbox
-                    checked={includeRestraintClause}
-                    onChange={setIncludeRestraintClause}
-                    label="Include Non-Solicitation & Restraint Clause (Fair Work Act compliant)"
-                    description="12-month post-employment restraint prohibiting direct solicitation of Opus Care participants."
-                  />
-                </div>
-              )}
-
-              {/* Dates */}
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 10 }}>
-                <FormField label="Commencement Date" required>
-                  <DatePicker
-                    value={commencementDate}
-                    onChange={(e) => setCommencementDate(e.target.value)}
-                  />
+            <FormSection title="1. Agreement Target & Recipient">
+              {!sourceAgreement && (
+                <FormField label="Agreement Type" required id="agrType">
+                  <FormSelect
+                    id="agrType"
+                    value={ownerType}
+                    onChange={(e) => {
+                      const val = e.target.value as any;
+                      setOwnerType(val);
+                      setSelectedOwnerId('');
+                      setRecipientName('');
+                    }}
+                  >
+                    <option value="participant">Participant Service Agreement &amp; Schedule of Supports</option>
+                    <option value="staff">Direct Support Worker Employment Contract (PAYG)</option>
+                    <option value="contractor">Independent Support Contractor Agreement (ABN)</option>
+                  </FormSelect>
                 </FormField>
+              )}
 
-                <FormField label="Annual Review Date">
-                  <DatePicker
-                    value={reviewDate}
-                    onChange={(e) => setReviewDate(e.target.value)}
-                  />
-                </FormField>
-
-                <FormField label="Expiry Date">
-                  <DatePicker
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                  />
+              <div style={{ marginTop: 16 }}>
+                <FormField
+                  label={`Select ${ownerType === 'participant' ? 'Participant' : 'Support Worker'}`}
+                  required
+                  hint={
+                    ownerType === 'participant'
+                      ? 'Only registered participants with active records can be selected.'
+                      : 'Verified staff members from the workforce directory.'
+                  }
+                  id="agrOwner"
+                >
+                  <FormSelect
+                    id="agrOwner"
+                    value={selectedOwnerId}
+                    onChange={(e) => handleOwnerSelect(e.target.value)}
+                  >
+                    <option value="">
+                      -- Choose {ownerType === 'participant' ? 'Participant' : 'Worker'} --
+                    </option>
+                    {ownerType === 'participant'
+                      ? participants.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} {p.ndisNumber ? `(NDIS #${p.ndisNumber})` : ''} - {p.suburb || 'Yamba'}
+                          </option>
+                        ))
+                      : staff.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} ({s.role || 'Support Worker'}) - ${s.hourlyRate || 38.50}/hr
+                          </option>
+                        ))}
+                  </FormSelect>
                 </FormField>
               </div>
-            </div>
-          )}
 
-          {/* STEP 4: REVIEW & SIGN */}
-          {step === 4 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <div>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Review & Sign</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Review agreement terms and complete execution with compliant digital signature.
-                </p>
-              </div>
-
-              <ReviewSummary
-                sections={[
-                  {
-                    title: 'Contract Details',
-                    fields: [
-                      { label: 'Document Template', value: selectedTemplate },
-                      { label: 'Recipient Name', value: recipientName },
-                      { label: 'Commencement Date', value: commencementDate },
-                      {
-                        label: 'Total Value / Rate',
-                        value: ownerType === 'participant' ? `$${totalAnnualBudget.toLocaleString()} / year` : `$${workerRate} / hour`,
-                      },
-                    ],
-                  },
-                ]}
-              />
-
-              {/* Digital Signature Canvas */}
-              <div
-                style={{
-                  background: 'var(--oc-background)',
-                  border: '1.5px solid var(--oc-border)',
-                  borderRadius: 10,
-                  padding: 16,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <PenTool size={18} style={{ color: 'var(--oc-info)' }} />
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>
-                      Digital Signature Canvas ({ownerType === 'participant' ? 'Participant / Guardian' : 'Support Worker'})
-                    </span>
-                  </div>
-                  {hasDrawn && (
-                    <button
-                      type="button"
-                      onClick={clearCanvas}
-                      style={{ background: 'none', border: 'none', color: 'var(--oc-danger)', fontSize: '0.8125rem', cursor: 'pointer' }}
-                    >
-                      Clear Canvas
-                    </button>
-                  )}
-                </div>
-
+              {selectedOwnerId && (
                 <div
                   style={{
-                    background: 'var(--oc-surface)',
-                    border: '1.5px dashed var(--oc-border)',
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    height: 140,
-                    cursor: 'crosshair',
+                    marginTop: 16,
+                    padding: '14px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--bg-canvas)',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
                   }}
                 >
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    Selected Recipient Record
+                  </span>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-heading)' }}>
+                    {recipientName}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+                    {ownerType === 'participant'
+                      ? `NDIS #: ${ndisNumber || 'Not recorded'} • Funding: ${fundingType}`
+                      : `Classification: ${workerClassification} • Base: $${workerRate}/hr`}
+                  </div>
+                </div>
+              )}
+            </FormSection>
+          </div>
+        )}
+
+        {/* STEP 2: DETAILS & DATES */}
+        {step === 2 && (
+          <div>
+            {ownerType === 'participant' ? (
+              <FormSection title="2. Agreement Schedule & Funding Details">
+                <FormGrid2>
+                  <FormField label="Agreement Start Date" required id="agrStart">
+                    <FormInput
+                      id="agrStart"
+                      type="date"
+                      value={commencementDate}
+                      onChange={(e) => setCommencementDate(e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Agreement Review Date" required id="agrEnd">
+                    <FormInput
+                      id="agrEnd"
+                      type="date"
+                      value={reviewDate}
+                      onChange={(e) => setReviewDate(e.target.value)}
+                    />
+                  </FormField>
+                </FormGrid2>
+
+                <div style={{ marginTop: 16 }}>
+                  <FormField label="NDIS Funding Type" required id="agrFunding">
+                    <FormSelect
+                      id="agrFunding"
+                      value={fundingType}
+                      onChange={(e) => setFundingType(e.target.value)}
+                    >
+                      <option value="Plan-Managed">Plan-Managed (Invoices issued to registered Plan Manager)</option>
+                      <option value="Self-Managed">Self-Managed (Participant / Nominee pays directly)</option>
+                      <option value="NDIA-Managed">Agency / NDIA-Managed</option>
+                    </FormSelect>
+                  </FormField>
+                </div>
+
+                {fundingType === 'Plan-Managed' && (
+                  <FormGrid2 style={{ marginTop: 16 }}>
+                    <FormField label="Plan Management Agency" id="agrPmName">
+                      <FormInput
+                        id="agrPmName"
+                        value={planManagerName}
+                        onChange={(e) => setPlanManagerName(e.target.value)}
+                        placeholder="e.g. Plan Partners"
+                      />
+                    </FormField>
+
+                    <FormField label="Plan Manager Invoice Email" id="agrPmEmail">
+                      <FormInput
+                        id="agrPmEmail"
+                        type="email"
+                        value={planManagerEmail}
+                        onChange={(e) => setPlanManagerEmail(e.target.value)}
+                        placeholder="invoices@planpartners.com.au"
+                      />
+                    </FormField>
+                  </FormGrid2>
+                )}
+              </FormSection>
+            ) : (
+              <FormSection title="2. Engagement Terms & Employment Basis">
+                <FormField label="Employment Basis" required id="wBasis">
+                  <FormSelect
+                    id="wBasis"
+                    value={workerBasis}
+                    onChange={(e) => setWorkerBasis(e.target.value as any)}
+                  >
+                    <option value="casual">Casual (includes 25% casual loading under SCHADS Award)</option>
+                    <option value="part_time">Part-Time (Guaranteed weekly minimum hours)</option>
+                    <option value="full_time">Full-Time (38.0 hours standard weekly)</option>
+                  </FormSelect>
+                </FormField>
+
+                <FormGrid2 style={{ marginTop: 16 }}>
+                  <FormField label="Agreed Weekly Hours" required id="wHours">
+                    <FormInput
+                      id="wHours"
+                      type="number"
+                      value={workerAgreedHours}
+                      onChange={(e) => setWorkerAgreedHours(Number(e.target.value) || 0)}
+                    />
+                  </FormField>
+
+                  <FormField label="Commencement Date" required id="wStart">
+                    <FormInput
+                      id="wStart"
+                      type="date"
+                      value={commencementDate}
+                      onChange={(e) => setCommencementDate(e.target.value)}
+                    />
+                  </FormField>
+                </FormGrid2>
+              </FormSection>
+            )}
+          </div>
+        )}
+
+        {/* STEP 3: SUPPORT ITEMS / CLASSIFICATION */}
+        {step === 3 && (
+          <div>
+            {ownerType === 'participant' ? (
+              <FormSection title="3. Support Categories & NDIS Item Selection">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-heading)' }}>
+                      Included Support Items ({scheduleItems.length})
+                    </span>
+                    <FormSelect
+                      style={{ width: 'auto', minWidth: 260, padding: '6px 12px', fontSize: 12.5 }}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          addSupportItem(e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                    >
+                      <option value="">+ Add Support Item From Catalogue...</option>
+                      {supportCatalogue.map((item) => (
+                        <option key={item.code} value={item.code}>
+                          [{item.code}] {item.description} (${item.refRate}/hr)
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </div>
+
+                  {scheduleItems.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '12px 14px',
+                        background: '#F8FAFC',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 10,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand-primary)', fontFamily: 'monospace' }}>
+                            {item.item_code}
+                          </span>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-heading)' }}>
+                            {item.description}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeSupportItem(idx)}
+                          style={{ background: 'none', border: 'none', color: 'var(--status-rose)', cursor: 'pointer', padding: 4 }}
+                          title="Remove item"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+
+                      <FormGrid2>
+                        <FormField label="Allocated Weekly Hours" id={`hrs_${idx}`}>
+                          <FormInput
+                            id={`hrs_${idx}`}
+                            type="number"
+                            step="0.5"
+                            value={item.hours_pw}
+                            onChange={(e) => updateSupportItem(idx, 'hours_pw', Number(e.target.value))}
+                          />
+                        </FormField>
+
+                        <FormField label="Agreed Rate ($ / hr)" id={`rate_${idx}`}>
+                          <FormInput
+                            id={`rate_${idx}`}
+                            type="number"
+                            step="0.01"
+                            value={item.agreed_rate}
+                            onChange={(e) => updateSupportItem(idx, 'agreed_rate', Number(e.target.value))}
+                          />
+                        </FormField>
+                      </FormGrid2>
+                    </div>
+                  ))}
+
+                  <div style={{ marginTop: 10 }}>
+                    <FormField label="Travel & Non-Labour Cap ($ AUD)" hint="Allowance cap for provider travel under NDIA guidelines" id="agrTravel">
+                      <FormInput
+                        id="agrTravel"
+                        type="number"
+                        value={travelNonLabourCap}
+                        onChange={(e) => setTravelNonLabourCap(Number(e.target.value) || 0)}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              </FormSection>
+            ) : (
+              <FormSection title="3. Worker Classification & Remuneration">
+                <FormField label="Classification Title" required id="wClass">
+                  <FormSelect
+                    id="wClass"
+                    value={workerClassification}
+                    onChange={(e) => setWorkerClassification(e.target.value)}
+                  >
+                    <option value="Disability Support Worker (Level 2)">Disability Support Worker (Level 2)</option>
+                    <option value="Senior Support Worker (Level 3)">Senior Support Worker (Level 3)</option>
+                    <option value="Support Coordinator (Level 4)">Support Coordinator (Level 4)</option>
+                    <option value="Care Team Lead (Level 5)">Care Team Lead (Level 5)</option>
+                  </FormSelect>
+                </FormField>
+
+                <FormGrid2 style={{ marginTop: 16 }}>
+                  <FormField label="Base Hourly Rate ($ AUD)" required id="wRate">
+                    <FormInput
+                      id="wRate"
+                      type="number"
+                      step="0.50"
+                      value={workerRate}
+                      onChange={(e) => setWorkerRate(Number(e.target.value) || 0)}
+                    />
+                  </FormField>
+
+                  <FormField label="Superannuation Contribution (%)" id="wSuper">
+                    <FormInput
+                      id="wSuper"
+                      type="number"
+                      step="0.25"
+                      value={superRate}
+                      onChange={(e) => setSuperRate(Number(e.target.value) || 0)}
+                    />
+                  </FormField>
+                </FormGrid2>
+              </FormSection>
+            )}
+          </div>
+        )}
+
+        {/* STEP 4: SCHEDULE & ALLOCATION SUMMARY */}
+        {step === 4 && (
+          <div>
+            {ownerType === 'participant' ? (
+              <FormSection title="4. Support Schedule & Live Calculation">
+                {/* Live Funding Calculation Summary Card */}
+                <FormSummaryCard
+                  title={`Schedule Budget Estimate (${calculatedDurationWeeks} Weeks)`}
+                  badge="Standard NDIS Price Limit"
+                  rows={[
+                    { label: 'Weekly Allocated Hours:', value: `${totalWeeklyHours.toFixed(1)} hrs / week` },
+                    { label: 'Total Estimated Hours:', value: `${(totalWeeklyHours * calculatedDurationWeeks).toFixed(1)} hrs` },
+                    { label: 'Labour Value:', value: `$${totalLabourValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                    { label: 'Travel & Non-Labour Cap:', value: `$${Number(travelNonLabourCap || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+                  ]}
+                  totalLabel="Total Agreement Value"
+                  totalValue={`$${totalAgreementBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                />
+
+                <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={transportIncluded}
+                      onChange={(e) => setTransportIncluded(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
+                    />
+                    <span>Activity-Based Transport included and approved</span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={mediaConsent}
+                      onChange={(e) => setMediaConsent(e.target.checked)}
+                      style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
+                    />
+                    <span>Media &amp; Photographic Consent recorded</span>
+                  </label>
+                </div>
+              </FormSection>
+            ) : (
+              <FormSection title="4. Contractual Clearances & Award Terms">
+                <FormSummaryCard
+                  title={`Contractual Estimate (${calculatedDurationWeeks} Weeks)`}
+                  badge="SCHADS Award Basis"
+                  rows={[
+                    { label: 'Classification:', value: workerClassification },
+                    { label: 'Employment Basis:', value: workerBasis.toUpperCase() },
+                    { label: 'Base Hourly Rate:', value: `$${workerRate.toFixed(2)} AUD / hr` },
+                    { label: 'Agreed Weekly Commitment:', value: `${workerAgreedHours} hrs / week` },
+                    { label: 'Statutory Superannuation:', value: `${superRate}% SGC` },
+                  ]}
+                  totalLabel="Annualized Commitment"
+                  totalValue={`$${totalAgreementBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                />
+              </FormSection>
+            )}
+          </div>
+        )}
+
+        {/* STEP 5: REVIEW & SIGN */}
+        {step === 5 && (
+          <FormSection title="5. Review & Execution">
+            <FormSummaryCard
+              title={
+                ownerType === 'participant'
+                  ? `NDIS Service Agreement - ${recipientName}`
+                  : `Workforce Support Contract - ${recipientName}`
+              }
+              badge="Ready for Execution"
+              rows={[
+                { label: 'Recipient Name:', value: recipientName },
+                { label: 'Commencement Date:', value: commencementDate },
+                { label: 'Review Date:', value: reviewDate },
+                {
+                  label: 'Financial Commitment:',
+                  value: `$${totalAgreementBudget.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AUD`,
+                },
+              ]}
+            />
+
+            <div style={{ marginTop: 20 }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  color: 'var(--text-heading)',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: executeNow ? 'var(--brand-subtle)' : 'var(--bg-canvas)',
+                  border: `1px solid ${executeNow ? 'var(--brand-primary)' : 'var(--border)'}`,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={executeNow}
+                  onChange={(e) => setExecuteNow(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
+                />
+                <span>Execute &amp; Sign Digitally Now (Record signatures and mark Active)</span>
+              </label>
+            </div>
+
+            {executeNow && (
+              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <FormGrid2>
+                  <FormField label="Signer Name" required id="sigName">
+                    <FormInput
+                      id="sigName"
+                      value={signerName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      placeholder="Signer Full Legal Name"
+                    />
+                  </FormField>
+
+                  <FormField label="Signer Title / Role" required id="sigTitle">
+                    <FormInput
+                      id="sigTitle"
+                      value={signerTitle}
+                      onChange={(e) => setSignerTitle(e.target.value)}
+                    />
+                  </FormField>
+                </FormGrid2>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label className="form-label">
+                      Digital Signature Canvas <span className="req">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={clearSignature}
+                      style={{ background: 'none', border: 'none', color: 'var(--brand-primary)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Clear Signature
+                    </button>
+                  </div>
                   <canvas
                     ref={canvasRef}
-                    width={760}
+                    width={560}
                     height={140}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                    style={{ width: '100%', height: '100%', display: 'block' }}
+                    style={{
+                      width: '100%',
+                      height: 140,
+                      background: '#FFFFFF',
+                      border: '2px dashed var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      cursor: 'crosshair',
+                      touchAction: 'none',
+                    }}
                   />
-                </div>
-
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <FormField label="Signatory Name">
-                    <TextInput
-                      value={signerName || recipientName}
-                      onChange={(e) => setSignerName(e.target.value)}
-                      placeholder="Signatory Name"
-                    />
-                  </FormField>
-                  <FormField label="Signatory Capacity">
-                    <TextInput
-                      value={signerTitle}
-                      onChange={(e) => setSignerTitle(e.target.value)}
-                      placeholder="e.g. Participant / Support Worker"
-                    />
-                  </FormField>
+                  <span className="helper-text">Draw signature using trackpad, mouse, or touch device.</span>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Modal Footer Controls */}
-        <div
-          style={{
-            padding: '14px 24px',
-            borderTop: '1px solid var(--oc-border)',
-            background: 'var(--oc-background)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-          }}
-        >
-          <div>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={() => setStep((prev) => Math.max(prev - 1, 1) as any)}
-                className="crmSecondaryBtn"
-              >
-                <ArrowLeft size={16} />
-                <span>Back</span>
-              </button>
             )}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              type="button"
-              onClick={onClose}
-              className="crmSecondaryBtn"
-            >
-              Cancel
-            </button>
-
-            {step < 4 ? (
-              <button
-                type="button"
-                disabled={step === 3 && selectedTemplate === 'DOC-CTR-01' && !isContractorGatePassed}
-                onClick={() => setStep((prev) => Math.min(prev + 1, 4) as any)}
-                className="crmActionBtnPrimary"
-              >
-                <span>Continue</span>
-                <ArrowRight size={16} />
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleSaveAndExecute(false)}
-                  className="crmSecondaryBtn"
-                >
-                  Save as Draft
-                </button>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleSaveAndExecute(true)}
-                  className="crmActionBtnPrimary"
-                  style={{ background: '#059669' }}
-                >
-                  {submitting ? (
-                    <span>Executing Agreement...</span>
-                  ) : (
-                    <>
-                      <Check size={16} />
-                      <span>Execute & Activate</span>
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+          </FormSection>
+        )}
       </div>
-    </div>
+
+      <StickyFormFooter
+        onCancel={onClose}
+        onSecondary={() => handleSubmit(true)}
+        secondaryLabel="Save Draft"
+        secondaryDisabled={submitting}
+        onPrimary={step < 5 ? handleNext : () => handleSubmit(false)}
+        primaryLabel={
+          step < 5
+            ? `Next: ${steps[step].label}`
+            : executeNow
+            ? 'Execute & Activate'
+            : 'Save Agreement'
+        }
+        primaryIcon={step === 5 && executeNow ? <PenTool size={15} /> : step === 5 ? <Check size={15} /> : undefined}
+        showArrow={step < 5}
+        loading={submitting}
+      />
+    </FormDrawer>
   );
 }

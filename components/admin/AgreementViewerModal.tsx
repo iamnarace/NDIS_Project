@@ -1,9 +1,17 @@
 'use client';
 
-import useDialogFocus from '@/components/ui/useDialogFocus';
-
 import React, { useRef } from 'react';
-import { X, Printer, Shield, CheckCircle2, FileText, Download, Clock, GitBranch, PenTool } from 'lucide-react';
+import {
+  X,
+  Printer,
+  Shield,
+  CheckCircle2,
+  FileText,
+  Clock,
+  GitBranch,
+  PenTool,
+} from 'lucide-react';
+import { FormDrawer, DrawerHeader } from '@/components/admin/forms';
 
 interface AgreementViewerModalProps {
   agreement: any;
@@ -12,8 +20,12 @@ interface AgreementViewerModalProps {
   onResumeDraft?: (agreement: any) => void;
 }
 
-export default function AgreementViewerModal({ agreement, onClose, onCreateVariation, onResumeDraft }: AgreementViewerModalProps) {
-  const dialogRef = useDialogFocus(onClose);
+export default function AgreementViewerModal({
+  agreement,
+  onClose,
+  onCreateVariation,
+  onResumeDraft,
+}: AgreementViewerModalProps) {
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -25,277 +37,230 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
   const clauses = agreement.compiled_clauses || {};
 
   return (
-    <div className="crmModalOverlay" onClick={onClose}>
-      <div className="crmModalBox" ref={dialogRef} role="dialog" aria-modal="true" aria-label="Agreement details" tabIndex={-1} style={{ maxWidth: 840, maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
-        {/* Header Bar */}
-        <div className="crmModalHeader" style={{ flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{
-              fontFamily: 'monospace',
-              fontWeight: 600,
-              background: '#E0F2FE',
-              color: 'var(--oc-info)',
-              padding: '3px 8px',
-              borderRadius: 6,
-              fontSize: '0.85rem'
-            }}>
+    <FormDrawer isOpen onClose={onClose} wide>
+      {/* Header Bar */}
+      <div className="drawer-header">
+        <div className="header-title-block">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                background: 'var(--brand-subtle)',
+                color: 'var(--brand-primary)',
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '12px',
+              }}
+            >
               {agreement.agreement_reference}
             </span>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                  {agreement.title}
-                </h3>
-                <span style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  background: isExecuted ? '#ECFDF5' : 'var(--oc-warning-soft)',
-                  color: isExecuted ? '#059669' : '#B45309',
-                  padding: '2px 8px',
-                  borderRadius: 20
-                }}>
-                  v{agreement.version_number} • {agreement.status.toUpperCase()}
-                </span>
-              </div>
+            <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>{agreement.title}</h2>
+            <span
+              className={`pill-semantic ${isExecuted ? 'pill-mint' : 'pill-amber'}`}
+            >
+              v{agreement.version_number} • {agreement.status.toUpperCase()}
+            </span>
+          </div>
+          <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--text-muted)' }}>
+            Commenced: {agreement.commencement_date || 'Not set'} • Review: {agreement.review_date || '12 Months'}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {onResumeDraft && agreement.status === 'draft' && (
+            <button
+              type="button"
+              onClick={() => onResumeDraft(agreement)}
+              className="btn btn-primary"
+              style={{ padding: '6px 12px', fontSize: 12 }}
+            >
+              <PenTool size={14} />
+              <span>Continue &amp; Sign</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="btn btn-surface"
+            style={{ padding: '6px 12px', fontSize: 12 }}
+            title="Print Document"
+          >
+            <Printer size={14} />
+            <span>Print / PDF</span>
+          </button>
+
+          {onCreateVariation && isExecuted && (
+            <button
+              type="button"
+              onClick={() => onCreateVariation(agreement)}
+              className="btn btn-surface"
+              style={{ padding: '6px 12px', fontSize: 12 }}
+              title="Create a variation that supersedes this agreement"
+            >
+              <GitBranch size={14} />
+              <span>Variation (v{agreement.version_number + 1})</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="btn-close-icon"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Body Content */}
+      <div className="drawer-body" ref={printRef}>
+        {/* Recipient & Financial Summary Card */}
+        <div
+          style={{
+            background: 'var(--bg-canvas)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '16px 20px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 16,
+          }}
+        >
+          <div>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Recipient / Target
+            </span>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-heading)', marginTop: 2 }}>
+              {qData.participant_name || qData.worker_name || 'Recipient Name'}
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+              {agreement.owner_type === 'participant'
+                ? `NDIS #: ${qData.ndis_number || 'N/A'} • ${qData.funding_type || 'Funding not recorded'}`
+                : `${qData.worker_classification || 'Support Worker'} • ${qData.worker_basis || 'Employment terms'}`}
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {onResumeDraft && agreement.status === 'draft' && (
-              <button
-                onClick={() => onResumeDraft(agreement)}
-                className="crmActionBtnPrimary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontSize: '0.82rem' }}
-              >
-                <PenTool size={15} />
-                <span>Continue & Sign</span>
-              </button>
-            )}
-
-            <button
-              onClick={handlePrint}
-              className="crmSecondaryBtn"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: '0.82rem' }}
-              title="Print Document"
-            >
-              <Printer size={15} />
-              <span>Print / PDF</span>
-            </button>
-
-            {onCreateVariation && isExecuted && (
-              <button
-                onClick={() => onCreateVariation(agreement)}
-                className="crmActionBtnPrimary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontSize: '0.82rem' }}
-                title="Create a new version that supersedes this agreement"
-              >
-                <GitBranch size={15} />
-                <span>Create Variation (v{agreement.version_number + 1})</span>
-              </button>
-            )}
-
-            <button type="button" aria-label="Close dialog" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', marginLeft: 6 }}>
-              <X size={20} />
-            </button>
+          <div>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Estimated Financial Value
+            </span>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--status-mint)', marginTop: 2 }}>
+              {agreement.owner_type === 'participant'
+                ? `$${Number(agreement.estimated_budget || 0).toLocaleString('en-AU', { minimumFractionDigits: 2 })} AUD`
+                : `$${Number(qData.hourly_rate || 0).toFixed(2)} AUD / hr`}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              Commencement: {agreement.commencement_date || 'Immediate'}
+            </div>
           </div>
         </div>
 
-        {/* Scrollable Document Content */}
-        <div ref={printRef} style={{ padding: 32, overflowY: 'auto', flex: 1, background: 'var(--oc-surface)', color: 'var(--oc-text)', lineHeight: 1.6 }}>
-          {/* Document Header */}
-          <div style={{ borderBottom: '2px solid var(--oc-border)', paddingBottom: 20, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#162E56', letterSpacing: '-0.01em' }}>
-                OPUS CARE SUPPORT SERVICES
-              </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--oc-muted)' }}>
-                ABN: 89 654 321 098 • Suite 2, 18 Coldstream St, Yamba NSW 2464<br />
-                Phone: 1300 895 210 • Email: support@opuscare.com.au
-              </div>
-            </div>
-
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.8125rem', textTransform: 'uppercase', fontWeight: 600, color: 'var(--oc-muted)' }}>Agreement Ref</div>
-              <div style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '1.1rem', color: 'var(--oc-info)' }}>
-                {agreement.agreement_reference}
-              </div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Version: {agreement.version_number}.0 ({agreement.template_version})</div>
-            </div>
-          </div>
-
-          {/* Key Parties & Overview */}
-          <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: 18, marginBottom: 24 }}>
-            <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--oc-muted)' }}>Participant / Recipient</span>
-                <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--oc-text)' }}>{qData.participant_name || qData.worker_name || 'Recipient Name'}</div>
-                <div style={{ fontSize: '0.82rem', color: 'var(--oc-secondary)' }}>
-                  {agreement.owner_type === 'participant'
-                    ? `NDIS #: ${qData.ndis_number || 'N/A'} • ${qData.funding_type || 'Funding not recorded'}`
-                    : `${qData.worker_classification || 'Support Worker'} • ${qData.worker_basis || 'Employment terms'}`}
-                </div>
-              </div>
-
-              <div>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--oc-muted)' }}>Term & Value</span>
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                  Commencement: {agreement.commencement_date}
-                </div>
-                <div style={{ fontSize: '0.82rem', color: '#059669', fontWeight: 600 }}>
-                  {agreement.owner_type === 'participant'
-                    ? `Estimated Plan Commitment: $${Number(agreement.estimated_budget || 0).toLocaleString('en-AU', { minimumFractionDigits: 2 })} AUD`
-                    : `Base Hourly Rate: $${Number(qData.hourly_rate || 0).toFixed(2)} AUD`}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Schedule of Supports Table (if participant agreement) */}
-          {clauses.service_schedule && clauses.service_schedule.length > 0 && (
-            <div style={{ marginBottom: 28 }}>
-              <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#162E56', marginBottom: 10, borderBottom: '1px solid #EEF2F6', paddingBottom: 6 }}>
-                Schedule of Supports & Mutually Agreed Pricing
-              </h4>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
+        {/* Schedule of Supports (For Participants) */}
+        {clauses.service_schedule && Array.isArray(clauses.service_schedule) && (
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-heading)', marginBottom: 10 }}>
+              Schedule of Supports &amp; Pricing Limits
+            </h3>
+            <div className="crmTableWrapper">
+              <table className="crmTable">
                 <thead>
-                  <tr style={{ background: 'var(--oc-subtle)', borderBottom: '1px solid var(--oc-border)', color: 'var(--oc-secondary)' }}>
-                    <th style={{ padding: '8px 10px' }}>Item Code</th>
-                    <th style={{ padding: '8px 10px' }}>Support Description</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center' }}>Hours / Wk</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right' }}>Agreed Rate</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right' }}>Weekly Total</th>
+                  <tr>
+                    <th>Item Code</th>
+                    <th>Support Description</th>
+                    <th>Hours / Wk</th>
+                    <th>Agreed Rate</th>
+                    <th>Weekly Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {clauses.service_schedule.map((item: any, idx: number) => {
-                    const wkTotal = (Number(item.hours_pw) || 0) * (Number(item.agreed_rate) || 0);
+                  {clauses.service_schedule.map((row: any, idx: number) => {
+                    const hrs = Number(row.hours_pw || 0);
+                    const rate = Number(row.agreed_rate || 0);
+                    const subtotal = hrs * rate;
                     return (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--oc-border)' }}>
-                        <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 600, color: 'var(--oc-info)' }}>{item.item_code}</td>
-                        <td style={{ padding: '8px 10px', fontWeight: 600 }}>{item.description}</td>
-                        <td style={{ padding: '8px 10px', textAlign: 'center' }}>{item.hours_pw} hrs</td>
-                        <td style={{ padding: '8px 10px', textAlign: 'right' }}>${Number(item.agreed_rate).toFixed(2)}</td>
-                        <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600, color: '#059669' }}>${wkTotal.toFixed(2)}</td>
+                      <tr key={idx}>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--brand-primary)' }}>
+                          {row.item_code}
+                        </td>
+                        <td>{row.description}</td>
+                        <td>{hrs.toFixed(1)} hrs</td>
+                        <td>${rate.toFixed(2)} / hr</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
+                          ${subtotal.toFixed(2)}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 6, fontStyle: 'italic' }}>
-                * All rates strictly adhere to the current applicable NDIS Support Catalogue and are mutually agreed between the parties. Any future rate change requires mutual written variation.
-              </p>
-            </div>
-          )}
-
-          {/* Legal Clauses Section */}
-          <div style={{ marginBottom: 28, fontSize: '0.88rem', color: 'var(--oc-secondary)' }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#162E56', marginBottom: 12, borderBottom: '1px solid #EEF2F6', paddingBottom: 6 }}>
-              Key Operational & Legal Terms
-            </h4>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <strong style={{ color: 'var(--oc-text)' }}>1. Provider Responsibilities:</strong>
-                <p style={{ margin: '4px 0 0' }}>
-                  Opus Care will deliver supports in accordance with the NDIS Practice Standards, respecting the participant&apos;s autonomy, choice, and dignity of risk. We maintain appropriate worker clearances and worker compliance at all times.
-                </p>
-              </div>
-
-              <div>
-                <strong style={{ color: 'var(--oc-text)' }}>2. Participant Responsibilities & Safe Workplace:</strong>
-                <p style={{ margin: '4px 0 0' }}>
-                  The participant agrees to treat support workers with respect and maintain a safe home environment complying with NSW Work Health and Safety laws during support visits.
-                </p>
-              </div>
-
-              <div>
-                <strong style={{ color: 'var(--oc-text)' }}>3. Cancellation Policy:</strong>
-                <p style={{ margin: '4px 0 0' }}>
-                  In accordance with Opus Care operating policy and applicable NDIS Pricing Arrangements, cancellations made with less than the required short-notice cancellation window will be charged at 100% of the scheduled support fee. Opus Care will always endeavor to find an alternative time or deliver alternative non-face-to-face support where practical.
-                </p>
-              </div>
-
-              <div>
-                <strong style={{ color: 'var(--oc-text)' }}>4. Feedback, Complaints & Safeguarding:</strong>
-                <p style={{ margin: '4px 0 0' }}>
-                  If you have feedback or complaints, you can contact Opus Care Management directly on 1300 895 210 or via email. You also have the right to contact the NDIS Quality and Safeguards Commission at any time on 1800 035 544.
-                </p>
-              </div>
-
-              {qData.transport_included && (
-                <div>
-                  <strong style={{ color: 'var(--oc-text)' }}>5. Transport & Vehicle Travel:</strong>
-                  <p style={{ margin: '4px 0 0' }}>
-                    Where transport support is provided in a support worker&apos;s vehicle, the vehicle is comprehensively insured and registered in NSW. Activity travel is billed in accordance with the agreed Schedule of Supports.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
+        )}
 
-          {/* Signatures Block */}
-          <div style={{ borderTop: '2px solid var(--oc-border)', paddingTop: 20, marginTop: 24 }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#162E56', marginBottom: 14 }}>
-              Execution & Signature Record
-            </h4>
+        {/* Signatures & Execution Record */}
+        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Shield size={16} color="var(--brand-primary)" />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-heading)' }}>
+              Execution &amp; Audit Trail
+            </span>
+          </div>
 
-            <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              {/* Participant / Worker Signature Box */}
-              <div style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: 14, background: 'var(--oc-background)' }}>
-                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase' }}>Signed by Participant / Nominee</div>
-                <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px dashed var(--oc-border)', margin: '10px 0' }}>
-                  {agreement.signatures?.some((s: any) => ['participant', 'guardian', 'worker', 'contractor'].includes(s.party_role)) ? (
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontFamily: 'cursive', fontSize: '1.3rem', color: '#162E56' }}>
-                        {agreement.signatures.find((s: any) => ['participant', 'guardian', 'worker', 'contractor'].includes(s.party_role))?.signer_name}
-                      </span>
-                      <div style={{ fontSize: '0.8125rem', color: '#059669', fontWeight: 600 }}>✓ Verified Digital Signature</div>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontStyle: 'italic' }}>Awaiting Signature</span>
-                  )}
-                </div>
-                <div style={{ fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
-                  Name: <strong>{qData.participant_name || qData.worker_name || 'Recipient'}</strong><br />
-                  Date: {agreement.executed_at ? new Date(agreement.executed_at).toLocaleDateString('en-AU') : 'Pending'}
-                </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 16,
+              background: '#F8FAFC',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '14px 16px',
+            }}
+          >
+            <div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                Recipient Execution
+              </span>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-heading)', marginTop: 2 }}>
+                {isExecuted ? qData.participant_name || qData.worker_name || 'Signed' : 'Pending Signature'}
               </div>
-
-              {/* Provider Signature Box */}
-              <div style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: 14, background: 'var(--oc-background)' }}>
-                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase' }}>Signed for Opus Care Support Services</div>
-                <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px dashed var(--oc-border)', margin: '10px 0' }}>
-                  {agreement.signatures?.some((s: any) => s.party_role === 'provider_rep') ? (
-                    <div style={{ textAlign: 'center' }}>
-                      <span style={{ fontFamily: 'cursive', fontSize: '1.3rem', color: '#162E56' }}>
-                        Director of Operations
-                      </span>
-                      <div style={{ fontSize: '0.8125rem', color: '#059669', fontWeight: 600 }}>✓ Verified Provider Signature</div>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontStyle: 'italic' }}>Awaiting Counter-Signature</span>
-                  )}
-                </div>
-                <div style={{ fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
-                  Name: <strong>Director of Operations</strong> (Managing Director)<br />
-                  Date: {agreement.executed_at ? new Date(agreement.executed_at).toLocaleDateString('en-AU') : 'Pending'}
-                </div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                {isExecuted ? 'Digital Canvas Signature Recorded' : 'Awaiting digital signing'}
               </div>
             </div>
 
-            {/* Cryptographic SHA-256 Hash Footer */}
-            {agreement.executed_hash_sha256 && (
-              <div style={{ marginTop: 20, background: 'var(--oc-subtle)', padding: '10px 14px', borderRadius: 8, fontSize: '0.8125rem', color: 'var(--oc-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Shield size={14} style={{ color: '#059669' }} />
-                  <span><strong>Signed and locked</strong></span>
-                </div>
-                <span style={{ color: '#059669', fontWeight: 600 }}>Signed copy retained</span>
+            <div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                Provider Representative
+              </span>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-heading)', marginTop: 2 }}>
+                {isExecuted ? 'Opus Care Support Services' : 'Pending Verification'}
               </div>
-            )}
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                Managing Director, Opus Care
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Sticky Footer */}
+      <div className="drawer-footer">
+        <button type="button" className="btn-link" onClick={onClose}>
+          Close Viewer
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handlePrint}
+        >
+          <Printer size={15} />
+          <span>Print / Export PDF</span>
+        </button>
+      </div>
+    </FormDrawer>
   );
 }

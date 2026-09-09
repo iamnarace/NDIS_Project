@@ -7,6 +7,15 @@ import DialogPanel from '@/components/ui/DialogPanel';
 import { notify } from '@/components/ui/ProductFeedback';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FormDrawer,
+  DrawerHeader,
+  FormSection,
+  FormField,
+  FormInput,
+  FormTextarea,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 import { 
   FileText, Search, Filter, AlertTriangle, CheckCircle2, 
   Calendar, User, Clock, Target, Edit3, X, Check, Eye
@@ -338,224 +347,197 @@ export default function ProgressNotesTab() {
         </table>
       </div>
 
-      {/* Note Details Modal */}
-      {selectedNote && (
-        <div className="crmModalBackdrop" onClick={() => setSelectedNote(null)}>
-          <DialogPanel onClose={() => setSelectedNote(null)} label="Shift Progress Note Details" className="crmModalCard" style={{ maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <h3 className="crmModalTitle">Shift Progress Note Details</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                  Reference: {selectedNote.shift?.shift_reference || 'Shift'} &bull; Date: {selectedNote.service_date}
-                </p>
-              </div>
-              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setSelectedNote(null)}>&times;</button>
-            </div>
-            <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, background: 'var(--oc-background)', padding: 14, borderRadius: 8 }}>
+      {/* Note Details Drawer */}
+      <FormDrawer
+        isOpen={!!selectedNote}
+        onClose={() => setSelectedNote(null)}
+      >
+        {selectedNote && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <DrawerHeader
+              title="Shift Progress Note"
+              description={`Reference: ${selectedNote.shift?.shift_reference || 'Shift'} • Date: ${selectedNote.service_date}`}
+              badge={<span className="refIdTag">CLINICAL NOTE</span>}
+              onClose={() => setSelectedNote(null)}
+            />
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, background: 'var(--oc-background)', padding: 16, borderRadius: 10, border: '1px solid var(--oc-border)' }}>
                 <div>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Participant</div>
-                  <div style={{ fontWeight: 600, color: 'var(--oc-text)' }}>{selectedNote.participant?.full_name}</div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Participant</span>
+                  <div style={{ fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>{selectedNote.participant?.full_name}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>Support Worker</div>
-                  <div style={{ fontWeight: 600, color: 'var(--oc-text)' }}>{selectedNote.staff?.full_name}</div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Support Worker</span>
+                  <div style={{ fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>{selectedNote.staff?.full_name}</div>
                 </div>
               </div>
 
-              <div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '0.85rem', color: 'var(--oc-text)' }}>Support Delivered</h4>
-                <div style={{ background: 'var(--oc-background)', padding: 12, borderRadius: 8, fontSize: '0.88rem', color: 'var(--oc-secondary)', lineHeight: 1.5 }}>
+              <FormSection title="1. Support Delivered">
+                <div style={{ background: 'var(--oc-background)', padding: 14, borderRadius: 10, fontSize: '0.88rem', color: 'var(--oc-secondary)', lineHeight: 1.6, border: '1px solid var(--oc-border)' }}>
                   {selectedNote.support_delivered || selectedNote.note_text}
                 </div>
-              </div>
+              </FormSection>
 
               {selectedNote.participant_response && (
-                <div>
-                  <h4 style={{ margin: '0 0 6px', fontSize: '0.85rem', color: 'var(--oc-text)' }}>Participant Response</h4>
-                  <div style={{ background: 'var(--oc-background)', padding: 12, borderRadius: 8, fontSize: '0.88rem', color: 'var(--oc-secondary)' }}>
+                <FormSection title="2. Participant Response">
+                  <div style={{ background: 'var(--oc-background)', padding: 14, borderRadius: 10, fontSize: '0.88rem', color: 'var(--oc-secondary)', border: '1px solid var(--oc-border)' }}>
                     {selectedNote.participant_response}
                   </div>
-                </div>
+                </FormSection>
               )}
 
               {selectedNote.outcomes_observed && (
-                <div>
-                  <h4 style={{ margin: '0 0 6px', fontSize: '0.85rem', color: 'var(--oc-text)' }}>Outcomes Observed</h4>
-                  <div style={{ background: 'var(--oc-background)', padding: 12, borderRadius: 8, fontSize: '0.88rem', color: 'var(--oc-secondary)' }}>
+                <FormSection title="3. Outcomes Observed">
+                  <div style={{ background: 'var(--oc-background)', padding: 14, borderRadius: 10, fontSize: '0.88rem', color: 'var(--oc-secondary)', border: '1px solid var(--oc-border)' }}>
                     {selectedNote.outcomes_observed}
                   </div>
-                </div>
+                </FormSection>
               )}
 
               {selectedNote.concerns && (
-                <div>
-                  <h4 style={{ margin: '0 0 6px', fontSize: '0.85rem', color: 'var(--oc-danger)' }}>Concerns / Observations</h4>
-                  <div style={{ background: 'var(--oc-danger-soft)', border: '1px solid #FECACA', padding: 12, borderRadius: 8, fontSize: '0.88rem', color: '#991B1B' }}>
+                <FormSection title="Clinical Concerns / Observations">
+                  <div style={{ background: 'var(--oc-danger-soft)', border: '1px solid #FECACA', padding: 14, borderRadius: 10, fontSize: '0.88rem', color: '#991B1B' }}>
                     {selectedNote.concerns}
                   </div>
-                </div>
+                </FormSection>
               )}
 
               {/* Goals list */}
               {selectedNote.goals && selectedNote.goals.length > 0 && (
-                <div>
-                  <h4 style={{ margin: '0 0 8px', fontSize: '0.85rem', color: 'var(--oc-text)' }}>Goals Supported</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <FormSection title={`NDIS Goals Supported (${selectedNote.goals.length})`}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {selectedNote.goals.map((g) => (
-                      <div key={g.id} style={{ border: '1px solid var(--oc-border)', borderRadius: 8, padding: 10 }}>
+                      <div key={g.id} style={{ border: '1px solid var(--oc-border)', borderRadius: 10, padding: 12 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{g.goal?.goal_title}</span>
-                          <span style={{ fontSize: '0.8125rem', fontWeight: 600, background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '2px 8px', borderRadius: 4 }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', padding: '2px 8px', borderRadius: 4 }}>
                             {g.progress_rating}
                           </span>
                         </div>
                         {g.worker_comment && (
-                          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 4 }}>{g.worker_comment}</div>
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', marginTop: 6 }}>{g.worker_comment}</div>
                         )}
                       </div>
                     ))}
                   </div>
-                </div>
+                </FormSection>
               )}
 
               {selectedNote.follow_up_required && (
-                <div style={{ background: 'var(--oc-warning-soft)', border: '1px solid #FDE68A', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: 'var(--oc-warning-soft)', border: '1px solid #FDE68A', padding: 14, borderRadius: 10 }}>
                   <strong style={{ color: '#B45309', fontSize: '0.85rem' }}>Follow-up Action Required:</strong>
                   <p style={{ margin: '4px 0 0', color: '#92400E', fontSize: '0.85rem' }}>{selectedNote.follow_up_notes || 'Action indicated by worker'}</p>
                 </div>
               )}
             </div>
-          </DialogPanel>
-        </div>
-      )}
 
-      {/* Edit Note Modal (with required reason for audit event) */}
-      {editingNote && (
-        <div className="crmModalBackdrop" onClick={() => setEditingNote(null)}>
-          <DialogPanel onClose={() => setEditingNote(null)} label="Edit Progress Note" className="crmModalCard" style={{ maxWidth: 640 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <h3 className="crmModalTitle">Edit Progress Note</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-danger)' }}>
-                  * Edits are tracked in the Opus Care compliance audit trail with before/after values.
-                </p>
-              </div>
-              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setEditingNote(null)}>&times;</button>
+            <div className="drawer-footer" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedNote(null)}
+                className="canonical-btn canonical-btn-secondary"
+              >
+                Close
+              </button>
             </div>
+          </div>
+        )}
+      </FormDrawer>
 
-            <form onSubmit={handleSaveEdit}>
-              <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
-                    Support Delivered / Note Text *
-                  </label>
-                  <textarea className="ocField" aria-label="Support Delivered / Note Text *"
-                    rows={3}
-                    value={editForm.support_delivered}
-                    onChange={(e) => setEditForm({ ...editForm, support_delivered: e.target.value })}
-                    required
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 10, fontSize: '0.85rem' }}
-                  />
-                </div>
+      {/* Edit Note Drawer (with required reason for audit event) */}
+      <FormDrawer
+        isOpen={!!editingNote}
+        onClose={() => setEditingNote(null)}
+      >
+        <DrawerHeader
+          title="Edit Progress Note"
+          description="Edits are tracked in the Opus Care compliance audit trail with before/after values."
+          badge={<span style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>AUDIT TRAIL</span>}
+          onClose={() => setEditingNote(null)}
+        />
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
-                    Participant Response
-                  </label>
-                  <input className="ocField" aria-label="Participant Response"
-                    type="text"
-                    value={editForm.participant_response}
-                    onChange={(e) => setEditForm({ ...editForm, participant_response: e.target.value })}
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
-                  />
-                </div>
+        <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 73px)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <FormSection title="Clinical Content">
+              <FormField label="Support Delivered / Note Text" required>
+                <FormTextarea
+                  rows={3}
+                  value={editForm.support_delivered}
+                  onChange={(e) => setEditForm({ ...editForm, support_delivered: e.target.value })}
+                  required
+                />
+              </FormField>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
-                    Outcomes Observed
-                  </label>
-                  <input className="ocField" aria-label="Outcomes Observed"
-                    type="text"
-                    value={editForm.outcomes_observed}
-                    onChange={(e) => setEditForm({ ...editForm, outcomes_observed: e.target.value })}
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
-                  />
-                </div>
+              <FormField label="Participant Response">
+                <FormInput
+                  type="text"
+                  value={editForm.participant_response}
+                  onChange={(e) => setEditForm({ ...editForm, participant_response: e.target.value })}
+                />
+              </FormField>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
-                    Concerns / Observations
-                  </label>
-                  <input className="ocField" aria-label="Concerns / Observations"
-                    type="text"
-                    value={editForm.concerns}
-                    onChange={(e) => setEditForm({ ...editForm, concerns: e.target.value })}
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
-                  />
-                </div>
+              <FormField label="Outcomes Observed">
+                <FormInput
+                  type="text"
+                  value={editForm.outcomes_observed}
+                  onChange={(e) => setEditForm({ ...editForm, outcomes_observed: e.target.value })}
+                />
+              </FormField>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input
-                    type="checkbox"
-                    id="editFollowUp"
-                    checked={editForm.follow_up_required}
-                    onChange={(e) => setEditForm({ ...editForm, follow_up_required: e.target.checked })}
-                  />
-                  <label htmlFor="editFollowUp" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                    Follow-up Required
-                  </label>
-                </div>
+              <FormField label="Concerns / Observations">
+                <FormInput
+                  type="text"
+                  value={editForm.concerns}
+                  onChange={(e) => setEditForm({ ...editForm, concerns: e.target.value })}
+                />
+              </FormField>
 
-                {editForm.follow_up_required && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
-                      Follow-up Notes
-                    </label>
-                    <input className="ocField" aria-label="Follow-up Notes"
-                      type="text"
-                      value={editForm.follow_up_notes}
-                      onChange={(e) => setEditForm({ ...editForm, follow_up_notes: e.target.value })}
-                      style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
-                    />
-                  </div>
-                )}
-
-                <div style={{ borderTop: '1px solid var(--oc-border)', paddingTop: 14 }}>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-danger)', marginBottom: 4 }}>
-                    Reason for Edit / Clinical Revision * (Required for Audit Log)
-                  </label>
-                  <input className="ocField" aria-label="Reason for Edit / Clinical Revision * (Required for Audit Log)"
-                    type="text"
-                    placeholder="e.g. Corrected spelling of activity, added missing outcome"
-                    value={editReason}
-                    onChange={(e) => setEditReason(e.target.value)}
-                    required
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid #FCA5A5', background: 'var(--oc-danger-soft)', padding: 8, fontSize: '0.85rem' }}
-                  />
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <input
+                  type="checkbox"
+                  id="editFollowUp"
+                  checked={editForm.follow_up_required}
+                  onChange={(e) => setEditForm({ ...editForm, follow_up_required: e.target.checked })}
+                />
+                <label htmlFor="editFollowUp" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                  Follow-up Required
+                </label>
               </div>
 
-              <div className="crmModalFooter" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: 16 }}>
-                <button
-                  type="button"
-                  onClick={() => setEditingNote(null)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: 'var(--oc-info)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  {saving ? 'Saving...' : 'Save & Record Audit Event'}
-                </button>
-              </div>
-            </form>
-          </DialogPanel>
-        </div>
-      )}
+              {editForm.follow_up_required && (
+                <FormField label="Follow-up Notes">
+                  <FormInput
+                    type="text"
+                    value={editForm.follow_up_notes}
+                    onChange={(e) => setEditForm({ ...editForm, follow_up_notes: e.target.value })}
+                  />
+                </FormField>
+              )}
+            </FormSection>
+
+            <FormSection title="Audit & Compliance Justification">
+              <FormField label="Reason for Clinical Revision" hint="Immutable audit log entry will be created" required>
+                <FormInput
+                  type="text"
+                  placeholder="e.g. Corrected spelling of activity, added missing outcome"
+                  value={editReason}
+                  onChange={(e) => setEditReason(e.target.value)}
+                  required
+                  style={{ border: '1px solid #FCA5A5', background: 'var(--oc-danger-soft)' }}
+                />
+              </FormField>
+            </FormSection>
+          </div>
+
+          <StickyFormFooter
+            cancelLabel="Cancel"
+            onCancel={() => setEditingNote(null)}
+            primaryLabel={saving ? 'Saving...' : 'Save & Record Audit Event'}
+            loading={saving}
+          />
+        </form>
+      </FormDrawer>
     </div>
   );
 }

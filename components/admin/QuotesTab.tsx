@@ -7,6 +7,18 @@ import DialogPanel from '@/components/ui/DialogPanel';
 import { notify } from '@/components/ui/ProductFeedback';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FormDrawer,
+  DrawerHeader,
+  FormSection,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormGrid2,
+  FormSummaryCard,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 import { 
   FileText, Plus, Calculator, CheckCircle2, Send, 
   Printer, ArrowRight, Layers, Trash2, Eye, ExternalLink, RefreshCw
@@ -382,190 +394,164 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
         </table>
       </div>
 
-      {/* Quote Builder Modal */}
-      {showBuilder && (
-        <div className="crmModalBackdrop" onClick={() => setShowBuilder(false)}>
-          <DialogPanel onClose={() => setShowBuilder(false)} label="Create a service quote" className="crmModalCard" style={{ maxWidth: 840 }} onClick={(e) => e.stopPropagation()}>
-            <div className="crmModalHeader">
-              <div>
-                <h3 className="crmModalTitle">Create a service quote</h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                  Select NDIS support items, weekly hours, and agreement duration to generate an authoritative quote.
-                </p>
-              </div>
-              <button aria-label="Close dialog" className="crmModalCloseBtn" onClick={() => setShowBuilder(false)}>&times;</button>
-            </div>
+      {/* Quote Builder Drawer */}
+      <FormDrawer
+        isOpen={showBuilder}
+        onClose={() => setShowBuilder(false)}
+        wide={true}
+      >
+        <DrawerHeader
+          title="Create NDIS Service Quote"
+          description="Select NDIS support items, weekly hours, and agreement duration to generate an authoritative quote."
+          badge={<span className="refIdTag">SERVICE QUOTE</span>}
+          onClose={() => setShowBuilder(false)}
+        />
 
-            <form onSubmit={handleSaveQuote}>
-              <div className="crmModalBody" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                      Participant *
-                    </label>
-                    <select className="ocField" aria-label="Participant *"
-                      value={selectedParticipantId}
-                      onChange={(e) => setSelectedParticipantId(e.target.value)}
-                      required
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem', background: '#FFF' }}
-                    >
-                      <option value="">Select a participant...</option>
-                      {participants.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.referenceNumber || 'PAR'}) - {p.fundingType || 'Plan-Managed'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                      Valid Until
-                    </label>
-                    <input className="ocField" aria-label="Valid Until"
-                      type="date"
-                      value={validUntil}
-                      onChange={(e) => setValidUntil(e.target.value)}
-                      style={{ width: '100%', height: 38, borderRadius: 8, border: '1px solid var(--oc-border)', padding: '0 10px', fontSize: '0.85rem' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Line Items Builder */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--oc-text)' }}>
-                      Support Schedule Items ({builderItems.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleAddItem}
-                      style={{ background: 'var(--oc-info-soft)', color: 'var(--oc-accent)', border: 'none', padding: '5px 12px', borderRadius: 6, fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      + Add Item
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {builderItems.map((item, idx) => (
-                      <div key={idx} style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: 12 }}>
-                        <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 40px', gap: 10, alignItems: 'center' }}>
-                          <div>
-                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>NDIS Support Item</span>
-                            <select className="ocField"
-                              value={item.support_item_id || ''}
-                              onChange={(e) => handleItemChange(idx, 'support_item_id', e.target.value)}
-                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid var(--oc-border)', fontSize: '0.8125rem', background: '#FFF' }}
-                            >
-                              {supportItems.map((si) => (
-                                <option key={si.id} value={si.id}>
-                                  {si.support_item_name} (${si.reference_rate}/hr)
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div>
-                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>Hours / Wk</span>
-                            <input className="ocField"
-                              type="number"
-                              step="0.5"
-                              min="0.5"
-                              value={item.quantity}
-                              onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
-                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid var(--oc-border)', padding: '0 8px', fontSize: '0.82rem' }}
-                            />
-                          </div>
-
-                          <div>
-                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>Agreed Rate ($)</span>
-                            <input className="ocField"
-                              type="number"
-                              step="0.01"
-                              value={item.unit_rate}
-                              onChange={(e) => handleItemChange(idx, 'unit_rate', Number(e.target.value))}
-                              style={{ width: '100%', height: 34, borderRadius: 6, border: '1px solid var(--oc-border)', padding: '0 8px', fontSize: '0.82rem' }}
-                            />
-                          </div>
-
-                          <div>
-                            <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 2 }}>Line Total</span>
-                            <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--oc-text)', display: 'block', marginTop: 6 }}>
-                              ${item.line_total.toFixed(2)}
-                            </span>
-                          </div>
-
-                          <div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItem(idx)}
-                              disabled={builderItems.length <= 1}
-                              style={{ background: 'none', border: 'none', cursor: builderItems.length <= 1 ? 'not-allowed' : 'pointer', color: 'var(--oc-danger)', marginTop: 12 }}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+        <form onSubmit={handleSaveQuote} style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 73px)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <FormSection title="1. Participant & Validity">
+              <FormGrid2>
+                <FormField label="Participant" required>
+                  <FormSelect
+                    value={selectedParticipantId}
+                    onChange={(e) => setSelectedParticipantId(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a participant...</option>
+                    {participants.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.referenceNumber || 'PAR'}) - {p.fundingType || 'Plan-Managed'}
+                      </option>
                     ))}
-                  </div>
-                </div>
+                  </FormSelect>
+                </FormField>
 
-                {/* Estimate Summary Cards */}
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 10, padding: 14 }}>
-                  <div>
-                    <div style={{ fontSize: '0.8125rem', color: '#0369A1', fontWeight: 600 }}>WEEKLY ESTIMATE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
-                      ${weeklyEstimate.toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.8125rem', color: '#0369A1', fontWeight: 600 }}>MONTHLY ESTIMATE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-text)', marginTop: 2 }}>
-                      ${monthlyEstimate.toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.8125rem', color: '#0369A1', fontWeight: 600 }}>12-MONTH PLAN TOTAL</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--oc-info)', marginTop: 2 }}>
-                      ${builderTotal.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: 4 }}>
-                    Notes & Assumptions
-                  </label>
-                  <textarea className="ocField" aria-label="Notes & Assumptions"
-                    rows={2}
-                    placeholder="e.g. Rate based on weekday non-remote schedule, includes community access"
-                    value={quoteNotes}
-                    onChange={(e) => setQuoteNotes(e.target.value)}
-                    style={{ width: '100%', borderRadius: 8, border: '1px solid var(--oc-border)', padding: 8, fontSize: '0.85rem' }}
+                <FormField label="Valid Until" hint="Defaults to standard 30-day quote window">
+                  <FormInput
+                    type="date"
+                    value={validUntil}
+                    onChange={(e) => setValidUntil(e.target.value)}
                   />
-                </div>
-              </div>
+                </FormField>
+              </FormGrid2>
+            </FormSection>
 
-              <div className="crmModalFooter" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: 16 }}>
+            <FormSection title="2. Support Schedule Line Items">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
+                  Included Support Items ({builderItems.length})
+                </span>
                 <button
                   type="button"
-                  onClick={() => setShowBuilder(false)}
-                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--oc-border)', background: '#FFF', cursor: 'pointer', fontSize: '0.85rem' }}
+                  onClick={handleAddItem}
+                  className="canonical-btn canonical-btn-subtle"
+                  style={{ fontSize: '0.75rem', padding: '5px 12px' }}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'var(--oc-info)', color: '#FFF', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  {saving ? 'Creating...' : 'Save Draft Quote'}
+                  + Add Item
                 </button>
               </div>
-            </form>
-          </DialogPanel>
-        </div>
-      )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {builderItems.map((item, idx) => (
+                  <div key={idx} style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 10, padding: 14 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 36px', gap: 10, alignItems: 'center' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>NDIS Support Item</span>
+                        <FormSelect
+                          value={item.support_item_id || ''}
+                          onChange={(e) => handleItemChange(idx, 'support_item_id', e.target.value)}
+                        >
+                          {supportItems.map((si) => (
+                            <option key={si.id} value={si.id}>
+                              {si.support_item_name} (${si.reference_rate}/hr)
+                            </option>
+                          ))}
+                        </FormSelect>
+                      </div>
+
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Hours / Wk</span>
+                        <FormInput
+                          type="number"
+                          step="0.5"
+                          min="0.5"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
+                        />
+                      </div>
+
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Agreed Rate ($)</span>
+                        <FormInput
+                          type="number"
+                          step="0.01"
+                          value={item.unit_rate}
+                          onChange={(e) => handleItemChange(idx, 'unit_rate', Number(e.target.value))}
+                        />
+                      </div>
+
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--oc-muted)', display: 'block', marginBottom: 4, fontWeight: 600 }}>Line Total</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)', display: 'block', marginTop: 8 }}>
+                          ${item.line_total.toFixed(2)}
+                        </span>
+                      </div>
+
+                      <div style={{ paddingTop: 20 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(idx)}
+                          disabled={builderItems.length <= 1}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: builderItems.length <= 1 ? 'not-allowed' : 'pointer',
+                            color: builderItems.length <= 1 ? 'var(--oc-border)' : 'var(--oc-danger)',
+                            padding: 4
+                          }}
+                          title="Remove item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </FormSection>
+
+            {/* Live Estimate Summary */}
+            <FormSummaryCard
+              title="Quote Pricing Calculation"
+              rows={[
+                { label: 'Weekly Estimate', value: `$${weeklyEstimate.toFixed(2)}` },
+                { label: 'Monthly Estimate (x4.33 weeks)', value: `$${monthlyEstimate.toFixed(2)}` },
+                { label: 'Annual Total (52 Weeks)', value: `$${builderTotal.toFixed(2)}`, isBold: true },
+              ]}
+              totalLabel="Total Quoted Commitment"
+              totalValue={`$${builderTotal.toFixed(2)} AUD`}
+            />
+
+            <FormSection title="3. Terms & Notes">
+              <FormField label="Notes & Assumptions">
+                <FormTextarea
+                  rows={2}
+                  placeholder="e.g. Rate based on weekday non-remote schedule, includes community access"
+                  value={quoteNotes}
+                  onChange={(e) => setQuoteNotes(e.target.value)}
+                />
+              </FormField>
+            </FormSection>
+          </div>
+
+          <StickyFormFooter
+            cancelLabel="Cancel"
+            onCancel={() => setShowBuilder(false)}
+            primaryLabel={saving ? 'Creating...' : 'Save Draft Quote'}
+            loading={saving}
+          />
+        </form>
+      </FormDrawer>
     </div>
   );
 }

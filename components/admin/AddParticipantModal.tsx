@@ -1,20 +1,20 @@
 'use client';
 
-import useDialogFocus from '@/components/ui/useDialogFocus';
-
 import React, { useState } from 'react';
-import { X, UserPlus, ArrowRight, ArrowLeft, Check, CheckCircle2 } from 'lucide-react';
+import { UserPlus, ArrowRight, ArrowLeft, Check, CheckCircle2 } from 'lucide-react';
 import {
-  FormField,
-  TextInput,
-  DatePicker,
-  AddressSuburbPicker,
-  RadioCard,
+  FormDrawer,
+  DrawerHeader,
   FormStepper,
-  ReviewSummary,
-  InlineValidation,
-  Checkbox,
-} from '@/components/ui/form';
+  FormSection,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormGrid2,
+  FormSummaryCard,
+  FormError,
+  StickyFormFooter,
+} from '@/components/admin/forms';
 
 interface AddParticipantModalProps {
   onClose: () => void;
@@ -23,14 +23,13 @@ interface AddParticipantModalProps {
 
 const WIZARD_STEPS = [
   { num: 1, label: 'Personal Details' },
-  { num: 2, label: 'Service Area & Address' },
+  { num: 2, label: 'Service Area' },
   { num: 3, label: 'Funding & Plan' },
   { num: 4, label: 'Nominee / Contact' },
   { num: 5, label: 'Review & Create' },
 ];
 
 export default function AddParticipantModal({ onClose, onCreated }: AddParticipantModalProps) {
-  const dialogRef = useDialogFocus(onClose);
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -103,460 +102,349 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
     setError('');
 
     try {
+      const payload = {
+        name: name.trim(),
+        ndisNumber: ndisNumber.trim() || undefined,
+        dob: dob || undefined,
+        phone: phone.trim() || undefined,
+        email: email.trim() || undefined,
+        suburb: suburb.trim(),
+        streetAddress: streetAddress.trim() || undefined,
+        fundingType,
+        planManager: fundingType === 'Plan-Managed' ? planManagerName.trim() : undefined,
+        planManagerEmail: fundingType === 'Plan-Managed' ? planManagerEmail.trim() : undefined,
+        allocatedHours: Number(allocatedHours) || 0,
+        primaryService,
+        contactPerson: contactPerson.trim() || undefined,
+        emergencyContactName: emergencyContactName.trim() || undefined,
+        emergencyContactPhone: emergencyContactPhone.trim() || undefined,
+        emergencyContactRelation: emergencyContactRelation.trim() || undefined,
+        status: completeProfileLater ? 'pending_intake' : 'active',
+      };
+
       const res = await fetch('/api/crm/participants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          ndisNumber: ndisNumber.trim() || null,
-          dateOfBirth: dob || null,
-          phone: phone.trim() || null,
-          email: email.trim() || null,
-          suburb: suburb.trim() || 'Yamba NSW',
-          streetAddress: streetAddress.trim() || null,
-          fundingType,
-          planManager: fundingType === 'Plan-Managed' ? planManagerName.trim() : null,
-          planManagerEmail: fundingType === 'Plan-Managed' ? planManagerEmail.trim() : null,
-          allocatedHours: Number(allocatedHours) || 0,
-          primaryService: primaryService || 'Community Participation & Daily Living',
-          contactPerson: contactPerson.trim() || null,
-          emergencyContactName: emergencyContactName.trim() || null,
-          emergencyContactPhone: emergencyContactPhone.trim() || null,
-          emergencyContactRelation: emergencyContactRelation.trim() || null,
-          profileComplete: !completeProfileLater,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.message || 'Failed to create participant record.');
+        setError(data.error || 'Failed to create participant record. Please check details.');
         return;
       }
 
       onCreated(data.participant);
       onClose();
     } catch (err: unknown) {
-      setError('Connection error. Please check your network and try again.');
+      setError('Network error while saving participant. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="crmModalOverlay" onClick={onClose}>
-      <div
-        className="crmModalBox" ref={dialogRef} role="dialog" aria-modal="true" aria-label="Add participant" tabIndex={-1}
-        style={{ maxWidth: 740, maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
-        <div className="crmModalHeader" style={{ flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                background: '#E0F2FE',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--oc-info)',
-              }}
-            >
-              <UserPlus size={20} />
-            </div>
-            <div>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                INTAKE & ONBOARDING
-              </span>
-              <h3 className="crmSectionTitle" style={{ margin: 0 }}>Add NDIS Participant</h3>
-            </div>
-          </div>
-          <button type="button" aria-label="Close dialog" onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--oc-muted)', padding: 4 }}
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <FormDrawer isOpen onClose={onClose} wide>
+      <DrawerHeader
+        title="Add NDIS Participant"
+        description="Create and onboard a participant into the Opus Care system."
+        onClose={onClose}
+        badge={<span className="compliance-pill">NDIS Onboarding</span>}
+      />
 
-        {/* 5-Step Stepper */}
-        <FormStepper
-          steps={WIZARD_STEPS}
-          currentStep={step}
-          onStepClick={(num) => {
-            if (num < step) setStep(num);
-          }}
-        />
+      <FormStepper
+        steps={WIZARD_STEPS}
+        currentStep={step}
+        onStepClick={(num) => {
+          if (num < step) setStep(num);
+        }}
+      />
 
-        {/* Modal Body */}
-        <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
-          {error && (
-            <div style={{ marginBottom: 16 }}>
-              <InlineValidation type="error" message={error} />
-            </div>
-          )}
+      <div className="drawer-body">
+        {error && <FormError message={error} onDismiss={() => setError('')} />}
 
-          {/* STEP 1: PERSONAL DETAILS */}
-          {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ marginBottom: 4 }}>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 1: Personal Details</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Enter the participant legal identification and direct contact details.
-                </p>
-              </div>
-
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <FormField label="Full Legal Name" required id="pName">
-                  <TextInput
-                    id="pName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Eleanor Vance"
-                    autoFocus
-                  />
-                </FormField>
-
-                <FormField label="NDIS Number" hint="9-digit national disability number" id="pNdis">
-                  <TextInput
-                    id="pNdis"
-                    value={ndisNumber}
-                    onChange={(e) => setNdisNumber(e.target.value)}
-                    placeholder="e.g. 430 982 104"
-                  />
-                </FormField>
-              </div>
-
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-                <FormField label="Date of Birth" id="pDob">
-                  <DatePicker
-                    id="pDob"
-                    value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                  />
-                </FormField>
-
-                <FormField label="Primary Phone" id="pPhone">
-                  <TextInput
-                    id="pPhone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="0400 000 000"
-                  />
-                </FormField>
-
-                <FormField label="Email Address" id="pEmail">
-                  <TextInput
-                    id="pEmail"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="participant@example.com"
-                  />
-                </FormField>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: ADDRESS & SERVICE AREA */}
-          {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ marginBottom: 4 }}>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 2: Service Area & Location</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Verify whether the participant resides within Opus Care primary support coverage (Clarence Valley, Coffs Coast, Richmond Valley, Ballina).
-                </p>
-              </div>
-
-              <FormField
-                label="Primary Suburb / Hub"
-                required
-                hint="Start typing a suburb name to match against Opus Care regions."
-              >
-                <AddressSuburbPicker
-                  value={suburb}
-                  onChange={(sub, inArea) => {
-                    setSuburb(sub);
-                    setInServiceArea(inArea);
-                  }}
+        {/* STEP 1: PERSONAL DETAILS */}
+        {step === 1 && (
+          <FormSection title="1. Personal Identification">
+            <FormGrid2>
+              <FormField label="Full Legal Name" required id="pName">
+                <FormInput
+                  id="pName"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Eleanor Vance"
+                  autoFocus
                 />
               </FormField>
 
-              <FormField label="Residential Street Address" id="pAddress" hint="Used for worker dispatch and emergency plans">
-                <TextInput
+              <FormField label="NDIS Number" hint="9-digit national disability number" id="pNdis">
+                <FormInput
+                  id="pNdis"
+                  value={ndisNumber}
+                  onChange={(e) => setNdisNumber(e.target.value)}
+                  placeholder="e.g. 430 982 104"
+                />
+              </FormField>
+            </FormGrid2>
+
+            <FormGrid2 style={{ marginTop: 16 }}>
+              <FormField label="Date of Birth" id="pDob">
+                <FormInput
+                  id="pDob"
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                />
+              </FormField>
+
+              <FormField label="Primary Phone" id="pPhone">
+                <FormInput
+                  id="pPhone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0400 000 000"
+                />
+              </FormField>
+            </FormGrid2>
+
+            <div style={{ marginTop: 16 }}>
+              <FormField label="Email Address" id="pEmail">
+                <FormInput
+                  id="pEmail"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="participant@email.com.au"
+                />
+              </FormField>
+            </div>
+          </FormSection>
+        )}
+
+        {/* STEP 2: SERVICE AREA & ADDRESS */}
+        {step === 2 && (
+          <FormSection title="2. Service Area & Address">
+            <FormField label="Suburb / Town" required id="pSuburb">
+              <FormSelect
+                id="pSuburb"
+                value={suburb}
+                onChange={(e) => {
+                  setSuburb(e.target.value);
+                  setInServiceArea(e.target.value !== 'Other NSW');
+                }}
+              >
+                <option value="Yamba NSW">Yamba NSW (Core Hub)</option>
+                <option value="Maclean NSW">Maclean NSW</option>
+                <option value="Grafton NSW">Grafton NSW</option>
+                <option value="Iluka NSW">Iluka NSW</option>
+                <option value="Townsend NSW">Townsend NSW</option>
+                <option value="Coffs Harbour NSW">Coffs Harbour NSW</option>
+                <option value="Other NSW">Other Clarence Valley / Northern Rivers</option>
+              </FormSelect>
+            </FormField>
+
+            <div style={{ marginTop: 16 }}>
+              <FormField label="Street Address (Optional)" hint="Participant residential support address" id="pAddress">
+                <FormInput
                   id="pAddress"
                   value={streetAddress}
                   onChange={(e) => setStreetAddress(e.target.value)}
-                  placeholder="e.g. 24 Ocean Street"
+                  placeholder="e.g. 14 River Street"
                 />
               </FormField>
             </div>
-          )}
 
-          {/* STEP 3: FUNDING & PLAN DETAILS */}
-          {step === 3 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ marginBottom: 4 }}>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 3: NDIS Funding & Plan Management</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Opus Care supports Plan-Managed and Self-Managed participants with immediate capacity.
-                </p>
-              </div>
-
-              <div>
-                <label className="crmFormLabel">NDIS Management Model *</label>
-                <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                  <RadioCard
-                    selected={fundingType === 'Plan-Managed'}
-                    onSelect={() => setFundingType('Plan-Managed')}
-                    title="Plan-Managed"
-                    description="Invoiced via registered Plan Management Agency"
-                    badge="Most Common"
-                  />
-                  <RadioCard
-                    selected={fundingType === 'Self-Managed'}
-                    onSelect={() => setFundingType('Self-Managed')}
-                    title="Self-Managed"
-                    description="Invoiced directly to participant or family nominee"
-                  />
-                  <RadioCard
-                    selected={fundingType === 'NDIA Managed'}
-                    onSelect={() => setFundingType('NDIA Managed')}
-                    title="NDIA Managed"
-                    description="Agency managed (Requires registered provider status)"
-                  />
-                </div>
-              </div>
-
-              {/* Plan Manager Details (Adaptive) */}
-              {fundingType === 'Plan-Managed' && (
-                <div
-                  style={{
-                    background: '#F0F9FF',
-                    border: '1px solid #BAE6FD',
-                    borderRadius: 10,
-                    padding: 16,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                  }}
-                >
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0369A1' }}>
-                    Plan Management Provider Invoicing Details
-                  </span>
-                  <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <FormField label="Plan Manager Organization / Contact">
-                      <TextInput
-                        value={planManagerName}
-                        onChange={(e) => setPlanManagerName(e.target.value)}
-                        placeholder="e.g. My Plan Manager / Maple Plan"
-                      />
-                    </FormField>
-                    <FormField label="Invoicing Email Address">
-                      <TextInput
-                        type="email"
-                        value={planManagerEmail}
-                        onChange={(e) => setPlanManagerEmail(e.target.value)}
-                        placeholder="invoices@planmanager.com.au"
-                      />
-                    </FormField>
-                  </div>
-                </div>
-              )}
-
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <FormField label="Allocated Weekly Hours" hint="Target scheduled hours per week">
-                  <TextInput
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={allocatedHours}
-                    onChange={(e) => setAllocatedHours(e.target.value)}
-                    placeholder="e.g. 8"
-                  />
-                </FormField>
-
-                <FormField label="Primary Support Stream">
-                  <TextInput
-                    value={primaryService}
-                    onChange={(e) => setPrimaryService(e.target.value)}
-                    placeholder="e.g. Community Access & 1:1 In-Home Support"
-                  />
-                </FormField>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: PRIMARY CONTACT / NOMINEE */}
-          {step === 4 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ marginBottom: 4 }}>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 4: Primary Contact & Nominee</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Key stakeholders, emergency contacts, or Support Coordinator for rostering and care coordination.
-                </p>
-              </div>
-
-              <FormField label="Support Coordinator / Decision Maker" hint="Name, role, or agency contact">
-                <TextInput
-                  value={contactPerson}
-                  onChange={(e) => setContactPerson(e.target.value)}
-                  placeholder="e.g. Sarah Jenkins (Coordinator, Beyond Limits) - 0412 345 678"
-                />
-              </FormField>
-
-              <div className="ocFormGrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <FormField label="Emergency Contact Name">
-                  <TextInput
-                    value={emergencyContactName}
-                    onChange={(e) => setEmergencyContactName(e.target.value)}
-                    placeholder="e.g. Helen Vance"
-                  />
-                </FormField>
-
-                <FormField label="Relationship">
-                  <TextInput
-                    value={emergencyContactRelation}
-                    onChange={(e) => setEmergencyContactRelation(e.target.value)}
-                    placeholder="e.g. Mother / Guardian"
-                  />
-                </FormField>
-
-                <FormField label="Emergency Phone">
-                  <TextInput
-                    type="tel"
-                    value={emergencyContactPhone}
-                    onChange={(e) => setEmergencyContactPhone(e.target.value)}
-                    placeholder="0433 888 999"
-                  />
-                </FormField>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: REVIEW & CREATE */}
-          {step === 5 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ marginBottom: 4 }}>
-                <h4 className="crmCardTitle" style={{ margin: '0 0 4px' }}>Step 5: Review & Create Participant</h4>
-                <p className="crmBodyText" style={{ margin: 0, fontSize: '0.875rem', color: 'var(--oc-muted)' }}>
-                  Confirm participant profile details before provisioning into the Opus Care CRM.
-                </p>
-              </div>
-
-              <ReviewSummary
-                sections={[
-                  {
-                    title: 'Participant Profile',
-                    fields: [
-                      { label: 'Full Legal Name', value: name },
-                      { label: 'NDIS Number', value: ndisNumber || 'Pending' },
-                      { label: 'Date of Birth', value: dob || 'Unspecified' },
-                      { label: 'Phone', value: phone || 'Unspecified' },
-                      { label: 'Email', value: email || 'Unspecified' },
-                    ],
-                  },
-                  {
-                    title: 'Location & Service Area',
-                    fields: [
-                      {
-                        label: 'Suburb / Region',
-                        value: suburb,
-                        badge: inServiceArea ? 'In Service Area' : 'Outside Service Area',
-                      },
-                      { label: 'Street Address', value: streetAddress || 'Unspecified' },
-                    ],
-                  },
-                  {
-                    title: 'Funding & Support Scope',
-                    fields: [
-                      { label: 'Funding Type', value: fundingType, badge: 'Active' },
-                      { label: 'Plan Manager', value: planManagerName || 'N/A' },
-                      { label: 'Allocated Hours', value: `${allocatedHours} hrs / week` },
-                      { label: 'Primary Stream', value: primaryService },
-                    ],
-                  },
-                ]}
-              />
-
-              <div style={{ background: 'var(--oc-background)', border: '1px solid var(--oc-border)', borderRadius: 8, padding: 14 }}>
-                <Checkbox
-                  checked={completeProfileLater}
-                  onChange={setCompleteProfileLater}
-                  label="Save as preliminary profile (Complete remaining fields later)"
-                  description="Allows quick intake without requiring immediate support plans, risk assessments, or full coordinator details."
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Modal Footer Controls */}
-        <div
-          style={{
-            padding: '14px 24px',
-            borderTop: '1px solid var(--oc-border)',
-            background: 'var(--oc-background)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0,
-          }}
-        >
-          <div>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="crmSecondaryBtn"
-              >
-                <ArrowLeft size={16} />
-                <span>Back</span>
-              </button>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              type="button"
-              onClick={onClose}
-              className="crmSecondaryBtn"
+            <div
+              style={{
+                marginTop: 16,
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-sm)',
+                background: inServiceArea ? 'var(--status-mint-bg)' : 'var(--status-amber-bg)',
+                border: `1px solid ${inServiceArea ? '#A7F3D0' : '#FDE68A'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+              }}
             >
-              Cancel
-            </button>
+              <CheckCircle2 size={16} color={inServiceArea ? '#059669' : '#D97706'} />
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: inServiceArea ? '#065F46' : '#92400E' }}>
+                {inServiceArea
+                  ? 'Confirmed inside Opus Care Primary Hub (Clarence Valley NSW)'
+                  : 'Extended travel zone — subject to support worker travel arrangements'}
+              </span>
+            </div>
+          </FormSection>
+        )}
 
-            {step < 5 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="crmActionBtnPrimary"
+        {/* STEP 3: FUNDING & PLAN */}
+        {step === 3 && (
+          <FormSection title="3. Funding & Plan Management">
+            <FormField label="NDIS Funding Management" required id="pFunding">
+              <FormSelect
+                id="pFunding"
+                value={fundingType}
+                onChange={(e) => setFundingType(e.target.value)}
               >
-                <span>Continue</span>
-                <ArrowRight size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={() => handleSubmit()}
-                className="crmActionBtnPrimary"
-                style={{ background: '#059669' }}
-              >
-                {submitting ? (
-                  <span>Saving Profile...</span>
-                ) : (
-                  <>
-                    <Check size={16} />
-                    <span>Create Participant Record</span>
-                  </>
-                )}
-              </button>
+                <option value="Plan-Managed">Plan-Managed (Invoices sent to Plan Manager)</option>
+                <option value="Self-Managed">Self-Managed (Participant / Nominee pays directly)</option>
+                <option value="NDIA-Managed">Agency / NDIA-Managed</option>
+              </FormSelect>
+            </FormField>
+
+            {fundingType === 'Plan-Managed' && (
+              <FormGrid2 style={{ marginTop: 16 }}>
+                <FormField label="Plan Management Agency" id="pPmName">
+                  <FormInput
+                    id="pPmName"
+                    value={planManagerName}
+                    onChange={(e) => setPlanManagerName(e.target.value)}
+                    placeholder="e.g. Plan Partners / MyIntegra"
+                  />
+                </FormField>
+
+                <FormField label="Invoices / Claims Email" id="pPmEmail">
+                  <FormInput
+                    id="pPmEmail"
+                    type="email"
+                    value={planManagerEmail}
+                    onChange={(e) => setPlanManagerEmail(e.target.value)}
+                    placeholder="invoices@planmanager.com.au"
+                  />
+                </FormField>
+              </FormGrid2>
             )}
-          </div>
-        </div>
+
+            <FormGrid2 style={{ marginTop: 16 }}>
+              <FormField label="Allocated Weekly Support Hours" id="pHours">
+                <FormInput
+                  id="pHours"
+                  type="number"
+                  min="1"
+                  max="168"
+                  value={allocatedHours}
+                  onChange={(e) => setAllocatedHours(e.target.value)}
+                  placeholder="8"
+                />
+              </FormField>
+
+              <FormField label="Primary Service Area" id="pService">
+                <FormSelect
+                  id="pService"
+                  value={primaryService}
+                  onChange={(e) => setPrimaryService(e.target.value)}
+                >
+                  <option value="Community Participation & Daily Living">Community Participation & Daily Living</option>
+                  <option value="Personal Care & In-Home Support">Personal Care & In-Home Support</option>
+                  <option value="Social & Civic Access">Social & Civic Access</option>
+                  <option value="Respite & Day Programs">Respite & Day Programs</option>
+                </FormSelect>
+              </FormField>
+            </FormGrid2>
+          </FormSection>
+        )}
+
+        {/* STEP 4: NOMINEE & EMERGENCY CONTACT */}
+        {step === 4 && (
+          <FormSection title="4. Nominee & Emergency Contacts">
+            <FormField label="Authorized Representative / Nominee (Optional)" hint="Family member, guardian, or advocate" id="pContact">
+              <FormInput
+                id="pContact"
+                value={contactPerson}
+                onChange={(e) => setContactPerson(e.target.value)}
+                placeholder="e.g. Margaret Vance (Mother)"
+              />
+            </FormField>
+
+            <FormGrid2 style={{ marginTop: 16 }}>
+              <FormField label="Emergency Contact Name" id="pEmName">
+                <FormInput
+                  id="pEmName"
+                  value={emergencyContactName}
+                  onChange={(e) => setEmergencyContactName(e.target.value)}
+                  placeholder="Contact Name"
+                />
+              </FormField>
+
+              <FormField label="Emergency Phone" id="pEmPhone">
+                <FormInput
+                  id="pEmPhone"
+                  type="tel"
+                  value={emergencyContactPhone}
+                  onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                  placeholder="0400 000 000"
+                />
+              </FormField>
+            </FormGrid2>
+
+            <div style={{ marginTop: 16 }}>
+              <FormField label="Relationship to Participant" id="pEmRel">
+                <FormInput
+                  id="pEmRel"
+                  value={emergencyContactRelation}
+                  onChange={(e) => setEmergencyContactRelation(e.target.value)}
+                  placeholder="e.g. Next of kin / Sibling"
+                />
+              </FormField>
+            </div>
+          </FormSection>
+        )}
+
+        {/* STEP 5: REVIEW & SUMMARY */}
+        {step === 5 && (
+          <FormSection title="5. Review & Create Record">
+            <FormSummaryCard
+              title="Participant Registration Summary"
+              badge="Ready for Verification"
+              rows={[
+                { label: 'Full Legal Name', value: name || 'Not specified' },
+                { label: 'NDIS Number', value: ndisNumber || 'Not recorded' },
+                { label: 'Service Location', value: suburb },
+                { label: 'Funding Structure', value: fundingType },
+                {
+                  label: 'Plan Manager',
+                  value: fundingType === 'Plan-Managed' ? planManagerName || 'Pending' : 'N/A (Self-Managed)',
+                },
+                { label: 'Allocated Weekly Hours', value: `${allocatedHours} hrs / week` },
+                { label: 'Primary Support Service', value: primaryService },
+              ]}
+            />
+
+            <div style={{ marginTop: 20 }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  color: 'var(--text-heading)',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={completeProfileLater}
+                  onChange={(e) => setCompleteProfileLater(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
+                />
+                <span>Mark as Pending Intake (Coordinator will follow up for full care notes)</span>
+              </label>
+            </div>
+          </FormSection>
+        )}
       </div>
-    </div>
+
+      <StickyFormFooter
+        onCancel={onClose}
+        onSecondary={step > 1 ? handleBack : undefined}
+        secondaryLabel="Back"
+        onPrimary={step < 5 ? handleNext : () => handleSubmit()}
+        primaryLabel={step < 5 ? 'Continue' : 'Create Participant'}
+        primaryIcon={step === 5 ? <Check size={15} /> : undefined}
+        showArrow={step < 5}
+        loading={submitting}
+      />
+    </FormDrawer>
   );
 }
