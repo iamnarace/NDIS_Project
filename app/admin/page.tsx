@@ -241,6 +241,7 @@ export default function AdminCrmPage() {
   const [trainingAssignments, setTrainingAssignments] = useState<TrainingAssignment[]>([]);
   const [trainingComplianceMap, setTrainingComplianceMap] = useState<Record<string, TrainingCompletion[]>>({});
   const [trainingLoading, setTrainingLoading] = useState(false);
+  const [trainingLoadError, setTrainingLoadError] = useState('');
   const [trainingTab, setTrainingTab] = useState<'courses' | 'assign' | 'external' | 'report'>('courses');
   const [externalCourses, setExternalCourses] = useState<ExternalCourse[]>([]);
   const [showCourseForm, setShowCourseForm] = useState(false);
@@ -933,34 +934,47 @@ export default function AdminCrmPage() {
 
   async function loadTrainingData() {
     setTrainingLoading(true);
+    setTrainingLoadError('');
     try {
-      const [coursesRes, assignRes, externalRes] = await Promise.all([
+      const [coursesRes, assignRes, externalRes, compRes] = await Promise.all([
         fetch('/api/training/courses?active=false'),
         fetch('/api/training/assignments'),
         fetch('/api/training/external'),
+        fetch('/api/training/completions'),
       ]);
-      if (coursesRes.ok) setTrainingCourses(await coursesRes.json());
-      if (assignRes.ok) {
-        const assignments: TrainingAssignment[] = await assignRes.json();
-        setTrainingAssignments(assignments);
+      if (![coursesRes, assignRes, externalRes, compRes].every((response) => response.ok)) {
+        throw new Error(
+          `Training request failed (${[coursesRes, assignRes, externalRes, compRes]
+            .map((response) => response.status)
+            .join(', ')})`
+        );
       }
-      if (externalRes.ok) {
-        const extCourses = await externalRes.json();
-        setExternalCourses(Array.isArray(extCourses) ? extCourses : []);
-      }
-      // Load completions for compliance map (per staff)
-      const compRes = await fetch('/api/training/completions');
-      if (compRes.ok) {
-        const completions: TrainingCompletion[] = await compRes.json();
-        const map: Record<string, TrainingCompletion[]> = {};
-        completions.forEach((c) => {
-          if (!map[c.staff_id]) map[c.staff_id] = [];
-          map[c.staff_id].push(c);
-        });
-        setTrainingComplianceMap(map);
-      }
+
+      const [courses, assignments, extCourses, completions]: [
+        TrainingCourse[],
+        TrainingAssignment[],
+        ExternalCourse[],
+        TrainingCompletion[],
+      ] = await Promise.all([
+        coursesRes.json(),
+        assignRes.json(),
+        externalRes.json(),
+        compRes.json(),
+      ]);
+
+      setTrainingCourses(Array.isArray(courses) ? courses : []);
+      setTrainingAssignments(Array.isArray(assignments) ? assignments : []);
+      setExternalCourses(Array.isArray(extCourses) ? extCourses : []);
+
+      const map: Record<string, TrainingCompletion[]> = {};
+      completions.forEach((completion) => {
+        if (!map[completion.staff_id]) map[completion.staff_id] = [];
+        map[completion.staff_id].push(completion);
+      });
+      setTrainingComplianceMap(map);
     } catch (err) {
       console.error('Failed to load training data', err);
+      setTrainingLoadError('Training data could not be loaded');
     } finally {
       setTrainingLoading(false);
     }
@@ -3907,7 +3921,13 @@ export default function AdminCrmPage() {
 
               {trainingLoading && <div style={{padding:40,textAlign:'center',color:'var(--oc-muted)'}}>Loading...</div>}
 
-              {!trainingLoading && trainingTab === 'courses' && (
+              {!trainingLoading && trainingLoadError && (
+                <div role="alert" style={{padding:20,border:'1px solid #FECACA',borderRadius:12,background:'#FEF2F2',color:'#991B1B'}}>
+                  {trainingLoadError}
+                </div>
+              )}
+
+              {!trainingLoading && !trainingLoadError && trainingTab === 'courses' && (
                 <>
                   {showCourseForm && (
                     <div style={{background:'var(--oc-background)',border:'1px solid #EEF2F6',borderRadius:12,padding:24,marginBottom:24}}>
@@ -4047,7 +4067,7 @@ export default function AdminCrmPage() {
                 </>
               )}
 
-              {!trainingLoading && trainingTab === 'assign' && (
+              {!trainingLoading && !trainingLoadError && trainingTab === 'assign' && (
                 <div>
                   <div style={{maxWidth:620,marginBottom:32}}>
                     <form onSubmit={handleAssignCourse}>
@@ -4107,7 +4127,7 @@ export default function AdminCrmPage() {
                 </div>
               )}
 
-                            {!trainingLoading && trainingTab === 'external' && (
+                            {!trainingLoading && !trainingLoadError && trainingTab === 'external' && (
                 <div>
                   <div className="crmPanelHeader" style={{ marginBottom: 16 }}>
                     <div>
@@ -4176,7 +4196,7 @@ export default function AdminCrmPage() {
                 </div>
               )}
 
-              {!trainingLoading && trainingTab === 'report' && (
+              {!trainingLoading && !trainingLoadError && trainingTab === 'report' && (
                 <div>
                   <div className="crmTableWrapper" style={{overflowX:'auto'}}>
                     <table className="crmTable" style={{minWidth:900}}>
