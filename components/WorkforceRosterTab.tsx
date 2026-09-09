@@ -2,7 +2,7 @@
 
 import DialogPanel from '@/components/ui/DialogPanel';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Calendar as CalendarIcon, Clock, UserCheck, AlertCircle, AlertTriangle,
   CheckCircle2, Plus, ChevronLeft, ChevronRight, Filter, Search,
@@ -176,7 +176,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
   }, [currentWeekStart]);
 
   // Load Shifts
-  const loadShifts = async () => {
+  const loadShifts = useCallback(async () => {
     setLoading(true);
     try {
       const startIso = currentWeekStart.toISOString();
@@ -191,11 +191,11 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWeekStart, currentWeekEnd]);
 
   useEffect(() => {
     loadShifts();
-  }, [currentWeekStart]);
+  }, [loadShifts]);
 
   // Quick navigation
   const prevWeek = () => {

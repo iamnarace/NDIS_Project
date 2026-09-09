@@ -54,6 +54,7 @@ interface WorkerIncident {
   id: string;
   incident_reference: string;
   participant_id: string;
+  shift_id?: string | null;
   incident_at: string;
   category: string;
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
@@ -95,6 +96,7 @@ function WorkerPortalContent() {
   const [followUpRequired, setFollowUpRequired] = useState(false);
   const [followUpNotes, setFollowUpNotes] = useState('');
   const [incidentOccurred, setIncidentOccurred] = useState(false);
+  const [incidentId, setIncidentId] = useState('');
   const [travelType, setTravelType] = useState<'none' | 'provider_travel_to' | 'travel_with_participant' | 'participant_transport'>('none');
   const [travelMinutes, setTravelMinutes] = useState(0);
   const [kilometres, setKilometres] = useState(0);
@@ -202,6 +204,7 @@ function WorkerPortalContent() {
     setFollowUpRequired(false);
     setFollowUpNotes('');
     setIncidentOccurred(false);
+    setIncidentId('');
     setTravelType('none');
     setTravelMinutes(0);
     setKilometres(0);
@@ -319,6 +322,7 @@ function WorkerPortalContent() {
         follow_up_required: followUpRequired,
         follow_up_notes: followUpRequired ? followUpNotes : undefined,
         incident_occurred: incidentOccurred,
+        incident_id: incidentOccurred ? incidentId : undefined,
         goals: goalsPayload,
         travel: travelPayload,
       };
@@ -336,16 +340,11 @@ function WorkerPortalContent() {
           text: `Shift ${activeShiftForNote.shift_reference} completed. Progress note, timesheet entry, and service record generated for manager approval.`,
         });
 
-        const completedShift = activeShiftForNote;
-        const noteContext = noteText;
         setActiveShiftForNote(null);
 
         // Refresh shifts and timesheets
         loadData();
 
-        if (incidentOccurred) {
-          openIncidentFromShift(completedShift, noteContext);
-        }
       } else {
         setStatusNotice({
           type: 'error',
@@ -896,7 +895,7 @@ function WorkerPortalContent() {
 
                 {/* Follow up toggle */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input
+                      <input
                     type="checkbox"
                     id="followUpCheck"
                     checked={followUpRequired}
@@ -1025,7 +1024,10 @@ function WorkerPortalContent() {
                     <input
                       type="checkbox"
                       checked={incidentOccurred}
-                      onChange={(e) => setIncidentOccurred(e.target.checked)}
+                      onChange={(e) => {
+                        setIncidentOccurred(e.target.checked);
+                        if (!e.target.checked) setIncidentId('');
+                      }}
                       style={{ width: 18, height: 18, accentColor: 'var(--oc-danger)' }}
                     />
                     <div>
@@ -1033,10 +1035,39 @@ function WorkerPortalContent() {
                         An incident or near-miss occurred on this shift
                       </strong>
                       <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                        If checked, you will be prompted to submit a prefilled Incident Report after saving this note.
+                        Submit the incident report first, then select its reference below.
                       </div>
                     </div>
                   </label>
+                  {incidentOccurred && (
+                    <div style={{ marginTop: 12 }}>
+                      <label htmlFor="completionIncident" style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-secondary)', display: 'block', marginBottom: 4 }}>
+                        Incident reference *
+                      </label>
+                      <select
+                        id="completionIncident"
+                        className="ocField"
+                        required
+                        value={incidentId}
+                        onChange={(event) => setIncidentId(event.target.value)}
+                        style={{ width: '100%', border: '1px solid var(--oc-border)', borderRadius: 8, padding: '8px 10px', fontSize: '0.82rem' }}
+                      >
+                        <option value="">Select an incident reported for this shift</option>
+                        {incidents
+                          .filter((incident) => incident.shift_id === activeShiftForNote.id)
+                          .map((incident) => (
+                            <option key={incident.id} value={incident.id}>
+                              {incident.incident_reference} — {incident.category}
+                            </option>
+                          ))}
+                      </select>
+                      {!incidents.some((incident) => incident.shift_id === activeShiftForNote.id) && (
+                        <p style={{ margin: '8px 0 0', fontSize: '0.8125rem', color: 'var(--oc-danger)' }}>
+                          No incident has been submitted for this shift. Close this window and use Report Incident first.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 10 }}>
@@ -1049,7 +1080,7 @@ function WorkerPortalContent() {
                   </button>
                   <button
                     type="submit"
-                    disabled={submittingNote || !noteText.trim()}
+                    disabled={submittingNote || !noteText.trim() || (incidentOccurred && !incidentId)}
                     style={{ background: 'var(--oc-accent)', color: 'var(--oc-surface)', border: 'none', borderRadius: 8, padding: '10px 22px', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
                   >
                     {submittingNote ? 'Submitting…' : 'Complete Shift & Save Record'}
