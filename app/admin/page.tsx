@@ -203,6 +203,7 @@ export default function AdminCrmPage() {
   const [showAgreementGenerator, setShowAgreementGenerator] = useState(false);
   const [selectedAgreementToView, setSelectedAgreementToView] = useState<any | null>(null);
   const [variationTarget, setVariationTarget] = useState<any | null>(null);
+  const [draftAgreementTarget, setDraftAgreementTarget] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [viewMode, setViewMode] = useState<'pipeline' | 'table'>('pipeline');
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -1907,7 +1908,10 @@ export default function AdminCrmPage() {
                 <div style={{ background: 'var(--oc-surface)', border: '1px solid var(--oc-border)', borderRadius: 12, padding: '14px 18px', boxShadow: '0 2px 6px rgba(15,23,42,0.02)' }}>
                   <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Committed Plan Funding</div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#059669' }}>
-                    ${agreements.reduce((acc: number, a: any) => acc + (Number(a.estimated_budget) || 0), 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    ${agreements
+                      .filter((a: any) => a.owner_type === 'participant' && ['active', 'fully_signed'].includes(a.status))
+                      .reduce((acc: number, a: any) => acc + (Number(a.estimated_budget) || 0), 0)
+                      .toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     <span style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', fontWeight: 500, marginLeft: 4 }}>AUD</span>
                   </div>
                 </div>
@@ -5047,8 +5051,10 @@ export default function AdminCrmPage() {
           onClose={() => {
             setShowAgreementGenerator(false);
             setVariationTarget(null);
+            setDraftAgreementTarget(null);
           }}
           variationOf={variationTarget}
+          draftAgreement={draftAgreementTarget}
           onCreated={(newA) => {
             loadAgreements();
           }}
@@ -5063,6 +5069,11 @@ export default function AdminCrmPage() {
           onCreateVariation={(agr) => {
             setSelectedAgreementToView(null);
             setVariationTarget(agr);
+            setShowAgreementGenerator(true);
+          }}
+          onResumeDraft={(agr) => {
+            setSelectedAgreementToView(null);
+            setDraftAgreementTarget(agr);
             setShowAgreementGenerator(true);
           }}
         />

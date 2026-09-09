@@ -130,11 +130,21 @@ export async function POST(req: Request) {
     if (is_variation && prior_agreement_id) {
       const { data: prior } = await supabase
         .from('agreement_records')
-        .select('version_number')
+        .select('version_number, owner_id, owner_type, status')
         .eq('id', prior_agreement_id)
         .single();
+      if (!prior || prior.owner_id !== resolvedOwnerId || prior.owner_type !== owner_type) {
+        return NextResponse.json({ message: 'The original agreement could not be matched to this recipient.' }, { status: 400 });
+      }
+      if (!['active', 'fully_signed'].includes(prior.status)) {
+        return NextResponse.json({ message: 'Only an active agreement can be varied.' }, { status: 409 });
+      }
       versionNumber = (prior?.version_number || 1) + 1;
     }
+
+    const storedClauses = is_variation && prior_agreement_id
+      ? { ...compiled_clauses, variation_of_agreement_id: prior_agreement_id }
+      : compiled_clauses;
 
     const { data: newAgreement, error: insertErr } = await supabase
       .from('agreement_records')
@@ -147,7 +157,7 @@ export async function POST(req: Request) {
         title,
         version_number: versionNumber,
         questionnaire_data,
-        compiled_clauses,
+        compiled_clauses: storedClauses,
         commencement_date,
         review_date,
         expiry_date,
@@ -159,18 +169,6 @@ export async function POST(req: Request) {
       .single();
 
     if (insertErr) return NextResponse.json({ message: userFacingError(insertErr.message) }, { status: 500 });
-
-    // If variation, mark prior agreement as superseded
-    if (is_variation && prior_agreement_id && newAgreement) {
-      await supabase
-        .from('agreement_records')
-        .update({
-          status: 'superseded',
-          superseded_by_id: newAgreement.id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', prior_agreement_id);
-    }
 
     return NextResponse.json({ ok: true, agreement: newAgreement });
   } catch (err: unknown) {
@@ -195,15 +193,27 @@ export async function PATCH(req: Request) {
     // Protect immutability: if active or fully_signed, cannot overwrite clauses without variation
     const { data: current } = await supabase
       .from('agreement_records')
-      .select('status')
+      .select('status, executed_at')
       .eq('id', id)
       .single();
 
-    if (current?.status === 'active' || current?.status === 'fully_signed') {
-      if (updates.compiled_clauses || updates.questionnaire_data) {
+    const incomingFields = Object.keys(updates);
+    if (current?.executed_at || ['active', 'fully_signed', 'superseded'].includes(current?.status || '')) {
+      const allowedLifecycleFields = new Set(['status', 'superseded_by_id']);
+      const allowedStatuses = new Set(['active', 'fully_signed', 'superseded', 'expired', 'terminated']);
+      if (incomingFields.some((field) => !allowedLifecycleFields.has(field)) || (updates.status && !allowedStatuses.has(updates.status))) {
         return NextResponse.json({
           message: 'Executed agreements cannot be directly edited. Please create a Variation agreement to amend terms.'
         }, { status: 403 });
+      }
+    } else {
+      const draftFields = new Set([
+        'template_id', 'owner_type', 'owner_id', 'title', 'questionnaire_data',
+        'compiled_clauses', 'commencement_date', 'review_date', 'expiry_date',
+        'estimated_budget', 'status',
+      ]);
+      if (incomingFields.some((field) => !draftFields.has(field))) {
+        return NextResponse.json({ message: 'One or more agreement fields cannot be changed.' }, { status: 400 });
       }
     }
 

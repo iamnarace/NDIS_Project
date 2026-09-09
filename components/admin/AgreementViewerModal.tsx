@@ -3,15 +3,16 @@
 import useDialogFocus from '@/components/ui/useDialogFocus';
 
 import React, { useRef } from 'react';
-import { X, Printer, Shield, CheckCircle2, FileText, Download, Clock, GitBranch } from 'lucide-react';
+import { X, Printer, Shield, CheckCircle2, FileText, Download, Clock, GitBranch, PenTool } from 'lucide-react';
 
 interface AgreementViewerModalProps {
   agreement: any;
   onClose: () => void;
   onCreateVariation?: (agreement: any) => void;
+  onResumeDraft?: (agreement: any) => void;
 }
 
-export default function AgreementViewerModal({ agreement, onClose, onCreateVariation }: AgreementViewerModalProps) {
+export default function AgreementViewerModal({ agreement, onClose, onCreateVariation, onResumeDraft }: AgreementViewerModalProps) {
   const dialogRef = useDialogFocus(onClose);
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -60,6 +61,17 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {onResumeDraft && agreement.status === 'draft' && (
+              <button
+                onClick={() => onResumeDraft(agreement)}
+                className="crmActionBtnPrimary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontSize: '0.82rem' }}
+              >
+                <PenTool size={15} />
+                <span>Continue & Sign</span>
+              </button>
+            )}
+
             <button
               onClick={handlePrint}
               className="crmSecondaryBtn"
@@ -118,7 +130,9 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
                 <span style={{ fontSize: '0.8125rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--oc-muted)' }}>Participant / Recipient</span>
                 <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--oc-text)' }}>{qData.participant_name || qData.worker_name || 'Recipient Name'}</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--oc-secondary)' }}>
-                  NDIS #: {qData.ndis_number || 'N/A'} • {qData.funding_type || 'Standard Terms'}
+                  {agreement.owner_type === 'participant'
+                    ? `NDIS #: ${qData.ndis_number || 'N/A'} • ${qData.funding_type || 'Funding not recorded'}`
+                    : `${qData.worker_classification || 'Support Worker'} • ${qData.worker_basis || 'Employment terms'}`}
                 </div>
               </div>
 
@@ -128,7 +142,9 @@ export default function AgreementViewerModal({ agreement, onClose, onCreateVaria
                   Commencement: {agreement.commencement_date}
                 </div>
                 <div style={{ fontSize: '0.82rem', color: '#059669', fontWeight: 600 }}>
-                  Estimated Plan Commitment: ${Number(agreement.estimated_budget || 0).toLocaleString('en-AU', { minimumFractionDigits: 2 })} AUD
+                  {agreement.owner_type === 'participant'
+                    ? `Estimated Plan Commitment: $${Number(agreement.estimated_budget || 0).toLocaleString('en-AU', { minimumFractionDigits: 2 })} AUD`
+                    : `Base Hourly Rate: $${Number(qData.hourly_rate || 0).toFixed(2)} AUD`}
                 </div>
               </div>
             </div>

@@ -25,6 +25,7 @@ interface AgreementGeneratorModalProps {
   onCreated: (newAgreement: any) => void;
   initialTemplateCode?: string;
   variationOf?: any;
+  draftAgreement?: any;
 }
 
 const NDIS_SERVICES = [
@@ -42,15 +43,17 @@ export default function AgreementGeneratorModal({
   onCreated,
   initialTemplateCode = 'PACK-PART-01',
   variationOf = null,
+  draftAgreement = null,
 }: AgreementGeneratorModalProps) {
   const dialogRef = useDialogFocus(onClose);
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(variationOf ? 3 : 1);
+  const sourceAgreement = draftAgreement || variationOf;
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(sourceAgreement ? 3 : 1);
   const [selectedTemplate, setSelectedTemplate] = useState<string>(
-    variationOf ? variationOf.template?.template_code || 'DOC-PART-01' : initialTemplateCode
+    sourceAgreement ? sourceAgreement.template?.template_code || 'DOC-PART-01' : initialTemplateCode
   );
   const [ownerType, setOwnerType] = useState<'participant' | 'staff' | 'contractor'>(
-    variationOf
-      ? variationOf.owner_type
+    sourceAgreement
+      ? sourceAgreement.owner_type
       : initialTemplateCode.includes('WRK')
       ? 'staff'
       : initialTemplateCode.includes('CTR')
@@ -60,36 +63,36 @@ export default function AgreementGeneratorModal({
 
   // Selected owner state - MUST strictly hold the database UUID
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>(
-    variationOf ? variationOf.owner_id : ''
+    sourceAgreement ? sourceAgreement.owner_id : ''
   );
 
   // Recipient info
   const [recipientName, setRecipientName] = useState<string>(
-    variationOf?.questionnaire_data?.participant_name || variationOf?.questionnaire_data?.worker_name || ''
+    sourceAgreement?.questionnaire_data?.participant_name || sourceAgreement?.questionnaire_data?.worker_name || ''
   );
-  const [ndisNumber, setNdisNumber] = useState<string>(variationOf?.questionnaire_data?.ndis_number || '');
-  const [fundingType, setFundingType] = useState<string>(variationOf?.questionnaire_data?.funding_type || 'Plan-Managed');
-  const [planManagerName, setPlanManagerName] = useState<string>(variationOf?.questionnaire_data?.plan_manager_name || '');
-  const [planManagerEmail, setPlanManagerEmail] = useState<string>(variationOf?.questionnaire_data?.plan_manager_email || '');
+  const [ndisNumber, setNdisNumber] = useState<string>(sourceAgreement?.questionnaire_data?.ndis_number || '');
+  const [fundingType, setFundingType] = useState<string>(sourceAgreement?.questionnaire_data?.funding_type || 'Plan-Managed');
+  const [planManagerName, setPlanManagerName] = useState<string>(sourceAgreement?.questionnaire_data?.plan_manager_name || '');
+  const [planManagerEmail, setPlanManagerEmail] = useState<string>(sourceAgreement?.questionnaire_data?.plan_manager_email || '');
   
   // Schedule of Supports items
   const [scheduleItems, setScheduleItems] = useState(
-    variationOf?.compiled_clauses?.service_schedule || [
+    sourceAgreement?.compiled_clauses?.service_schedule || [
       { item_code: '01_011_0107_1_1', description: 'Assistance with Daily Personal Activities (Standard)', hours_pw: 6.0, agreed_rate: 67.56 },
       { item_code: '04_104_0125_6_1', description: 'Access Community, Social and Civic Activities', hours_pw: 4.0, agreed_rate: 67.56 },
     ]
   );
 
   // Participant Consent toggles
-  const [transportIncluded, setTransportIncluded] = useState<boolean>(variationOf?.questionnaire_data?.transport_included ?? true);
-  const [mediaConsent, setMediaConsent] = useState<boolean>(variationOf?.questionnaire_data?.media_consent ?? false);
+  const [transportIncluded, setTransportIncluded] = useState<boolean>(sourceAgreement?.questionnaire_data?.transport_included ?? true);
+  const [mediaConsent, setMediaConsent] = useState<boolean>(sourceAgreement?.questionnaire_data?.media_consent ?? false);
 
   // Workforce & Contractor fields
-  const [workerClassification, setWorkerClassification] = useState('Level 2 Support Worker');
-  const [workerBasis, setWorkerBasis] = useState<'full_time' | 'part_time' | 'casual'>('casual');
-  const [workerRate, setWorkerRate] = useState<number>(38.50);
-  const [superRate, setSuperRate] = useState<number>(11.50);
-  const [includeRestraintClause, setIncludeRestraintClause] = useState<boolean>(false);
+  const [workerClassification, setWorkerClassification] = useState(sourceAgreement?.questionnaire_data?.worker_classification || 'Level 2 Support Worker');
+  const [workerBasis, setWorkerBasis] = useState<'full_time' | 'part_time' | 'casual'>(sourceAgreement?.questionnaire_data?.worker_basis || 'casual');
+  const [workerRate, setWorkerRate] = useState<number>(sourceAgreement?.questionnaire_data?.hourly_rate || 38.50);
+  const [superRate, setSuperRate] = useState<number>(sourceAgreement?.questionnaire_data?.super_rate_pct || 11.50);
+  const [includeRestraintClause, setIncludeRestraintClause] = useState<boolean>(sourceAgreement?.questionnaire_data?.include_restraint_clause ?? false);
 
   // Sham Contracting Checklist (Contractor Gate)
   const [contractorChecks, setContractorChecks] = useState({
@@ -101,10 +104,10 @@ export default function AgreementGeneratorModal({
 
   // Dates
   const [commencementDate, setCommencementDate] = useState<string>(
-    variationOf?.commencement_date || new Date().toISOString().split('T')[0]
+    sourceAgreement?.commencement_date || new Date().toISOString().split('T')[0]
   );
-  const [reviewDate, setReviewDate] = useState<string>('');
-  const [expiryDate, setExpiryDate] = useState<string>('');
+  const [reviewDate, setReviewDate] = useState<string>(sourceAgreement?.review_date || '');
+  const [expiryDate, setExpiryDate] = useState<string>(sourceAgreement?.expiry_date || '');
 
   // Signing state
   const [signerName, setSignerName] = useState<string>('');
@@ -236,6 +239,11 @@ export default function AgreementGeneratorModal({
     setError('');
 
     try {
+      if (executeNow && !hasDrawn) {
+        setError('Please add the participant or worker signature before executing this agreement.');
+        return;
+      }
+
       // Resolve true UUID
       let targetOwnerUuid = selectedOwnerId;
       if (ownerType === 'participant') {
@@ -261,6 +269,10 @@ export default function AgreementGeneratorModal({
       // Fetch template
       const tmplRes = await fetch(`/api/crm/agreements/templates?category=all`);
       const tmpls = await tmplRes.json();
+      if (!tmplRes.ok || !Array.isArray(tmpls)) {
+        setError(tmpls?.message || 'Agreement templates could not be loaded. Please try again.');
+        return;
+      }
       const matchTmpl = tmpls.find((t: any) => t.template_code === selectedTemplate) || tmpls[0];
 
       if (!matchTmpl) {
@@ -273,10 +285,10 @@ export default function AgreementGeneratorModal({
       const qData: Record<string, any> = {
         participant_name: ownerType === 'participant' ? recipientName : undefined,
         worker_name: ownerType !== 'participant' ? recipientName : undefined,
-        ndis_number: ndisNumber,
-        funding_type: fundingType,
-        plan_manager_name: fundingType === 'Plan-Managed' ? planManagerName : undefined,
-        plan_manager_email: fundingType === 'Plan-Managed' ? planManagerEmail : undefined,
+        ndis_number: ownerType === 'participant' ? ndisNumber : undefined,
+        funding_type: ownerType === 'participant' ? fundingType : undefined,
+        plan_manager_name: ownerType === 'participant' && fundingType === 'Plan-Managed' ? planManagerName : undefined,
+        plan_manager_email: ownerType === 'participant' && fundingType === 'Plan-Managed' ? planManagerEmail : undefined,
         transport_included: transportIncluded,
         media_consent: mediaConsent,
         worker_classification: workerClassification,
@@ -290,8 +302,13 @@ export default function AgreementGeneratorModal({
         service_schedule: ownerType === 'participant' ? scheduleItems : [],
         total_annual_budget: totalAnnualBudget,
       };
+      if (draftAgreement?.compiled_clauses?.variation_of_agreement_id) {
+        compiledClauses.variation_of_agreement_id = draftAgreement.compiled_clauses.variation_of_agreement_id;
+      }
 
-      const title = variationOf 
+      const title = draftAgreement
+        ? draftAgreement.title
+        : variationOf
         ? `${variationOf.title} (Variation v${variationOf.version_number + 1})`
         : selectedTemplate === 'PACK-PART-01'
         ? `New Participant Pack - ${recipientName}`
@@ -299,11 +316,8 @@ export default function AgreementGeneratorModal({
         ? `New Worker Pack - ${recipientName}`
         : `${matchTmpl.title} - ${recipientName}`;
 
-      // POST to create draft
-      const createRes = await fetch('/api/crm/agreements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const agreementPayload = {
+          ...(draftAgreement ? { id: draftAgreement.id } : {}),
           template_id: matchTmpl.id,
           owner_type: ownerType,
           owner_id: targetOwnerUuid,
@@ -313,11 +327,18 @@ export default function AgreementGeneratorModal({
           commencement_date: commencementDate,
           review_date: reviewDate || null,
           expiry_date: expiryDate || null,
-          estimated_budget: totalAnnualBudget,
-          status: executeNow ? 'partially_signed' : 'draft',
-          is_variation: !!variationOf,
-          prior_agreement_id: variationOf?.id || null,
-        }),
+          estimated_budget: ownerType === 'participant' ? totalAnnualBudget : null,
+          status: 'draft',
+          ...(!draftAgreement ? {
+            is_variation: !!variationOf,
+            prior_agreement_id: variationOf?.id || null,
+          } : {}),
+      };
+
+      const createRes = await fetch('/api/crm/agreements', {
+        method: draftAgreement ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(agreementPayload),
       });
 
       const createData = await createRes.json();
@@ -328,12 +349,13 @@ export default function AgreementGeneratorModal({
       }
 
       const newAgr = createData.agreement;
+      let savedAgreement = newAgr;
 
       // If user provided a digital signature on canvas
       if (executeNow && newAgr && hasDrawn && canvasRef.current) {
         const sigData = canvasRef.current.toDataURL('image/png');
         // Sign as participant / worker
-        await fetch('/api/crm/agreements/sign', {
+        const partySignRes = await fetch('/api/crm/agreements/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -345,9 +367,14 @@ export default function AgreementGeneratorModal({
             signature_image_data: sigData,
           }),
         });
+        const partySignData = await partySignRes.json();
+        if (!partySignRes.ok) {
+          setError(partySignData.message || 'The agreement was saved, but the recipient signature could not be recorded.');
+          return;
+        }
 
         // Sign as provider rep to fully execute!
-        await fetch('/api/crm/agreements/sign', {
+        const providerSignRes = await fetch('/api/crm/agreements/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -358,9 +385,15 @@ export default function AgreementGeneratorModal({
             signing_method: 'digital_canvas',
           }),
         });
+        const providerSignData = await providerSignRes.json();
+        if (!providerSignRes.ok || !providerSignData.is_fully_signed) {
+          setError(providerSignData.message || 'The recipient signature was saved, but provider execution could not be completed.');
+          return;
+        }
+        savedAgreement = providerSignData.agreement;
       }
 
-      onCreated(newAgr);
+      onCreated(savedAgreement);
       onClose();
     } catch (err: unknown) {
       setError('Network error while saving agreement. Please try again.');
@@ -380,7 +413,7 @@ export default function AgreementGeneratorModal({
         <div className="crmModalHeader" style={{ flexShrink: 0 }}>
           <div>
             <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--oc-info)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {variationOf ? `AGREEMENT VARIATION (v${variationOf.version_number + 1})` : 'OPUS CARE AGREEMENT ENGINE'}
+              {draftAgreement ? 'CONTINUE DRAFT AGREEMENT' : variationOf ? `AGREEMENT VARIATION (v${variationOf.version_number + 1})` : 'OPUS CARE AGREEMENT ENGINE'}
             </span>
             <h3 className="crmSectionTitle" style={{ margin: 0 }}>
               {step === 1 && 'Step 1: Select Document or Onboarding Pack'}

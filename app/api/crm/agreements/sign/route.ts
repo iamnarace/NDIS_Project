@@ -5,6 +5,21 @@ import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidUuid } from '@/lib/uuid';
 
+async function supersedePriorAgreement(supabase: any, agreement: any, agreementId: string) {
+  const priorAgreementId = agreement?.compiled_clauses?.variation_of_agreement_id;
+  if (!priorAgreementId || !isValidUuid(priorAgreementId)) return null;
+  const { error } = await supabase
+    .from('agreement_records')
+    .update({
+      status: 'superseded',
+      superseded_by_id: agreementId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', priorAgreementId)
+    .in('status', ['active', 'fully_signed']);
+  return error;
+}
+
 export async function POST(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
   if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -27,6 +42,9 @@ export async function POST(req: Request) {
     if (!agreement_id || !party_role || !signer_name) {
       return NextResponse.json({ message: 'agreement_id, party_role, and signer_name are required' }, { status: 400 });
     }
+    if (!['participant', 'guardian', 'worker', 'contractor', 'provider_rep'].includes(party_role)) {
+      return NextResponse.json({ message: 'The selected signing role is invalid.' }, { status: 400 });
+    }
 
     // Defensive resolution if agreement_reference passed
     if (!isValidUuid(agreement_id)) {
@@ -43,10 +61,22 @@ export async function POST(req: Request) {
       }
     }
 
-    // Insert signature
-    const { data: sig, error: sigErr } = await supabase
+    const { data: existingSignature, error: existingSignatureError } = await supabase
       .from('agreement_signatures')
-      .insert({
+      .select('*')
+      .eq('agreement_id', agreement_id)
+      .eq('party_role', party_role)
+      .limit(1)
+      .maybeSingle();
+    if (existingSignatureError) {
+      return NextResponse.json({ message: userFacingError(existingSignatureError.message) }, { status: 500 });
+    }
+
+    let sig = existingSignature;
+    if (!sig) {
+      const { data: insertedSignature, error: sigErr } = await supabase
+        .from('agreement_signatures')
+        .insert({
         agreement_id,
         party_role,
         signer_name,
@@ -60,7 +90,9 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (sigErr) return NextResponse.json({ message: userFacingError(sigErr.message) }, { status: 500 });
+      if (sigErr) return NextResponse.json({ message: userFacingError(sigErr.message) }, { status: 500 });
+      sig = insertedSignature;
+    }
 
     // Check all signatures on this agreement
     const { data: allSigs } = await supabase
@@ -71,6 +103,21 @@ export async function POST(req: Request) {
     // If signed by both party and provider (or marked fully executed)
     const hasParticipantOrWorker = (allSigs || []).some(s => ['participant', 'guardian', 'worker', 'contractor'].includes(s.party_role));
     const hasProvider = (allSigs || []).some(s => s.party_role === 'provider_rep');
+
+    const { data: currentAgreement, error: currentAgreementError } = await supabase
+      .from('agreement_records')
+      .select('*, template:document_templates(*), signatures:agreement_signatures(*)')
+      .eq('id', agreement_id)
+      .single();
+    if (currentAgreementError || !currentAgreement) {
+      return NextResponse.json({ message: userFacingError(currentAgreementError?.message || 'Agreement not found.') }, { status: 500 });
+    }
+
+    if (hasParticipantOrWorker && hasProvider && ['active', 'fully_signed'].includes(currentAgreement.status)) {
+      const supersedeError = await supersedePriorAgreement(supabase, currentAgreement, agreement_id);
+      if (supersedeError) return NextResponse.json({ message: userFacingError(supersedeError.message) }, { status: 500 });
+      return NextResponse.json({ ok: true, signature: sig, agreement: currentAgreement, is_fully_signed: true });
+    }
 
     let newStatus = 'partially_signed';
     let executedAt = null;
@@ -98,6 +145,11 @@ export async function POST(req: Request) {
       .single();
 
     if (updateErr) return NextResponse.json({ message: userFacingError(updateErr.message) }, { status: 500 });
+
+    if (newStatus === 'active') {
+      const supersedeError = await supersedePriorAgreement(supabase, updatedAgreement, agreement_id);
+      if (supersedeError) return NextResponse.json({ message: userFacingError(supersedeError.message) }, { status: 500 });
+    }
 
     return NextResponse.json({
       ok: true,
