@@ -16,7 +16,9 @@ Before changing code, read:
 
 Begin with:
 
-`docs/governance/G1_REVIEW_CLOSURE.md`
+`docs/governance/G1_REVIEW_CLOSURE_AUTONOMOUS.md`
+
+That wrapper requires all technical work in `G1_REVIEW_CLOSURE.md` but replaces the old supervised STOP with autonomous continuation after the closure passes.
 
 Then automatically continue through G2, G3, G4, G5, G6, G7 and Final Go-Live Verification using the phase files listed in `docs/CODEX_AUTONOMOUS_RUNBOOK.md`.
 
