@@ -54,7 +54,7 @@ export default function WelcomePackPage() {
                     className="contractLogo"
                   />
                   <p className="contractEntityDetails">
-                    <strong>Opus Care Support Services Pty Ltd</strong><br />
+                    <strong>Opus Care Support Services</strong><br />
                     Supporting Self-Managed and Plan-Managed Participants<br />
                     Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers NSW
                   </p>
@@ -120,7 +120,7 @@ export default function WelcomePackPage() {
             </section>
 
             <footer className="contractFooterLegal">
-              <p>Opus Care Support Services Pty Ltd · NSW North Coast & Northern Rivers · support@opuscare.com.au</p>
+              <p>Opus Care Support Services · ABN 41 267 197 576 · support@opuscare.com.au</p>
             </footer>
 
           </div>

@@ -101,7 +101,7 @@ export async function GET(req: Request) {
         <div class="meta-label">Certificate ID</div>
         <div class="meta-value">${certId}</div>
         <div class="meta-label" style="margin-top:8px">Issued By</div>
-        <div class="meta-value">Opus Care Pty Ltd</div>
+        <div class="meta-value">Opus Care Support Services</div>
       </div>
     </div>
     <p class="disclaimer">Internal Training Certificate — Not a nationally accredited qualification.<br/>This certificate does not represent completion of any NDIS Commission, TAFE, or RTO-registered course.</p>

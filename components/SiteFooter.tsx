@@ -159,7 +159,7 @@ export function SiteFooter() {
       <div className="footerBottomBar">
         <div className="shell footerBottomFlex">
           <p className="copyrightText">
-            &copy; Copyright Opus Care Support Services Pty Ltd 2026. All Rights Reserved.
+            &copy; Copyright Opus Care Support Services 2026. All Rights Reserved.
           </p>
           <div className="legalLinks">
             <Link href="/privacy">Privacy Policy</Link>

@@ -42,7 +42,7 @@ import {
   LayoutDashboard, Receipt, Calculator, Award, Settings, ChevronLeft,
   ChevronRight, TrendingUp, DollarSign, Activity, FileSpreadsheet,
   Layers, ShieldAlert, Sparkle, Eye, BookOpen, GraduationCap, ClipboardCheck, Upload, Trophy,
-  ClipboardList, Target, Trash2
+  ClipboardList, Target, Trash2, ShieldCheck
 } from 'lucide-react';
 
 interface Referral {
@@ -229,6 +229,24 @@ export default function AdminCrmPage() {
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [drawerTab, setDrawerTab] = useState<'overview' | 'documents' | 'timeline' | 'contacts'>('overview');
+
+  // Governance & Provider Config State
+  const [providerConfig, setProviderConfig] = useState<any>(null);
+  const [providerConfigLoading, setProviderConfigLoading] = useState(false);
+  const [proprietorInput, setProprietorInput] = useState('');
+  const [proprietorSaving, setProprietorSaving] = useState(false);
+  const [insurances, setInsurances] = useState<any[]>([]);
+  const [insurancesLoading, setInsurancesLoading] = useState(false);
+  const [showAddInsurance, setShowAddInsurance] = useState(false);
+  const [newInsurance, setNewInsurance] = useState({
+    policyType: 'Public Liability',
+    insurer: '',
+    policyNumber: '',
+    coverageAmount: 10000000,
+    commencementDate: new Date().toISOString().slice(0, 10),
+    expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+    notes: '',
+  });
   // Participant Contacts State
   const [participantContacts, setParticipantContacts] = useState<any[]>([]);
   const [contactsLoading, setContactsLoading] = useState(false);
@@ -424,6 +442,9 @@ export default function AdminCrmPage() {
       loadSupportPlans(selectedPlanParticipant);
     } else if (tab === 'risk_assessments' && selectedRiskParticipant) {
       loadRiskAssessments(selectedRiskParticipant);
+    } else if (tab === 'settings') {
+      loadProviderConfig();
+      loadInsurances();
     }
   }, [tab, selectedGoalParticipant, selectedPlanParticipant, selectedRiskParticipant, loadFinanceMetrics]);
 
@@ -823,6 +844,104 @@ export default function AdminCrmPage() {
       console.error('Failed to load agreements', err);
     } finally {
       setAgreementsLoading(false);
+    }
+  }
+
+  async function loadProviderConfig() {
+    setProviderConfigLoading(true);
+    try {
+      const res = await fetch('/api/crm/provider-config');
+      if (res.ok) {
+        const data = await res.json();
+        setProviderConfig(data);
+        if (data?.proprietor_legal_name) {
+          setProprietorInput(data.proprietor_legal_name);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load provider config', err);
+    } finally {
+      setProviderConfigLoading(false);
+    }
+  }
+
+  async function loadInsurances() {
+    setInsurancesLoading(true);
+    try {
+      const res = await fetch('/api/governance/insurance');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.policies)) {
+          setInsurances(data.policies);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load insurances', err);
+    } finally {
+      setInsurancesLoading(false);
+    }
+  }
+
+  async function handleSaveProprietor() {
+    if (!proprietorInput.trim()) {
+      notify('Please enter a proprietor legal name.');
+      return;
+    }
+    setProprietorSaving(true);
+    try {
+      const res = await fetch('/api/crm/provider-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: providerConfig?.id,
+          proprietor_legal_name: proprietorInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        notify('Proprietor legal name updated successfully.');
+        setProviderConfig((prev: any) => ({ ...prev, proprietor_legal_name: proprietorInput.trim() }));
+      } else {
+        notify(data.message || 'Failed to update proprietor legal name.');
+      }
+    } catch {
+      notify('Error saving proprietor legal name.');
+    } finally {
+      setProprietorSaving(false);
+    }
+  }
+
+  async function handleAddInsurance(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newInsurance.insurer.trim() || !newInsurance.policyNumber.trim()) {
+      notify('Please enter the insurer name and policy number.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/governance/insurance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newInsurance),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        notify('Insurance policy registered successfully.');
+        setShowAddInsurance(false);
+        setNewInsurance({
+          policyType: 'Public Liability',
+          insurer: '',
+          policyNumber: '',
+          coverageAmount: 10000000,
+          commencementDate: new Date().toISOString().slice(0, 10),
+          expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+          notes: '',
+        });
+        loadInsurances();
+      } else {
+        notify(data.error || 'Failed to add insurance policy.');
+      }
+    } catch {
+      notify('Error registering insurance policy.');
     }
   }
 
@@ -3982,6 +4101,292 @@ export default function AdminCrmPage() {
             </p>
           </div>
 
+          {/* Organisation Readiness & Legal Configuration Panel */}
+          <div className="vsCard" style={{ marginBottom: 24, padding: '24px 24px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <ShieldCheck size={20} style={{ color: '#2563eb' }} />
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                    Organisation Governance &amp; Operational Readiness
+                  </h3>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
+                  Authorised regulatory posture, legal counterparty identity, and operational pre-go-live status
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { loadProviderConfig(); loadInsurances(); notify('Refreshed governance configuration.'); }}
+                className="vsBtnOutline"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: '0.8125rem' }}
+              >
+                <RefreshCw size={14} className={providerConfigLoading ? 'spin' : ''} />
+                <span>Refresh Status</span>
+              </button>
+            </div>
+
+            {/* 8-Dimension Readiness Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: 12,
+              marginBottom: 20
+            }}>
+              {/* 1. Business Name */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Trading Name</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Opus Care Support Services</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Registered Sole Trader business name</div>
+              </div>
+
+              {/* 2. ABN */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Australian Business No.</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Authorised</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)', fontFamily: 'monospace' }}>41 267 197 576</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Active on Australian Business Register</div>
+              </div>
+
+              {/* 3. GST Status */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>GST Registration</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Not Registered for GST</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>0% GST · Standard &quot;INVOICE&quot; only</div>
+              </div>
+
+              {/* 4. NDIS Registration */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>NDIS Status</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Unregistered Provider</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Plan-Managed &amp; Self-Managed only</div>
+              </div>
+
+              {/* 5. Business Structure */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Business Structure</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Sole Trader</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Non-incorporated entity · ACN N/A</div>
+              </div>
+
+              {/* 6. Proprietor Legal Name */}
+              <div style={{
+                background: providerConfig?.proprietor_legal_name ? '#f8fafc' : '#fffbeb',
+                border: providerConfig?.proprietor_legal_name ? '1px solid #e2e8f0' : '1px solid #fde68a',
+                borderRadius: 8,
+                padding: '12px 14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Proprietor Legal Name</span>
+                  {providerConfig?.proprietor_legal_name ? (
+                    <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#b45309', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Pending</span>
+                  )}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: providerConfig?.proprietor_legal_name ? 'var(--oc-text)' : '#b45309' }}>
+                  {providerConfig?.proprietor_legal_name || 'Pending Configuration'}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                  {providerConfig?.proprietor_legal_name ? 'Active legal counterparty' : 'Required before executing formal agreements'}
+                </div>
+              </div>
+
+              {/* 7. Bank & Remittance */}
+              <div style={{
+                background: providerConfig?.bank_account_number ? '#f8fafc' : '#fffbeb',
+                border: providerConfig?.bank_account_number ? '1px solid #e2e8f0' : '1px solid #fde68a',
+                borderRadius: 8,
+                padding: '12px 14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Remittance Account</span>
+                  {providerConfig?.bank_account_number ? (
+                    <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#b45309', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Pending</span>
+                  )}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: providerConfig?.bank_account_number ? 'var(--oc-text)' : '#b45309' }}>
+                  {providerConfig?.bank_account_number ? `${providerConfig.bank_name || 'Configured Bank'} (BSB ${providerConfig.bank_bsb})` : 'Pending Configuration'}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                  {providerConfig?.bank_account_number ? 'Active disbursement account' : 'Required before external invoice generation'}
+                </div>
+              </div>
+
+              {/* 8. Insurance */}
+              <div style={{
+                background: insurances.length > 0 ? '#f8fafc' : '#fffbeb',
+                border: insurances.length > 0 ? '1px solid #e2e8f0' : '1px solid #fde68a',
+                borderRadius: 8,
+                padding: '12px 14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Insurance Register</span>
+                  {insurances.length > 0 ? (
+                    <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>{insurances.length} Active</span>
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#b45309', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Pending</span>
+                  )}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: insurances.length > 0 ? 'var(--oc-text)' : '#b45309' }}>
+                  {insurances.length > 0 ? `${insurances.length} Policies Registered` : 'No Policies Registered'}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                  Public Liability &amp; Professional Indemnity required
+                </div>
+              </div>
+            </div>
+
+            {/* Proprietor Legal Name Configuration Box */}
+            <div style={{ background: '#f1f5f9', borderRadius: 8, padding: '14px 16px', border: '1px solid #cbd5e1' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ flex: 1, minWidth: 280 }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Proprietor Full Legal Name (Sole Trader)
+                  </label>
+                  <p style={{ margin: '0 0 8px', fontSize: '0.75rem', color: '#64748b' }}>
+                    By Australian sole trader law, formal agreements must identify: <code>[Proprietor Full Legal Name] trading as Opus Care Support Services</code>.
+                  </p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      placeholder="e.g. Full Legal Name of Proprietor"
+                      value={proprietorInput}
+                      onChange={(e) => setProprietorInput(e.target.value)}
+                      className="crmInput"
+                      style={{ flex: 1, padding: '7px 12px', fontSize: '0.85rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveProprietor}
+                      disabled={proprietorSaving || !proprietorInput.trim() || proprietorInput.trim() === providerConfig?.proprietor_legal_name}
+                      className="vsBtnBlack"
+                      style={{ padding: '7px 16px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                    >
+                      {proprietorSaving ? 'Saving...' : 'Save Legal Name'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Organisation Insurance Register Section */}
+          <div className="vsCard" style={{ marginBottom: 24, padding: '24px 24px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileSpreadsheet size={20} style={{ color: '#059669' }} />
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                    Organisation Insurance Register
+                  </h3>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
+                  Statutory and operational risk insurance policies covering provider operations, worker liability, and transport.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddInsurance(true)}
+                className="vsBtnBlack"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: '0.8125rem' }}
+              >
+                <Plus size={14} />
+                <span>Register Policy</span>
+              </button>
+            </div>
+
+            {insurancesLoading ? (
+              <div style={{ padding: 24, textAlign: 'center', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
+                Loading registered insurance policies...
+              </div>
+            ) : insurances.length === 0 ? (
+              <div style={{
+                padding: '24px 16px',
+                textAlign: 'center',
+                background: '#f8fafc',
+                border: '1px dashed #cbd5e1',
+                borderRadius: 8
+              }}>
+                <Shield size={32} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>No Insurance Policies Registered</div>
+                <p style={{ margin: '4px 0 12px', fontSize: '0.8rem', color: '#64748b', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
+                  Opus Care operations require verified Public &amp; Products Liability ($10M+) and Professional Indemnity policies prior to participant service delivery.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowAddInsurance(true)}
+                  className="vsBtnOutline"
+                  style={{ padding: '6px 14px', fontSize: '0.8125rem' }}
+                >
+                  Register First Policy
+                </button>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="crmTable" style={{ width: '100%', fontSize: '0.82rem' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', padding: '10px 12px' }}>Policy Type</th>
+                      <th style={{ textAlign: 'left', padding: '10px 12px' }}>Insurer</th>
+                      <th style={{ textAlign: 'left', padding: '10px 12px' }}>Policy Number</th>
+                      <th style={{ textAlign: 'right', padding: '10px 12px' }}>Coverage Limit</th>
+                      <th style={{ textAlign: 'left', padding: '10px 12px' }}>Expiry Date</th>
+                      <th style={{ textAlign: 'center', padding: '10px 12px' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {insurances.map((ins: any) => {
+                      const isExpired = ins.isExpired;
+                      const isExpiringSoon = ins.isExpiringSoon;
+                      return (
+                        <tr key={ins.id}>
+                          <td style={{ padding: '10px 12px', fontWeight: 600 }}>{ins.policyType}</td>
+                          <td style={{ padding: '10px 12px' }}>{ins.insurer}</td>
+                          <td style={{ padding: '10px 12px', fontFamily: 'monospace' }}>{ins.policyNumber}</td>
+                          <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                            {ins.coverageAmount ? `$${Number(ins.coverageAmount).toLocaleString()} AUD` : '—'}
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span>{ins.expiryDate}</span>
+                            {isExpiringSoon && (
+                              <span style={{ marginLeft: 6, fontSize: '0.72rem', background: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: 4, fontWeight: 600 }}>
+                                Expiring soon
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            {isExpired ? (
+                              <span style={{ fontSize: '0.75rem', background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Expired</span>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Active</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           {/* 3-Column Bento Grid matching VibeStore Screen 4 */}
           <div className="vsSettingsGrid">
             {/* Column 1: Profile Card & Plan Card */}
@@ -4044,15 +4449,18 @@ export default function AdminCrmPage() {
                 <h4 style={{ margin: '4px 0 2px', fontSize: '0.98rem', fontWeight: 600, color: 'var(--oc-text)' }}>
                   Opus Care Support Services
                 </h4>
-                <p style={{ margin: '0 0 10px', fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
-                  ABN: Pending Configuration &bull; Clarence Valley &amp; Northern Rivers NSW
+                <p style={{ margin: '0 0 4px', fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
+                  ABN: 41 267 197 576 &bull; Sole Trader &bull; GST Not Registered
+                </p>
+                <p style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--oc-muted)' }}>
+                  {providerConfig?.proprietor_legal_name ? `Proprietor: ${providerConfig.proprietor_legal_name}` : 'Proprietor name pending configuration'}
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowAgreementGenerator(true)}
                   style={{ background: 'none', border: 'none', padding: 0, color: '#4F46E5', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
                 >
-                  Configure provider details &rarr;
+                  Create service agreement &rarr;
                 </button>
               </div>
             </div>
@@ -5063,6 +5471,156 @@ export default function AdminCrmPage() {
             setShowAgreementGenerator(true);
           }}
         />
+      )}
+
+      {/* REGISTER INSURANCE POLICY MODAL */}
+      {showAddInsurance && (
+        <div className="crmModalOverlay" onClick={() => setShowAddInsurance(false)}>
+          <DialogPanel
+            onClose={() => setShowAddInsurance(false)}
+            label="Register Insurance Policy"
+            className="crmModalBox"
+            style={{ maxWidth: 540 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="crmModalHeader">
+              <div>
+                <span className="refIdTag">GOVERNANCE COMPLIANCE</span>
+                <h3 style={{ margin: '4px 0 0' }}>Register Insurance Policy</h3>
+              </div>
+              <button
+                onClick={() => setShowAddInsurance(false)}
+                aria-label="Close dialog"
+                className="crmModalClose"
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleAddInsurance} style={{ padding: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                    Policy Type *
+                  </label>
+                  <select
+                    value={newInsurance.policyType}
+                    onChange={(e) => setNewInsurance({ ...newInsurance, policyType: e.target.value })}
+                    className="crmSelect"
+                    style={{ width: '100%', padding: '8px 12px' }}
+                  >
+                    <option value="Public Liability">Public Liability</option>
+                    <option value="Professional Indemnity">Professional Indemnity</option>
+                    <option value="Workers Compensation">Workers Compensation</option>
+                    <option value="Business/Participant Transport Vehicle Cover">Business/Participant Transport Vehicle Cover</option>
+                    <option value="Cyber/Data Cover">Cyber/Data Cover</option>
+                    <option value="Clinical/High Intensity Extension">Clinical/High Intensity Extension</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                    Insurer Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. QBE, Allianz, CGU, BizCover"
+                    value={newInsurance.insurer}
+                    onChange={(e) => setNewInsurance({ ...newInsurance, insurer: e.target.value })}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '8px 12px' }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                      Policy Number *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. POL-992381"
+                      value={newInsurance.policyNumber}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, policyNumber: e.target.value })}
+                      className="crmInput"
+                      style={{ width: '100%', padding: '8px 12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                      Coverage Amount ($ AUD)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="10000000"
+                      value={newInsurance.coverageAmount}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, coverageAmount: Number(e.target.value) })}
+                      className="crmInput"
+                      style={{ width: '100%', padding: '8px 12px' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                      Commencement Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={newInsurance.commencementDate}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, commencementDate: e.target.value })}
+                      className="crmInput"
+                      style={{ width: '100%', padding: '8px 12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                      Expiry Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={newInsurance.expiryDate}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, expiryDate: e.target.value })}
+                      className="crmInput"
+                      style={{ width: '100%', padding: '8px 12px' }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                    Notes / Policy Scope
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Optional coverage notes, broker contact, or conditions..."
+                    value={newInsurance.notes}
+                    onChange={(e) => setNewInsurance({ ...newInsurance, notes: e.target.value })}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '8px 12px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddInsurance(false)}
+                    className="vsBtnOutline"
+                    style={{ padding: '8px 16px' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="vsBtnBlack"
+                    style={{ padding: '8px 18px' }}
+                  >
+                    Register Policy
+                  </button>
+                </div>
+              </div>
+            </form>
+          </DialogPanel>
+        </div>
       )}
     </CrmContainer>
   );

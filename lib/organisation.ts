@@ -22,6 +22,9 @@ export interface OrganisationProfile {
   gstStatus: GstStatus;
   isGstRegistered: boolean;
   canIssueTaxInvoice: boolean;
+  proprietorLegalName: string | null;
+  isProprietorConfigured: boolean;
+  contractingEntityDisplay: string;
   designatedSignatoryName: string | null;
   designatedSignatoryTitle: string | null;
   bankName: string | null;
@@ -141,6 +144,9 @@ export async function getOrganisationProfile(
     gstStatus: 'not_registered',
     isGstRegistered: false,
     canIssueTaxInvoice: false,
+    proprietorLegalName: null,
+    isProprietorConfigured: false,
+    contractingEntityDisplay: 'Opus Care Support Services (Proprietor legal name pending configuration)',
     designatedSignatoryName: 'Director of Operations',
     designatedSignatoryTitle: 'Managing Director, Opus Care',
     bankName: null,
@@ -184,9 +190,16 @@ export async function getOrganisationProfile(
     const rawAddress = config.registered_address?.trim() || null;
     const registeredAddress = rawAddress && !isUnverifiedAddress(rawAddress) ? rawAddress : null;
 
+    const tradingName = config.trading_name?.trim() || config.legal_name?.trim() || fallback.tradingName;
+    const rawProprietor = config.proprietor_legal_name?.trim() || null;
+    const isProprietorConfigured = Boolean(rawProprietor);
+    const contractingEntityDisplay = isProprietorConfigured
+      ? `${rawProprietor} trading as ${tradingName}`
+      : `${tradingName} (Proprietor legal name pending configuration)`;
+
     return {
       legalName: config.legal_name?.trim() || fallback.legalName,
-      tradingName: config.trading_name?.trim() || config.legal_name?.trim() || fallback.tradingName,
+      tradingName,
       businessStructure: 'sole_trader',
       abn,
       isAbnConfigured: true,
@@ -200,6 +213,9 @@ export async function getOrganisationProfile(
       gstStatus,
       isGstRegistered,
       canIssueTaxInvoice,
+      proprietorLegalName: rawProprietor,
+      isProprietorConfigured,
+      contractingEntityDisplay,
       designatedSignatoryName: config.designated_signatory_name?.trim() || fallback.designatedSignatoryName,
       designatedSignatoryTitle: config.designated_signatory_title?.trim() || fallback.designatedSignatoryTitle,
       bankName: isBankGenuine ? (config.bank_name?.trim() || null) : null,

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               </div>
               <p>You can review, print, and accept this quote through your Opus Care Participant Portal or by replying to this email.</p>
               <p style="margin-top: 30px; font-size: 12px; color: #64748b;">
-                Opus Care Support Services Pty Ltd &bull; 1300 00 OPUS &bull; contact@opuscare.com.au
+                Opus Care Support Services &bull; ABN 41 267 197 576 &bull; support@opuscare.com.au
               </p>
             </div>
           `,

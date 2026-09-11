@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SiteHeader } from '../../../components/SiteHeader';
@@ -13,7 +13,8 @@ import {
   FileText, 
   ShieldCheck, 
   Calendar,
-  Lock
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function ServiceAgreementPage() {
@@ -22,6 +23,34 @@ export default function ServiceAgreementPage() {
   const [planManager, setPlanManager] = useState('');
   const [startDate, setStartDate] = useState('2026-09-01');
   const [endDate, setEndDate] = useState('2027-08-31');
+  const [orgProfile, setOrgProfile] = useState<{
+    proprietorLegalName: string | null;
+    isProprietorConfigured: boolean;
+    contractingEntityDisplay: string;
+    abn: string | null;
+    legalName: string;
+    tradingName: string;
+    gstStatus: string;
+  }>({
+    proprietorLegalName: null,
+    isProprietorConfigured: false,
+    contractingEntityDisplay: 'Opus Care Support Services',
+    abn: '41 267 197 576',
+    legalName: 'Opus Care Support Services',
+    tradingName: 'Opus Care Support Services',
+    gstStatus: 'not_registered',
+  });
+
+  useEffect(() => {
+    fetch('/api/governance/organisation')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && !data.error) {
+          setOrgProfile(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handlePrint = () => {
     window.print();
@@ -66,8 +95,8 @@ export default function ServiceAgreementPage() {
                     className="contractLogo"
                   />
                   <p className="contractEntityDetails">
-                    <strong>Opus Care Support Services</strong><br />
-                    ABN: [Pending Provider Configuration]<br />
+                    <strong>{orgProfile.contractingEntityDisplay}</strong><br />
+                    ABN: {orgProfile.abn || '41 267 197 576'} (Sole Trader · Unregistered NDIS Provider)<br />
                     Email: support@opuscare.com.au · Web: opuscare.com.au<br />
                     Operating across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers NSW
                   </p>
@@ -80,11 +109,37 @@ export default function ServiceAgreementPage() {
               </div>
             </header>
 
+            {!orgProfile.isProprietorConfigured && (
+              <div style={{
+                background: '#fffbeb',
+                border: '1px solid #f59e0b',
+                borderRadius: '8px',
+                padding: '12px 16px',
+                margin: '16px 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '0.875rem',
+                color: '#92400e',
+              }} className="no-print">
+                <AlertTriangle size={18} style={{ flexShrink: 0, color: '#d97706' }} />
+                <span>
+                  <strong>Legal Readiness Notice:</strong> Proprietor legal name is pending configuration in Admin Settings. Formal agreements will display a pending notice until entered.
+                </span>
+              </div>
+            )}
+
             {/* Fillable Participant Details Box */}
             <section className="contractSection fillableBox">
               <h2 className="sectionClauseTitle">Part 1: Schedule of Parties & Participant Details</h2>
               <p className="clauseText">
-                This Service Agreement is made between <strong>Opus Care Support Services Pty Ltd</strong> {`("the Provider")`} and the Participant or their authorised representative {`("the Participant")`}.
+                This Service Agreement is made between{' '}
+                <strong>
+                  {orgProfile.isProprietorConfigured && orgProfile.proprietorLegalName
+                    ? `${orgProfile.proprietorLegalName} trading as Opus Care Support Services`
+                    : '[Proprietor Legal Name Pending Configuration] trading as Opus Care Support Services'}
+                </strong>{' '}
+                (ABN: {orgProfile.abn || '41 267 197 576'}) (&quot;the Provider&quot;) and the Participant or their authorised representative (&quot;the Participant&quot;).
               </p>
 
               <div className="contractFieldsGrid">
@@ -310,8 +365,8 @@ export default function ServiceAgreementPage() {
             </section>
 
             <footer className="contractFooterLegal">
-              <p>Opus Care Support Services Pty Ltd · NSW North Coast & Northern Rivers · support@opuscare.com.au</p>
-              <small>Unregistered NDIS Provider · Supporting Self-Managed and Plan-Managed Participants with Choice & Control</small>
+              <p>{orgProfile.contractingEntityDisplay} · ABN {orgProfile.abn || '41 267 197 576'} · NSW North Coast &amp; Northern Rivers · support@opuscare.com.au</p>
+              <small>Unregistered NDIS Provider · Sole Trader · Supporting Self-Managed and Plan-Managed Participants with Choice &amp; Control · GST has not been charged.</small>
             </footer>
 
           </div>

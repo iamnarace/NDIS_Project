@@ -42,11 +42,13 @@ export function ReferralForm() {
     email: '',
     participantName: '',
     suburb: '',
-    funding: 'Plan-Managed',
+    funding: '',
     services: [] as string[],
     days: [] as string[],
     message: '',
-    consent: true,
+    privacyConsent: false,
+    participantConsent: false,
+    marketingConsent: false,
   });
 
   const toggleService = (title: string) => {
@@ -70,14 +72,20 @@ export function ReferralForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (status === 'sending') return;
+    if (!formData.privacyConsent || !formData.participantConsent) {
+      setStepError('Please acknowledge the Privacy Collection Notice and confirm participant/nominee consent before submitting.');
+      return;
+    }
     setStatus('sending');
     setMessage('');
+    setStepError('');
     try {
       const response = await fetch('/api/referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          consent: true,
           service: formData.services.join(', ') || 'General Enquiry',
           schedulePreference: formData.days.join(', ') || 'Flexible'
         }),
@@ -113,6 +121,7 @@ export function ReferralForm() {
           <div><strong>Participant:</strong> {formData.participantName || formData.name}</div>
           <div><strong>Contact Phone:</strong> {formData.phone}</div>
           <div><strong>Suburbs:</strong> {formData.suburb || 'Yamba / Northern Rivers'}</div>
+          <div><strong>Funding:</strong> {formData.funding || 'Plan-Managed'}</div>
           <div><strong>Response Time:</strong> Our intake team will contact you shortly</div>
         </div>
         <button
@@ -129,11 +138,13 @@ export function ReferralForm() {
               email: '',
               participantName: '',
               suburb: '',
-              funding: 'Plan-Managed',
+              funding: '',
               services: [],
               days: [],
               message: '',
-              consent: true,
+              privacyConsent: false,
+              participantConsent: false,
+              marketingConsent: false,
             });
           }}
           className="paneBtn primary"
@@ -309,7 +320,10 @@ export function ReferralForm() {
           </div>
 
           <div className="fieldGroupBlock">
-            <label className="fieldTitleLabel">NDIS Funding Management Type</label>
+            <label className="fieldTitleLabel">NDIS Funding Management Type *</label>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 10px 0' }}>
+              Opus Care is an unregistered NDIS provider supporting Plan-Managed and Self-Managed participants.
+            </p>
             <div className="fundingTypeSelectGrid">
               {fundingTypes.map((f) => {
                 const active = formData.funding === f.label;
@@ -317,7 +331,10 @@ export function ReferralForm() {
                   <button
                     key={f.id}
                     type="button"
-                    onClick={() => setFormData(p => ({ ...p, funding: f.label }))}
+                    onClick={() => {
+                      setFormData(p => ({ ...p, funding: f.label }));
+                      setStepError('');
+                    }}
                     className={`fundingSelectCard ${active ? 'selected' : ''}`}
                   >
                     <strong>{f.label}</strong>
@@ -328,10 +345,19 @@ export function ReferralForm() {
             </div>
           </div>
 
+          {stepError && (
+            <div className="formErrorNotice" style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+              ⚠️ {stepError}
+            </div>
+          )}
+
           <div className="wizardNavRow">
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={() => {
+                setStepError('');
+                setStep(1);
+              }}
               className="heroPillBtn outline"
             >
               <ArrowLeft size={16} />
@@ -339,7 +365,14 @@ export function ReferralForm() {
             </button>
             <button
               type="button"
-              onClick={() => setStep(3)}
+              onClick={() => {
+                if (!formData.funding) {
+                  setStepError('Please select an NDIS funding management type before proceeding.');
+                  return;
+                }
+                setStepError('');
+                setStep(3);
+              }}
               className="heroPillBtn filled"
             >
               <span>Continue to Final Step</span>
@@ -382,16 +415,57 @@ export function ReferralForm() {
             />
           </div>
 
-          <div className="consentCheckboxGroup">
-            <label className="consentLabel">
+          {stepError && (
+            <div className="formErrorNotice" style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+              ⚠️ {stepError}
+            </div>
+          )}
+
+          <div className="consentCheckboxGroup" style={{ display: 'flex', flexDirection: 'column', gap: '14px', margin: '20px 0' }}>
+            <label className="consentLabel" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
-                checked={formData.consent}
-                onChange={(e) => setFormData(p => ({ ...p, consent: e.target.checked }))}
+                required
+                checked={formData.privacyConsent}
+                onChange={(e) => {
+                  setFormData(p => ({ ...p, privacyConsent: e.target.checked }));
+                  setStepError('');
+                }}
                 className="customCheckbox"
+                style={{ marginTop: '3px' }}
               />
-              <span>
-                I confirm the participant or nominee has consented to sharing these details with Opus Care Support Services for NDIS service intake.
+              <span style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
+                <strong>Privacy Collection Notice (Required):</strong> I consent to Opus Care Support Services collecting, using, and retaining personal and sensitive information in accordance with the Privacy Act 1988 (Cth) and Opus Care Privacy Policy for intake and support delivery.
+              </span>
+            </label>
+
+            <label className="consentLabel" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                required
+                checked={formData.participantConsent}
+                onChange={(e) => {
+                  setFormData(p => ({ ...p, participantConsent: e.target.checked }));
+                  setStepError('');
+                }}
+                className="customCheckbox"
+                style={{ marginTop: '3px' }}
+              />
+              <span style={{ fontSize: '0.875rem', lineHeight: '1.4' }}>
+                <strong>Participant / Nominee Consent (Required):</strong> I confirm the participant (or their authorized decision-maker / nominee) has given explicit consent for this referral to be submitted to Opus Care Support Services.
+              </span>
+            </label>
+
+            <label className="consentLabel" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={formData.marketingConsent}
+                onChange={(e) => setFormData(p => ({ ...p, marketingConsent: e.target.checked }))}
+                className="customCheckbox"
+                style={{ marginTop: '3px' }}
+              />
+              <span style={{ fontSize: '0.875rem', lineHeight: '1.4', color: '#64748b' }}>
+                <strong>Service & Community Updates (Optional):</strong> Keep me informed about Opus Care service announcements, community activities, and NDIS guidance.
               </span>
             </label>
           </div>
@@ -399,7 +473,10 @@ export function ReferralForm() {
           <div className="wizardNavRow">
             <button
               type="button"
-              onClick={() => setStep(2)}
+              onClick={() => {
+                setStepError('');
+                setStep(2);
+              }}
               className="heroPillBtn outline"
             >
               <ArrowLeft size={16} />
@@ -407,7 +484,7 @@ export function ReferralForm() {
             </button>
             <button
               type="submit"
-              disabled={status === 'sending'}
+              disabled={status === 'sending' || !formData.privacyConsent || !formData.participantConsent}
               className="heroPillBtn filled submit"
             >
               {status === 'sending' ? (

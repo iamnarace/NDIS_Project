@@ -26,7 +26,7 @@ const DOCUMENTS = [
     tag: 'Ready to Fill & Sign',
     tagColor: '#059669',
     tagBg: '#ECFDF5',
-    desc: 'Our standard, legally compliant Australian NDIS Service Agreement between Opus Care Support Services Pty Ltd and the participant. Sets out rights, pricing limits, cancellation policies, and agreed supports.',
+    desc: 'Our standard, legally compliant Australian NDIS Service Agreement between Opus Care Support Services and the participant. Sets out rights, pricing limits, cancellation policies, and agreed supports.',
     href: '/documents/service-agreement',
     icon: FileText
   },
