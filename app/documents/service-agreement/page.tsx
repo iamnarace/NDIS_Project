@@ -66,8 +66,8 @@ export default function ServiceAgreementPage() {
                     className="contractLogo"
                   />
                   <p className="contractEntityDetails">
-                    <strong>Opus Care Support Services Pty Ltd</strong><br />
-                    ABN: 54 689 123 456<br />
+                    <strong>Opus Care Support Services</strong><br />
+                    ABN: [Pending Provider Configuration]<br />
                     Email: support@opuscare.com.au · Web: opuscare.com.au<br />
                     Operating across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers NSW
                   </p>

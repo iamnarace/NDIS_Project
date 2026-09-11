@@ -4045,7 +4045,7 @@ export default function AdminCrmPage() {
                   Opus Care Support Services
                 </h4>
                 <p style={{ margin: '0 0 10px', fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
-                  ABN: 89 654 321 098 &bull; Yamba NSW
+                  ABN: Pending Configuration &bull; Clarence Valley &amp; Northern Rivers NSW
                 </p>
                 <button
                   type="button"
