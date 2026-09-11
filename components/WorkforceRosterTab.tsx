@@ -1,6 +1,7 @@
 'use client';
 
 import DialogPanel from '@/components/ui/DialogPanel';
+import { notify } from '@/components/ui/ProductFeedback';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
@@ -405,12 +406,17 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ shift_id: shiftId, staff_id: newStaffId, force: true }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        notify('Worker assigned to shift successfully.');
         loadShifts();
         setSelectedShift(null);
+      } else {
+        notify(data.error || data.message || 'Failed to assign worker to shift.');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      notify(e?.message || 'Network error while assigning worker.');
     }
   };
 
@@ -418,12 +424,17 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
   const handleUnassignShift = async (shiftId: string) => {
     try {
       const res = await fetch(`/api/workforce/assignments?shift_id=${shiftId}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        notify('Worker unassigned from shift.');
         loadShifts();
         setSelectedShift(null);
+      } else {
+        notify(data.error || data.message || 'Failed to unassign worker.');
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      notify(e?.message || 'Network error while unassigning worker.');
     }
   };
 

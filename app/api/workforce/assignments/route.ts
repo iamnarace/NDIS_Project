@@ -1,21 +1,21 @@
-import { userFacingError } from '@/lib/userFacingError';
+﻿import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  if (!authed) return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+  if (!supabase) return NextResponse.json({ ok: false, error: "Database service unavailable. Please refresh and try again.", message: "Database service unavailable. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
     const { shift_id, staff_id, force = false, notes = '' } = body;
 
     if (!shift_id || !staff_id) {
-      return NextResponse.json({ message: 'shift_id and staff_id are required' }, { status: 400 });
+      return NextResponse.json({ ok: false, error: 'shift_id and staff_id are required', message: 'shift_id and staff_id are required' }, { status: 400 });
     }
 
     // 1. Fetch shift details to check timing
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       .single();
 
     if (shiftErr || !shift) {
-      return NextResponse.json({ message: 'Shift not found' }, { status: 404 });
+      return NextResponse.json({ ok: false, error: 'Shift not found', message: 'Shift not found' }, { status: 404 });
     }
 
     const shiftStart = new Date(shift.start_time);
@@ -47,8 +47,11 @@ export async function POST(req: Request) {
     });
 
     if (conflict && !force) {
+      const msg = `Conflict detected: Worker is already rostered on shift ${(conflict as any).shift?.shift_reference || ''} during this time window.`;
       return NextResponse.json({
-        message: `Conflict detected: Worker is already rostered on shift ${(conflict as any).shift?.shift_reference || ''} during this time window.`,
+        ok: false,
+        error: msg,
+        message: msg,
         conflict: true,
         conflicting_shift: (conflict as any).shift,
         requiresConfirmation: true
@@ -96,7 +99,10 @@ export async function POST(req: Request) {
       .select('*, staff:staff(*)')
       .single();
 
-    if (assignErr) return NextResponse.json({ message: userFacingError(assignErr.message) }, { status: 500 });
+    if (assignErr) {
+      const msg = assignErr.message || 'Failed to save shift assignment.';
+      return NextResponse.json({ ok: false, error: msg, message: msg }, { status: 500 });
+    }
 
     // Update shift status to 'assigned'
     await supabase
@@ -113,22 +119,22 @@ export async function POST(req: Request) {
 
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Server error';
-    return NextResponse.json({ message: msg }, { status: 500 });
+    return NextResponse.json({ ok: false, error: msg, message: msg }, { status: 500 });
   }
 }
 
 export async function PATCH(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  if (!authed) return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+  if (!supabase) return NextResponse.json({ ok: false, error: "Database service unavailable. Please refresh and try again.", message: "Database service unavailable. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
     const { id, status, clock_in_at, clock_out_at, actual_hours, worker_notes } = body;
 
-    if (!id) return NextResponse.json({ message: 'Assignment id is required' }, { status: 400 });
+    if (!id) return NextResponse.json({ ok: false, error: 'Assignment id is required', message: 'Assignment id is required' }, { status: 400 });
 
     const updates: Record<string, any> = {};
     if (status) updates.status = status;
@@ -144,7 +150,10 @@ export async function PATCH(req: Request) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+    if (error) {
+      const msg = error.message || 'Failed to update assignment.';
+      return NextResponse.json({ ok: false, error: msg, message: msg }, { status: 500 });
+    }
 
     // Sync shift status if completed
     if (status === 'completed' && data?.shift_id) {
@@ -157,31 +166,39 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ ok: true, assignment: data });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Server error';
-    return NextResponse.json({ message: msg }, { status: 500 });
+    return NextResponse.json({ ok: false, error: msg, message: msg }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  if (!authed) return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+  if (!supabase) return NextResponse.json({ ok: false, error: "Database service unavailable. Please refresh and try again.", message: "Database service unavailable. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const shiftId = searchParams.get('shift_id');
 
-  if (!shiftId) return NextResponse.json({ message: 'shift_id is required' }, { status: 400 });
+  if (!shiftId) return NextResponse.json({ ok: false, error: 'shift_id is required', message: 'shift_id is required' }, { status: 400 });
 
-  await supabase
+  const { error: delErr } = await supabase
     .from('shift_assignments')
     .delete()
     .eq('shift_id', shiftId);
 
-  await supabase
+  if (delErr) {
+    return NextResponse.json({ ok: false, error: delErr.message, message: delErr.message }, { status: 500 });
+  }
+
+  const { error: shiftErr } = await supabase
     .from('shifts')
     .update({ status: 'unassigned', updated_at: new Date().toISOString() })
     .eq('id', shiftId);
+
+  if (shiftErr) {
+    return NextResponse.json({ ok: false, error: shiftErr.message, message: shiftErr.message }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, unassigned_shift_id: shiftId });
 }

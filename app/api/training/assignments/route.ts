@@ -1,14 +1,14 @@
-import { userFacingError } from '@/lib/userFacingError';
+﻿import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  if (!authed) return NextResponse.json({ ok: false, error: 'Unauthorized', message: 'Unauthorized' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+  if (!supabase) return NextResponse.json({ ok: false, error: "Database service unavailable. Please refresh and try again.", message: "Database service unavailable. Please refresh and try again." }, { status: 503 });
 
   const { searchParams } = new URL(req.url);
   const staffId = searchParams.get('staff_id');
@@ -21,23 +21,23 @@ export async function GET(req: Request) {
   if (staffId) query = query.eq('staff_id', staffId);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+  if (error) return NextResponse.json({ ok: false, error: userFacingError(error.message), message: userFacingError(error.message) }, { status: 500 });
   return NextResponse.json(data ?? []);
 }
 
 export async function POST(req: Request) {
   const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  if (!authed) return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
-  if (!supabase) return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+  if (!supabase) return NextResponse.json({ ok: false, error: "Database service unavailable. Please refresh and try again.", message: "Database service unavailable. Please refresh and try again." }, { status: 503 });
 
   try {
     const body = await req.json();
     const { course_id, staff_id, staff_name, due_date } = body;
 
     if (!course_id || !staff_id) {
-      return NextResponse.json({ message: 'course_id and staff_id are required' }, { status: 400 });
+      return NextResponse.json({ ok: false, error: 'course_id and staff_id are required', message: 'course_id and staff_id are required' }, { status: 400 });
     }
 
     // Support bulk assignment: staff_id can be an array
@@ -57,10 +57,10 @@ export async function POST(req: Request) {
       .upsert(rows, { onConflict: 'course_id,staff_id' })
       .select();
 
-    if (error) return NextResponse.json({ message: userFacingError(error.message) }, { status: 500 });
+    if (error) return NextResponse.json({ ok: false, error: error.message, message: error.message }, { status: 500 });
     return NextResponse.json({ ok: true, assignments: data });
-  } catch (err) {
-    console.error('Assign error:', err);
-    return NextResponse.json({ message: 'Failed to create assignment' }, { status: 500 });
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : 'Failed to create assignment';
+    return NextResponse.json({ ok: false, error: errMsg, message: errMsg }, { status: 500 });
   }
 }

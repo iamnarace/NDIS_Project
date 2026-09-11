@@ -105,6 +105,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
       const payload = {
         name: name.trim(),
         ndisNumber: ndisNumber.trim() || undefined,
+        dateOfBirth: dob || undefined,
         dob: dob || undefined,
         phone: phone.trim() || undefined,
         email: email.trim() || undefined,
@@ -114,7 +115,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
         planManager: fundingType === 'Plan-Managed' ? planManagerName.trim() : undefined,
         planManagerEmail: fundingType === 'Plan-Managed' ? planManagerEmail.trim() : undefined,
         allocatedHours: Number(allocatedHours) || 0,
-        primaryService,
+        primaryService: primaryService.trim() || undefined,
         contactPerson: contactPerson.trim() || undefined,
         emergencyContactName: emergencyContactName.trim() || undefined,
         emergencyContactPhone: emergencyContactPhone.trim() || undefined,
@@ -128,9 +129,9 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || 'Failed to create participant record. Please check details.');
+        setError(data.error || data.message || 'Failed to create participant record. Please check details.');
         return;
       }
 

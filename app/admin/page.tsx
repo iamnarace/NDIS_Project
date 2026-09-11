@@ -33,16 +33,16 @@ import CrmSquircleCard from '@/components/admin/ui/CrmSquircleCard';
 import CrmBentoPane from '@/components/admin/ui/CrmBentoPane';
 import CrmSettingRow from '@/components/admin/ui/CrmSettingRow';
 
-import { 
-  Users, UserCheck, FileText, Phone, Mail, MapPin, Calendar, 
-  CheckCircle2, Clock, AlertCircle, ArrowRight, Search, Filter, 
+import {
+  Users, UserCheck, FileText, Phone, Mail, MapPin, Calendar,
+  CheckCircle2, Clock, AlertCircle, ArrowRight, Search, Filter,
   Plus, Shield, Sparkles, RefreshCw, ExternalLink, Lock, LogOut,
   Columns, List, UserPlus, FileCheck, MessageSquare, History, Check,
   UploadCloud, FileDown, FolderLock, CalendarClock, AlertTriangle,
   LayoutDashboard, Receipt, Calculator, Award, Settings, ChevronLeft,
   ChevronRight, TrendingUp, DollarSign, Activity, FileSpreadsheet,
   Layers, ShieldAlert, Sparkle, Eye, BookOpen, GraduationCap, ClipboardCheck, Upload, Trophy,
-  ClipboardList, Target
+  ClipboardList, Target, Trash2
 } from 'lucide-react';
 
 interface Referral {
@@ -228,7 +228,21 @@ export default function AdminCrmPage() {
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [drawerTab, setDrawerTab] = useState<'overview' | 'documents' | 'timeline'>('overview');
+  const [drawerTab, setDrawerTab] = useState<'overview' | 'documents' | 'timeline' | 'contacts'>('overview');
+  // Participant Contacts State
+  const [participantContacts, setParticipantContacts] = useState<any[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [showAddContactForm, setShowAddContactForm] = useState(false);
+  const [contactSaving, setContactSaving] = useState(false);
+  const [newContact, setNewContact] = useState({
+    fullName: '',
+    role: 'Nominee / Representative',
+    relationshipLabel: '',
+    phone: '',
+    email: '',
+    organizationName: '',
+    notes: '',
+  });
   const [showEditEmergency, setShowEditEmergency] = useState(false);
 
   // Activity Timeline State
@@ -423,11 +437,14 @@ export default function AdminCrmPage() {
     } else if (selectedParticipant) {
       loadActivities({ participantId: selectedParticipant.id });
       loadDocuments('participant', selectedParticipant.id);
+      loadParticipantContacts(selectedParticipant.id);
     } else if (selectedStaff) {
+      loadActivities({ staffId: selectedStaff.id });
       loadDocuments('staff', selectedStaff.id);
     } else {
       setActivities([]);
       setDocuments([]);
+      setParticipantContacts([]);
       setDrawerTab('overview');
     }
   }, [selectedReferral, selectedParticipant, selectedStaff]);
@@ -809,12 +826,13 @@ export default function AdminCrmPage() {
     }
   }
 
-  async function loadActivities(params: { referralId?: string; participantId?: string }) {
+  async function loadActivities(params: { referralId?: string; participantId?: string; staffId?: string }) {
     setActivitiesLoading(true);
     try {
-      const query = params.referralId
-        ? `referralId=${encodeURIComponent(params.referralId)}`
-        : `participantId=${encodeURIComponent(params.participantId || '')}`;
+      let query = '';
+      if (params.referralId) query = `referralId=${encodeURIComponent(params.referralId)}`;
+      else if (params.participantId) query = `participantId=${encodeURIComponent(params.participantId)}`;
+      else if (params.staffId) query = `staffId=${encodeURIComponent(params.staffId)}`;
       const res = await fetch(`/api/crm/activities?${query}`);
       if (res.ok) {
         setActivities(await res.json());
@@ -823,6 +841,77 @@ export default function AdminCrmPage() {
       console.error('Failed to load activities', err);
     } finally {
       setActivitiesLoading(false);
+    }
+  }
+
+  async function loadParticipantContacts(participantId: string) {
+    setContactsLoading(true);
+    try {
+      const res = await fetch(`/api/crm/participant-contacts?participantId=${encodeURIComponent(participantId)}`);
+      if (res.ok) {
+        setParticipantContacts(await res.json());
+      }
+    } catch (err) {
+      console.error('Failed to load participant contacts', err);
+    } finally {
+      setContactsLoading(false);
+    }
+  }
+
+  async function handleAddContact(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedParticipant || !newContact.fullName.trim()) return;
+    setContactSaving(true);
+    try {
+      const res = await fetch('/api/crm/participant-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantId: selectedParticipant.id,
+          ...newContact,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        notify('Contact added successfully.');
+        setShowAddContactForm(false);
+        setNewContact({
+          fullName: '',
+          role: 'Nominee / Representative',
+          relationshipLabel: '',
+          phone: '',
+          email: '',
+          organizationName: '',
+          notes: '',
+        });
+        loadParticipantContacts(selectedParticipant.id);
+      } else {
+        notify(data.error || data.message || 'Failed to add contact.');
+      }
+    } catch (err: any) {
+      console.error('Failed to add contact', err);
+      notify(err?.message || 'Network error while adding contact.');
+    } finally {
+      setContactSaving(false);
+    }
+  }
+
+  async function handleDeleteContact(contactLinkId: string) {
+    if (!confirm('Are you sure you want to remove this contact?')) return;
+    try {
+      const res = await fetch(`/api/crm/participant-contacts?id=${encodeURIComponent(contactLinkId)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        notify('Contact removed.');
+        if (selectedParticipant) loadParticipantContacts(selectedParticipant.id);
+      } else {
+        notify(data.error || data.message || 'Failed to remove contact.');
+      }
+    } catch (err: any) {
+      console.error('Failed to remove contact', err);
+      notify(err?.message || 'Network error while removing contact.');
     }
   }
 
@@ -854,19 +943,26 @@ export default function AdminCrmPage() {
       };
       if (selectedReferral) body.referralId = selectedReferral.id;
       if (selectedParticipant) body.participantId = selectedParticipant.id;
+      if (selectedStaff) body.staffId = selectedStaff.id;
 
       const res = await fetch('/api/crm/activities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setNewNoteText('');
+        notify('Note added to timeline.');
         if (selectedReferral) loadActivities({ referralId: selectedReferral.id });
         if (selectedParticipant) loadActivities({ participantId: selectedParticipant.id });
+        if (selectedStaff) loadActivities({ staffId: selectedStaff.id });
+      } else {
+        notify(data.error || data.message || 'Failed to add note');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to add note', err);
+      notify(err?.message || 'Network error while adding note');
     } finally {
       setNoteSaving(false);
     }
@@ -1016,11 +1112,12 @@ export default function AdminCrmPage() {
         setStatusNotice('Course created successfully.');
         setTimeout(() => setStatusNotice(''), 4000);
       } else {
-        const err = await res.json();
-        notify(err.message || 'Failed to create course');
+        const err = await res.json().catch(() => ({}));
+        notify(err.error || err.message || 'Failed to create course');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Create course error:', err);
+      notify(err?.message || 'Network error while creating course');
     } finally {
       setSavingCourse(false);
     }
@@ -1046,11 +1143,12 @@ export default function AdminCrmPage() {
         setAssignStaffIds([]);
         setAssignDueDate('');
       } else {
-        const err = await res.json();
-        notify(err.message || 'Failed to assign course');
+        const err = await res.json().catch(() => ({}));
+        notify(err.error || err.message || 'Failed to assign course');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Assign error:', err);
+      notify(err?.message || 'Network error while assigning course');
     } finally {
       setAssigning(false);
     }
@@ -2452,9 +2550,9 @@ export default function AdminCrmPage() {
                 const pendingComplaints = complaintsList.filter(c => c.status !== 'Closed' && c.status !== 'Resolved');
                 const nowStr = new Date().toISOString().split('T')[0];
                 const overdueActions = actionsList.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled' && a.due_date < nowStr);
-                const reportableReview = openIncidents.filter(i => 
-                  !i.reportable_assessment || 
-                  i.reportable_assessment === 'Pending Review' || 
+                const reportableReview = openIncidents.filter(i =>
+                  !i.reportable_assessment ||
+                  i.reportable_assessment === 'Pending Review' ||
                   i.reportable_assessment.includes('Escalate') ||
                   i.reportable_assessment.includes('Potentially')
                 );
@@ -4142,7 +4240,29 @@ export default function AdminCrmPage() {
                 <span>Document Vault ({documents.length})</span>
               </button>
 
-              {(selectedReferral || selectedParticipant) && (
+              {selectedParticipant && (
+                <button
+                  onClick={() => setDrawerTab('contacts')}
+                  style={{
+                    padding: '12px 0',
+                    border: 'none',
+                    background: 'none',
+                    borderBottom: `2px solid ${drawerTab === 'contacts' ? 'var(--oc-info)' : 'transparent'}`,
+                    color: drawerTab === 'contacts' ? 'var(--oc-info)' : 'var(--oc-muted)',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6
+                  }}
+                >
+                  <Users size={15} />
+                  <span>Contacts ({participantContacts.length})</span>
+                </button>
+              )}
+
+              {(selectedReferral || selectedParticipant || selectedStaff) && (
                 <button
                   onClick={() => setDrawerTab('timeline')}
                   style={{
@@ -4542,6 +4662,254 @@ export default function AdminCrmPage() {
                               <FileDown size={14} /> <span>Download</span>
                             </a>
                           )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DRAWER TAB: PARTICIPANT CONTACTS */}
+              {drawerTab === 'contacts' && selectedParticipant && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                        Contacts & Key Stakeholders
+                      </h4>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--oc-muted)' }}>
+                        Nominees, family members, plan managers, and emergency contacts linked to {selectedParticipant.name}.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddContactForm(!showAddContactForm)}
+                      className="headerCtaBtn"
+                      style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <Plus size={14} />
+                      <span>{showAddContactForm ? 'Cancel' : 'Add Contact'}</span>
+                    </button>
+                  </div>
+
+                  {showAddContactForm && (
+                    <form onSubmit={handleAddContact} style={{
+                      background: 'var(--oc-background)',
+                      border: '1px solid var(--oc-border)',
+                      borderRadius: 10,
+                      padding: 16,
+                      marginBottom: 20
+                    }}>
+                      <h5 style={{ margin: '0 0 12px', fontSize: '0.88rem', fontWeight: 600 }}>New Contact Details</h5>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Full Name *</label>
+                          <input
+                            type="text"
+                            required
+                            value={newContact.fullName}
+                            onChange={(e) => setNewContact({ ...newContact, fullName: e.target.value })}
+                            placeholder="e.g. Jane Doe"
+                            className="crmSearchInput"
+                            style={{ width: '100%', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Role / Type</label>
+                          <select
+                            value={newContact.role}
+                            onChange={(e) => setNewContact({ ...newContact, role: e.target.value })}
+                            className="crmSelect"
+                            style={{ width: '100%', fontSize: '0.85rem' }}
+                          >
+                            <option value="Nominee / Representative">Nominee / Representative</option>
+                            <option value="Family / Guardian">Family / Guardian</option>
+                            <option value="Support Coordinator">Support Coordinator</option>
+                            <option value="Plan Manager">Plan Manager</option>
+                            <option value="Allied Health Professional">Allied Health Professional</option>
+                            <option value="Emergency Contact">Emergency Contact</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Relationship to Participant</label>
+                          <input
+                            type="text"
+                            value={newContact.relationshipLabel}
+                            onChange={(e) => setNewContact({ ...newContact, relationshipLabel: e.target.value })}
+                            placeholder="e.g. Mother, Legal Guardian"
+                            className="crmSearchInput"
+                            style={{ width: '100%', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Organization (Optional)</label>
+                          <input
+                            type="text"
+                            value={newContact.organizationName}
+                            onChange={(e) => setNewContact({ ...newContact, organizationName: e.target.value })}
+                            placeholder="e.g. Support Services Co"
+                            className="crmSearchInput"
+                            style={{ width: '100%', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Phone Number</label>
+                          <input
+                            type="tel"
+                            value={newContact.phone}
+                            onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                            placeholder="0400 000 000"
+                            className="crmSearchInput"
+                            style={{ width: '100%', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Email Address</label>
+                          <input
+                            type="email"
+                            value={newContact.email}
+                            onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                            placeholder="contact@email.com.au"
+                            className="crmSearchInput"
+                            style={{ width: '100%', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 14 }}>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--oc-muted)', marginBottom: 4 }}>Notes / Permissions</label>
+                        <textarea
+                          rows={2}
+                          value={newContact.notes}
+                          onChange={(e) => setNewContact({ ...newContact, notes: e.target.value })}
+                          placeholder="e.g. Authorized to discuss funding and service schedules."
+                          className="crmSearchInput"
+                          style={{ width: '100%', fontSize: '0.85rem', resize: 'vertical' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddContactForm(false)}
+                          className="crmSecondaryBtn"
+                          style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={contactSaving || !newContact.fullName.trim()}
+                          className="headerCtaBtn"
+                          style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+                        >
+                          {contactSaving ? 'Saving...' : 'Save Contact'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {contactsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--oc-muted)' }}>
+                      <RefreshCw size={20} className="spin" style={{ margin: '0 auto 8px', display: 'block' }} />
+                      <span>Loading participant contacts...</span>
+                    </div>
+                  ) : participantContacts.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '30px', color: 'var(--oc-muted)', fontSize: '0.85rem' }}>
+                      No contacts linked yet. Click &quot;Add Contact&quot; above to register a nominee or stakeholder.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {participantContacts.map((c: any) => (
+                        <div
+                          key={c.id}
+                          style={{
+                            padding: '14px 16px',
+                            background: 'var(--oc-background)',
+                            border: '1px solid var(--oc-border)',
+                            borderRadius: 10,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            gap: 12
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                              <strong style={{ fontSize: '0.9rem', color: 'var(--oc-text)' }}>{c.fullName}</strong>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                padding: '2px 8px',
+                                borderRadius: 12,
+                                background: '#E0F2FE',
+                                color: 'var(--oc-info)',
+                                fontWeight: 600
+                              }}>
+                                {c.role}
+                              </span>
+                              {c.relationshipLabel && (
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  padding: '2px 8px',
+                                  borderRadius: 12,
+                                  background: 'var(--oc-surface)',
+                                  border: '1px solid var(--oc-border)',
+                                  color: 'var(--oc-secondary)',
+                                  fontWeight: 500
+                                }}>
+                                  {c.relationshipLabel}
+                                </span>
+                              )}
+                              {c.organizationName && (
+                                <span style={{ fontSize: '0.8rem', color: 'var(--oc-muted)' }}>
+                                  • {c.organizationName}
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: '0.82rem', color: 'var(--oc-secondary)', marginTop: 6 }}>
+                              {c.phone && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <Phone size={13} style={{ color: 'var(--oc-info)' }} />
+                                  <a href={`tel:${c.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{c.phone}</a>
+                                </span>
+                              )}
+                              {c.email && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <Mail size={13} style={{ color: 'var(--oc-info)' }} />
+                                  <a href={`mailto:${c.email}`} style={{ color: 'inherit', textDecoration: 'none' }}>{c.email}</a>
+                                </span>
+                              )}
+                            </div>
+
+                            {c.notes && (
+                              <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: 'var(--oc-muted)', lineHeight: 1.4 }}>
+                                {c.notes}
+                              </p>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteContact(c.id)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--oc-muted)',
+                              cursor: 'pointer',
+                              padding: 4,
+                              borderRadius: 4
+                            }}
+                            title="Remove contact"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       ))}
                     </div>

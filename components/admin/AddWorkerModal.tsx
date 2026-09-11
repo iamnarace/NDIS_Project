@@ -125,6 +125,9 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
         role: role.trim(),
         phone: phone.trim(),
         email: email.trim(),
+        emergencyContact: emergencyContact.trim() || undefined,
+        engagementType,
+        abn: engagementType === 'contractor' ? (abn.trim() || undefined) : undefined,
         suburbs: selectedSuburbs,
         ndisScreening,
         ndisScreeningExpiry: ndisScreeningExpiry || undefined,
@@ -133,6 +136,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
         policeCheckDate: policeCheckDate || undefined,
         firstAidExpiry: firstAidExpiry || undefined,
         cprExpiry: cprExpiry || undefined,
+        ndisOrientationCompleted,
         hourlyRate: parseFloat(hourlyRate) || 0,
         status: 'active',
       };
@@ -143,9 +147,9 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || 'Failed to register worker. Please check required fields.');
+        setError(data.error || data.message || 'Failed to register worker. Please check required fields.');
         return;
       }
 
