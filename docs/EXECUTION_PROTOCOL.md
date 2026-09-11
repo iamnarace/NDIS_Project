@@ -1,87 +1,226 @@
 # Opus Care — Agent Execution Protocol
 
-This file defines **how Antigravity and any future coding agent must execute the Opus Care roadmap**.
+This file defines how Codex, Antigravity, and any future coding agent must execute the Opus Care roadmap.
 
-It exists specifically to prevent the repeated cycle of:
+The goal is to prevent repeated re-planning and repeated owner review when the work is already defined.
 
-`Roadmap already approved` → `Agent creates another implementation plan` → `User has to approve the same work again`.
+---
 
 ## 1. Canonical documents
 
-Read these in order at the start of every session:
+For a normal supervised run, read:
 
-1. `docs/ANTIGRAVITY_START_HERE.md`
-2. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
-3. the current phase execution specification referenced by the roadmap, for example `docs/governance/G1_PARTICIPANT_INTAKE_ONBOARDING.md`
+1. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
+2. the current phase specification under `docs/governance/`
+3. this protocol
 
-The roadmap defines **what phase is current**. The phase specification defines **exact implementation scope, constraints, tests and exit criteria**.
+For the owner-authorised **Autonomous Full-Roadmap Run**, Codex must read:
+
+1. `docs/CODEX_START_HERE.md`
+2. `docs/CODEX_AUTONOMOUS_RUNBOOK.md`
+3. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
+4. the current phase specification under `docs/governance/`
+5. this protocol
+
+The roadmap defines the phase sequence. The phase specification defines implementation scope and exit criteria. The autonomous runbook defines how Codex moves between phases without waiting for the owner.
+
+---
 
 ## 2. NO SECOND IMPLEMENTATION PLAN
 
-When the roadmap marks a phase as `READY TO EXECUTE` or `IN PROGRESS`, and a detailed phase specification exists:
+When a phase is marked `READY TO EXECUTE`, `IN PROGRESS`, `REVIEW HARDENING REQUIRED`, or is the current phase in the autonomous runbook:
 
-**DO NOT create another implementation plan, proposal, architecture plan, task list or approval document.**
+**Do not create another implementation plan, proposal, architecture plan, task list, or approval document.**
 
-Do not stop after restating the phase.
-
-Do not ask the user to approve the same implementation scope again.
-
-Do not create files such as:
-
-- `IMPLEMENTATION_PLAN.md`
-- `PROPOSAL.md`
-- `G1_PLAN.md`
-- duplicated phase-planning documents
-
-unless the user explicitly asks for a new plan.
+Do not stop after restating the work. Do not ask the owner to approve the same scope again.
 
 Instead:
 
-1. perform the required preflight verification;
-2. reconcile repository/live database evidence with the phase specification;
-3. execute the phase directly;
-4. run all required tests and negative-path checks;
-5. commit verified work locally;
-6. update the phase specification and master roadmap with actual results/status;
-7. return an **Implementation Report**, not another plan;
-8. stop at the phase boundary for review.
+1. perform preflight verification;
+2. inspect/reuse the existing implementation;
+3. implement/fix the phase directly;
+4. run the required tests and negative-path checks;
+5. independently self-review the result against the phase exit criteria;
+6. fix any failed criteria and repeat verification until the gate passes;
+7. commit verified work;
+8. update the phase specification/roadmap with evidence;
+9. follow the applicable phase-boundary mode below.
 
-## 3. Allowed preflight
+---
 
-A short preflight is allowed and should normally be executed rather than merely described:
+## 3. Execution modes
 
-- `git status`
-- branch / HEAD / recent history
-- compare local state with `origin/main`
-- inspect applicable migrations and live Supabase state
-- inspect existing schema/components/APIs to avoid duplication
-- confirm the prior phase gate has passed
-- confirm no unexpected destructive conflict exists
+### A. Supervised mode
 
-A preflight is **not** a new implementation plan.
+Default when the owner has not authorised a continuous run.
 
-## 4. When the agent MUST stop instead of executing
+At a phase boundary:
 
-Stop and report the blocker only when one of these is true:
+`READY → IMPLEMENT → VERIFY → SELF-REVIEW → COMMIT → REPORT → STOP FOR OWNER REVIEW`
 
-- the current phase gate has not passed;
-- repository/database evidence materially contradicts the canonical phase specification;
-- required implementation would destroy or irreversibly rewrite existing production data beyond the approved migration scope;
-- a required legal/business fact is missing and cannot safely remain a controlled pending configuration;
-- current official regulatory evidence materially changes what Opus may lawfully offer or how the feature must work;
-- a required credential/secret/external account is unavailable and there is no safe local implementation path;
-- Vercel Production deployment or another separately protected external action would be required without approval;
-- the user explicitly requested read-only mode.
+### B. Autonomous Full-Roadmap mode
 
-When blocked, return a concise **Blocker Report**. Do not invent a workaround that weakens governance.
+The owner has explicitly authorised Codex to complete the remaining governance roadmap without returning for phase-by-phase review.
 
-## 5. Read-only means read-only
+When `docs/CODEX_AUTONOMOUS_RUNBOOK.md` says autonomous mode is active:
 
-If the user or current gate says `READ-ONLY`, do not:
+`CURRENT PHASE → IMPLEMENT → VERIFY → SELF-REVIEW → FIX UNTIL PASS → COMMIT/PUSH → UPDATE DOCS → AUTOMATICALLY START NEXT PHASE`
+
+**Do not stop at normal phase boundaries.**
+
+The owner should receive one final consolidated report only after all executable phases and the final system audit have been completed.
+
+The agent may emit progress internally/logically, but must not require user approval between phases.
+
+---
+
+## 4. Autonomous self-review gate
+
+Before automatically advancing to the next phase, Codex must prove that the current phase satisfies all applicable exit criteria.
+
+The phase gate requires:
+
+- required migrations/schema verified;
+- required RLS/access controls verified directly where applicable;
+- positive-path workflow tests;
+- negative-path/fail-closed workflow tests;
+- persistence/reload checks for stateful UI workflows;
+- relevant browser/responsive checks;
+- `npm test` or the repository's relevant complete test suite;
+- `npm run typecheck`;
+- `npm run lint`;
+- `npm run build`;
+- no known critical/high-severity security or data-integrity defect introduced by the phase;
+- no fabricated business/legal/clinical/provider facts;
+- phase-specific exit criteria all checked one-by-one.
+
+If a criterion fails:
+
+1. do not mark the phase complete;
+2. diagnose the failure;
+3. fix it within the approved scope;
+4. rerun the gate;
+5. continue until it passes or meets the hard-blocker definition.
+
+Passing tests alone is not enough if repository inspection shows the implementation contradicts the phase specification.
+
+---
+
+## 5. Repository preflight — remote must actually be fetched
+
+`git status` by itself is not proof that the local repository is current.
+
+At the start of the autonomous run and before every push:
+
+```powershell
+git remote -v
+git fetch --prune origin
+git ls-remote origin refs/heads/main
+git rev-parse HEAD
+git rev-parse origin/main
+git status
+git log --oneline --decorate -12
+```
+
+Reconcile local and remote history safely.
+
+Never discard verified governance commits with `reset --hard` simply to match remote documentation.
+
+If documentation commits and local implementation commits diverge, preserve both through a safe rebase/merge strategy and verify the resulting tree.
+
+---
+
+## 6. Safe database authority during autonomous mode
+
+The owner authorises Codex to apply **additive, backwards-compatible governance migrations** to the existing live Supabase project when needed to complete the roadmap, provided Codex:
+
+- inspects current live schema/data first;
+- preserves historical records;
+- avoids destructive data loss;
+- uses safe defaults/backfills;
+- verifies RLS and data integrity after application;
+- reports every live migration in the final report.
+
+A destructive migration is not automatically authorised. Codex must first redesign toward a non-destructive approach where reasonably possible.
+
+Do not silently delete participant, worker, roster, invoice, agreement, incident, complaint, document, training, or audit history.
+
+---
+
+## 7. Deployment authority
+
+### Allowed without further owner review
+
+- local implementation
+- tests/builds
+- additive/backwards-compatible live Supabase migrations under section 6
+- Git commits
+- pushes to `origin/main` after each verified phase so the autonomous state is recoverable
+- preview deployments if already supported and useful for verification
+
+### Not authorised automatically
+
+- Vercel Production deployment/promotion
+- destructive live-data deletion
+- fabrication of missing business facts
+- external emails/messages to real participants/workers
+- real financial transactions
+- creation of fake insurance/bank/legal/clinical records
+
+Vercel Production must remain unchanged unless the owner separately authorises production deployment.
+
+---
+
+## 8. External owner-supplied facts must not unnecessarily stop development
+
+Examples:
+
+- proprietor legal name
+- final correspondence/business address
+- genuine bank/remittance details
+- insurer/policy/certificate information
+- real worker credential numbers
+- real participant information
+
+If these are missing:
+
+- build the configuration/workflow safely;
+- keep execution/sending/service activation fail-closed where appropriate;
+- mark the final operational readiness item `OWNER INPUT REQUIRED`;
+- continue all remaining software/governance phases that do not depend on the missing real-world value.
+
+Do **not** stop the entire autonomous roadmap merely because a real launch credential/value is not yet supplied.
+
+---
+
+## 9. Hard blockers that may stop the autonomous run
+
+Stop only when the blocker prevents safe progress across later phases and cannot be safely deferred, for example:
+
+- repository access or authentication prevents all further work;
+- database access required for current and later work is unavailable;
+- current live schema materially contradicts the canonical design and any safe migration would cause irreversible data loss;
+- authoritative current regulation makes the planned service/workflow unlawful and no compliant in-scope implementation exists;
+- a severe security/data-integrity defect cannot be resolved without an owner decision that materially changes business scope;
+- required source code is corrupt/unrecoverable.
+
+For a hard blocker:
+
+- preserve all verified completed work;
+- commit/push only safe work;
+- write a concise `AUTONOMOUS_BLOCKER_REPORT` with evidence and exact owner decision needed;
+- stop.
+
+Do not stop for ordinary implementation difficulty, failing tests, documentation drift, or a fixable bug. Fix those.
+
+---
+
+## 10. Read-only means read-only
+
+If the user explicitly switches a task to `READ-ONLY`, do not:
 
 - edit code;
-- create migration files;
-- apply migrations;
+- create/apply migrations;
 - update GitHub files;
 - commit;
 - push;
@@ -89,84 +228,66 @@ If the user or current gate says `READ-ONLY`, do not:
 
 Only inspect and report.
 
-## 6. Repository reconciliation rule
+The current owner authorisation for the full Codex run is implementation authority, not read-only mode.
 
-GitHub documentation may be updated remotely while verified governance commits exist only in the local repository.
+---
 
-Before pushing:
-
-- fetch `origin/main`;
-- inspect divergence;
-- preserve all verified local commits;
-- safely rebase/merge documentation changes;
-- never reset away verified local governance work;
-- verify clean history and working tree before push.
-
-## 7. Database versus deployment reporting
-
-Always report these separately:
-
-### Git/code
-
-- local changes
-- commit SHA
-- pushed/not pushed
-
-### Supabase
-
-- migration created
-- migration applied to live Supabase or not
-- data/schema affected
-
-### Vercel
-
-- preview deployed or not
-- production deployed or not
-
-Do not say `no production changes` when the live Supabase schema/data was changed.
-
-## 8. Implementation quality gates
-
-Unless the phase specification says otherwise, complete:
-
-- relevant automated tests
-- `npm run typecheck`
-- `npm run lint`
-- `npm run build`
-- migration/schema verification
-- RLS/security verification
-- negative-path workflow tests
-- persistence/reload tests where UI data is involved
-- responsive/browser checks where UI changed
-- git diff review
-- secret/dummy-data scan where relevant
-
-Do not claim completion until evidence passes.
-
-## 9. Source-of-truth hierarchy
+## 11. Security and source-of-truth hierarchy
 
 When documents conflict, use this order:
 
-1. current owner-authorised facts explicitly recorded in the canonical roadmap;
-2. current official regulatory/legal source evidence;
+1. current owner-authorised facts in the canonical roadmap/autonomous runbook;
+2. current official Australian/NDIS regulatory evidence where the implementation depends on it;
 3. current repository + live database evidence;
 4. current phase execution specification;
 5. master roadmap;
 6. older handoff/history documents.
 
-Historical `CarePoint Support Services` content must not override current Opus Care decisions.
+Historical `CarePoint Support Services` content must never override current Opus Care decisions.
 
-## 10. Phase boundary workflow
+Operational governance must fail closed when authoritative eligibility/readiness data cannot be read.
 
-For each phase:
+---
 
-`READY TO EXECUTE`
-→ agent executes directly
-→ tests and evidence
-→ local commit
-→ phase document updated with result
-→ roadmap status updated to `COMPLETE` or `BLOCKED`
-→ stop for review
-→ next phase is not started until its gate/status allows it.
+## 12. Database, Git, and deployment reporting must remain separate
 
-The user should not have to reconstruct implementation instructions from chat history. The GitHub roadmap + current phase specification must contain enough detail for an agent to continue directly.
+For every phase record:
+
+### Git/code
+
+- starting SHA
+- ending SHA
+- commit message
+- pushed/not pushed
+
+### Supabase
+
+- migration(s) created
+- migration(s) applied live/not applied
+- affected schema/data/backfill
+- RLS verification
+
+### Vercel
+
+- preview deployed/not deployed
+- Production deployed/not deployed
+
+Never say `no production changes` if live Supabase changed.
+
+---
+
+## 13. Final autonomous completion rule
+
+After the last implementation phase, Codex must perform a **fresh end-to-end independent system audit**, not merely trust prior phase reports.
+
+It must:
+
+- compare implementation against every phase specification;
+- search for bypass paths, unsafe defaults, stale branding, dummy identity/bank/insurance data, public data leakage, direct-active shortcuts, roster bypasses, clinical/registration boundary bypasses, and billing inconsistencies;
+- run end-to-end dummy lifecycle and negative-path tests;
+- fix defects found;
+- rerun full quality gates;
+- update all roadmap/status documents;
+- produce one final `OPUS CARE AUTONOMOUS GOVERNANCE COMPLETION REPORT`.
+
+Only then may it stop and return control to the owner.
