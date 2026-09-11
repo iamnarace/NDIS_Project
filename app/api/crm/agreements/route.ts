@@ -102,6 +102,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
+    // Governance G0.1 Hard Guard: Cannot create/activate binding legal agreements without configured proprietor legal name
+    if (['active', 'fully_signed'].includes(status)) {
+      const { data: provConfig } = await supabase
+        .from('provider_config')
+        .select('proprietor_legal_name')
+        .limit(1)
+        .maybeSingle();
+
+      if (!provConfig?.proprietor_legal_name || !provConfig.proprietor_legal_name.trim()) {
+        return NextResponse.json(
+          { message: 'Complete the legal contracting identity in Organisation Settings before executing this agreement.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Defensively resolve owner_id to actual Supabase UUID
     let resolvedOwnerId = owner_id;
     if (!isValidUuid(owner_id)) {
@@ -220,6 +236,22 @@ export async function PATCH(req: Request) {
       ]);
       if (incomingFields.some((field) => !draftFields.has(field))) {
         return NextResponse.json({ message: 'One or more agreement fields cannot be changed.' }, { status: 400 });
+      }
+    }
+
+    // Governance G0.1 Hard Guard: Cannot activate or send agreements without configured proprietor legal name
+    if (updates.status && ['active', 'fully_signed', 'sent'].includes(updates.status)) {
+      const { data: provConfig } = await supabase
+        .from('provider_config')
+        .select('proprietor_legal_name')
+        .limit(1)
+        .maybeSingle();
+
+      if (!provConfig?.proprietor_legal_name || !provConfig.proprietor_legal_name.trim()) {
+        return NextResponse.json(
+          { message: 'Complete the legal contracting identity in Organisation Settings before executing this agreement.' },
+          { status: 400 }
+        );
       }
     }
 

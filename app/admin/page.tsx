@@ -4147,10 +4147,10 @@ export default function AdminCrmPage() {
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Australian Business No.</span>
-                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Authorised</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Owner confirmed</span>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)', fontFamily: 'monospace' }}>41 267 197 576</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Active on Australian Business Register</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Authorised sole trader ABN (configured by owner)</div>
               </div>
 
               {/* 3. GST Status */}

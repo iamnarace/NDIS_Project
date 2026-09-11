@@ -159,8 +159,25 @@ export default function AgreementGeneratorModal({
   const [signerName, setSignerName] = useState('');
   const [signerTitle, setSignerTitle] = useState('Recipient / Participant');
   const [providerSignerName, setProviderSignerName] = useState('Naresh Admin');
+  const [isProprietorConfigured, setIsProprietorConfigured] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Check legal contracting identity configuration
+  useEffect(() => {
+    async function checkProviderConfig() {
+      try {
+        const res = await fetch('/api/crm/provider-config');
+        if (res.ok) {
+          const cfg = await res.json();
+          setIsProprietorConfigured(Boolean(cfg?.proprietor_legal_name && cfg.proprietor_legal_name.trim().length > 0));
+        }
+      } catch (err) {
+        console.error('Could not check provider config', err);
+      }
+    }
+    checkProviderConfig();
+  }, []);
 
   // Canvas
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -351,6 +368,10 @@ export default function AgreementGeneratorModal({
       }
     }
     if (s === 5 && executeNow) {
+      if (!isProprietorConfigured) {
+        setError('Complete the legal contracting identity in Organisation Settings before executing this agreement.');
+        return false;
+      }
       if (!signerName.trim()) {
         setError('Signer name is required to execute agreement.');
         return false;
@@ -985,6 +1006,28 @@ export default function AgreementGeneratorModal({
               </label>
             </div>
 
+            {executeNow && !isProprietorConfigured && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: '12px 16px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#B91C1C',
+                  fontSize: 13,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Execution Blocked:</strong> Complete the legal contracting identity in Organisation Settings before executing this agreement.
+                </span>
+              </div>
+            )}
+
             {executeNow && (
               <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <FormGrid2>
@@ -1051,6 +1094,7 @@ export default function AgreementGeneratorModal({
         secondaryLabel="Save Draft"
         secondaryDisabled={submitting}
         onPrimary={step < 5 ? handleNext : () => handleSubmit(false)}
+        primaryDisabled={step === 5 && executeNow && !isProprietorConfigured}
         primaryLabel={
           step < 5
             ? `Next: ${steps[step].label}`

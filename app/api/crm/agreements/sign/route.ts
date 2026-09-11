@@ -46,6 +46,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'The selected signing role is invalid.' }, { status: 400 });
     }
 
+    // Governance G0.1 Hard Guard: Cannot sign or execute binding legal agreements without configured proprietor legal name
+    const { data: provConfig } = await supabase
+      .from('provider_config')
+      .select('proprietor_legal_name')
+      .limit(1)
+      .maybeSingle();
+
+    if (!provConfig?.proprietor_legal_name || !provConfig.proprietor_legal_name.trim()) {
+      return NextResponse.json({
+        message: 'Complete the legal contracting identity in Organisation Settings before executing this agreement.'
+      }, { status: 400 });
+    }
+
     // Defensive resolution if agreement_reference passed
     if (!isValidUuid(agreement_id)) {
       const { data: byRef } = await supabase

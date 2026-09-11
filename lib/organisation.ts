@@ -34,8 +34,9 @@ export interface OrganisationProfile {
   logoDataUri: string;
 }
 
-// Authoritative verified Australian Business Number
-export const VERIFIED_ABN = '41 267 197 576';
+// Authoritative configured/owner-confirmed Australian Business Number
+export const AUTHORISED_ABN = '41 267 197 576';
+export const VERIFIED_ABN = AUTHORISED_ABN;
 
 // Format and sanitize ABN string into standard 'XX XXX XXX XXX' format
 export function formatAbn(abn?: string | null): string | null {
