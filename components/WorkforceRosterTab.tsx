@@ -124,12 +124,13 @@ interface WorkforceRosterTabProps {
 }
 
 const SERVICE_TYPES = [
-  { label: 'Core - Self-Care Activities', code: '01_011_0107_1_1', rate: 67.56 },
-  { label: 'Capacity - Community Participation', code: '04_104_0125_6_1', rate: 67.56 },
-  { label: 'Core - Domestic Assistance', code: '01_019_0120_1_1', rate: 58.45 },
-  { label: 'Core - Social & Civic Participation', code: '04_104_0125_6_1', rate: 67.56 },
-  { label: 'Core - Weekend Social Support', code: '01_013_0107_1_1', rate: 94.82 },
-  { label: 'Core - Transport Assistance', code: '02_051_0108_1_1', rate: 45.00 },
+  { label: 'Core - Self-Care Activities', code: '01_011_0107_1_1', rate: 73.58 },
+  { label: 'Capacity - Community Participation', code: '04_104_0125_6_1', rate: 73.58 },
+  { label: 'Core - Domestic Assistance', code: '01_020_0120_1_1', rate: 60.10 },
+  { label: 'Core - House or Yard Maintenance', code: '01_019_0120_1_1', rate: 59.01 },
+  { label: 'Core - Social & Civic Participation', code: '04_104_0125_6_1', rate: 73.58 },
+  { label: 'Core - Weekend Social Support', code: '01_013_0107_1_1', rate: 103.54 },
+  { label: 'Core - Transport Assistance', code: '02_051_0108_1_1', rate: 0.00 },
 ];
 
 export default function WorkforceRosterTab({ participants, staff }: WorkforceRosterTabProps) {
@@ -263,7 +264,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
     // Estimated billing
     const estBilling = filteredShifts.reduce((acc, s) => {
       const match = SERVICE_TYPES.find((st) => st.label === s.service_type);
-      const rate = match ? match.rate : 67.56;
+      const rate = match ? match.rate : 73.58;
       return acc + (Number(s.hours || 0) * rate);
     }, 0);
 

@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
       const itemsPayload = items.map((it: any) => ({
         schedule_id: schedule.id,
         support_item_id: it.support_item_id || null,
-        agreed_rate: Number(it.agreed_rate) || 67.56,
+        agreed_rate: Number(it.agreed_rate) || 73.58,
         unit: it.unit || 'Hour',
         hours_per_week: Number(it.hours_per_week) || 0,
         estimated_weeks: Number(it.estimated_weeks) || 52,
-        estimated_total: Number((Number(it.hours_per_week || 0) * Number(it.agreed_rate || 67.56) * Number(it.estimated_weeks || 52)).toFixed(2)),
+        estimated_total: Number((Number(it.hours_per_week || 0) * Number(it.agreed_rate || 73.58) * Number(it.estimated_weeks || 52)).toFixed(2)),
         notes: it.notes || null,
       }));
       await supabase.from('support_schedule_items').insert(itemsPayload);

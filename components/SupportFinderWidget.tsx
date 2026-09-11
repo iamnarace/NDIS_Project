@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { Calculator, CheckCircle2, Clock, DollarSign, ArrowRight, Sparkles, Calendar, HeartHandshake } from 'lucide-react';
 import Link from 'next/link';
 
-// Standard 2024-2025/2026 NDIS Price Guide reference rates for standard weekday/weekend supports
+// Standard 2026-27 NDIS Price Guide reference rates for standard weekday/weekend supports
 const RATES = {
-  weekdayDay: 67.56,
-  weekdayEve: 74.44,
-  saturday: 95.07,
-  sunday: 122.59,
+  weekdayDay: 73.58,
+  weekdayEve: 81.07,
+  saturday: 103.54,
+  sunday: 133.50,
 };
 
 export function SupportFinderWidget() {
@@ -83,7 +83,7 @@ export function SupportFinderWidget() {
               <Clock size={16} />
               <div className="timingText">
                 <strong>Weekday Day</strong>
-                <small>$67.56/hr</small>
+                <small>$73.58/hr</small>
               </div>
             </button>
             <button
@@ -94,7 +94,7 @@ export function SupportFinderWidget() {
               <Clock size={16} />
               <div className="timingText">
                 <strong>Weekday Evening</strong>
-                <small>$74.44/hr</small>
+                <small>$81.07/hr</small>
               </div>
             </button>
             <button
@@ -105,7 +105,7 @@ export function SupportFinderWidget() {
               <Calendar size={16} />
               <div className="timingText">
                 <strong>Saturday</strong>
-                <small>$95.07/hr</small>
+                <small>$103.54/hr</small>
               </div>
             </button>
             <button
@@ -116,7 +116,7 @@ export function SupportFinderWidget() {
               <Calendar size={16} />
               <div className="timingText">
                 <strong>Sunday</strong>
-                <small>$122.59/hr</small>
+                <small>$133.50/hr</small>
               </div>
             </button>
           </div>

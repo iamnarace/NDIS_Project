@@ -1,5 +1,5 @@
 import { userFacingError } from '@/lib/userFacingError';
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 
@@ -11,13 +11,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
+    const includeInactive = searchParams.get('include_inactive') === 'true';
 
     let query = supabase
       .from('ndis_support_items')
       .select('*')
-      .eq('active', true)
       .order('category', { ascending: true })
       .order('support_item_code', { ascending: true });
+
+    if (!includeInactive) {
+      query = query.eq('active', true);
+    }
 
     if (category && category !== 'all') query = query.eq('category', category);
     if (search) {
@@ -45,11 +49,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       support_item_code,
+      support_item_number = support_item_code,
       support_item_name,
       category,
       registration_group,
       unit = 'Hour',
       reference_rate,
+      remote_price = null,
+      very_remote_price = null,
+      notional_unit_price = null,
+      quote_required = false,
+      claim_type_flags = [],
+      effective_from = '2026-07-01',
+      effective_to = '2027-06-30',
+      source_version = '2026-27 NDIS Pricing Arrangements and Price Limits v1.0',
       notes,
     } = body;
 
@@ -61,13 +74,23 @@ export async function POST(request: NextRequest) {
       .from('ndis_support_items')
       .upsert({
         support_item_code,
+        support_item_number,
         support_item_name,
         category,
         registration_group: registration_group || null,
         unit,
         reference_rate: Number(reference_rate),
+        remote_price: remote_price !== null ? Number(remote_price) : null,
+        very_remote_price: very_remote_price !== null ? Number(very_remote_price) : null,
+        notional_unit_price: notional_unit_price !== null ? Number(notional_unit_price) : null,
+        quote_required: Boolean(quote_required),
+        claim_type_flags,
+        effective_from,
+        effective_to,
+        source_version,
         notes: notes || null,
         active: true,
+        imported_at: new Date().toISOString(),
       }, { onConflict: 'support_item_code' })
       .select()
       .single();

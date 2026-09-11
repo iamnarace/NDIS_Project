@@ -185,7 +185,7 @@ describe('Governance G0.1 - Fail-Closed Operational Governance', () => {
                 public_name: 'Community Nursing Care',
                 internal_description: 'Clinical nursing',
                 ndis_category: '0114 - Community Nursing Care',
-                ndis_support_catalogue_mapping: ['01_016_0107_1_1'],
+                ndis_support_catalogue_mapping: ['15_406_0114_1_3'],
                 operational_status: 'CONDITIONAL_CLINICAL',
                 funding_methods_allowed: ['plan_managed', 'self_managed'],
                 registration_required: false,

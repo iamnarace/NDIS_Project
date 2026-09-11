@@ -1889,35 +1889,42 @@ export default function AdminCrmPage() {
                         <td><span className="refIdTag">01_011_0107_1_1</span></td>
                         <td><strong>Assistance with Self-Care Activities - Standard - Weekday Daytime</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$67.56</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$73.58</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_015_0107_1_1</span></td>
                         <td><strong>Assistance with Self-Care Activities - Standard - Weekday Evening</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$74.44</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$81.07</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_013_0107_1_1</span></td>
                         <td><strong>Assistance with Self-Care Activities - Saturday</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$95.07</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$103.54</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">04_104_0125_6_1</span></td>
-                        <td><strong>Access Community, Social and Rec Activities - Standard - Weekday Daytime</strong></td>
-                        <td><span className="fundingPillMini">Capacity Building</span></td>
-                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$67.56</strong></td>
+                        <td><strong>Access Community Social and Rec Activities - Standard - Weekday Daytime</strong></td>
+                        <td><span className="fundingPillMini">Core Supports</span></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$73.58</strong></td>
                         <td>Hour</td>
                       </tr>
                       <tr>
                         <td><span className="refIdTag">01_019_0120_1_1</span></td>
-                        <td><strong>House Cleaning & Other Household Activities</strong></td>
+                        <td><strong>House or Yard Maintenance</strong></td>
                         <td><span className="fundingPillMini">Core Supports</span></td>
-                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$58.45</strong></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$59.01</strong></td>
+                        <td>Hour</td>
+                      </tr>
+                      <tr>
+                        <td><span className="refIdTag">01_020_0120_1_1</span></td>
+                        <td><strong>House Cleaning and Other Household Activities</strong></td>
+                        <td><span className="fundingPillMini">Core Supports</span></td>
+                        <td className="ocNumeric"><strong style={{ color: 'var(--oc-text)' }}>$60.10</strong></td>
                         <td>Hour</td>
                       </tr>
                     </tbody>
@@ -4140,7 +4147,7 @@ export default function AdminCrmPage() {
                   <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Opus Care Support Services</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Registered Sole Trader business name</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Registered business name operated as a sole trader</div>
               </div>
 
               {/* 2. ABN */}

@@ -40,11 +40,12 @@ interface AgreementGeneratorModalProps {
 }
 
 const DEFAULT_SUPPORT_ITEMS = [
-  { code: '01_011_0107_1_1', description: 'Assistance with Daily Personal Activities (Standard)', refRate: 67.56, defaultHours: 6.0, category: 'Core' },
-  { code: '04_104_0125_6_1', description: 'Access Community, Social and Civic Activities', refRate: 67.56, defaultHours: 4.0, category: 'Capacity Building' },
-  { code: '01_019_0120_1_1', description: 'House Cleaning & Other Household Activities', refRate: 58.45, defaultHours: 2.0, category: 'Core' },
-  { code: '01_013_0107_1_1', description: 'Weekend Support Saturday (Core)', refRate: 94.82, defaultHours: 3.0, category: 'Core' },
-  { code: '02_051_0108_1_1', description: 'Transport - Activity Based Transport Assistance', refRate: 45.00, defaultHours: 1.0, category: 'Capital' },
+  { code: '01_011_0107_1_1', description: 'Assistance with Self-Care Activities - Standard - Weekday Daytime', refRate: 73.58, defaultHours: 6.0, category: 'Core' },
+  { code: '04_104_0125_6_1', description: 'Access Community Social and Rec Activities - Standard - Weekday Daytime', refRate: 73.58, defaultHours: 4.0, category: 'Capacity Building' },
+  { code: '01_020_0120_1_1', description: 'House Cleaning and Other Household Activities', refRate: 60.10, defaultHours: 2.0, category: 'Core' },
+  { code: '01_019_0120_1_1', description: 'House or Yard Maintenance', refRate: 59.01, defaultHours: 2.0, category: 'Core' },
+  { code: '01_013_0107_1_1', description: 'Assistance with Self-Care Activities - Standard - Saturday', refRate: 103.54, defaultHours: 3.0, category: 'Core' },
+  { code: '02_051_0108_1_1', description: 'Transport (Specialised / Plan-Agreed)', refRate: 0.00, defaultHours: 1.0, category: 'Capital' },
 ];
 
 export default function AgreementGeneratorModal({
@@ -114,15 +115,15 @@ export default function AgreementGeneratorModal({
     sourceAgreement?.compiled_clauses?.service_schedule || [
       {
         item_code: '01_011_0107_1_1',
-        description: 'Assistance with Daily Personal Activities (Standard)',
+        description: 'Assistance with Self-Care Activities - Standard - Weekday Daytime',
         hours_pw: 6.0,
-        agreed_rate: 67.56,
+        agreed_rate: 73.58,
       },
       {
         item_code: '04_104_0125_6_1',
-        description: 'Access Community, Social and Civic Activities',
+        description: 'Access Community Social and Rec Activities - Standard - Weekday Daytime',
         hours_pw: 4.0,
-        agreed_rate: 67.56,
+        agreed_rate: 73.58,
       },
     ]
   );
@@ -195,7 +196,7 @@ export default function AgreementGeneratorModal({
             const mapped = data.items.map((item: any) => ({
               code: item.support_item_code,
               description: item.support_item_name,
-              refRate: Number(item.reference_rate) || 67.56,
+              refRate: Number(item.reference_rate) || 73.58,
               defaultHours: 4.0,
               category: item.category || 'Core',
             }));

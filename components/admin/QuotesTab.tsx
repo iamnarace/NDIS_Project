@@ -94,9 +94,9 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
       unit: 'Hour',
       quantity: 10,
       frequency: 'Weekly',
-      unit_rate: 67.56,
+      unit_rate: 73.58,
       estimated_weeks: 52,
-      line_total: 35131.20,
+      line_total: 38261.60,
     },
   ]);
 
@@ -145,9 +145,9 @@ export default function QuotesTab({ participants }: QuotesTabProps) {
         unit: 'Hour',
         quantity: 5,
         frequency: 'Weekly',
-        unit_rate: defaultItem ? Number(defaultItem.reference_rate) : 67.56,
+        unit_rate: defaultItem ? Number(defaultItem.reference_rate) : 73.58,
         estimated_weeks: 52,
-        line_total: Number((5 * (defaultItem ? Number(defaultItem.reference_rate) : 67.56) * 52).toFixed(2)),
+        line_total: Number((5 * (defaultItem ? Number(defaultItem.reference_rate) : 73.58) * 52).toFixed(2)),
       },
     ]);
   }

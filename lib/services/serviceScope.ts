@@ -63,11 +63,10 @@ export const PUBLIC_MARKETING_FALLBACK_REGISTRY: ServiceScopeItem[] = [
     ndisCategory: 'Core - Assistance with Social, Economic and Community Participation',
     ndisSupportCatalogueMapping: [
       '04_104_0125_6_1', // Weekday Daytime
-      '04_105_0125_6_1', // Weekday Evening
-      '04_103_0125_6_1', // Saturday
-      '04_102_0125_6_1', // Sunday
-      '04_101_0125_6_1', // Public Holiday
-      '04_106_0125_6_1', // Weekday Night
+      '04_103_0125_6_1', // Weekday Evening
+      '04_105_0125_6_1', // Saturday
+      '04_106_0125_6_1', // Sunday
+      '04_102_0125_6_1', // Public Holiday
       '04_590_0125_6_1', // Activity Based Transport
       '04_799_0125_6_1', // Provider Travel - Non-Labour
     ],
@@ -103,7 +102,7 @@ export const PUBLIC_MARKETING_FALLBACK_REGISTRY: ServiceScopeItem[] = [
       '01_013_0107_1_1', // Saturday
       '01_014_0107_1_1', // Sunday
       '01_012_0107_1_1', // Public Holiday
-      '01_016_0107_1_1', // Weekday Night
+      '01_002_0107_1_1', // Weekday Night
       '01_799_0107_1_1', // Provider Travel - Non-Labour
     ],
     operationalStatus: 'ACTIVE',
@@ -133,8 +132,8 @@ export const PUBLIC_MARKETING_FALLBACK_REGISTRY: ServiceScopeItem[] = [
     internalDescription: 'Domestic assistance, cleaning, laundry, and home maintenance associated with disability needs.',
     ndisCategory: 'Core - Assistance with Daily Life',
     ndisSupportCatalogueMapping: [
-      '01_019_0120_1_1', // House Cleaning And Other Household Activities
-      '01_020_0120_1_1', // House And/Or Yard Maintenance
+      '01_019_0120_1_1', // House or Yard Maintenance
+      '01_020_0120_1_1', // House Cleaning and Other Household Activities
     ],
     operationalStatus: 'ACTIVE',
     fundingMethodsAllowed: ['Self-Managed', 'Plan-Managed'],
@@ -189,7 +188,7 @@ export const PUBLIC_MARKETING_FALLBACK_REGISTRY: ServiceScopeItem[] = [
     publicName: 'Social Support / Companionship',
     internalDescription: 'One-to-one mentoring, active listening, and social companionship aligned with participant goals.',
     ndisCategory: 'Core - Assistance with Social, Economic and Community Participation',
-    ndisSupportCatalogueMapping: ['04_104_0125_6_1', '04_105_0125_6_1', '04_590_0125_6_1'],
+    ndisSupportCatalogueMapping: ['04_104_0125_6_1', '04_103_0125_6_1', '04_590_0125_6_1'],
     operationalStatus: 'ACTIVE',
     fundingMethodsAllowed: ['Self-Managed', 'Plan-Managed'],
     registrationRequired: false,
@@ -243,7 +242,7 @@ export const PUBLIC_MARKETING_FALLBACK_REGISTRY: ServiceScopeItem[] = [
     publicName: 'Shopping / Errand Assistance',
     internalDescription: 'Assistance with grocery shopping, personal errands, and local community transit. Claim reflects actual support delivered.',
     ndisCategory: 'Core - Assistance with Daily Life',
-    ndisSupportCatalogueMapping: ['01_011_0107_1_1', '01_019_0120_1_1', '04_590_0125_6_1'],
+    ndisSupportCatalogueMapping: ['01_011_0107_1_1', '01_020_0120_1_1', '04_590_0125_6_1'],
     operationalStatus: 'ACTIVE',
     fundingMethodsAllowed: ['Self-Managed', 'Plan-Managed'],
     registrationRequired: false,
@@ -328,7 +327,15 @@ export const PUBLIC_MARKETING_FALLBACK_REGISTRY: ServiceScopeItem[] = [
     publicName: 'Community Nursing',
     internalDescription: 'Clinical nursing care under Registration Group 0114 (Community Nursing Care) spanning EN, RN, CN, and NP classifications across applicable day/time variants. Strictly conditional upon clinical governance and supervision.',
     ndisCategory: 'Capital & Core Clinical Nursing',
-    ndisSupportCatalogueMapping: [],
+    ndisSupportCatalogueMapping: [
+      '15_406_0114_1_3', // RN Weekday Daytime
+      '15_407_0114_1_3', // RN Weekday Evening
+      '15_408_0114_1_3', // RN Saturday
+      '15_409_0114_1_3', // RN Sunday
+      '15_410_0114_1_3', // RN Public Holiday
+      '15_411_0114_1_3', // EN Weekday Daytime
+      '15_414_0114_1_3', // Clinical Nurse Weekday Daytime
+    ],
     operationalStatus: 'CONDITIONAL_CLINICAL',
     fundingMethodsAllowed: ['Self-Managed', 'Plan-Managed'],
     registrationRequired: false,
