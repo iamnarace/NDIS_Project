@@ -2,17 +2,13 @@
 
 > **Canonical phase execution specification**
 >
-> This is not a proposal. Once the preceding security gate is marked complete and this phase is marked `READY TO EXECUTE`, Antigravity must implement it directly under `docs/EXECUTION_PROTOCOL.md` and return an Implementation Report rather than another plan.
+> This is **not a proposal**. G0/G0.1/G0.2 security closure is complete. Antigravity must implement this phase directly under `docs/EXECUTION_PROTOCOL.md` and return an Implementation Report rather than another implementation plan.
 
 ## Current execution status
 
-`BLOCKED — COMPLETE FINAL G0/G0.1/G0.2 DIRECT-ACCESS SECURITY CLOSURE FIRST`
-
-After that evidence is accepted, change this to:
-
 `READY TO EXECUTE`
 
-Do not start implementation while the security gate remains blocked.
+Do not create another G1 implementation plan. Perform preflight, execute this specification, verify, commit, update roadmap/status, report, and stop at the phase boundary.
 
 ---
 
@@ -27,96 +23,70 @@ Replace unsafe referral-to-active conversion with a governed participant lifecyc
 → readiness review
 → `ACTIVE / PARTICIPANT-SIDE ROSTER ELIGIBLE`
 
-No referral may silently become an active/rosterable participant.
+No referral may silently become active/rosterable.
 
-G1 governs **participant readiness**. G2 later adds worker-readiness/competency hard gates. G1 must not pretend worker competency governance is already complete.
+G1 governs **participant readiness**. Governance G2 later adds worker-readiness/credential/competency hard gates. G1 must not pretend worker competency governance is already complete.
 
 ---
 
-## 2. Non-negotiable business and governance rules
+## 2. Business and governance boundaries
 
-Preserve current authorised facts from `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`.
+Preserve all owner-authorised facts in `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`.
 
-### Launch participant age scope
+### Adults 18+ launch scope
 
-Current launch scope is:
+Current participant launch scope is `Adults 18+`.
 
-`Adults 18+`
-
-If a referral is for a participant under 18:
-
-- do not silently accept;
-- outcome should require management review / outside current launch scope;
-- do not fabricate child-service readiness;
-- do not implement child-service governance in G1.
+A referral for a participant under 18 must not silently progress. Record a management/outside-current-scope outcome. Do not implement child-service governance in G1.
 
 ### Funding
 
-Current direct service scope:
+Current direct participant scope:
 
 - Self-Managed
 - Plan-Managed
 
-NDIA-Managed funding may be recorded as a real participant funding type, but Opus Care must not be represented as directly claiming from the NDIA while unregistered.
+NDIA-Managed funding may be recorded truthfully, but Opus Care must not be represented as directly claiming from the NDIA while unregistered.
 
-Do not create a loose boolean such as `ndia_billing_configured = true` that alone authorises delivery/billing.
+Do **not** create a loose `ndia_billing_configured=true` boolean that by itself authorises billing/delivery.
 
-A genuine NDIA-managed relationship must be supported by actual recorded contracting/billing-party data already present or linked in CRM records.
-
-If genuine payer/contracting data is absent:
+A genuine NDIA-managed pathway must rely on actual recorded contracting/billing-party data already linked in CRM records. If absent:
 
 `Billing Configuration Required`
 
-No invented nominee, payer, registered provider or subcontracting arrangement.
+Never fabricate a nominee, payer, registered provider or subcontracting relationship.
 
 ### Service scope
 
-All requested services must be validated against the authoritative live `service_scope_registry`.
+Every requested service must be validated against the authoritative live `service_scope_registry`.
 
-Operational decisions fail closed if governance data cannot be read.
+If governance data cannot be read, fail closed.
 
 ### Conditional clinical services
 
-Requesting:
-
-- Community Nursing
-- Complex Bowel Care
-- Urinary Catheter Management
-
-must produce a clinical-review pathway, not automatic acceptance or delivery.
-
-These services remain unquotable/unrosterable/uninvoiceable until G6 activation prerequisites are satisfied.
+Requesting Community Nursing, Complex Bowel Care or Urinary Catheter Management must produce `Clinical Review Required` and must not activate quote/roster/invoice capability.
 
 ### Registration-required services
 
-Requesting a service currently marked `REGISTRATION_REQUIRED` must not proceed as an ordinary Opus service.
-
-Return/record:
-
-`Registered Provider Requirement`
-
-or other appropriate governed outcome.
+A current `REGISTRATION_REQUIRED` service must not progress as a normal Opus service. Use `Registered Provider Requirement` or an equivalent governed outcome.
 
 ### Restrictive practices
 
-Any indication of regulated restrictive practices must:
+Any indication of regulated restrictive practices must stop automatic progression and produce:
 
-- stop automatic progression;
-- flag `Management / Regulatory Review Required`;
-- preserve factual source information;
-- not create or authorise a restrictive-practice workflow.
+`Management / Regulatory Review Required`
+
+Do not create or authorise a restrictive-practice workflow in G1.
 
 ### Consent
 
-Do not pre-tick consent.
-
-Do not bundle optional marketing consent with service/privacy consent.
+No pre-ticked consent. Optional marketing consent remains separate from service/privacy consent.
 
 ---
 
-## 3. Reuse existing architecture before adding schema
+## 3. Reuse existing architecture
 
-Before migration, inspect and reuse:
+Before adding schema, inspect and reuse:
 
 - `referrals`
 - `participants`
@@ -129,77 +99,56 @@ Before migration, inspect and reuse:
 - `agreement_records`
 - `agreement_signatures`
 - `documents`
+- `audit_events`
 - existing consent/document structures
-- existing `audit_events`
-- existing region/serviceability helpers in `lib/regions.ts`
-- existing agreement/referral/admin components
+- `lib/regions.ts`
+- existing referral/admin/agreement components and APIs
 
-### Do NOT create a duplicate intake audit table
+### No duplicate audit table
 
-The project already has `audit_events`.
+Use/extend existing `audit_events` for assessment, conversion, checklist, waiver, readiness and lifecycle events.
 
-G1 must use/extend the existing audit mechanism for:
+Do not create `intake_audit_log` unless repository evidence proves the existing audit system cannot safely support G1 and the final report explains why.
 
-- assessment created/updated
-- suitability outcome
-- conversion to participant onboarding
-- checklist item changes
-- waivers
-- readiness sign-off
-- lifecycle changes
+### No duplicate payer identity
 
-Do not create `intake_audit_log` unless repository evidence proves `audit_events` cannot safely support the required traceability and the final report documents why.
-
-### Do NOT duplicate payer/contact identity in free-form JSON if a real contact relationship can be linked
-
-Prefer existing `contacts` / `participant_contacts` / payer fields for actual people/organisations.
-
-Assessment snapshots may store factual point-in-time metadata, but they must not become a second uncontrolled source of truth for payer identity.
+Prefer existing contact/payer relationships over uncontrolled free-form payer JSON. A point-in-time assessment snapshot is acceptable for audit, but must not become a second source of truth for payer identity.
 
 ---
 
 ## 4. Database migration
 
-Target migration name:
+Create the next safe migration matching repository history, conceptually:
 
 `20260912xxxxxx_governance_phase_g1_intake_onboarding.sql`
 
-Use the next safe timestamp according to repository migration history.
+Migration must be additive/backwards-compatible unless an explicitly reviewed correction is unavoidable.
 
-Migration must be additive/backwards-compatible unless a separately reviewed correction is required.
+Do not delete existing participant/referral/shift history.
 
-Do not delete existing participant/referral records.
+### A. `service_suitability_assessments`
 
-### A. `public.service_suitability_assessments`
+Create a formal assessment record supporting:
 
-Create a formal assessment table with fields equivalent to:
+- UUID primary key
+- unique `SSA-xxxxx` reference
+- referral link and/or participant link
+- assessor identity using current authenticated profile/admin model
+- funding type
+- linked payer/contracting identity where available
+- billing relationship status
+- region/suburb/postcode
+- requested canonical service codes
+- point-in-time service-scope validation snapshot
+- risk-triage snapshot
+- adult age-scope result
+- deterministic outcome
+- outcome reasons
+- conditions
+- assessor notes
+- timestamps
 
-- `id UUID PRIMARY KEY`
-- `reference_number TEXT UNIQUE NOT NULL` such as `SSA-00001`
-- `referral_id UUID NULL REFERENCES referrals(id)`
-- `participant_id UUID NULL REFERENCES participants(id)`
-- `assessed_by UUID NULL` linked to the existing authenticated profile/admin identity model
-- `funding_type TEXT`
-- linked payer/contracting identifiers where available
-- point-in-time payer/contracting snapshot only where useful for audit
-- `billing_relationship_status TEXT`
-- `region TEXT`
-- `suburb TEXT`
-- `postcode TEXT`
-- `requested_services JSONB/TEXT[]` containing canonical service codes
-- `service_scope_validation JSONB` point-in-time result
-- `risk_triage JSONB`
-- `age_scope_result TEXT`
-- `outcome TEXT`
-- `outcome_reasons TEXT[]/JSONB`
-- `conditions TEXT`
-- `assessor_notes TEXT`
-- `created_at`
-- `updated_at`
-
-Do not let a single stored boolean bypass live billing/governance validation.
-
-### Required outcome values
+Required outcomes:
 
 - `Suitable`
 - `Suitable With Conditions`
@@ -210,154 +159,123 @@ Do not let a single stored boolean bypass live billing/governance validation.
 - `Management / Regulatory Review Required`
 - `Declined / Outside Scope`
 
-### B. `public.participants` governance lifecycle fields
+Do not let one stored boolean bypass live governance/billing validation.
 
-Extend participants with a governed lifecycle model. Reconcile with existing status fields rather than replacing them blindly.
+### B. Participant lifecycle fields
+
+Extend `participants` only after reconciling existing status fields.
 
 Required concepts:
 
-- `lifecycle_stage`
-- `is_rosterable` or equivalent participant-side roster eligibility flag
-- `suitability_assessment_id`
-- `readiness_notes`
+- lifecycle stage
+- participant-side roster eligibility (`is_rosterable` or equivalent)
+- suitability assessment link
+- readiness notes
 
-Suggested lifecycle values:
+Lifecycle should cover concepts equivalent to:
 
-- `intake_assessment`
-- `onboarding`
-- `ready_for_roster`
-- `active_rosterable`
-- `waitlist`
-- `on_hold`
-- `exited`
-- `declined`
-- `legacy_review_required` if needed for safe existing-record migration
+- intake assessment
+- onboarding
+- ready for roster
+- active/rosterable
+- waitlist
+- on hold
+- exited
+- declined
+- legacy review required where needed for safe existing-record migration
 
-### Readiness percentage
-
-Prefer computing readiness from checklist state rather than storing an independently mutable percentage that can drift.
-
-If a cached percentage is stored for UI/performance, it must be updated server-side from canonical checklist state and must never be accepted from arbitrary client input.
+Prefer calculating readiness percentage from checklist state. If cached, compute it server-side; never trust client-supplied percentage/readiness flags.
 
 ### Existing participant migration safety
 
-The live database already contains participant/test records.
+Before applying live migration:
 
-Before migration:
+- inventory existing participants, statuses and linked shifts;
+- preserve historical roster/service records;
+- do not silently declare existing records compliant;
+- use a documented compatibility/backfill state such as `legacy_review_required` where appropriate;
+- report exact rows/statuses affected.
 
-- inventory current participants, statuses and linked shifts;
-- do not silently mark historical/current records compliant;
-- do not destroy existing roster/history;
-- use a documented compatibility/backfill approach such as `legacy_review_required` where appropriate;
-- report exact backfill impact.
+### C. `participant_onboarding_checklists`
 
-### C. `public.participant_onboarding_checklists`
+Create one current checklist per participant, with history in `audit_events`.
 
-Create one current onboarding checklist per participant, with version/audit history provided through `audit_events`.
+Each requirement must support concepts equivalent to:
 
-Required fields:
-
-- `id`
-- `participant_id UNIQUE`
-- `requirements JSONB` or equivalent structured checklist state
-- `is_ready_for_rostering BOOLEAN DEFAULT false`
-- `signoff_by UUID NULL`
-- `signoff_at TIMESTAMPTZ NULL`
-- `created_at`
-- `updated_at`
-
-Each checklist requirement must support metadata equivalent to:
-
-- `required: boolean`
-- `waivable: boolean`
+- `required`
+- `waivable`
 - `status: pending | completed | waived | not_applicable`
-- `completed_at`
-- `completed_by`
-- `waived_at`
-- `waived_by`
-- `waiver_reason`
-- `notes`
-- `document_id` where applicable
+- completed timestamp/user
+- waived timestamp/user/reason
+- notes
+- linked document/evidence where applicable
 
-### Non-waivable critical requirements
+Checklist record must support participant readiness sign-off and timestamps.
 
-Do not make every checklist item admin-waivable.
+### Non-waivable requirements
 
-Examples that should be treated as non-waivable when applicable include:
-
-- required participant/authorised representative consent
-- verified funding/payer basis sufficient for the selected service pathway
-- suitability approval
-- executed service agreement before service commencement where required
-- critical risk/safety information required for safe delivery
-
-The exact applicability remains dynamic by service/context.
+Do not make everything admin-waivable. When applicable, critical requirements such as participant/authorised-representative consent, suitable funding/payer basis, suitability approval, executed service agreement before commencement, and critical safety/risk information must not be bypassed through a generic waiver.
 
 ---
 
 ## 5. Dynamic onboarding requirements
 
-Checklist keys should support the following concepts where applicable:
+Generate checklist applicability from the actual assessment and selected services.
 
 ### Identity / funding
 
-- identity verified
-- NDIS number verified where applicable
-- adult age scope confirmed
-- funding method confirmed
-- payer/contracting relationship confirmed
-- nominee/representative authority where applicable
-- emergency contact recorded
-- communication/accessibility needs recorded
+Support as applicable:
+
+- identity verification
+- NDIS number verification
+- adult age-scope confirmation
+- funding method
+- payer/contracting relationship
+- nominee/representative authority
+- emergency contact
+- communication/accessibility needs
 
 ### Privacy / consent
 
-- Privacy Collection Notice acknowledged
-- participant/authorised representative consent obtained
-- Information Sharing Authority only when external information sharing is actually required
+- Privacy Collection Notice acknowledgement
+- participant/authorised representative consent
+- Information Sharing Authority only when external sharing authority is actually needed
 
-Do not make Information Sharing Authority universally mandatory if no external sharing authority is needed.
+Do not make information-sharing authority universally mandatory.
 
 ### Service/legal
 
-- suitability assessment approved
-- approved service(s) recorded
-- service agreement executed
-- schedule of supports confirmed
-- pricing/travel/cancellation terms accepted where applicable
+- suitability approval
+- approved services
+- service agreement
+- schedule of supports
+- pricing/travel/cancellation acceptance where applicable
 
 ### Care/risk
 
-- participant goals recorded where relevant
-- participant risk assessment completed
-- support plan completed where required by service/risk level
-- home/community WHS assessment where applicable to service environment
-- clinical plan verified only when clinical/high-intensity needs require it
-- management/regulatory review resolved where restrictive-practice/other boundary issues exist
+- goals where relevant
+- risk assessment
+- support plan where required
+- Home/Community WHS status where applicable to service environment
+- clinical plan/review only when clinical/high-intensity needs require it
+- management/regulatory review resolution where applicable
 
 ### First-service readiness
 
-G1 may record:
+G1 may record participant-side service readiness and required worker profile/requirements.
 
-- participant-side service readiness approved
-- worker requirements/profile identified
-
-Do **not** claim worker competency matching is complete until G2 provides the worker competency/readiness engine.
-
-A G1 participant may be participant-ready while G2 still blocks assignment of an unsuitable worker.
+Actual worker competency matching belongs to G2. Do not make G1 completion dependent on a worker competency engine that does not yet exist.
 
 ---
 
-## 6. Risk triage model
+## 6. Risk triage
 
-The suitability assessment should capture only information necessary to determine service scope/safety pathway.
-
-Risk indicators may include:
+Capture only information necessary to determine service scope/safety pathway, for example:
 
 - mobility/transfers
 - manual handling
 - medication support
-- allergies relevant to service
+- relevant allergies
 - dysphagia/mealtime concerns
 - seizures
 - continence support
@@ -370,357 +288,219 @@ Risk indicators may include:
 - transport required
 - communication/accessibility requirements
 
-Do not diagnose.
+Do not diagnose and do not author clinical plans.
 
-Do not author clinical plans.
-
-Do not collect excessive clinical detail on the public referral form; detailed assessment belongs in authenticated intake workflow.
+Do not collect excessive detailed clinical information on the initial public referral form.
 
 ---
 
 ## 7. Core server engine
 
-Create/reuse a server-side intake module such as:
-
-`lib/services/participantIntake.ts`
-
-Exact location/name may adapt to current code structure, but do not scatter governance decisions across components.
+Centralise G1 decisions in a server-side module such as `lib/services/participantIntake.ts` or the closest existing architecture.
 
 ### `validateSuitability(input)`
 
 Must:
 
 1. verify authorised caller;
-2. query the live authoritative `service_scope_registry`;
-3. fail closed if governance cannot be read;
-4. evaluate current adult launch scope;
-5. evaluate region using canonical region helpers, not duplicate hardcoded suburb lists;
+2. query live authoritative service scope;
+3. fail closed on governance lookup failure;
+4. enforce adult launch scope;
+5. evaluate canonical service-region helpers rather than duplicate suburb lists;
 6. validate funding/billing relationship;
 7. validate every requested service;
 8. escalate conditional clinical services;
 9. escalate registration-required services;
 10. escalate restrictive-practice indicators;
-11. evaluate capacity/waitlist only from real available capacity data where available — never invent worker availability;
+11. use real capacity evidence only — never invent worker availability;
 12. return deterministic outcome + reasons + conditions.
 
 ### `computeOnboardingRequirements(assessment)`
 
-Generate dynamic requirements based on:
+Generate dynamic requirements from funding pathway, selected services, risk class, risk indicators, service environment and review requirements.
 
-- funding/billing pathway
-- selected services
-- service risk class
-- assessment risk indicators
-- location/service environment
-- clinical/management review needs
-
-Clinical documents must be `not_applicable` for ordinary participants when not needed.
+Ordinary participants must not be forced through irrelevant clinical requirements.
 
 ### `checkParticipantReadiness(participantId)`
 
-Must:
+Must load canonical checklist state server-side, validate required items and permitted waivers, fail closed on missing governance data, set participant-side roster eligibility only server-side, and emit audit events for transitions/sign-off.
 
-- load authoritative checklist state server-side;
-- ensure all applicable non-waived/non-waivable requirements are satisfied;
-- validate permitted waivers and reasons;
-- fail closed if required governance data is unavailable;
-- set participant-side roster eligibility only through server-side logic;
-- emit an audit event for transition/sign-off.
-
-Client-provided readiness percentage or `is_rosterable=true` must never be trusted directly.
+Client-provided `is_rosterable=true` or readiness percentage must never be trusted.
 
 ---
 
-## 8. API implementation
+## 8. API work
 
-Use current authentication/authorisation conventions.
+Use current authentication/authorisation conventions and keep service-role credentials server-only.
 
-Do not expose service-role credentials client-side.
+### Suitability API
 
-### A. Suitability API
+Implement equivalent routes under `app/api/crm/suitability/...` for authorised create/read/update/reassessment operations.
 
-Implement equivalent endpoints under:
+Assessment approval/decline must be limited to actual management/admin/intake roles according to the current role model. Ordinary support workers must not gain governance approval rights accidentally.
 
-`app/api/crm/suitability/...`
+### Onboarding API
 
-Required operations:
-
-- create assessment
-- retrieve assessment by referral/participant where authorised
-- update/reassess if current workflow requires it
-
-Assessment writes should be restricted to authorised admin/management/intake roles according to the actual role model.
-
-Ordinary support workers must not approve/decline referrals unless current role architecture explicitly authorises that responsibility.
-
-### B. Onboarding API
-
-Implement equivalent endpoints under:
-
-`app/api/crm/onboarding/...`
-
-Required operations:
+Implement equivalent routes under `app/api/crm/onboarding/...` for:
 
 - get current checklist
-- update one/more checklist items with server validation
-- attach/link applicable document evidence
-- waive only a waivable item and require reason + authorised role
-- perform final participant-readiness sign-off
+- update validated checklist state
+- attach/link evidence
+- waive only waivable items with authorised actor + required reason
+- final participant-readiness sign-off
 
-### C. `/api/crm/convert` refactor
+### `/api/crm/convert`
 
-Decommission direct conversion to active participant.
+Decommission direct active conversion.
 
-Conversion requires a valid acceptable suitability outcome.
+Conversion requires an acceptable completed suitability assessment and creates/preserves the participant in onboarding/non-rosterable state. Initialize the dynamic checklist.
 
-Conversion should create/preserve participant in onboarding state with participant-side roster eligibility false.
+### Roster participant guard
 
-Initialize dynamic checklist from the accepted assessment.
+Audit **all** shift creation/assignment routes and UI pathways, not one guessed endpoint.
 
-Invalid outcomes must not convert to active state.
-
-### D. Roster guards
-
-Audit **all** participant-shift creation/assignment routes and UI pathways, not only one guessed endpoint.
-
-G1 must block creation/assignment of service shifts for participants who have not passed participant onboarding readiness.
+New service shifts must reject participants who have not passed participant readiness.
 
 Canonical error:
 
 `Participant onboarding is incomplete. Complete required intake and readiness review before rostering shifts.`
 
-Do not break read-only viewing of historical shifts for legacy/non-ready participants.
+Do not break read-only visibility of historical shifts.
 
-G2 will later add worker-side credential/competency hard blocks.
+G2 later adds worker-side safety gates.
 
 ---
 
-## 9. RLS and access control
+## 9. RLS/access control
 
-Use the access-control model already hardened in G0.1.
+Preserve G0.1 security architecture.
 
-### Anonymous/public
+- anon/public: zero direct suitability/onboarding table access
+- participant: own safe summary only where required; no governance mutation/waiver/signoff
+- ordinary worker/support staff: minimum operational read access only if required; no approval/decline/signoff/waiver unless actual role model explicitly grants it
+- admin/owner/authorised management: governed management access
+- service role: trusted server operations only
 
-- zero direct access to suitability/onboarding tables
-
-### Participant
-
-- only own safe onboarding summary if/when participant portal UX requires it
-- no assessment governance mutation
-- no waiver/signoff rights
-
-### Ordinary worker/support staff
-
-- minimum operational read access only if required for service delivery
-- no approval/decline/signoff/waiver authority unless actual role model explicitly grants it
-
-### Admin/owner/authorised management
-
-- manage suitability/onboarding according to role
-
-### Service role
-
-- trusted server operations only
-
-Test direct Supabase access, not just application API behaviour.
+Test direct Supabase access, not only API responses.
 
 ---
 
 ## 10. Admin UI
 
-Preserve current design system and existing functional flows.
+Preserve current design system and working CRM logic.
 
-### A. `SuitabilityAssessmentModal`
+### Suitability Assessment UI
 
-Add/reuse a multi-step assessment flow from Referral and, where appropriate, Participant detail.
+Provide a multi-step flow from Referral and, where appropriate, Participant detail:
 
-Suggested steps:
+1. age + funding/billing
+2. location/serviceability
+3. requested services/live scope
+4. complexity/risk triage
+5. deterministic outcome/reasons/conditions
 
-1. Participant age + funding/billing
-2. Location/serviceability
-3. Requested services / live scope validation
-4. Complexity & risk triage
-5. Deterministic outcome + reasons/conditions
+Do not allow the UI to casually override registration, clinical or restrictive-practice boundaries.
 
-The UI should not allow an admin to manually override registration-required/clinical/restrictive-practice system boundaries without a separately authorised governed pathway.
+### Participant Onboarding UI
 
-### B. Participant Onboarding panel/drawer
+Show lifecycle, grouped dynamic checklist, applicability, progress, blockers, evidence, permitted waivers, audit context and final readiness action.
 
-Display:
+Final readiness must call server-side validation rather than toggle local state.
 
-- current lifecycle
-- checklist grouped by category
-- applicability
-- progress
-- missing blockers
-- linked evidence/documents
-- waiver controls only where allowed
-- audit context
-- readiness review/signoff button
+### Referral pipeline
 
-The final readiness action must call server-side validation rather than simply toggling UI state.
+Replace unsafe direct `Convert`/`Enrol Active` actions with state-aware actions such as:
 
-### C. Referral pipeline
+- Assess Suitability
+- Continue Assessment
+- Start Onboarding
+- Continue Onboarding
 
-Replace unsafe direct `Convert` / `Enrol Active` actions with context-aware actions such as:
+### Participant views
 
-- `Assess Suitability`
-- `Continue Assessment`
-- `Start Onboarding`
-- `Continue Onboarding`
+Display lifecycle such as Intake, Onboarding, Ready for Roster, Active/Rosterable, Waitlist, On Hold, Declined and Legacy Review Required where used.
 
-according to actual state.
+### Workforce roster UI
 
-### D. Participant list/detail
-
-Show lifecycle such as:
-
-- Intake
-- Onboarding
-- Ready for Roster
-- Active / Rosterable
-- Waitlist
-- On Hold
-- Declined
-- Legacy Review Required where used
-
-Readiness percentage shown in UI should be derived from canonical checklist state.
-
-### E. Workforce roster UI
-
-Participant selectors should not offer non-ready participants for new shifts.
-
-Provide a clear explanation rather than silently hiding every record where operationally useful.
-
-Historical records remain visible.
+Do not offer non-ready participants for new shifts. Provide an explanatory status where operationally useful; keep historical records visible.
 
 ---
 
-## 11. Serviceability and capacity
+## 11. Serviceability/capacity
 
-Use existing `lib/regions.ts` / canonical service-region configuration.
+Use canonical `lib/regions.ts`/region configuration. Do not create another Northern NSW/Sydney list.
 
-Do not create a second independent Northern NSW/Sydney list inside G1.
+Distinguish supported region, outside current region and manual location review.
 
-Serviceability outcome should distinguish:
-
-- supported region
-- outside current region
-- requires manual location review
-
-Capacity waitlist must not be selected automatically unless the system has real capacity evidence.
-
-If capacity cannot be determined:
-
-`Further Information Required` or management review is preferable to fabricated availability.
+Do not automatically use `Capacity Waitlist` unless real capacity data proves it. Otherwise prefer further-information/manual review.
 
 ---
 
 ## 12. Audit events
 
-Use existing `audit_events` to record important governance transitions such as:
+Use existing `audit_events` for:
 
-- suitability assessment created
-- assessment outcome set/changed
-- referral converted to onboarding
-- checklist requirement completed
-- item waived + reason
-- participant readiness approved
-- roster eligibility changed
-- participant declined/waitlisted/on hold
+- assessment creation/change
+- suitability outcome
+- conversion to onboarding
+- checklist completion/change
+- waiver + reason
+- readiness approval
+- roster-eligibility change
+- decline/waitlist/on-hold transitions
 
-Capture actor, entity, event type, relevant before/after state, timestamp and reason where meaningful.
-
-Avoid logging unnecessary health detail into generic audit payloads.
+Capture actor, entity, event type, before/after state where useful, timestamp and reason. Avoid dumping unnecessary health detail into generic audit payloads.
 
 ---
 
-## 13. Compatibility / existing data strategy
+## 13. Compatibility strategy
 
-Before applying G1 migration to live Supabase:
+Before live migration:
 
 1. inspect current participants/referrals/shifts;
-2. identify existing active participants with historical shifts;
-3. define a non-destructive backfill;
-4. preserve historical service records and roster visibility;
-5. do not declare existing records compliant without evidence;
-6. document exact rows/statuses affected.
+2. identify existing active/historical data;
+3. define non-destructive backfill;
+4. preserve history and read access;
+5. do not declare legacy records compliant without evidence;
+6. report exact affected rows/statuses.
 
-Any destructive migration or irreversible status rewrite is a blocker under `docs/EXECUTION_PROTOCOL.md`.
+A destructive migration or irreversible rewrite is a blocker under `docs/EXECUTION_PROTOCOL.md`.
 
 ---
 
 ## 14. Automated verification
 
-Create/update a dedicated G1 test suite, for example:
+Create/update a dedicated suite such as `tests/governance-g1-onboarding.test.mjs` covering at minimum:
 
-`tests/governance-g1-onboarding.test.mjs`
-
-At minimum cover:
-
-### Funding
-
-- Self-Managed valid ordinary service can proceed to suitability when other checks pass
-- Plan-Managed valid ordinary service can proceed
-- NDIA-Managed without genuine contracting/billing relationship is blocked/further configuration required
-- a client-provided boolean cannot fabricate NDIA billing authority
-
-### Service scope
-
-- ACTIVE service can be assessed
-- ACTIVE_WITH_CONTROLS creates required control items
-- REGISTRATION_REQUIRED service returns registered-provider requirement
-- CONDITIONAL_CLINICAL service returns clinical review required and does not become operational
+- valid Self-Managed ordinary support pathway
+- valid Plan-Managed ordinary support pathway
+- NDIA-Managed without genuine contracting/billing relationship blocked
+- client boolean cannot fabricate NDIA authority
+- ACTIVE service accepted for assessment
+- ACTIVE_WITH_CONTROLS produces controls
+- REGISTRATION_REQUIRED service escalates/blocks
+- CONDITIONAL_CLINICAL service escalates and remains operationally unavailable
 - governance lookup failure fails closed
-
-### Age
-
-- under-18 referral does not auto-progress under current Adults 18+ launch scope
-
-### Restrictive practices
-
-- restrictive-practice indicator blocks automatic standard onboarding and requires management/regulatory review
-
-### Dynamic checklist
-
+- under-18 does not auto-progress
+- restrictive-practice indicator requires management/regulatory review
 - ordinary Community Access participant does not require clinical plan
-- relevant clinical/high-intensity participant does require appropriate clinical plan/review status
-- Information Sharing Authority is conditional where appropriate
-- non-waivable critical requirement cannot be waived
-- authorised waiver requires reason for waivable item
-
-### Conversion
-
-- conversion without accepted suitability assessment fails
+- clinical/high-intensity participant receives appropriate conditional requirement
+- Information Sharing Authority conditionality
+- non-waivable item cannot be waived
+- waivable item requires authorised actor + reason
+- conversion without suitable assessment fails
 - accepted conversion creates onboarding/non-rosterable participant
 - no direct referral-to-active path remains
-
-### Readiness
-
-- incomplete checklist cannot become participant-side roster eligible
-- final readiness recomputes canonical checklist server-side
-- client cannot force `is_rosterable=true`
-
-### Roster
-
-- non-ready participant cannot be used for a new shift
-- ready participant passes participant-side gate
+- incomplete checklist cannot become roster eligible
+- client cannot force readiness/rosterability
+- non-ready participant cannot be newly rostered
 - historical shifts remain readable
-
-### RLS
-
-- anon blocked
-- participant cannot mutate governance
-- worker cannot approve/waive/sign off unless explicitly authorised
-- admin/owner path works
-
-### Audit
-
-- outcome/lifecycle/readiness changes emit audit events
+- anon/participant/worker/admin RLS boundaries
+- audit events emitted for critical transitions
 
 ---
 
-## 15. Required quality gates
+## 15. Quality gates
 
 Run and pass:
 
@@ -729,54 +509,49 @@ Run and pass:
 - `npm run lint`
 - `npm run build`
 - migration/schema verification
-- RLS direct-access tests
+- direct RLS tests
 - negative-path API tests
-- rendered/browser workflow test for referral → assessment → onboarding → readiness
+- rendered/browser referral → suitability → onboarding → readiness test
 - reload/persistence verification
-- responsive check for modified admin UI
+- responsive check for changed admin UI
 - git diff review
 - secret/dummy-data scan
 
-If applying migration to live Supabase, explicitly report that separately from Vercel deployment.
+Report live Supabase changes separately from Git/Vercel state.
 
 Do not deploy Vercel Production unless separately authorised.
 
 ---
 
-## 16. G1 exit criteria
+## 16. Exit criteria
 
-G1 is complete only when all are true:
+G1 is complete only when:
 
 - referral cannot silently become active/rosterable;
-- every suitability decision is persisted and auditable;
-- adult launch scope is enforced;
-- requested services are validated against live service scope;
-- NDIA-managed relationship cannot be fabricated;
-- registration-required requests are blocked/escalated correctly;
-- conditional clinical requests escalate correctly and remain unavailable operationally;
-- restrictive-practice indicators trigger management/regulatory review;
-- onboarding requirements are dynamic, not one-size-fits-all;
+- suitability decisions are persisted/auditable;
+- Adults 18+ launch scope is enforced;
+- requested services use live service scope;
+- NDIA-managed relationships cannot be fabricated;
+- registration-required/clinical/restrictive-practice pathways escalate correctly;
+- onboarding requirements are dynamic;
 - non-waivable critical requirements cannot be bypassed;
-- consent/privacy requirements are represented correctly;
+- consent/privacy requirements are correctly represented;
 - participant-side roster eligibility is server-derived;
-- new shifts cannot be created for non-ready participants;
-- existing/historical data remains intact;
-- RLS role boundaries pass;
-- audit trail passes;
-- all tests/typecheck/lint/build pass;
-- implementation is committed locally;
-- roadmap + this phase document are updated with actual completion evidence;
-- no Vercel Production deployment occurred unless separately authorised.
+- new shifts block non-ready participants;
+- historical data remains intact;
+- RLS and audit tests pass;
+- tests/typecheck/lint/build pass;
+- verified work is committed locally;
+- this phase doc + roadmap are updated with actual results;
+- no Vercel Production deploy occurs unless separately authorised.
 
 ---
 
-## 17. Required implementation report — NO NEW PLAN
+## 17. Required completion response — IMPLEMENT, DO NOT RE-PLAN
 
-When G1 is executable, do not return another implementation plan.
+Do not return another implementation plan.
 
-Execute it.
-
-At completion return:
+Execute this phase and then return:
 
 # Governance G1 Implementation Report
 
@@ -801,4 +576,4 @@ At completion return:
 
 Then STOP.
 
-Do not produce a G2 implementation plan unless explicitly requested. G2 already belongs in the canonical roadmap and will receive its own execution specification before execution.
+Do not produce a G2 implementation plan unless explicitly requested. G2 belongs in the canonical roadmap and will receive its own execution specification before execution.
