@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const fundingType = (invoice.funding_type || p.funding_type || '').trim();
     const fundingLower = fundingType.toLowerCase();
 
-    // Determine recipient according to funding/billing relationship
+    // Determine recipient according to actual CRM billing relationship
     let recipient: DocumentRecipient;
     if (fundingLower.includes('plan')) {
       recipient = {
@@ -43,12 +43,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         additionalInfo: 'Payment remittance on behalf of NDIS participant.',
       };
     } else if (fundingLower.includes('agency') || fundingLower.includes('ndia')) {
-      recipient = {
-        heading: 'Bill To (Subcontracting Payer / Nominee)',
-        name: invoice.plan_manager_name || p.contact_person || p.support_coordinator_name || p.full_name || 'NDIS Plan Nominee',
-        email: invoice.plan_manager_email || p.email || null,
-        additionalInfo: 'NDIA-Managed participant. Opus Care delivers supports as an unregistered provider under authorized subcontracting or nominee arrangement.',
-      };
+      const contractingName = invoice.plan_manager_name?.trim() || null;
+      const contractingEmail = invoice.plan_manager_email?.trim() || null;
+
+      if (contractingName) {
+        recipient = {
+          heading: 'Bill To (Designated Contracting Payer)',
+          name: contractingName,
+          email: contractingEmail || null,
+          additionalInfo: 'Participant has NDIA-managed funding. Invoiced to designated contracting party recorded in billing profile.',
+        };
+      } else {
+        recipient = {
+          heading: 'Bill To (Billing Configuration Required)',
+          name: '[Registered Contracting Provider Required]',
+          email: null,
+          additionalInfo: 'Participant has NDIA-managed funding. Opus Care operates as an unregistered NDIS provider and cannot claim directly from the NDIA. A registered contracting provider or authorized payer must be configured before issuing this invoice.',
+        };
+      }
     } else {
       // Self-managed or direct
       recipient = {
@@ -114,6 +126,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       </table>
     `;
 
+    // Accurate GST representation based on actual invoice data and supplier registration
+    const gstAmount = Number(invoice.gst || 0);
+    let gstLabel = 'GST:';
+    let gstValueDisplay = `$${gstAmount.toFixed(2)}`;
+    let gstNoticeHtml = '';
+
+    if (gstAmount === 0) {
+      if (org.gstStatus === 'not_registered') {
+        gstLabel = 'GST:';
+        gstValueDisplay = '$0.00';
+        gstNoticeHtml = '<div style="font-size: 11px; color: #64748B; margin-top: 4px; line-height: 1.35;">GST has not been charged – supplier is not registered for GST.</div>';
+      } else if (org.gstStatus === 'registered') {
+        gstLabel = 'GST:';
+        gstValueDisplay = '$0.00 (GST-Free)';
+      } else {
+        gstLabel = 'GST:';
+        gstValueDisplay = '$0.00 (Tax status unconfigured)';
+      }
+    } else {
+      gstLabel = 'GST:';
+      gstValueDisplay = `$${gstAmount.toFixed(2)}`;
+    }
+
     const totalsHtml = `
       <div class="totals-wrapper">
         <div class="totals-card">
@@ -122,9 +157,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             <strong>$${Number(invoice.subtotal || 0).toFixed(2)}</strong>
           </div>
           <div class="totals-row">
-            <span>GST (s 38-38 GST Act - GST-Free):</span>
-            <span>$0.00</span>
+            <span>${gstLabel}</span>
+            <span>${gstValueDisplay}</span>
           </div>
+          ${gstNoticeHtml}
           <div class="totals-row grand">
             <span>Total Amount Due:</span>
             <span>$${Number(invoice.total || 0).toFixed(2)} AUD</span>
@@ -133,9 +169,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       </div>
     `;
 
+    const docTypeBadge = org.canIssueTaxInvoice ? 'TAX INVOICE' : 'INVOICE';
+    const pageTitle = `${org.canIssueTaxInvoice ? 'Tax Invoice' : 'Invoice'} ${invoice.invoice_reference} - ${org.tradingName}`;
+
     const html = renderDocumentShell({
-      pageTitle: `Tax Invoice ${invoice.invoice_reference} - ${org.tradingName}`,
-      docTypeBadge: 'TAX INVOICE',
+      pageTitle,
+      docTypeBadge,
       docReference: invoice.invoice_reference,
       statusBadge: {
         label: invoice.status || 'Draft',

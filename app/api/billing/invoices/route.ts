@@ -138,7 +138,8 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    const gst = 0; // NDIS eligible support services are GST-free (s 38-38 GST Act)
+    // Support items currently record 0 tax; tax treatment depends on provider GST registration and line item classification
+    const gst = 0;
     const total = Number(subtotal.toFixed(2));
     const invRef = 'INV-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
 

@@ -133,3 +133,43 @@ export function checkServiceArea(inputSuburb: string): {
   return { inServiceArea: false };
 }
 
+export interface ServiceCoverageRegion {
+  region: string;
+  locations: string[];
+}
+
+export interface OperationalServiceCoverage {
+  serviceAreaNotice: string;
+  regions: ServiceCoverageRegion[];
+}
+
+export const OPERATIONAL_SERVICE_COVERAGE: OperationalServiceCoverage = {
+  serviceAreaNotice: 'Service availability depends on location, participant requirements and current worker capacity.',
+  regions: [
+    {
+      region: 'Northern NSW',
+      locations: [
+        'Coffs Harbour',
+        'Grafton',
+        'Clarence Valley',
+        'Maclean',
+        'Yamba',
+        'Ballina',
+        'Northern Rivers',
+        'Surrounding reasonable serviceable locations',
+      ],
+    },
+    {
+      region: 'Sydney',
+      locations: [
+        'Blacktown',
+        'Parramatta',
+        'Western Sydney',
+        'Sydney CBD',
+        'Redfern',
+        'Selected surrounding locations',
+      ],
+    },
+  ],
+};
+

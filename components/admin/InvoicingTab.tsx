@@ -171,7 +171,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
 
       const data = await res.json();
       if (res.ok) {
-        setNotice(`Tax Invoice ${data.invoice.invoice_reference} generated successfully.`);
+        setNotice(`Invoice ${data.invoice.invoice_reference} generated successfully.`);
         setShowGenModal(false);
         loadInvoices();
       } else {
@@ -185,7 +185,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
   }
 
   async function handleMarkPaid(invoiceId: string) {
-    if (!confirm('Mark this invoice as Paid?')) return;
+    if (!confirm('Mark invoice status as Paid?\n\nNote: This updates the invoice status flag in the CRM for operational tracking. It does not record a cash ledger transaction or perform bank reconciliation.')) return;
     try {
       const res = await fetch('/api/billing/invoices', {
         method: 'PATCH',
@@ -193,7 +193,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         body: JSON.stringify({ id: invoiceId, status: 'Paid' }),
       });
       if (res.ok) {
-        setNotice('Invoice marked as Paid.');
+        setNotice('Invoice status updated to Paid.');
         loadInvoices();
       }
     } catch {
@@ -236,7 +236,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         <div>
           <h2 className="crmPanelTitle">Invoices</h2>
           <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
-            Generate NDIS-compliant tax invoices from verified, manager-approved service delivery records.
+            Generate NDIS-compliant invoices from verified, manager-approved service delivery records.
           </p>
         </div>
         <button
@@ -340,10 +340,10 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                         {inv.status !== 'Paid' && (
                           <button
                             onClick={() => handleMarkPaid(inv.id)}
-                            title="Mark as Paid"
+                            title="Update invoice status to Paid (Note: status flag only; does not record bank ledger transaction)"
                             style={{ background: '#ECFDF5', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer', color: '#065F46', fontSize: '0.8125rem', fontWeight: 600 }}
                           >
-                            Mark Paid
+                            Mark status as Paid
                           </button>
                         )}
                       </div>
@@ -363,7 +363,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
         wide={true}
       >
         <DrawerHeader
-          title="Generate Tax Invoice"
+          title="Generate Invoice"
           description="Billing is generated directly from verified and approved support shift records."
           badge={<span className="refIdTag">BILLING & CLAIMS</span>}
           onClose={() => setShowGenModal(false)}

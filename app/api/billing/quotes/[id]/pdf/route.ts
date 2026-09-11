@@ -107,9 +107,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             <strong>$${monthlyTotal.toFixed(2)} / mo</strong>
           </div>
           <div class="totals-row">
-            <span>GST (Eligible NDIS Supports):</span>
+            <span>GST:</span>
             <span>$0.00</span>
           </div>
+          ${org.gstStatus === 'not_registered' ? '<div style="font-size: 11px; color: #64748B; margin-top: 4px; line-height: 1.35;">GST has not been charged – supplier is not registered for GST.</div>' : org.gstStatus === 'registered' ? '<div style="font-size: 11px; color: #64748B; margin-top: 4px;">GST-Free Supply</div>' : ''}
           <div class="totals-row grand" style="border-top-color: #5EEAD4; color: #0F766E;">
             <span>Total Quote Value:</span>
             <span>$${Number(quote.total || 0).toFixed(2)} AUD</span>

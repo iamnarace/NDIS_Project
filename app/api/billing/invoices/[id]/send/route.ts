@@ -5,6 +5,7 @@ import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { isValidUuid } from '@/lib/uuid';
 import { Resend } from 'resend';
 import { logAuditEvent } from '@/lib/audit';
+import { getOrganisationProfile } from '@/lib/organisation';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,6 +17,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const supabase = createAdminClient();
     if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+
+    // Enforce organisation configuration safety safeguards
+    const org = await getOrganisationProfile(supabase);
+    if (!org.isAbnConfigured || !org.isBankConfigured) {
+      return NextResponse.json(
+        {
+          error: 'Cannot dispatch invoice: Organisation profile is incomplete (genuine ABN and banking remittance details must be configured in Settings before issuing invoices).',
+        },
+        { status: 422 }
+      );
+    }
 
     const { data: invoice, error } = await supabase
       .from('invoices')
@@ -40,19 +52,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'No billing email address recorded for participant or plan manager.' }, { status: 400 });
     }
 
+    const docType = org.canIssueTaxInvoice ? 'Tax Invoice' : 'Invoice';
+
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
       try {
         const resend = new Resend(resendApiKey);
         await resend.emails.send({
-          from: 'Opus Care Accounts <accounts@opuscare.com.au>',
+          from: `${org.tradingName} Accounts <${org.billingEmail}>`,
           to: [recipientEmail],
-          subject: `Tax Invoice ${invoice.invoice_reference} - Opus Care Support Services`,
+          subject: `${docType} ${invoice.invoice_reference} - ${org.tradingName}`,
           html: `
             <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-              <h2 style="color: #0f766e;">Opus Care Support Services Pty Ltd</h2>
+              <h2 style="color: #0f766e;">${org.tradingName}</h2>
               <p>Dear ${isPlanManaged && invoice.plan_manager_name ? invoice.plan_manager_name : (p?.full_name || 'Participant')},</p>
-              <p>Please find attached details of Tax Invoice <strong>${invoice.invoice_reference}</strong> for support services delivered to <strong>${p?.full_name || 'Participant'}</strong> (NDIS: ${p?.ndis_number || 'N/A'}).</p>
+              <p>Please find attached details of ${docType} <strong>${invoice.invoice_reference}</strong> for support services delivered to <strong>${p?.full_name || 'Participant'}</strong> (NDIS: ${p?.ndis_number || 'N/A'}).</p>
               
               <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 20px 0;">
                 <p style="margin: 4px 0;"><strong>Invoice Reference:</strong> ${invoice.invoice_reference}</p>
@@ -63,14 +77,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
               <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 14px; margin: 20px 0; font-size: 13px;">
                 <strong>EFT Direct Deposit:</strong><br>
-                Bank: National Australia Bank (NAB)<br>
-                Account Name: Opus Care Support Services Pty Ltd<br>
-                BSB: 082-057 | Account: 89-214-5561<br>
+                Bank: ${org.bankName || 'Direct Deposit'}<br>
+                Account Name: ${org.legalName}<br>
+                BSB: ${org.bankBsb} | Account: ${org.bankAccountNumber}<br>
                 Reference: <strong>${invoice.invoice_reference}</strong>
               </div>
 
               <p style="margin-top: 30px; font-size: 12px; color: #64748b;">
-                Opus Care Support Services Pty Ltd &bull; accounts@opuscare.com.au &bull; 1300 00 OPUS
+                ${org.tradingName}${org.abn ? ` &bull; ABN: ${org.abn}` : ''} &bull; ${org.billingEmail}${org.phone ? ` &bull; ${org.phone}` : ''}
               </p>
             </div>
           `,

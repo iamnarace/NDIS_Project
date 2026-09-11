@@ -575,11 +575,9 @@ export function renderDocumentShell(props: DocumentShellProps): string {
     <!-- Footer -->
     <footer class="doc-footer">
       <div>
-        <strong>${org.tradingName}</strong> &bull; Person-Centred Disability Support Services &bull; Clarence Valley &amp; Northern Rivers NSW
+        <strong>${org.tradingName}</strong>${org.registeredAddress ? ` &bull; ${org.registeredAddress}` : ''}
       </div>
-      <div class="doc-footer-legal">
-        ${footerNote || 'All disability support services are delivered in strict compliance with the NDIS Code of Conduct and Quality Guidelines. Opus Care operates as an unregistered NDIS provider.'}
-      </div>
+      ${footerNote ? `<div class="doc-footer-legal">${footerNote}</div>` : ''}
     </footer>
   </div>
 </body>

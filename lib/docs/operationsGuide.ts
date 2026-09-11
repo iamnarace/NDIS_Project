@@ -60,8 +60,8 @@ export const OPERATIONS_GUIDE_TOC: GuideChapter[] = [
     content: {
       purpose: 'Capture and process inbound participant enquiries from families, support coordinators, and hospital discharge teams.',
       beforeYouStart: [
-        'Check whether the prospective participant lives within Opus Care service zones (Clarence Valley, Richmond Valley, Coffs Coast, Northern Rivers).',
-        'Confirm whether the referral has Plan-Managed or Self-Managed funding (note: NDIA-Managed requires authorized contracting arrangement).',
+        'Check whether the prospective participant lives within Opus Care service zones (Northern NSW or Sydney). Note: Service availability depends on location, participant requirements and current worker capacity.',
+        'Confirm participant funding type (Plan-Managed, Self-Managed, or NDIA-Managed). Note: As an unregistered provider, Opus Care cannot claim directly via NDIA PRODA/PACE; NDIA-managed participants require an authorized contracting registered provider or plan nominee arrangement.',
       ],
       informationRequired: [
         'Participant full legal name and date of birth.',
@@ -382,14 +382,15 @@ export const OPERATIONS_GUIDE_TOC: GuideChapter[] = [
   {
     id: 'invoices',
     number: 16,
-    title: 'Tax Invoices & NDIS Claiming',
+    title: 'Invoicing & Billing Management',
     category: 'billing',
     status: 'verified',
     content: {
-      purpose: 'Generate compliant NDIS tax invoices from approved service records and dispatch to Plan Managers or participants.',
+      purpose: 'Generate compliant NDIS invoices from approved service records and dispatch to Plan Managers, participants, or contracting providers.',
       beforeYouStart: [
+        'Ensure genuine organisation ABN and bank remittance details are configured in Settings.',
         'Ensure all relevant timesheets for the billing period have been audited and Approved.',
-        'Verify participant funding details (Plan-Managed vs Self-Managed).',
+        'Verify participant funding details (Plan-Managed, Self-Managed, or NDIA-Managed requiring contracting provider details).',
       ],
       informationRequired: [
         'Target participant selection.',
@@ -397,13 +398,13 @@ export const OPERATIONS_GUIDE_TOC: GuideChapter[] = [
         'Invoice due days (default 14 days).',
       ],
       stepByStepProcess: [
-        'Open Invoicing tab and click "New Invoice".',
+        'Open Invoicing tab and click "Generate Invoice".',
         'Select the participant from the dropdown.',
         'Review the list of Approved service records ready for billing.',
         'Select the checkboxes for all records to be included on this invoice.',
-        'Click "Generate Tax Invoice".',
-        'Use "Print / PDF" to view or download the A4 document.',
-        'Use "Send Email" to dispatch the invoice to the billing contact.',
+        'Click "Generate Invoice".',
+        'Use "Print / PDF" to view or download the A4 document (automatically rendered as "Tax Invoice" if GST registered with genuine ABN, or "Invoice" otherwise).',
+        'Use "Send Email" to dispatch the invoice to the billing contact (requires valid ABN and bank configuration in Settings).',
       ],
       whatHappensAfter: [
         'The invoice is saved in Draft / Ready status.',
@@ -413,27 +414,28 @@ export const OPERATIONS_GUIDE_TOC: GuideChapter[] = [
       statusMeanings: {
         Draft: 'Generated but pending final manager review.',
         Ready: 'Audited and ready for dispatch.',
-        Sent: 'Dispatched to Plan Manager or participant.',
-        Paid: 'Payment remittance received and marked as settled.',
+        Sent: 'Dispatched to Plan Manager, participant, or contracting provider.',
+        Paid: 'Marked as paid in CRM for operational tracking.',
         Cancelled: 'Voided invoice.',
       },
       whereToFindRecord: 'Invoicing tab directory.',
       commonMistakes: [
+        'Assuming all NDIS invoices are automatically GST-free without verified registration, or attempting to dispatch invoices before organisation ABN and bank details are configured in Settings.',
         'Trying to generate an invoice before approving timesheets, which results in "No approved records found".',
       ],
-      relatedWorkflow: 'Timesheet Approval and Payment Recording.',
+      relatedWorkflow: 'Timesheet Approval and Payment Status Tracking.',
     },
   },
   {
     id: 'payments',
     number: 17,
-    title: 'Payment Status & Settlement Tracking',
+    title: 'Payment Status Tracking',
     category: 'billing',
     status: 'verified',
     content: {
-      purpose: 'Record remittance advice and track settlement of issued NDIS tax invoices.',
+      purpose: 'Track payment status updates against issued invoices for operational tracking (note: this updates the invoice status flag in the CRM; it does not record a cash accounting ledger entry or bank feed reconciliation).',
       beforeYouStart: [
-        'Receive remittance advice statement or bank settlement from Plan Manager or participant.',
+        'Verify payment remittance advice statement or bank settlement from Plan Manager or participant in your external bank account.',
       ],
       informationRequired: [
         'Invoice reference number (e.g. INV-2026-12345).',
@@ -442,20 +444,21 @@ export const OPERATIONS_GUIDE_TOC: GuideChapter[] = [
       stepByStepProcess: [
         'Open Invoicing tab.',
         'Locate the relevant invoice by searching invoice reference or participant name.',
-        'Click "Mark Paid" in the actions column.',
-        'Confirm the prompt to update the invoice status.',
+        'Click "Mark status as Paid" in the actions column.',
+        'Confirm the dialog acknowledging that this updates CRM tracking status only.',
       ],
       whatHappensAfter: [
         'The invoice status is updated to "Paid".',
-        'An immutable audit event (invoice_status_changed) is recorded with timestamp and admin actor.',
+        'An immutable audit event is recorded with timestamp and admin actor.',
       ],
       statusMeanings: {
-        Paid: 'Funds received in provider account and invoice marked as settled.',
-        'Partially Paid': 'Partial settlement recorded.',
+        Paid: 'Invoice status updated to Paid in CRM for operational tracking.',
+        'Partially Paid': 'Partial settlement recorded in CRM.',
       },
       whereToFindRecord: 'Invoicing tab under status filter "Paid".',
       commonMistakes: [
-        'Marking an invoice as paid before checking the bank statement or remittance advice document.',
+        'Assuming clicking "Mark status as Paid" syncs with accounting software or performs bank reconciliation.',
+        'Marking an invoice as paid before confirming funds receipt in the organisation bank account.',
       ],
       relatedWorkflow: 'Invoicing & Billing.',
     },
