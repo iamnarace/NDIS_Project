@@ -16,9 +16,11 @@ Execute in this order:
 
 ### Gate 1 — G1 Review Closure
 
-Specification:
+Autonomous specification:
 
-`docs/governance/G1_REVIEW_CLOSURE.md`
+`docs/governance/G1_REVIEW_CLOSURE_AUTONOMOUS.md`
+
+This wrapper requires all technical work in `docs/governance/G1_REVIEW_CLOSURE.md` and overrides only its old supervised STOP instruction.
 
 ### Phase G2 — Worker Readiness & Roster Safety
 
