@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Activity,
   Home,
@@ -128,10 +129,14 @@ export default function CrmContainer({
         {/* Brand Header */}
         <div className="brand-header">
           <Link href="/" className="brand-title-wrap" title="Return to Public Website">
-            <div className="brand-logo-mark">
-              <Activity size={20} strokeWidth={2.4} />
-            </div>
-            <span className="brand-name">Opus Care</span>
+            <Image
+              src="/brand/Opus_Care_Logo_Transparent.png"
+              alt="Opus Care"
+              width={140}
+              height={39}
+              priority
+              style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+            />
           </Link>
           <span className="brand-tag">CRM</span>
         </div>
@@ -444,10 +449,14 @@ export default function CrmContainer({
 
             {/* Mobile Brand Link */}
             <Link href="/" className="mobile-brand-title" title="Return to Public Site">
-              <div className="brand-logo-mark" style={{ width: 28, height: 28 }}>
-                <Activity size={16} strokeWidth={2.4} />
-              </div>
-              <span>Opus Care</span>
+              <Image
+                src="/brand/Opus_Care_Logo_Transparent.png"
+                alt="Opus Care"
+                width={110}
+                height={30}
+                priority
+                style={{ height: 26, width: 'auto', objectFit: 'contain' }}
+              />
             </Link>
           </div>
 
