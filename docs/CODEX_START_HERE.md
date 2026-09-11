@@ -2,41 +2,35 @@
 
 The owner has explicitly authorised Codex to complete the remaining Opus Care governance roadmap **continuously without returning for phase-by-phase approval**.
 
-Repository:
+Repository: `iamnarace/NDIS_Project`
 
-`iamnarace/NDIS_Project`
-
-Primary branch:
-
-`main`
+Primary branch: `main`
 
 ## Read in this exact order
 
-1. `docs/CODEX_AUTONOMOUS_RUNBOOK.md`
-2. `docs/EXECUTION_PROTOCOL.md`
-3. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
-4. current phase specification under `docs/governance/`
+1. `AGENTS.md`
+2. `docs/CODEX_AUTONOMOUS_RUNBOOK.md`
+3. `docs/EXECUTION_PROTOCOL.md`
+4. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
+5. the current phase specification under `docs/governance/`
 
 ## Current starting gate
 
 Start with:
 
-`docs/governance/G1_REVIEW_CLOSURE.md`
+`docs/governance/G1_REVIEW_CLOSURE_AUTONOMOUS.md`
 
-Governance G1 implementation exists, but its independent review closure must be executed before G2.
+That wrapper requires execution of every technical requirement in `G1_REVIEW_CLOSURE.md`, but replaces the old supervised STOP with autonomous self-acceptance when all criteria pass.
 
-After the G1 closure gate passes, **do not stop for owner review**.
+After G1 closure passes, continue automatically through:
 
-Continue automatically through:
-
-1. G1 Review Closure
-2. G2 — Worker Readiness & Roster Safety
-3. G3 — Privacy, Participant Documents & Help Centre
-4. G4 — Complaints, Incidents & Safeguarding
-5. G5 — WHS, Home Safety, Transport & Continuity
-6. G6 — Clinical / High-Intensity Governance
-7. G7 — Website & Public Launch Compliance
-8. Final Go-Live Verification + independent global audit
+1. G2 — Worker Readiness & Roster Safety
+2. G3 — Privacy, Participant Documents & Help Centre
+3. G4 — Complaints, Incidents & Safeguarding
+4. G5 — WHS, Home Safety, Transport & Continuity
+5. G6 — Clinical / High-Intensity Governance
+6. G7 — Website & Public Launch Compliance
+7. Final Go-Live Verification + independent global audit
 
 ## Critical behaviour
 
@@ -48,7 +42,7 @@ Continue automatically through:
 - If anything fails, fix it and rerun the gate.
 - Only after all criteria pass, mark the phase complete, commit/push it, then immediately begin the next phase.
 - Stop only for a true hard blocker defined in `docs/EXECUTION_PROTOCOL.md`.
-- Missing owner-supplied real-world values such as bank details, proprietor legal name, or insurance certificate values should normally remain fail-closed operational configuration items and **must not stop unrelated development phases**.
+- Missing owner-supplied real-world values such as bank details, proprietor legal name, or insurance certificate values should normally remain fail-closed operational configuration items and must not stop unrelated development phases.
 - Do not deploy Vercel Production unless separately authorised.
 
 ## First commands
@@ -75,4 +69,4 @@ At the end of the full autonomous run, return one consolidated:
 
 `OPUS CARE AUTONOMOUS GOVERNANCE COMPLETION REPORT`
 
-The report must show each phase, evidence, migrations, tests, security checks, final Git SHA, live Supabase state, Vercel state, and any remaining **OWNER INPUT REQUIRED** items before real launch.
+The report must show each phase, evidence, migrations, tests, security checks, final Git SHA, live Supabase state, Vercel state, and any remaining `OWNER INPUT REQUIRED` items before real launch.
