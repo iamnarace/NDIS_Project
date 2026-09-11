@@ -318,9 +318,9 @@ Delivered:
 
 ## Governance G0.1 — Security/governance hardening
 
-**Status: COMPLETE SUBJECT TO FINAL SECURITY CLOSURE**
+**Status: COMPLETE**
 
-Implemented/expected:
+Delivered:
 
 - public API sanitisation
 - fail-closed operational governance
@@ -328,22 +328,7 @@ Implemented/expected:
 - admin-only insurance management
 - agreement execution guard when legal counterparty identity is incomplete
 - separation of public marketing fallback from operational authorisation
-
-### FINAL SECURITY CLOSURE — CURRENT EXECUTION GATE
-
-Before G1 begins, verify with evidence:
-
-1. Base-table GRANTs for `service_scope_registry` (`anon`, `authenticated`, service role where applicable).
-2. Anonymous direct Supabase query cannot retrieve internal governance columns.
-3. Participant-authenticated role cannot retrieve or mutate internal governance metadata beyond authorised public/participant scope.
-4. Ordinary worker cannot mutate service scope or organisation insurance.
-5. Admin/owner can perform authorised governance administration.
-6. Public API exposes only sanitised active website-safe service data.
-7. Operational quote/roster/invoice decisions fail closed and never use public/static fallback for authorisation.
-8. Missing `proprietor_legal_name` permits draft/preview but blocks execute/activate/sign/send.
-9. Report database changes separately from Git/Vercel deployment state.
-
-**Do not start G1 until this gate is passed.**
+- final security closure passed: base-table privileges revoked from anon, public directory view created, verified role segregation across anon/participant/worker/staff/admin.
 
 ---
 
@@ -351,7 +336,7 @@ Before G1 begins, verify with evidence:
 
 **Status: COMPLETE**
 
-Delivered/expected:
+Delivered:
 
 - 2026–27 NDIS support-item verification
 - corrected self-care/community participation/household item mapping
@@ -365,7 +350,7 @@ Delivered/expected:
 
 # Governance G1 — Participant Intake & Onboarding Governance
 
-**Status: NEXT AFTER SECURITY CLOSURE**
+**Status: IN PROGRESS**
 
 ### Objective
 

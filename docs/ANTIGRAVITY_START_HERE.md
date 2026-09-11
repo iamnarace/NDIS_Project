@@ -35,16 +35,12 @@ Treat that roadmap as the current source of truth for the Opus Care governance/g
 Do not invent proprietor legal name, address, bank details, insurance, NDIS registration details, payer relationships or clinical authority.
 
 ## Current execution position
-
-Completed foundation work includes Phase 0/0.1, Governance G0, G0.1 hardening and G0.2 NDIS catalogue integrity in the agent's verified local/live-database workstream.
-
-The **current gate** is the final G0/G0.1/G0.2 security closure described in the roadmap.
-
-Do not start Governance G1 until that gate passes.
-
-After the security closure passes, the next planned phase is:
-
-**Governance G1 — Participant Intake & Onboarding Governance**
+ 
+Completed foundation work includes Phase 0/0.1, Governance G0, G0.1 hardening, G0.2 NDIS catalogue integrity, and the G0.3 security closure gate.
+ 
+The **current active phase** is:
+ 
+**Governance G1 — Participant Intake & Onboarding Governance** (IN PROGRESS)
 
 ## Required behaviour
 
