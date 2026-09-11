@@ -1,6 +1,6 @@
 # Antigravity — START HERE
 
-You are continuing the existing **CarePoint Support Services** project.
+You are continuing the existing **Opus Care Support Services** website + CRM project.
 
 Repository:
 
@@ -10,89 +10,64 @@ Primary branch:
 
 `main`
 
+## Canonical execution plan
+
 Before changing anything, read this file in full:
 
-`docs/ANTIGRAVITY_HANDOFF.md`
+`docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
 
-Treat that handoff as the current project source of truth unless repository/Vercel evidence proves that something has changed since it was written.
+Treat that roadmap as the current source of truth for the Opus Care governance/go-live program.
 
-## Execution instruction
+`docs/ANTIGRAVITY_HANDOFF.md` contains older historical project context and may include stale **CarePoint Support Services** naming, old deployment details or decisions that have since changed. Do **not** allow older handoff text to override the current repository, live database evidence, owner-authorised facts, or `OPUS_CARE_GOVERNANCE_ROADMAP.md`.
 
-Do **not** start a new product plan and do not redesign from scratch.
+## Current owner-authorised facts
 
-Continue the project exactly from the handoff.
+- Business/trading name: **Opus Care Support Services**
+- ABN: **41 267 197 576**
+- Business structure: **sole trader**
+- GST status: **not registered for GST**
+- Current NDIS provider status: **unregistered**
+- Current direct participant funding scope: **Self-Managed and Plan-Managed**
+- Bank/remittance details: owner will configure genuine details before operational invoicing
+- Required insurance: will be in place before service delivery; never invent policy details
+- Service regions: Northern NSW corridor plus selected Sydney areas including Blacktown, Parramatta, Western Sydney, Sydney CBD and Redfern
 
-Your first milestone is to stabilise the current website and deployment pipeline:
+Do not invent proprietor legal name, address, bank details, insurance, NDIS registration details, payer relationships or clinical authority.
 
-1. inspect repository status, branch, recent commits and all existing source files;
-2. note that GitHub `package.json` currently declares vulnerable `next@15.5.2` while the verified live Vercel sample was successfully built using `next@15.5.21`;
-3. upgrade/reconcile GitHub to a supported patched Next.js version and update the lockfile;
-4. preserve/improve the existing CarePoint teal/mint design and existing routes;
-5. run install/build/type/lint checks as available;
-6. compare the repository output with the live website at `https://carepoint-support-services.vercel.app`;
-7. fix mobile navigation and any obvious accessibility/UX defects;
-8. connect **this exact GitHub repository** to the **existing Vercel project**, not a new duplicate project;
-9. Vercel project name: `carepoint-support-services`;
-10. Vercel project ID: `prj_tCb4viWhxNxIqJlxSF5Yz2i8TC4W`;
-11. Vercel team ID: `team_2OnVfeLuiwliGpr4HjG5PspM`;
-12. production branch must be `main`;
-13. prove the connection with a Git-sourced READY production deployment tied to an exact commit SHA;
-14. verify `https://carepoint-support-services.vercel.app` after deployment;
-15. report using the exact continuation-report format defined in `docs/ANTIGRAVITY_HANDOFF.md`.
+## Current execution position
 
-## Non-negotiable business rules
+Completed foundation work includes Phase 0/0.1, Governance G0, G0.1 hardening and G0.2 NDIS catalogue integrity in the agent's verified local/live-database workstream.
 
-- Business working name: **CarePoint Support Services**.
-- Current business model: unregistered provider foundation for self-managed and plan-managed NDIS participants.
-- Do **not** claim CarePoint is a registered NDIS provider.
-- Do **not** invent ABN, NDIS registration number, insurance details, phone number, office address, years in business, staff count, testimonials, awards, participant numbers or partnerships.
-- The owner has stated that NDIS Worker Screening and First Aid are already held; verify CPR wording before treating CPR as separately confirmed.
-- Current service area wording is a placeholder: Greater Sydney, NSW.
-- Current email `support@carepointsupport.com.au` is a placeholder until domain/email ownership is confirmed.
-- Do not add clinical/high-risk services unless actual capability and requirements are confirmed.
-- Keep referral intake minimal and avoid unnecessary sensitive data.
-- Keep all placeholders visibly distinguishable from confirmed business facts.
+The **current gate** is the final G0/G0.1/G0.2 security closure described in the roadmap.
 
-## Existing service direction
+Do not start Governance G1 until that gate passes.
 
-Preserve these initial services unless evidence/business decision changes them:
+After the security closure passes, the next planned phase is:
 
-- Daily Living Support
-- Community Participation
-- Transport Support
-- Life Skills & Independence
-- Companionship & Social Support
-- Household & Practical Assistance
+**Governance G1 — Participant Intake & Onboarding Governance**
 
-## Existing required routes
+## Required behaviour
 
-- `/`
-- `/services`
-- `/about`
-- `/referral`
-- `/contact`
-- `/faq`
-- `/privacy`
-- `/complaints`
-- `/incident-management`
-- `/code-of-conduct`
+- Inspect repository, Git status, recent commits and live Supabase state before implementation.
+- Reconcile local Git with `origin/main` before pushing because governance work may exist locally while documentation has been updated remotely.
+- Do not discard verified local governance commits.
+- Reuse existing schema/modules before adding new ones.
+- Do not implement random features outside the current roadmap phase.
+- Regulatory assertions must be checked against current authoritative Australian/NDIS sources when required.
+- Do not deploy Vercel Production unless separately authorised.
+- Report live Supabase changes separately from Git/Vercel deployment status.
+- Run typecheck, lint, tests, build, security/RLS and relevant negative-path checks for each implementation phase.
+- Commit only verified phase work.
+- Update `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md` after each accepted phase so GitHub remains the visible execution plan.
+- Stop at phase boundaries for review unless explicitly authorised to continue.
 
-## Existing Vercel facts
+## First action on every new Antigravity session
 
-Latest verified READY direct deployment at handoff:
+1. Read `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`.
+2. Run `git status`, inspect `HEAD`, branch and recent history.
+3. Compare local state with `origin/main`.
+4. Inspect applicable live Supabase migrations/state.
+5. Determine the current roadmap gate/phase.
+6. Continue only that phase.
 
-`dpl_3phq9YVkya9pabmQJwmgrkzkZxHv`
-
-Live alias:
-
-`https://carepoint-support-services.vercel.app`
-
-Important: that working deployment was a direct-file deployment. GitHub→Vercel automatic Git integration was not yet confirmed, which is why this is part of your first milestone.
-
-## Agent behaviour
-
-The user prefers execution over repeated planning.
-
-Inspect evidence, make safe progress, verify everything, and report concrete results.
-
-Do not claim success until the build/deployment/browser evidence supports it.
+Do not redesign the project from scratch.
