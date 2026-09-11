@@ -14,28 +14,26 @@ Primary branch:
 
 1. `docs/EXECUTION_PROTOCOL.md`
 2. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
-3. the current phase specification referenced below
+3. `docs/governance/G1_PARTICIPANT_INTAKE_ONBOARDING.md`
+4. `docs/governance/G1_REVIEW_CLOSURE.md`
 
-The roadmap defines the current phase. The phase specification contains the detailed implementation scope, safeguards, tests and exit criteria.
+The roadmap defines the overall program. The G1 phase specification defines the original implementation scope. The **G1 Review Closure** contains the current independent-review findings that must be corrected before G1 is accepted.
 
-`docs/ANTIGRAVITY_HANDOFF.md` is historical context and may include stale **CarePoint Support Services** naming, old deployment details or superseded decisions. It must not override current repository/live database evidence, owner-authorised facts, the Governance Roadmap or the current phase specification.
+`docs/ANTIGRAVITY_HANDOFF.md` is historical context and may include stale **CarePoint Support Services** naming, old deployment details or superseded decisions. It must not override current repository/live database evidence, owner-authorised facts, the Governance Roadmap, the phase specification or the current review closure.
 
 ---
 
 ## Critical execution rule — NO SECOND IMPLEMENTATION PLAN
 
-The detailed GitHub phase specification **is already the implementation plan**.
+The GitHub specifications are already the implementation instructions.
 
-When the current phase is marked `READY TO EXECUTE` or `IN PROGRESS`:
+Do **not** return another implementation plan, proposal, architecture document or approval task list.
 
-- do **not** return another implementation plan;
-- do **not** create another proposal/task-plan file;
-- do **not** stop merely to restate what you intend to build;
-- do **not** ask the user to approve the same scope again.
+Do not stop merely to restate what you intend to fix.
 
-Perform the preflight, execute the current phase directly, verify it, commit the verified work, update the roadmap/phase status, and return an **Implementation Report**.
+Perform preflight, execute the current G1 review closure directly, verify it, commit verified work, update the governance docs with actual evidence, and return the required **G1 Review Closure Report**.
 
-Only stop before execution for an actual blocker defined in `docs/EXECUTION_PROTOCOL.md` or when the user explicitly requests read-only mode.
+Only stop before execution for a real blocker defined in `docs/EXECUTION_PROTOCOL.md` or if the user explicitly requests read-only mode.
 
 ---
 
@@ -50,8 +48,9 @@ Only stop before execution for an actual blocker defined in `docs/EXECUTION_PROT
 - Bank/remittance details: owner will configure genuine details before operational invoicing
 - Required insurance: will be in place before service delivery; never invent policy details
 - Service regions: Northern NSW corridor plus selected Sydney areas including Blacktown, Parramatta, Western Sydney, Sydney CBD and Redfern
+- Current launch participant scope: **Adults 18+**
 
-Do not invent proprietor legal name, address, bank details, insurance, NDIS registration details, payer relationships or clinical authority.
+Do not invent proprietor legal name, address, bank details, insurance, NDIS registration details, payer relationships, participant facts or clinical authority.
 
 ---
 
@@ -65,50 +64,59 @@ Completed foundation work includes:
 - Governance G0.2 NDIS catalogue integrity
 - final governance direct-access security closure
 
-### Current phase
+Governance G1 implementation commit exists:
 
-**Governance G1 — Participant Intake & Onboarding Governance**
+`627b844` — `feat(governance): implement Governance Phase G1 participant intake and onboarding governance`
+
+Independent review found material G1 closure issues, so G1 is **not yet accepted**.
+
+### Current executable work
+
+**Governance G1 — Review Closure / Hardening**
 
 Status:
 
 `READY TO EXECUTE`
 
-Canonical G1 specification:
+Canonical review closure:
 
-`docs/governance/G1_PARTICIPANT_INTAKE_ONBOARDING.md`
+`docs/governance/G1_REVIEW_CLOSURE.md`
 
-Read that file in full and **execute it directly**.
+Execute that document directly.
 
-Do not create another G1 implementation plan.
+### Do not start G2
+
+Governance G2 is blocked until the G1 Review Closure Report is reviewed and G1 is explicitly accepted.
 
 ---
 
 ## Required behaviour
 
-- Inspect repository, Git status, recent commits and live Supabase state before implementation.
-- Reconcile local Git with `origin/main` before pushing because governance commits and GitHub documentation may have been created on different sides.
-- Preserve all verified local governance commits; never reset them away.
-- Reuse existing schema/modules before adding new ones.
-- Do not implement random features outside the current phase specification.
-- Regulatory assertions must be checked against current authoritative Australian/NDIS sources when they materially affect implementation.
+- Fetch/reconcile `origin/main` with any verified local changes before implementation.
+- Preserve commit `627b844` and prior verified governance history.
+- Inspect live Supabase state before creating the corrective migration.
+- Reuse existing schema/modules rather than creating parallel systems.
+- Do not implement random features outside the G1 review closure.
 - Do not deploy Vercel Production unless separately authorised.
-- Report live Supabase changes separately from Git/Vercel deployment status.
-- Run the phase's required typecheck, lint, tests, build, security/RLS and negative-path checks.
-- Commit only verified phase work.
-- Update the current phase spec and `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md` with actual completion evidence/status.
-- Stop at the phase boundary for review unless explicitly authorised to continue.
+- Report live Supabase changes separately from Git/Vercel status.
+- Run all tests and negative-path evidence required by `G1_REVIEW_CLOSURE.md`.
+- Derive governance actor identity from trusted server authentication, not client labels.
+- Use fail-closed/transactional behaviour for critical lifecycle changes.
+- Commit only verified closure work.
+- Update the G1 phase documentation and roadmap to match actual evidence after the review closure passes.
+- Stop at the G1 boundary for review.
 
 ---
 
-## First action on every new Antigravity session
+## First action on every Antigravity session right now
 
 1. Read `docs/EXECUTION_PROTOCOL.md`.
 2. Read `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`.
-3. Read the current phase specification.
-4. Run `git status`; inspect HEAD, branch and recent history.
-5. Compare local state with `origin/main`.
-6. Inspect applicable live Supabase migrations/state.
-7. Confirm the phase/gate is executable.
-8. If executable, **implement it directly — no re-planning**.
+3. Read `docs/governance/G1_PARTICIPANT_INTAKE_ONBOARDING.md`.
+4. Read `docs/governance/G1_REVIEW_CLOSURE.md`.
+5. Run `git status`; inspect HEAD, branch and recent history.
+6. Fetch/compare `origin/main` and reconcile safely.
+7. Inspect live Supabase G1 migration/data state.
+8. Execute the G1 review closure directly — **no re-planning**.
 
 Do not redesign the project from scratch.
