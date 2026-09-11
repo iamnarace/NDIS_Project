@@ -81,25 +81,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ok: true, services: mapped, source: 'database_admin' });
     }
 
-    // 2. Unauthenticated / Public View: ONLY active, website_visible services with safe public fields
+    // 2. Unauthenticated / Public View: Query dedicated public-safe directory view
     const supabase = createAdminClient();
     if (supabase) {
       const { data, error } = await supabase
-        .from('service_scope_registry')
-        .select('service_code, public_name, internal_description, ndis_category, operational_status')
-        .eq('website_visible', true)
-        .in('operational_status', ['ACTIVE', 'ACTIVE_WITH_CONTROLS'])
+        .from('service_scope_public_directory')
+        .select('service_code, public_name, description, category, status')
         .order('service_code', { ascending: true });
 
       if (!error && data && data.length > 0) {
         const publicServices = data.map((d: any) => ({
           serviceCode: d.service_code,
           name: d.public_name,
-          description: d.internal_description,
-          category: d.ndis_category,
-          status: d.operational_status,
+          description: d.description,
+          category: d.category,
+          status: d.status,
         }));
-        return NextResponse.json({ ok: true, services: publicServices, source: 'database_public' });
+        return NextResponse.json({ ok: true, services: publicServices, source: 'database_public_view' });
       }
     }
 
