@@ -739,13 +739,13 @@ Never describe `no production changes` if live Supabase schema/data was modified
 
 ## CURRENT GATE
 
-**Final G0/G0.1/G0.2 security closure**
+**Governance G1 — Participant Intake & Onboarding Governance (COMPLETE)**
 
 ## NEXT PHASE AFTER PASS
 
-**Governance G1 — Participant Intake & Onboarding Governance**
+**Governance G2 — Worker Onboarding, Competency & Verification Governance**
 
-Antigravity must not skip directly to G2/G3/G6 or random feature development.
+Antigravity must not skip directly to G3/G4/G6 or random feature development.
 
 ---
 

@@ -140,6 +140,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "We couldn't complete this action. Please refresh and try again." }, { status: 400 });
     }
 
+    // Governance G1 Roster Guard: Block new shifts for participants who have not completed onboarding
+    const { data: partRecord, error: partLookupErr } = await supabase
+      .from('participants')
+      .select('id, full_name, is_rosterable, lifecycle_stage')
+      .eq('id', resolvedParticipantId)
+      .maybeSingle();
+
+    if (partLookupErr || !partRecord || !partRecord.is_rosterable) {
+      return NextResponse.json({
+        message: 'Participant onboarding is incomplete. Complete required intake and readiness review before rostering shifts.'
+      }, { status: 400 });
+    }
+
     let resolvedStaffId = staff_id;
     if (resolvedStaffId && !isValidUuid(resolvedStaffId)) {
       resolvedStaffId = await resolveStaffUuid(supabase, resolvedStaffId);

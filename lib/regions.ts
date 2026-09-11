@@ -104,10 +104,17 @@ export function getAllServiceSuburbs(): SuburbEntry[] {
   return result.sort((a, b) => a.suburb.localeCompare(b.suburb));
 }
 
+export const SYDNEY_SERVICE_LOCATIONS = [
+  'Blacktown', 'Parramatta', 'Western Sydney', 'Sydney CBD', 'Redfern',
+  'Penrith', 'Liverpool', 'Strathfield', 'Auburn', 'Burwood', 'Westmead',
+  'Granville', 'Ryde', 'Sydney'
+];
+
 export function checkServiceArea(inputSuburb: string): {
   inServiceArea: boolean;
   matchedSuburb?: string;
   regionName?: string;
+  regionCanonical?: 'Northern NSW' | 'Sydney';
 } {
   if (!inputSuburb || typeof inputSuburb !== 'string') {
     return { inServiceArea: false };
@@ -115,8 +122,9 @@ export function checkServiceArea(inputSuburb: string): {
 
   const clean = inputSuburb.toLowerCase().trim();
   // Strip postcodes, 'NSW', Australia etc.
-  const core = clean.replace(/\\b(nsw|australia|24\\d\\d)\\b/gi, '').trim();
+  const core = clean.replace(/\b(nsw|australia|2\d{3})\b/gi, '').trim();
 
+  // 1. Check Northern NSW hubs and suburbs
   for (const reg of REGIONS) {
     for (const sub of reg.suburbs) {
       const subLower = sub.toLowerCase();
@@ -125,8 +133,22 @@ export function checkServiceArea(inputSuburb: string): {
           inServiceArea: true,
           matchedSuburb: sub,
           regionName: reg.name,
+          regionCanonical: 'Northern NSW',
         };
       }
+    }
+  }
+
+  // 2. Check Sydney operational locations
+  for (const loc of SYDNEY_SERVICE_LOCATIONS) {
+    const locLower = loc.toLowerCase();
+    if (clean === locLower || core === locLower || clean.includes(locLower) || locLower.includes(core)) {
+      return {
+        inServiceArea: true,
+        matchedSuburb: loc,
+        regionName: `Sydney (${loc})`,
+        regionCanonical: 'Sydney',
+      };
     }
   }
 

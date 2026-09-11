@@ -17,6 +17,8 @@ import QuotesTab from '@/components/admin/QuotesTab';
 import TimesheetsTab from '@/components/admin/TimesheetsTab';
 import ProgressNotesTab from '@/components/admin/ProgressNotesTab';
 import CanonicalDashboard from '@/components/admin/CanonicalDashboard';
+import SuitabilityAssessmentModal from '@/components/admin/SuitabilityAssessmentModal';
+import ParticipantOnboardingDrawer from '@/components/admin/ParticipantOnboardingDrawer';
 import {
   FormDrawer,
   DrawerHeader,
@@ -82,6 +84,9 @@ interface Participant {
   allergies?: string;
   workerInstructions?: string;
   communicationPreferences?: string;
+  lifecycleStage?: string;
+  isRosterable?: boolean;
+  suitabilityAssessmentId?: string;
 }
 
 interface Staff {
@@ -210,6 +215,8 @@ export default function AdminCrmPage() {
   const [agreements, setAgreements] = useState<any[]>([]);
   const [agreementsLoading, setAgreementsLoading] = useState(false);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [selectedReferralForSuitability, setSelectedReferralForSuitability] = useState<Referral | null>(null);
+  const [selectedParticipantForOnboarding, setSelectedParticipantForOnboarding] = useState<Participant | null>(null);
   const [showAddWorker, setShowAddWorker] = useState(false);
   const [showAgreementGenerator, setShowAgreementGenerator] = useState(false);
   const [selectedAgreementToView, setSelectedAgreementToView] = useState<any | null>(null);
@@ -1964,6 +1971,7 @@ export default function AdminCrmPage() {
                       <th>Suburb</th>
                       <th className="ocNumeric">Allocated Hours</th>
                       <th>Support Worker</th>
+                      <th>Lifecycle / Readiness</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -3714,7 +3722,7 @@ export default function AdminCrmPage() {
           {/* TAB: WORKFORCE ROSTERING & SHIFT SCHEDULING */}
           {tab === 'workforce' && (
             <WorkforceRosterTab
-              participants={participants.map((p) => ({
+              participants={participants.filter((p) => p.isRosterable).map((p) => ({
                 id: p.id,
                 referenceNumber: p.referenceNumber,
                 name: p.name,
@@ -5424,6 +5432,32 @@ export default function AdminCrmPage() {
           </DialogPanel>
         </div>
       )}
+      {/* SUITABILITY ASSESSMENT MODAL (GOVERNANCE G1) */}
+      {selectedReferralForSuitability && (
+        <SuitabilityAssessmentModal
+          isOpen={Boolean(selectedReferralForSuitability)}
+          referral={selectedReferralForSuitability}
+          onClose={() => setSelectedReferralForSuitability(null)}
+          onSuccess={(assessment) => {
+            notify(`Suitability assessment recorded (${assessment.outcome}). Advancing to onboarding.`);
+            loadAllData();
+            setSelectedReferral(null);
+          }}
+        />
+      )}
+
+      {/* PARTICIPANT ONBOARDING DRAWER (GOVERNANCE G1) */}
+      {selectedParticipantForOnboarding && (
+        <ParticipantOnboardingDrawer
+          isOpen={Boolean(selectedParticipantForOnboarding)}
+          participant={selectedParticipantForOnboarding}
+          onClose={() => setSelectedParticipantForOnboarding(null)}
+          onUpdated={() => {
+            loadAllData();
+          }}
+        />
+      )}
+
       {/* ADD PARTICIPANT MODAL */}
       {showAddParticipant && (
         <AddParticipantModal

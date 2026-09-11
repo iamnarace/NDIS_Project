@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userFacingError } from '@/lib/userFacingError';
@@ -54,6 +54,10 @@ export async function GET(req: Request) {
     allergies: p.allergies || undefined,
     workerInstructions: p.worker_instructions || undefined,
     communicationPreferences: p.communication_preferences || undefined,
+    lifecycleStage: p.lifecycle_stage || 'onboarding',
+    isRosterable: Boolean(p.is_rosterable),
+    suitabilityAssessmentId: p.suitability_assessment_id || undefined,
+    readinessNotes: p.readiness_notes || undefined,
   }));
   return NextResponse.json(mapped);
 }
@@ -91,7 +95,9 @@ export async function POST(req: Request) {
       allocated_weekly_hours: Number(body.allocatedHours) || 0,
       phone: (body.phone && body.phone.trim()) || null,
       email: (body.email && body.email.trim()) || null,
-      status: body.status || 'active',
+      status: body.status === 'active' ? 'pending_intake' : (body.status || 'pending_intake'),
+      lifecycle_stage: body.lifecycle_stage || 'onboarding',
+      is_rosterable: false,
       primary_service: (body.primaryService && body.primaryService.trim()) || null,
       contact_person: (body.contactPerson && body.contactPerson.trim()) || null,
       emergency_contact_name: body.emergencyContactName || body.emergency_contact_name || null,
