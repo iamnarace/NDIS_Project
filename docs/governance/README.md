@@ -1,53 +1,60 @@
-# Opus Care Governance — Execution Index
+# Opus Care Governance — Autonomous Execution Index
 
-This directory contains implementation-ready governance specifications for Antigravity.
+This directory contains implementation-ready governance specifications for the owner-authorised continuous Codex run.
 
-The agent must follow `docs/EXECUTION_PROTOCOL.md`: execute the current specification directly and return an Implementation/Closure Report. Do not generate another implementation plan unless the user explicitly asks for one.
+Codex must follow:
 
-## Current phase gate
+1. `AGENTS.md`
+2. `docs/CODEX_START_HERE.md`
+3. `docs/CODEX_AUTONOMOUS_RUNBOOK.md`
+4. `docs/EXECUTION_PROTOCOL.md`
 
-### Governance G1 — Participant Intake & Onboarding Governance
+Do not generate another implementation plan. Execute, verify, self-review, fix until pass, commit/push, and automatically continue to the next phase.
 
-Implementation commit:
+## Current starting gate
+
+### G1 Review Closure
+
+Original G1 implementation commit:
 
 `627b844`
 
-Independent review status:
-
-**`REVIEW HARDENING REQUIRED — NOT YET ACCEPTED`**
-
-Original specification:
-
-[`G1_PARTICIPANT_INTAKE_ONBOARDING.md`](./G1_PARTICIPANT_INTAKE_ONBOARDING.md)
-
-Current executable closure:
+Current closure specification:
 
 [`G1_REVIEW_CLOSURE.md`](./G1_REVIEW_CLOSURE.md)
 
-Antigravity must execute `G1_REVIEW_CLOSURE.md` directly and return the required **G1 Review Closure Report**.
+G1 must pass the independent closure before worker-governance work begins.
 
-Do **not** start G2 until G1 review closure is accepted.
+Under autonomous mode, when the closure passes Codex **does not wait for owner review**; it marks the gate complete and immediately starts G2.
 
-## Target G1 lifecycle
+## Full autonomous sequence
 
-`Referral → Suitability Assessment → Governed Start Onboarding → Dynamic Readiness Review → Participant-side Roster Eligibility`
+1. [`G1_REVIEW_CLOSURE.md`](./G1_REVIEW_CLOSURE.md) — correctness/security closure of Participant Intake & Onboarding
+2. [`G2_WORKER_READINESS_ROSTER_SAFETY.md`](./G2_WORKER_READINESS_ROSTER_SAFETY.md) — worker readiness, screening, credentials, competency, roster hard gates
+3. [`G3_PRIVACY_DOCUMENTS_HELP_CENTRE.md`](./G3_PRIVACY_DOCUMENTS_HELP_CENTRE.md) — privacy, consent, controlled participant documents, Help Centre
+4. [`G4_COMPLAINTS_INCIDENTS_SAFEGUARDING.md`](./G4_COMPLAINTS_INCIDENTS_SAFEGUARDING.md) — complaints, incidents, safeguarding, corrective actions
+5. [`G5_WHS_TRANSPORT_CONTINUITY.md`](./G5_WHS_TRANSPORT_CONTINUITY.md) — WHS/home safety, lone worker, transport, participant property, continuity
+6. [`G6_CLINICAL_HIGH_INTENSITY.md`](./G6_CLINICAL_HIGH_INTENSITY.md) — Community Nursing/high-intensity clinical governance
+7. [`G7_WEBSITE_PUBLIC_LAUNCH.md`](./G7_WEBSITE_PUBLIC_LAUNCH.md) — website/referral/public-resource launch compliance
+8. [`FINAL_GO_LIVE_VERIFICATION.md`](./FINAL_GO_LIVE_VERIFICATION.md) — independent end-to-end audit and final readiness classification
 
-## Completed foundation
+## Completed foundation before this run
 
 - Phase 0 / 0.1 — billing, tax, documents, organisation safeguards
 - G0 — service scope / organisation readiness
 - G0.1 — security / fail-closed governance / agreement execution guard
 - G0.2 — 2026–27 NDIS catalogue integrity / transport separation
 - final direct-access security closure
+- initial G1 implementation (`627b844`) pending the independent closure above
 
-## Planned next phases
+## Autonomous phase rule
 
-- G2 — Worker Readiness & Roster Safety
-- G3 — Privacy, Participant Documents & Help Centre
-- G4 — Complaints, Incidents & Safeguarding
-- G5 — WHS, Home Safety, Transport & Continuity
-- G6 — Clinical / High-Intensity Governance
-- G7 — Website & Public Launch Compliance
-- Final Go-Live Verification
+For every phase:
 
-Detailed execution specifications will be created/activated only when their preceding gate is accepted. Do not invent a second plan for a current phase.
+`IMPLEMENT → TEST → SELF-REVIEW AGAINST EXIT CRITERIA → FIX → RETEST → COMPLETE → COMMIT/PUSH → NEXT PHASE`
+
+No normal owner review is required between phases.
+
+Missing real launch values such as proprietor legal name, bank details or insurance certificates should remain fail-closed and be reported at the end as `OWNER INPUT REQUIRED`, not used as a reason to stop unrelated software phases.
+
+Vercel Production deployment is not authorised by this autonomous run.
