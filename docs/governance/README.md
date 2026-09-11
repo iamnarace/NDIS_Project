@@ -1,22 +1,36 @@
 # Opus Care Governance — Execution Index
 
-This directory contains **implementation-ready phase specifications** for Antigravity.
+This directory contains implementation-ready governance specifications for Antigravity.
 
-The agent must follow `docs/EXECUTION_PROTOCOL.md`: when a phase specification is marked `READY TO EXECUTE`, execute it directly and return an Implementation Report. Do not generate another implementation plan.
+The agent must follow `docs/EXECUTION_PROTOCOL.md`: execute the current specification directly and return an Implementation/Closure Report. Do not generate another implementation plan unless the user explicitly asks for one.
 
-## Current phase
+## Current phase gate
 
 ### Governance G1 — Participant Intake & Onboarding Governance
 
-**Status:** `READY TO EXECUTE`
+Implementation commit:
 
-Specification:
+`627b844`
+
+Independent review status:
+
+**`REVIEW HARDENING REQUIRED — NOT YET ACCEPTED`**
+
+Original specification:
 
 [`G1_PARTICIPANT_INTAKE_ONBOARDING.md`](./G1_PARTICIPANT_INTAKE_ONBOARDING.md)
 
-Target lifecycle:
+Current executable closure:
 
-`Referral → Suitability Assessment → Participant Onboarding → Readiness Review → Participant-side Roster Eligibility`
+[`G1_REVIEW_CLOSURE.md`](./G1_REVIEW_CLOSURE.md)
+
+Antigravity must execute `G1_REVIEW_CLOSURE.md` directly and return the required **G1 Review Closure Report**.
+
+Do **not** start G2 until G1 review closure is accepted.
+
+## Target G1 lifecycle
+
+`Referral → Suitability Assessment → Governed Start Onboarding → Dynamic Readiness Review → Participant-side Roster Eligibility`
 
 ## Completed foundation
 
@@ -28,8 +42,6 @@ Target lifecycle:
 
 ## Planned next phases
 
-Detailed execution specifications will be added before each phase becomes executable.
-
 - G2 — Worker Readiness & Roster Safety
 - G3 — Privacy, Participant Documents & Help Centre
 - G4 — Complaints, Incidents & Safeguarding
@@ -38,4 +50,4 @@ Detailed execution specifications will be added before each phase becomes execut
 - G7 — Website & Public Launch Compliance
 - Final Go-Live Verification
 
-Do not invent a detailed plan for a future phase merely because it is listed here. The canonical master sequence remains in `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`.
+Detailed execution specifications will be created/activated only when their preceding gate is accepted. Do not invent a second plan for a current phase.
