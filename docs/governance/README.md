@@ -13,23 +13,25 @@ Do not generate another implementation plan. Execute, verify, self-review, fix u
 
 ## Current starting gate
 
-### G1 Review Closure
+### G1 Review Closure — Autonomous
 
 Original G1 implementation commit:
 
 `627b844`
 
-Current closure specification:
+Autonomous closure wrapper:
+
+[`G1_REVIEW_CLOSURE_AUTONOMOUS.md`](./G1_REVIEW_CLOSURE_AUTONOMOUS.md)
+
+Underlying technical closure requirements:
 
 [`G1_REVIEW_CLOSURE.md`](./G1_REVIEW_CLOSURE.md)
 
-G1 must pass the independent closure before worker-governance work begins.
-
-Under autonomous mode, when the closure passes Codex **does not wait for owner review**; it marks the gate complete and immediately starts G2.
+G1 must pass every independent closure criterion before worker-governance work begins. Under autonomous mode, when the closure passes Codex does not wait for owner review; it records evidence and immediately starts G2.
 
 ## Full autonomous sequence
 
-1. [`G1_REVIEW_CLOSURE.md`](./G1_REVIEW_CLOSURE.md) — correctness/security closure of Participant Intake & Onboarding
+1. [`G1_REVIEW_CLOSURE_AUTONOMOUS.md`](./G1_REVIEW_CLOSURE_AUTONOMOUS.md) — autonomous acceptance gate applying all technical requirements in the original G1 review closure
 2. [`G2_WORKER_READINESS_ROSTER_SAFETY.md`](./G2_WORKER_READINESS_ROSTER_SAFETY.md) — worker readiness, screening, credentials, competency, roster hard gates
 3. [`G3_PRIVACY_DOCUMENTS_HELP_CENTRE.md`](./G3_PRIVACY_DOCUMENTS_HELP_CENTRE.md) — privacy, consent, controlled participant documents, Help Centre
 4. [`G4_COMPLAINTS_INCIDENTS_SAFEGUARDING.md`](./G4_COMPLAINTS_INCIDENTS_SAFEGUARDING.md) — complaints, incidents, safeguarding, corrective actions
