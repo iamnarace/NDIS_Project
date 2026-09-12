@@ -67,7 +67,7 @@ export function renderDocumentShell(props: DocumentShellProps): string {
       </div>
       <div class="bank-detail-row">
         <span>Account Name:</span>
-        <strong>${org.legalName}</strong>
+        <strong>${org.bankAccountName || org.legalName}</strong>
       </div>
       <div class="bank-detail-row">
         <span>BSB:</span>
@@ -96,7 +96,7 @@ export function renderDocumentShell(props: DocumentShellProps): string {
       size: A4 portrait;
       margin: 12mm 14mm 14mm 14mm;
     }
-    
+
     *, *::before, *::after {
       box-sizing: border-box;
     }

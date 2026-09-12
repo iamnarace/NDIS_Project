@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
+import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { isValidUuid } from '@/lib/uuid';
 import { getOrganisationProfile } from '@/lib/organisation';
 import { renderDocumentShell, DocumentRecipient } from '@/lib/documents/documentTemplate';
@@ -9,7 +11,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
     if (!id || !isValidUuid(id)) return new NextResponse('Invalid Invoice ID', { status: 400 });
 
-    const supabase = createAdminClient();
+    const isAdmin = await isAuthenticatedAdmin(request);
+    let supabase: any = null;
+    let portalParticipantId: string | null = null;
+
+    if (isAdmin) {
+      supabase = createAdminClient();
+    } else {
+      supabase = await createClient();
+      if (!supabase) return new NextResponse('Unauthorized: Authentication required', { status: 401 });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return new NextResponse('Unauthorized: Authentication required', { status: 401 });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('portal_participant_id')
+        .eq('id', user.id)
+        .single();
+      portalParticipantId = profile?.portal_participant_id || null;
+      if (!portalParticipantId) return new NextResponse('Unauthorized', { status: 401 });
+    }
+
     if (!supabase) return new NextResponse('Database unavailable', { status: 503 });
 
     const [org, invoiceResult] = await Promise.all([
@@ -27,6 +48,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const { data: invoice, error } = invoiceResult;
     if (error || !invoice) return new NextResponse('Invoice not found', { status: 404 });
+
+    if (!isAdmin && portalParticipantId && invoice.participant_id !== portalParticipantId) {
+      return new NextResponse('Forbidden: Access denied', { status: 403 });
+    }
 
     const p = invoice.participant || {};
     const items = invoice.items || [];

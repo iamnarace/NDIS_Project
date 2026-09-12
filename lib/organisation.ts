@@ -28,6 +28,7 @@ export interface OrganisationProfile {
   designatedSignatoryName: string | null;
   designatedSignatoryTitle: string | null;
   bankName: string | null;
+  bankAccountName: string | null;
   bankBsb: string | null;
   bankAccountNumber: string | null;
   isBankConfigured: boolean;
@@ -151,6 +152,7 @@ export async function getOrganisationProfile(
     designatedSignatoryName: 'Director of Operations',
     designatedSignatoryTitle: 'Managing Director, Opus Care',
     bankName: null,
+    bankAccountName: null,
     bankBsb: null,
     bankAccountNumber: null,
     isBankConfigured: false,
@@ -218,6 +220,7 @@ export async function getOrganisationProfile(
       designatedSignatoryName: config.designated_signatory_name?.trim() || fallback.designatedSignatoryName,
       designatedSignatoryTitle: config.designated_signatory_title?.trim() || fallback.designatedSignatoryTitle,
       bankName: isBankGenuine ? (config.bank_name?.trim() || null) : null,
+      bankAccountName: isBankGenuine ? (config.bank_account_name?.trim() || config.legal_name?.trim() || fallback.legalName) : null,
       bankBsb: isBankGenuine ? rawBsb : null,
       bankAccountNumber: isBankGenuine ? rawAcc : null,
       isBankConfigured: isBankGenuine,

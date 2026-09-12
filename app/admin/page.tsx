@@ -250,6 +250,11 @@ export default function AdminCrmPage() {
   const [providerConfigLoading, setProviderConfigLoading] = useState(false);
   const [proprietorInput, setProprietorInput] = useState('');
   const [proprietorSaving, setProprietorSaving] = useState(false);
+  const [bankNameInput, setBankNameInput] = useState('');
+  const [bankAccountNameInput, setBankAccountNameInput] = useState('');
+  const [bankBsbInput, setBankBsbInput] = useState('');
+  const [bankAccountNumberInput, setBankAccountNumberInput] = useState('');
+  const [remittanceSaving, setRemittanceSaving] = useState(false);
   const [insurances, setInsurances] = useState<any[]>([]);
   const [insurancesLoading, setInsurancesLoading] = useState(false);
   const [showAddInsurance, setShowAddInsurance] = useState(false);
@@ -871,6 +876,10 @@ export default function AdminCrmPage() {
         if (data?.proprietor_legal_name) {
           setProprietorInput(data.proprietor_legal_name);
         }
+        if (data?.bank_name) setBankNameInput(data.bank_name);
+        if (data?.bank_account_name) setBankAccountNameInput(data.bank_account_name);
+        if (data?.bank_bsb) setBankBsbInput(data.bank_bsb);
+        if (data?.bank_account_number) setBankAccountNumberInput(data.bank_account_number);
       }
     } catch (err) {
       console.error('Failed to load provider config', err);
@@ -893,6 +902,44 @@ export default function AdminCrmPage() {
       console.error('Failed to load insurances', err);
     } finally {
       setInsurancesLoading(false);
+    }
+  }
+
+  async function handleSaveRemittance() {
+    if (!bankNameInput.trim() || !bankBsbInput.trim() || !bankAccountNumberInput.trim()) {
+      notify('Please enter Bank Institution, BSB, and Account Number.');
+      return;
+    }
+    setRemittanceSaving(true);
+    try {
+      const res = await fetch('/api/crm/provider-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: providerConfig?.id,
+          bank_name: bankNameInput.trim(),
+          bank_account_name: bankAccountNameInput.trim() || 'Opus Care Support Services',
+          bank_bsb: bankBsbInput.trim(),
+          bank_account_number: bankAccountNumberInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        notify('Remittance details saved successfully.');
+        setProviderConfig((prev: any) => ({
+          ...prev,
+          bank_name: bankNameInput.trim(),
+          bank_account_name: bankAccountNameInput.trim() || 'Opus Care Support Services',
+          bank_bsb: bankBsbInput.trim(),
+          bank_account_number: bankAccountNumberInput.trim(),
+        }));
+      } else {
+        notify(data.message || 'Failed to update remittance details.');
+      }
+    } catch {
+      notify('Error saving remittance details.');
+    } finally {
+      setRemittanceSaving(false);
     }
   }
 
@@ -4175,7 +4222,7 @@ export default function AdminCrmPage() {
                   <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Opus Care Support Services</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Registered business name operated as a sole trader</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Registered provider business name</div>
               </div>
 
               {/* 2. ABN */}
@@ -4185,7 +4232,7 @@ export default function AdminCrmPage() {
                   <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Owner confirmed</span>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)', fontFamily: 'monospace' }}>41 267 197 576</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Authorised sole trader ABN (configured by owner)</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Authorised provider ABN</div>
               </div>
 
               {/* 3. GST Status */}
@@ -4214,30 +4261,26 @@ export default function AdminCrmPage() {
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Business Structure</span>
                   <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
                 </div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Sole Trader</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Non-incorporated entity · ACN N/A</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>Independent Disability Provider</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>Operating under NDIS Practice Standards</div>
               </div>
 
-              {/* 6. Proprietor Legal Name */}
+              {/* 6. Entity Counterparty */}
               <div style={{
-                background: providerConfig?.proprietor_legal_name ? '#f8fafc' : '#fffbeb',
-                border: providerConfig?.proprietor_legal_name ? '1px solid #e2e8f0' : '1px solid #fde68a',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
                 borderRadius: 8,
                 padding: '12px 14px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Proprietor Legal Name</span>
-                  {providerConfig?.proprietor_legal_name ? (
-                    <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Configured</span>
-                  ) : (
-                    <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#b45309', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Pending</span>
-                  )}
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Contracting Entity</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>Active</span>
                 </div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: providerConfig?.proprietor_legal_name ? 'var(--oc-text)' : '#b45309' }}>
-                  {providerConfig?.proprietor_legal_name || 'Pending Configuration'}
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>
+                  Opus Care Support Services
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-                  {providerConfig?.proprietor_legal_name ? 'Active legal counterparty' : 'Required before executing formal agreements'}
+                  Authorised NDIS service provider entity
                 </div>
               </div>
 
@@ -4257,10 +4300,10 @@ export default function AdminCrmPage() {
                   )}
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: providerConfig?.bank_account_number ? 'var(--oc-text)' : '#b45309' }}>
-                  {providerConfig?.bank_account_number ? `${providerConfig.bank_name || 'Configured Bank'} (BSB ${providerConfig.bank_bsb})` : 'Pending Configuration'}
+                  {providerConfig?.bank_account_number ? `${providerConfig.bank_name || 'Bank'} · BSB ${providerConfig.bank_bsb} · Acc ${providerConfig.bank_account_number}` : 'Pending Configuration'}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-                  {providerConfig?.bank_account_number ? 'Active disbursement account' : 'Required before external invoice generation'}
+                  {providerConfig?.bank_account_number ? 'Direct EFT remittance on invoices' : 'Configure below in Remittance Details'}
                 </div>
               </div>
 
@@ -4288,36 +4331,80 @@ export default function AdminCrmPage() {
               </div>
             </div>
 
-            {/* Proprietor Legal Name Configuration Box */}
-            <div style={{ background: '#f1f5f9', borderRadius: 8, padding: '14px 16px', border: '1px solid #cbd5e1' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ flex: 1, minWidth: 280 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
-                    Proprietor Full Legal Name (Sole Trader)
+            {/* Remittance Advice & Bank Configuration Box */}
+            <div style={{ background: '#f8fafc', borderRadius: 8, padding: '16px 18px', border: '1px solid #cbd5e1' }}>
+              <div style={{ marginBottom: 12 }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '0.92rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                  Disbursement &amp; Remittance Account (EFT)
+                </h4>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
+                  Remittance details rendered on compliant invoices for direct participant and plan-manager payment. Kept private and never exposed on public websites or bundles.
+                </p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Bank Institution
                   </label>
-                  <p style={{ margin: '0 0 8px', fontSize: '0.75rem', color: '#64748b' }}>
-                    By Australian sole trader law, formal agreements must identify: <code>[Proprietor Full Legal Name] trading as Opus Care Support Services</code>.
-                  </p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="e.g. Full Legal Name of Proprietor"
-                      value={proprietorInput}
-                      onChange={(e) => setProprietorInput(e.target.value)}
-                      className="crmInput"
-                      style={{ flex: 1, padding: '7px 12px', fontSize: '0.85rem' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSaveProprietor}
-                      disabled={proprietorSaving || !proprietorInput.trim() || proprietorInput.trim() === providerConfig?.proprietor_legal_name}
-                      className="vsBtnBlack"
-                      style={{ padding: '7px 16px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
-                    >
-                      {proprietorSaving ? 'Saving...' : 'Save Legal Name'}
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="e.g. Revolut"
+                    value={bankNameInput}
+                    onChange={(e) => setBankNameInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Opus Care Support Services"
+                    value={bankAccountNameInput}
+                    onChange={(e) => setBankAccountNameInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    BSB
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 123-456"
+                    value={bankBsbInput}
+                    onChange={(e) => setBankBsbInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 12345678"
+                    value={bankAccountNumberInput}
+                    onChange={(e) => setBankAccountNumberInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={handleSaveRemittance}
+                  disabled={remittanceSaving || !bankNameInput.trim() || !bankBsbInput.trim() || !bankAccountNumberInput.trim()}
+                  className="vsBtnBlack"
+                  style={{ padding: '7px 18px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                >
+                  {remittanceSaving ? 'Saving...' : 'Save Remittance Details'}
+                </button>
               </div>
             </div>
           </div>
@@ -4485,10 +4572,10 @@ export default function AdminCrmPage() {
                   Opus Care Support Services
                 </h4>
                 <p style={{ margin: '0 0 4px', fontSize: '0.8125rem', color: 'var(--oc-secondary)' }}>
-                  ABN: 41 267 197 576 &bull; Sole Trader &bull; GST Not Registered
+                  ABN: 41 267 197 576 &bull; Unregistered NDIS Provider &bull; GST Not Registered
                 </p>
                 <p style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--oc-muted)' }}>
-                  {providerConfig?.proprietor_legal_name ? `Proprietor: ${providerConfig.proprietor_legal_name}` : 'Proprietor name pending configuration'}
+                  GST has not been charged – supplier is not registered for GST.
                 </p>
                 <button
                   type="button"
