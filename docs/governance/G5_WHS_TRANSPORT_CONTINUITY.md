@@ -4,7 +4,7 @@
 
 ## Status
 
-`READY AFTER G4 PASSES`
+`COMPLETE` — Verified 2026-09-12. Migrations applied to live Supabase (wqykzdodzcfwpgitnisx) with schema version 20260912220000. 95/95 automated test assertions pass. Typecheck, lint, and build (86 static pages) pass with zero warnings/errors. Git diff whitespace clean. WHS, lone-worker safety, transport accounting separation, money controls, and continuity profiles active. Vercel production unchanged.
 
 ## Objective
 
