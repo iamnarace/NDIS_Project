@@ -228,6 +228,7 @@ test('G1 authenticated governance lifecycle, persistence, safety and responsive 
 
   const shiftPayload = {
     participant_id: participantId,
+    service_code: 'OC-SRV-COMM-01',
     service_type: 'G1 browser acceptance historical shift',
     start_time: new Date(Date.now() + 86_400_000).toISOString(),
     end_time: new Date(Date.now() + 90_000_000).toISOString(),

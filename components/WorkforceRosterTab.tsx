@@ -124,13 +124,13 @@ interface WorkforceRosterTabProps {
 }
 
 const SERVICE_TYPES = [
-  { label: 'Core - Self-Care Activities', code: '01_011_0107_1_1', rate: 73.58 },
-  { label: 'Capacity - Community Participation', code: '04_104_0125_6_1', rate: 73.58 },
-  { label: 'Core - Domestic Assistance', code: '01_020_0120_1_1', rate: 60.10 },
-  { label: 'Core - House or Yard Maintenance', code: '01_019_0120_1_1', rate: 59.01 },
-  { label: 'Core - Social & Civic Participation', code: '04_104_0125_6_1', rate: 73.58 },
-  { label: 'Core - Weekend Social Support', code: '01_013_0107_1_1', rate: 103.54 },
-  { label: 'Core - Transport Assistance', code: '02_051_0108_1_1', rate: 0.00 },
+  { label: 'Core - Self-Care Activities', code: '01_011_0107_1_1', serviceCode: 'OC-SRV-PERS-01', rate: 73.58 },
+  { label: 'Capacity - Community Participation', code: '04_104_0125_6_1', serviceCode: 'OC-SRV-COMM-01', rate: 73.58 },
+  { label: 'Core - Domestic Assistance', code: '01_020_0120_1_1', serviceCode: 'OC-SRV-HOUSE-01', rate: 60.10 },
+  { label: 'Core - House or Yard Maintenance', code: '01_019_0120_1_1', serviceCode: 'OC-SRV-HOUSE-01', rate: 59.01 },
+  { label: 'Core - Social & Civic Participation', code: '04_104_0125_6_1', serviceCode: 'OC-SRV-SOC-01', rate: 73.58 },
+  { label: 'Core - Weekend Social Support', code: '01_013_0107_1_1', serviceCode: 'OC-SRV-SOC-01', rate: 103.54 },
+  { label: 'Core - Transport Assistance', code: '02_051_0108_1_1', serviceCode: 'OC-SRV-TRANS-01', rate: 0.00 },
 ];
 
 export default function WorkforceRosterTab({ participants, staff }: WorkforceRosterTabProps) {
@@ -364,6 +364,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           participant_id: formParticipantId,
+          service_code: SERVICE_TYPES.find(item => item.label === formServiceType)?.serviceCode,
           service_type: formServiceType,
           ndis_support_item_code: formItemCode,
           start_time: startIso,
@@ -371,9 +372,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
           location_suburb: formSuburb,
           location_address: formAddress,
           special_instructions: formInstructions,
-          staff_id: formStaffId || null,
           repeat_weeks: formRepeatWeeks,
-          force: conflictOverride,
         }),
       });
 
@@ -387,6 +386,21 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
         return;
       }
 
+      if (formStaffId) {
+        for (const shift of data.shifts || []) {
+          const assignRes = await fetch('/api/workforce/assignments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shift_id: shift.id, staff_id: formStaffId, force: conflictOverride }),
+          });
+          const assignment = await assignRes.json().catch(() => ({}));
+          if (!assignRes.ok) {
+            setFormError(`${assignment.message || 'Worker eligibility blocked assignment.'} The shift remains safely unassigned.`);
+            loadShifts();
+            return;
+          }
+        }
+      }
       setShowScheduleModal(false);
       loadShifts();
     } catch (err) {

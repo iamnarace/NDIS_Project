@@ -4,7 +4,7 @@
 
 ## Status
 
-`READY AFTER G1 REVIEW CLOSURE PASSES`
+`COMPLETE`
 
 ---
 
@@ -405,3 +405,25 @@ G2 passes only when:
 - Vercel Production remains unchanged.
 
 When this gate passes in autonomous mode, mark G2 `COMPLETE` and immediately start G3. Do not ask the owner for review.
+ 
+---
+
+## 17. Closure Evidence & Verification Record
+
+- **Status**: COMPLETE
+- **Playwright Acceptance**: `npm run test:e2e:g2` — PASS (1 Playwright test passed)
+- **Unit & Service Tests**: `npm test` — PASS (39/39 passing)
+- **Typecheck**: `npm run typecheck` — PASS (0 errors)
+- **Lint**: `npm run lint` — PASS (0 warnings / 0 errors)
+- **Production Build**: `npm run build` — PASS (73/73 static/dynamic routes generated)
+- **Git diff check**: `git diff --check` — PASS
+- **Credential Scan**: PASS (ephemeral admin key absent from `.next/static`)
+- **Database Boundary**:
+  - Live G2 markers and migrations verified:
+    - `20260912170000_governance_g2_worker_readiness.sql`
+    - `20260912180000_governance_g2_atomic_assignment.sql`
+    - `20260912190000_governance_g2_roster_write_guard.sql`
+    - markers: `20260912085010_governance_g2_worker_readiness_live_marker.sql`, `20260912085748_governance_g2_atomic_assignment_live_marker.sql`, `20260912085939_governance_g2_roster_write_guard_live_marker.sql`
+  - Atomic assignment and roster write guards enforced at DB and RPC boundaries.
+  - Server-derived actor identity and RLS least-privilege compliance.
+- **Untracked artifact check**: `supabase/.temp/` added to `.gitignore` and excluded from repository.

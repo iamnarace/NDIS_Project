@@ -50,19 +50,12 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
   const [abn, setAbn] = useState('');
 
   // Step 3: Role & Employment
-  const [role, setRole] = useState('Disability Support Worker');
-  const [hourlyRate, setHourlyRate] = useState('38.50');
-  const [selectedSuburbs, setSelectedSuburbs] = useState<string[]>(['Yamba', 'Maclean']);
+  const [role, setRole] = useState('');
+  const [hourlyRate, setHourlyRate] = useState('');
+  const [selectedSuburbs, setSelectedSuburbs] = useState<string[]>([]);
 
   // Step 4: Compliance Credentials
-  const [ndisScreening, setNdisScreening] = useState('Verified');
-  const [ndisScreeningExpiry, setNdisScreeningExpiry] = useState('');
-  const [wwcc, setWwcc] = useState('');
-  const [wwccExpiry, setWwccExpiry] = useState('');
-  const [firstAidExpiry, setFirstAidExpiry] = useState('');
-  const [cprExpiry, setCprExpiry] = useState('');
-  const [policeCheckDate, setPoliceCheckDate] = useState('');
-  const [ndisOrientationCompleted, setNdisOrientationCompleted] = useState(true);
+  const ndisScreening = 'Unknown / Needs Verification';
 
   const toggleSuburb = (sub: string) => {
     if (selectedSuburbs.includes(sub)) {
@@ -93,6 +86,10 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
         setError('ABN should be 11 digits.');
         return false;
       }
+    }
+    if (currentStep === 3 && !role.trim()) {
+      setError('Worker role must be explicitly selected.');
+      return false;
     }
     return true;
   };
@@ -129,16 +126,8 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
         engagementType,
         abn: engagementType === 'contractor' ? (abn.trim() || undefined) : undefined,
         suburbs: selectedSuburbs,
-        ndisScreening,
-        ndisScreeningExpiry: ndisScreeningExpiry || undefined,
-        wwcc: wwcc.trim() || undefined,
-        wwccExpiry: wwccExpiry || undefined,
-        policeCheckDate: policeCheckDate || undefined,
-        firstAidExpiry: firstAidExpiry || undefined,
-        cprExpiry: cprExpiry || undefined,
-        ndisOrientationCompleted,
-        hourlyRate: parseFloat(hourlyRate) || 0,
-        status: 'active',
+        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
+        status: 'pending',
       };
 
       const res = await fetch('/api/crm/staff', {
@@ -166,7 +155,7 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
     <FormDrawer isOpen onClose={onClose} wide>
       <DrawerHeader
         title="Register Support Worker"
-        description="Onboard support staff with verified NDIS clearance and hub allocations."
+        description="Create a worker intake record. Mandatory evidence remains unverified until reviewed through the governed workflow."
         onClose={onClose}
         badge={<span className="compliance-pill">Workforce Compliance</span>}
       />
@@ -322,102 +311,12 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
 
         {/* STEP 4: COMPLIANCE & CLEARANCES */}
         {step === 4 && (
-          <FormSection title="4. Statutory Clearances & Mandatory Checks">
-            <FormGrid2>
-              <FormField label="NDIS Worker Screening" required id="wNdisScreening">
-                <FormSelect
-                  id="wNdisScreening"
-                  value={ndisScreening}
-                  onChange={(e) => setNdisScreening(e.target.value)}
-                >
-                  <option value="Verified">Verified / Valid (NDISWC Active)</option>
-                  <option value="Pending">Application Pending with Commission</option>
-                  <option value="Exempt">Exempt / Supervised</option>
-                </FormSelect>
-              </FormField>
-
-              <FormField label="Screening Expiry Date" id="wNdisExpiry">
-                <FormInput
-                  id="wNdisExpiry"
-                  type="date"
-                  value={ndisScreeningExpiry}
-                  onChange={(e) => setNdisScreeningExpiry(e.target.value)}
-                />
-              </FormField>
-            </FormGrid2>
-
-            <FormGrid2 style={{ marginTop: 16 }}>
-              <FormField label="WWCC Number" id="wWwcc">
-                <FormInput
-                  id="wWwcc"
-                  value={wwcc}
-                  onChange={(e) => setWwcc(e.target.value)}
-                  placeholder="WWC0000000E"
-                />
-              </FormField>
-
-              <FormField label="WWCC Expiry Date" id="wWwccExpiry">
-                <FormInput
-                  id="wWwccExpiry"
-                  type="date"
-                  value={wwccExpiry}
-                  onChange={(e) => setWwccExpiry(e.target.value)}
-                />
-              </FormField>
-            </FormGrid2>
-
-            <FormGrid2 style={{ marginTop: 16 }}>
-              <FormField label="First Aid Certificate Expiry" id="wFaExpiry">
-                <FormInput
-                  id="wFaExpiry"
-                  type="date"
-                  value={firstAidExpiry}
-                  onChange={(e) => setFirstAidExpiry(e.target.value)}
-                />
-              </FormField>
-
-              <FormField label="CPR Certificate Expiry" id="wCprExpiry">
-                <FormInput
-                  id="wCprExpiry"
-                  type="date"
-                  value={cprExpiry}
-                  onChange={(e) => setCprExpiry(e.target.value)}
-                />
-              </FormField>
-            </FormGrid2>
-
-            <div style={{ marginTop: 16 }}>
-              <FormField label="National Police Check Date" id="wPoliceDate">
-                <FormInput
-                  id="wPoliceDate"
-                  type="date"
-                  value={policeCheckDate}
-                  onChange={(e) => setPoliceCheckDate(e.target.value)}
-                />
-              </FormField>
-            </div>
-
-            <div style={{ marginTop: 20 }}>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  color: 'var(--text-heading)',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={ndisOrientationCompleted}
-                  onChange={(e) => setNdisOrientationCompleted(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
-                />
-                <span>NDIS Worker Orientation Module (&quot;Quality, Safety and You&quot;) Completed</span>
-              </label>
-            </div>
+          <FormSection title="4. Governed Evidence Verification">
+            <p style={{ margin: 0, lineHeight: 1.6 }}>
+              This intake creates a non-rosterable applicant record. Screening, identity, work eligibility,
+              First Aid, CPR, acknowledgements and service competencies must be recorded with evidence in
+              Worker 360. No declaration on this form can make the worker roster ready.
+            </p>
           </FormSection>
         )}
 
@@ -426,15 +325,14 @@ export default function AddWorkerModal({ onClose, onCreated }: AddWorkerModalPro
           <FormSection title="5. Review & Register Worker">
             <FormSummaryCard
               title="Workforce Registration Summary"
-              badge="Ready for Roster Allocation"
+              badge="Pending Evidence Verification"
               rows={[
                 { label: 'Full Legal Name', value: name || 'Not specified' },
                 { label: 'Role / Title', value: role },
                 { label: 'Engagement Model', value: engagementType === 'employee' ? 'Direct Employee' : `Contractor (ABN ${abn || 'Pending'})` },
-                { label: 'Base Rate', value: `$${hourlyRate} AUD / hr` },
+                { label: 'Base Rate', value: hourlyRate ? `$${hourlyRate} AUD / hr` : 'Not recorded' },
                 { label: 'Allocated Hubs', value: selectedSuburbs.join(', ') || 'None selected' },
                 { label: 'NDIS Clearance', value: ndisScreening },
-                { label: 'WWCC Check', value: wwcc ? `${wwcc} (Active)` : 'Not provided' },
               ]}
             />
           </FormSection>

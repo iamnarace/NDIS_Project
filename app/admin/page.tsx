@@ -19,6 +19,7 @@ import ProgressNotesTab from '@/components/admin/ProgressNotesTab';
 import CanonicalDashboard from '@/components/admin/CanonicalDashboard';
 import SuitabilityAssessmentModal from '@/components/admin/SuitabilityAssessmentModal';
 import ParticipantOnboardingDrawer from '@/components/admin/ParticipantOnboardingDrawer';
+import WorkerReadinessPanel from '@/components/admin/WorkerReadinessPanel';
 import {
   FormDrawer,
   DrawerHeader,
@@ -107,6 +108,9 @@ interface Staff {
   cprExpiry?: string;
   hourlyRate?: number;
   status: string;
+  lifecycleStage?: string;
+  isRosterable?: boolean;
+  readinessNotes?: string;
 }
 
 interface ActivityItem {
@@ -3676,7 +3680,7 @@ export default function AdminCrmPage() {
                       <th>NDIS Screening (NWSC)</th>
                       <th>WWCC</th>
                       <th>First Aid / CPR</th>
-                      <th>Police Check</th>
+                      <th>Readiness</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -3707,7 +3711,7 @@ export default function AdminCrmPage() {
                           <span className="checkPassPill">{s.firstAid}</span>
                         </td>
                         <td>
-                          <span className="checkPassPill">Verified</span>
+                          <span className="checkPassPill">{s.isRosterable ? 'Roster ready' : 'Blocked'}</span>
                         </td>
                         <td>
                           <button
@@ -4992,6 +4996,18 @@ export default function AdminCrmPage() {
                         <p><span className="checkPassPill">{selectedStaff.ndisScreening}</span></p>
                       </div>
                       <div>
+                        <label>Governed readiness</label>
+                        <p><span className="checkPassPill">{selectedStaff.isRosterable ? 'Roster ready' : 'Rostering blocked'}</span></p>
+                      </div>
+                      <div>
+                        <label>Lifecycle stage</label>
+                        <p>{selectedStaff.lifecycleStage || 'Unknown / Needs Verification'}</p>
+                      </div>
+                      <div>
+                        <label>Readiness evidence</label>
+                        <p>{selectedStaff.readinessNotes || 'Mandatory evidence has not been verified.'}</p>
+                      </div>
+                      <div>
                         <label>Working With Children (WWCC)</label>
                         <p><span className="checkPassPill">{selectedStaff.wwcc}</span></p>
                       </div>
@@ -5001,8 +5017,9 @@ export default function AdminCrmPage() {
                       </div>
                       <div>
                         <label>Hourly Pay Rate</label>
-                        <p>${selectedStaff.hourlyRate || 38.50} / hr (SCHADS Award)</p>
+                        <p>{selectedStaff.hourlyRate == null ? 'Not recorded' : `$${selectedStaff.hourlyRate.toFixed(2)} / hr`}</p>
                       </div>
+                      <WorkerReadinessPanel staffId={selectedStaff.id} />
                     </div>
                   )}
                 </div>

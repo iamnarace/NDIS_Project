@@ -116,6 +116,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       participant_id,
+      service_code,
       service_type,
       ndis_support_item_code = '01_011_0107_1_1',
       start_time,
@@ -125,10 +126,9 @@ export async function POST(req: Request) {
       special_instructions = '',
       staff_id = null,
       repeat_weeks = 1,
-      force = false,
     } = body;
 
-    if (!participant_id || !service_type || !start_time || !end_time || !location_suburb) {
+    if (!participant_id || !service_code || !service_type || !start_time || !end_time || !location_suburb) {
       return NextResponse.json({ message: 'Missing required shift fields.' }, { status: 400 });
     }
 
@@ -153,10 +153,16 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    let resolvedStaffId = staff_id;
-    if (resolvedStaffId && !isValidUuid(resolvedStaffId)) {
-      resolvedStaffId = await resolveStaffUuid(supabase, resolvedStaffId);
+    const { data: service, error: serviceError } = await supabase
+      .from('service_scope_registry')
+      .select('service_code, operational_status, roster_eligible')
+      .eq('service_code', service_code)
+      .maybeSingle();
+    if (serviceError || !service || !['ACTIVE', 'ACTIVE_WITH_CONTROLS'].includes(service.operational_status) || !service.roster_eligible) {
+      return NextResponse.json({ message: 'Selected service is not approved for roster activation.' }, { status: 400 });
     }
+
+    if (staff_id) return NextResponse.json({ message: 'Create the shift unassigned, then use the governed worker assignment workflow.' }, { status: 400 });
 
     const startDate = new Date(start_time);
     const endDate = new Date(end_time);
@@ -165,31 +171,6 @@ export async function POST(req: Request) {
     }
 
     const durationHours = Math.round(((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)) * 100) / 100;
-
-    // Double booking detection if staff_id is provided
-    let conflictWarning = null;
-    if (resolvedStaffId) {
-      const { data: overlapping } = await supabase
-        .from('shift_assignments')
-        .select('id, shift:shifts(id, shift_reference, start_time, end_time, service_type)')
-        .eq('staff_id', resolvedStaffId)
-        .neq('status', 'cancelled');
-
-      const hasOverlap = (overlapping || []).some((item: any) => {
-        if (!item.shift) return false;
-        const oStart = new Date(item.shift.start_time);
-        const oEnd = new Date(item.shift.end_time);
-        return startDate < oEnd && endDate > oStart;
-      });
-
-      if (hasOverlap && !force) {
-        return NextResponse.json({ 
-          message: 'Worker already has a rostered shift during this time window.',
-          conflict: true,
-          requiresConfirmation: true 
-        }, { status: 409 });
-      }
-    }
 
     const createdShifts = [];
     const numRepeats = Math.max(1, Math.min(Number(repeat_weeks) || 1, 12));
@@ -204,6 +185,7 @@ export async function POST(req: Request) {
         .insert({
           shift_reference: ref,
           participant_id: resolvedParticipantId,
+          service_code,
           service_type,
           ndis_support_item_code,
           start_time: shiftStart.toISOString(),
@@ -212,25 +194,13 @@ export async function POST(req: Request) {
           location_suburb,
           location_address,
           special_instructions,
-          status: resolvedStaffId ? 'assigned' : 'unassigned',
+          status: 'unassigned',
         })
         .select()
         .single();
 
       if (shiftError) {
         return NextResponse.json({ message: userFacingError(shiftError.message) }, { status: 500 });
-      }
-
-      if (resolvedStaffId && newShift) {
-        await supabase
-          .from('shift_assignments')
-          .insert({
-            shift_id: newShift.id,
-            staff_id: resolvedStaffId,
-            assigned_by: 'Admin',
-            status: 'rostered',
-            confirmed_by_worker: false,
-          });
       }
 
       createdShifts.push(newShift);
@@ -240,7 +210,7 @@ export async function POST(req: Request) {
       ok: true, 
       count: createdShifts.length, 
       shifts: createdShifts,
-      warning: conflictWarning 
+      warning: undefined
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Server error';
@@ -260,6 +230,12 @@ export async function PATCH(req: Request) {
     const { id, ...updates } = body;
 
     if (!id) return NextResponse.json({ message: 'Shift id is required.' }, { status: 400 });
+
+    for (const protectedField of ['participant_id', 'service_code', 'service_type', 'ndis_support_item_code']) {
+      if (updates[protectedField] !== undefined) {
+        return NextResponse.json({ message: 'Participant and governed service changes require a new eligibility-checked shift.' }, { status: 400 });
+      }
+    }
 
     if (updates.start_time && updates.end_time) {
       const s = new Date(updates.start_time);

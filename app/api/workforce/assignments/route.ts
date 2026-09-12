@@ -1,11 +1,11 @@
 ﻿import { userFacingError } from '@/lib/userFacingError';
 import { NextResponse } from 'next/server';
-import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(req: Request) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
 
   const supabase = createAdminClient();
   if (!supabase) return NextResponse.json({ ok: false, error: "Database service unavailable. Please refresh and try again.", message: "Database service unavailable. Please refresh and try again." }, { status: 503 });
@@ -18,103 +18,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'shift_id and staff_id are required', message: 'shift_id and staff_id are required' }, { status: 400 });
     }
 
-    // 1. Fetch shift details to check timing
-    const { data: shift, error: shiftErr } = await supabase
-      .from('shifts')
-      .select('*')
-      .eq('id', shift_id)
-      .single();
-
-    if (shiftErr || !shift) {
-      return NextResponse.json({ ok: false, error: 'Shift not found', message: 'Shift not found' }, { status: 404 });
-    }
-
-    const shiftStart = new Date(shift.start_time);
-    const shiftEnd = new Date(shift.end_time);
-
-    // 2. Double-booking conflict check
-    const { data: existingAssignments } = await supabase
-      .from('shift_assignments')
-      .select('id, shift:shifts(id, shift_reference, start_time, end_time, service_type)')
-      .eq('staff_id', staff_id)
-      .neq('status', 'cancelled');
-
-    const conflict = (existingAssignments || []).find((item: any) => {
-      if (!item.shift || item.shift.id === shift_id) return false;
-      const oStart = new Date(item.shift.start_time);
-      const oEnd = new Date(item.shift.end_time);
-      return shiftStart < oEnd && shiftEnd > oStart;
+    const { data: decision, error: assignmentError } = await supabase.rpc('governance_g2_assign_worker', {
+      p_shift_id: shift_id,
+      p_staff_id: staff_id,
+      p_actor_id: actorId,
+      p_notes: notes || null,
+      p_force_overlap: Boolean(force),
     });
-
-    if (conflict && !force) {
-      const msg = `Conflict detected: Worker is already rostered on shift ${(conflict as any).shift?.shift_reference || ''} during this time window.`;
-      return NextResponse.json({
-        ok: false,
-        error: msg,
-        message: msg,
-        conflict: true,
-        conflicting_shift: (conflict as any).shift,
-        requiresConfirmation: true
-      }, { status: 409 });
+    if (assignmentError) {
+      const conflict = assignmentError.message.includes('schedule conflict');
+      const blocked = assignmentError.message.includes('eligibility blocked');
+      const message = conflict
+        ? 'Worker already has a rostered shift during this time window.'
+        : blocked ? 'Worker is not eligible for this participant and service.' : userFacingError(assignmentError.message);
+      return NextResponse.json({ ok: false, error: message, message, conflict, requiresConfirmation: conflict }, { status: conflict ? 409 : 400 });
     }
 
-    // 3. Worker Compliance Check (Check screening, first aid, training)
-    const { data: worker } = await supabase
-      .from('staff')
-      .select('id, full_name, ndis_screening_expiry, first_aid_expiry, cpr_expiry')
-      .eq('id', staff_id)
-      .single();
-
-    const complianceAlerts: string[] = [];
-    const today = new Date().toISOString().split('T')[0];
-
-    if (worker) {
-      if (worker.ndis_screening_expiry && worker.ndis_screening_expiry < today) {
-        complianceAlerts.push('NDIS Worker Screening has expired');
-      }
-      if (worker.first_aid_expiry && worker.first_aid_expiry < today) {
-        complianceAlerts.push('First Aid certification has expired');
-      }
-      if (worker.cpr_expiry && worker.cpr_expiry < today) {
-        complianceAlerts.push('CPR certification has expired');
-      }
-    }
-
-    // 4. Remove any existing assignment for this shift and assign new worker
-    await supabase
-      .from('shift_assignments')
-      .delete()
-      .eq('shift_id', shift_id);
-
-    const { data: assignment, error: assignErr } = await supabase
-      .from('shift_assignments')
-      .insert({
-        shift_id,
-        staff_id,
-        assigned_by: 'Admin',
-        status: 'rostered',
-        confirmed_by_worker: false,
-        worker_notes: notes || null
-      })
-      .select('*, staff:staff(*)')
-      .single();
-
-    if (assignErr) {
-      const msg = assignErr.message || 'Failed to save shift assignment.';
-      return NextResponse.json({ ok: false, error: msg, message: msg }, { status: 500 });
-    }
-
-    // Update shift status to 'assigned'
-    await supabase
-      .from('shifts')
-      .update({ status: 'assigned', updated_at: new Date().toISOString() })
-      .eq('id', shift_id);
+    const { data: assignment, error: loadError } = await supabase
+      .from('shift_assignments').select('*, staff:staff(*)').eq('id', decision.assignmentId).single();
+    if (loadError) throw loadError;
 
     return NextResponse.json({
       ok: true,
       assignment,
-      complianceAlerts,
-      warning: conflict ? 'Assigned despite schedule overlap (forced).' : undefined
+      eligibility: { decision: decision.decision, reasons: [] },
+      warning: decision.overlapOverride ? 'Assigned despite schedule overlap (forced).' : undefined
     });
 
   } catch (err: unknown) {
