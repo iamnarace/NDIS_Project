@@ -29,6 +29,7 @@ import {
   ChevronUp,
   RefreshCw,
   BookOpen,
+  Download,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -99,7 +100,7 @@ interface WorkerTrainingCompletion {
 
 function WorkerPortalContent() {
   const router = useRouter();
-  const [tab, setTab] = useState<'shifts' | 'training' | 'timesheets' | 'report_incident' | 'my_incidents'>('shifts');
+  const [tab, setTab] = useState<'shifts' | 'training' | 'timesheets' | 'payslips' | 'report_incident' | 'my_incidents'>('shifts');
   const [isLoading, setIsLoading] = useState(true);
   const [workerName, setWorkerName] = useState('');
   const [workerStaffId, setWorkerStaffId] = useState('');
@@ -111,6 +112,10 @@ function WorkerPortalContent() {
   const [trainingCompletions, setTrainingCompletions] = useState<WorkerTrainingCompletion[]>([]);
   const [trainingLoading, setTrainingLoading] = useState(false);
   const [trainingError, setTrainingError] = useState('');
+
+  // Payslips tab state
+  const [payslips, setPayslips] = useState<any[]>([]);
+  const [payslipsLoading, setPayslipsLoading] = useState(false);
 
   // Timesheets tab state
   const [timesheets, setTimesheets] = useState<any[]>([]);
@@ -561,6 +566,18 @@ function WorkerPortalContent() {
             }}
           >
             <BookOpen size={16} /> My Training ({trainingAssignments.length})
+          </button>
+          <button
+            onClick={() => setTab('payslips')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '9px 18px', borderRadius: 8, fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer',
+              background: tab === 'payslips' ? 'var(--oc-accent)' : 'var(--oc-surface)',
+              color: tab === 'payslips' ? 'var(--oc-surface)' : 'var(--oc-muted)',
+              border: tab === 'payslips' ? 'none' : '1px solid var(--oc-border)',
+            }}
+          >
+            <FileText size={16} /> My Payslips ({payslips.length})
           </button>
           <button
             onClick={() => setTab('timesheets')}

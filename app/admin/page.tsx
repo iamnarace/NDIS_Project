@@ -22,6 +22,7 @@ import ParticipantOnboardingDrawer from '@/components/admin/ParticipantOnboardin
 import WorkerReadinessPanel from '@/components/admin/WorkerReadinessPanel';
 import HelpCentrePanel from '@/components/admin/HelpCentrePanel';
 import ParticipantConsentDrawer from '@/components/admin/ParticipantConsentDrawer';
+import MasterDocumentRegisterPanel from '@/components/admin/MasterDocumentRegisterPanel';
 import {
   FormDrawer,
   DrawerHeader,
@@ -4776,6 +4777,9 @@ export default function AdminCrmPage() {
               </div>
             )}
           </div>
+
+          {/* Master Business Document & Template Register (15 Operational Categories / 85 Items) */}
+          <MasterDocumentRegisterPanel />
 
           {/* 3-Column Bento Grid matching VibeStore Screen 4 */}
           <div className="vsSettingsGrid">

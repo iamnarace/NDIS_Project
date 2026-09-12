@@ -16,6 +16,8 @@ const BASE_REQUIREMENTS = [
   'code_of_conduct', 'worker_orientation', 'privacy_confidentiality', 'whs_induction', 'safeguarding',
   'manual_handling', 'medication_administration', 'ahpra_nursing', 'clinical_indemnity',
   'wwcc',
+  'fair_work_information_statement', 'casual_employment_information_statement', 'fixed_term_contract_information_statement',
+  'tfn_declaration_collected', 'super_choice_form_collected',
 ];
 
 export default function WorkerReadinessPanel({ staffId }: { staffId: string }) {

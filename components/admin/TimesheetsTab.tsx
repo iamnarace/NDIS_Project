@@ -19,7 +19,7 @@ import {
 } from '@/components/admin/forms';
 import { 
   Calendar, Clock, User, CheckCircle2, AlertTriangle, 
-  XCircle, Filter, Search, Check, Edit3, ArrowRight, Eye, RefreshCw
+  XCircle, Filter, Search, Check, Edit3, ArrowRight, Eye, RefreshCw, Download
 } from 'lucide-react';
 
 interface TimesheetEntry {
@@ -256,7 +256,28 @@ export default function TimesheetsTab() {
             Weekly support worker hours, break deductions, mileage variance, and manager billing authorization.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <a
+            href="/api/workforce/payroll/export?mark_exported=true"
+            download
+            className="vsBtnSecondary"
+            style={{
+              padding: '8px 16px',
+              fontSize: '0.82rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              borderRadius: 8,
+              border: '1px solid var(--oc-border)',
+              background: '#FFF',
+              fontWeight: 600,
+              color: 'var(--oc-navy)',
+            }}
+            title="Export approved timesheets into a SCHADS-mapped external STP payroll CSV file"
+          >
+            <Download size={14} style={{ marginRight: 6 }} />
+            Export Payroll (SCHADS CSV)
+          </a>
           <button
             onClick={handleBatchApproveClean}
             disabled={actionLoading || submittedCount === 0}
