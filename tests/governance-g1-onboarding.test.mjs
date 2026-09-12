@@ -1,5 +1,6 @@
 ﻿import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 // Test 1: Service Suitability Assessment Engine & Governance Gates
 describe('Governance G1 - Service Suitability Assessment Engine', () => {
@@ -97,7 +98,7 @@ describe('Governance G1 - Service Suitability Assessment Engine', () => {
     assert.equal(unconfiguredRes.outcome, 'Further Information Required');
     assert.ok(unconfiguredRes.outcomeReasons.some((r) => r.includes('Billing Configuration Required')));
 
-    // NDIA-Managed with verified partner provider subcontract
+    // A typed provider name is enquiry context only and cannot verify the pathway.
     const configuredRes = await validateSuitability(
       {
         participantName: 'Charlie Brown',
@@ -114,8 +115,23 @@ describe('Governance G1 - Service Suitability Assessment Engine', () => {
       mockSupabase
     );
 
-    assert.equal(configuredRes.outcome, 'Suitable With Conditions');
-    assert.ok(configuredRes.conditions.some((c) => c.includes('third-party contracting agreement')));
+    assert.equal(configuredRes.outcome, 'Further Information Required');
+
+    const verifiedRes = await validateSuitability(
+      {
+        participantName: 'Charlie Brown',
+        isAdult: true,
+        fundingType: 'NDIA-Managed',
+        payerDetails: { verifiedContractingRelationshipId: 'relationship-verified-server-side' },
+        suburb: 'Grafton',
+        requestedServices: ['OC-SRV-DAILY-01'],
+        riskTriage: {},
+      },
+      mockSupabase
+    );
+
+    assert.equal(verifiedRes.outcome, 'Suitable With Conditions');
+    assert.ok(verifiedRes.conditions.some((c) => c.includes('verified registered-provider')));
   });
 
   it('declines participants under 18 years of age (Adults 18+ launch scope)', async () => {
@@ -134,6 +150,26 @@ describe('Governance G1 - Service Suitability Assessment Engine', () => {
     assert.equal(childRes.outcome, 'Declined / Outside Scope');
     assert.equal(childRes.isAdult, false);
     assert.ok(childRes.outcomeReasons.some((r) => r.includes('Adults 18+')));
+  });
+
+  it('uses calendar birthdays and keeps missing adult evidence unconfirmed', async () => {
+    const { validateSuitability } = await import('../lib/services/participantIntake.ts');
+    const mockSupabase = {
+      from: () => ({ select: () => ({ ilike: () => ({ maybeSingle: async () => ({
+        data: { service_code: 'OC-SRV-COMM-01', public_name: 'Community Access', operational_status: 'ACTIVE', registration_required: false, clinical_approval_required: false },
+        error: null,
+      }) }) }) }),
+    };
+    const today = new Date();
+    const localDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const exactBirthday = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    const birthdayTomorrow = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate() + 1);
+    const base = { participantName: 'Age boundary probe', fundingType: 'Self-Managed', suburb: 'Yamba', requestedServices: ['OC-SRV-COMM-01'], riskTriage: {} };
+    assert.equal((await validateSuitability({ ...base, dateOfBirth: localDate(exactBirthday) }, mockSupabase)).isAdult, true);
+    assert.equal((await validateSuitability({ ...base, dateOfBirth: localDate(birthdayTomorrow) }, mockSupabase)).isAdult, false);
+    const unknown = await validateSuitability(base, mockSupabase);
+    assert.equal(unknown.isAdult, null);
+    assert.equal(unknown.outcome, 'Further Information Required');
   });
 
   it('triggers Management / Regulatory Review Stop if restrictive practices are indicated', async () => {
@@ -289,6 +325,8 @@ describe('Governance G1 - Dynamic Onboarding Requirements', () => {
     assert.equal(standardReqs.participant_consent_obtained.waivable, false);
     assert.equal(standardReqs.service_agreement_executed.waivable, false);
     assert.equal(standardReqs.participant_risk_assessment_completed.waivable, false);
+    assert.equal(standardReqs.medication_authority_verified.required, false);
+    assert.equal(standardReqs.transport_governance_confirmed.required, false);
   });
 
   it('mandates clinical care plan when high-intensity or clinical tasks are present', async () => {
@@ -316,6 +354,81 @@ describe('Governance G1 - Dynamic Onboarding Requirements', () => {
 
     assert.equal(bspReqs.bsp_review_completed.required, true);
     assert.equal(bspReqs.bsp_review_completed.status, 'pending');
+  });
+
+  it('adds each promised participant-specific conditional control only when triggered', async () => {
+    const { computeOnboardingRequirements } = await import('../lib/services/participantIntake.ts');
+    const reqs = computeOnboardingRequirements(
+      { outcome: 'Suitable With Conditions', outcomeReasons: [], conditions: [], isAdult: true, inServiceArea: true, region: 'Sydney', serviceValidation: [] },
+      { medicationSupport: true, dysphagiaMealtime: true, manualHandling: true, seizures: true, transportRequired: true },
+      'Self-Managed'
+    );
+    for (const code of ['medication_authority_verified', 'mealtime_management_plan_verified', 'manual_handling_plan_verified', 'seizure_management_plan_verified', 'transport_governance_confirmed']) {
+      assert.equal(reqs[code].required, true, `${code} must be required when its risk is present`);
+      assert.equal(reqs[code].waivable, false);
+    }
+  });
+});
+
+describe('Governance G1 - review closure source controls', () => {
+  it('removes invented UI/API defaults and derives actors server-side', async () => {
+    const [modal, addParticipant, referralForm, referralRoute, participantsRoute, suitabilityRoute, convertRoute, onboardingRoute, serviceScopeRoute, agreementModal, roster, invoicing, quotes] = await Promise.all([
+      readFile(new URL('../components/admin/SuitabilityAssessmentModal.tsx', import.meta.url), 'utf8'),
+      readFile(new URL('../components/admin/AddParticipantModal.tsx', import.meta.url), 'utf8'),
+      readFile(new URL('../components/ReferralForm.tsx', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/referral/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/crm/participants/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/crm/suitability/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/crm/convert/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/crm/onboarding/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/governance/service-scope/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../components/admin/AgreementGeneratorModal.tsx', import.meta.url), 'utf8'),
+      readFile(new URL('../components/WorkforceRosterTab.tsx', import.meta.url), 'utf8'),
+      readFile(new URL('../components/admin/InvoicingTab.tsx', import.meta.url), 'utf8'),
+      readFile(new URL('../components/admin/QuotesTab.tsx', import.meta.url), 'utf8'),
+    ]);
+    assert.doesNotMatch(modal, /useState\(['"]Plan-Managed['"]\)/);
+    assert.doesNotMatch(modal, /useState\(['"]Yamba(?: NSW)?['"]\)/);
+    assert.doesNotMatch(modal, /useState\(true\).*transportRequired/);
+    assert.doesNotMatch(addParticipant, /useState\(['"]Plan-Managed['"]\)/);
+    assert.doesNotMatch(addParticipant, /useState\(['"]Yamba NSW['"]\)/);
+    assert.doesNotMatch(participantsRoute, /\|\| ['"]Plan-Managed['"]|\|\| ['"]Yamba NSW['"]/);
+    for (const source of [agreementModal, roster, invoicing, quotes]) {
+      assert.doesNotMatch(source, /\|\| ['"]Plan-Managed['"]|\|\| ['"]Yamba['"]|useState\(['"]Yamba['"]\)/);
+    }
+    assert.doesNotMatch(referralRoute, /funding_type:[^\n]+\|\| ['"]Plan-Managed['"]|suburb:[^\n]+\|\| ['"]Not provided['"]|services:[^\n]+\|\| ['"]General Support['"]/);
+    assert.match(referralRoute, /status === ['"]accepted['"]/);
+    assert.match(referralRoute, /privacyConsent !== true/);
+    assert.match(referralForm, /formData\.services\.length === 0/);
+    assert.match(participantsRoute, /require the governed assessment\/onboarding workflow/);
+    assert.match(modal, /service-scope\?view=internal/);
+    assert.match(serviceScopeRoute, /requestedInternalView && !isAdmin/);
+    for (const route of [suitabilityRoute, convertRoute, onboardingRoute]) {
+      assert.match(route, /getAuthenticatedAdminActor/);
+      assert.doesNotMatch(route, /actorId\s*=\s*['"]|assessedBy\s*=/);
+    }
+    const adminAuth = await readFile(new URL('../lib/adminAuth.ts', import.meta.url), 'utf8');
+    assert.doesNotMatch(adminAuth, /process\.env\.ADMIN_PASSWORD/);
+  });
+
+  it('uses atomic RPC boundaries and least-privilege G1 RLS', async () => {
+    const [migration, atomicMigration, defaultsMigration, convertRoute, onboardingRoute] = await Promise.all([
+      readFile(new URL('../supabase/migrations/20260912120000_governance_g1_review_closure.sql', import.meta.url), 'utf8'),
+      readFile(new URL('../supabase/migrations/20260912140000_governance_g1_atomic_acceptance_closure.sql', import.meta.url), 'utf8'),
+      readFile(new URL('../supabase/migrations/20260912150000_governance_g1_remove_invented_defaults.sql', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/crm/convert/route.ts', import.meta.url), 'utf8'),
+      readFile(new URL('../app/api/crm/onboarding/route.ts', import.meta.url), 'utf8'),
+    ]);
+    assert.match(convertRoute, /governance_g1_convert_referral/);
+    assert.match(onboardingRoute, /governance_g1_update_checklist_item/);
+    assert.match(onboardingRoute, /governance_g1_signoff_onboarding/);
+    assert.match(migration, /DROP POLICY IF EXISTS "Staff read suitability assessments"/);
+    assert.match(migration, /DROP POLICY IF EXISTS "Participant read own onboarding checklist"/);
+    assert.match(migration, /verified_registered_provider_contract/);
+    assert.match(atomicMigration, /participants_one_per_referral_idx/);
+    assert.match(atomicMigration, /only the latest suitability assessment may authorize onboarding/);
+    assert.match(atomicMigration, /stale or non-canonical checklist update rejected/);
+    assert.match(defaultsMigration, /ALTER COLUMN funding_type DROP DEFAULT/);
   });
 });
 

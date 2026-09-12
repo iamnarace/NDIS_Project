@@ -86,8 +86,8 @@ export function ReferralForm() {
         body: JSON.stringify({
           ...formData,
           consent: true,
-          service: formData.services.join(', ') || 'General Enquiry',
-          schedulePreference: formData.days.join(', ') || 'Flexible'
+          service: formData.services.join(', '),
+          schedulePreference: formData.days.join(', ')
         }),
       });
       const result = await response.json();
@@ -120,8 +120,8 @@ export function ReferralForm() {
           )}
           <div><strong>Participant:</strong> {formData.participantName || formData.name}</div>
           <div><strong>Contact Phone:</strong> {formData.phone}</div>
-          <div><strong>Suburbs:</strong> {formData.suburb || 'Yamba / Northern Rivers'}</div>
-          <div><strong>Funding:</strong> {formData.funding || 'Plan-Managed'}</div>
+          <div><strong>Suburb:</strong> {formData.suburb || 'Not provided'}</div>
+          <div><strong>Funding:</strong> {formData.funding || 'Not selected'}</div>
           <div><strong>Response Time:</strong> Our intake team will contact you shortly</div>
         </div>
         <button
@@ -277,8 +277,8 @@ export function ReferralForm() {
             <button
               type="button"
               onClick={() => {
-                if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim()) {
-                  setStepError('Please enter your full name, phone number, and email address before proceeding.');
+                if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim() || !formData.suburb.trim()) {
+                  setStepError('Please enter your full name, phone number, email address, and participant town or suburb before proceeding.');
                   return;
                 }
                 setStepError('');
@@ -366,8 +366,8 @@ export function ReferralForm() {
             <button
               type="button"
               onClick={() => {
-                if (!formData.funding) {
-                  setStepError('Please select an NDIS funding management type before proceeding.');
+                if (!formData.funding || formData.services.length === 0) {
+                  setStepError('Please select at least one requested service and an NDIS funding management type before proceeding.');
                   return;
                 }
                 setStepError('');

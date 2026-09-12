@@ -42,25 +42,24 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
   const [email, setEmail] = useState('');
 
   // Step 2: Address & Service Area
-  const [suburb, setSuburb] = useState('Yamba NSW');
-  const [inServiceArea, setInServiceArea] = useState(true);
+  const [suburb, setSuburb] = useState('');
+  const [inServiceArea, setInServiceArea] = useState(false);
   const [streetAddress, setStreetAddress] = useState('');
 
   // Step 3: Funding & Plan
-  const [fundingType, setFundingType] = useState('Plan-Managed');
+  const [fundingType, setFundingType] = useState('');
   const [planManagerName, setPlanManagerName] = useState('');
   const [planManagerEmail, setPlanManagerEmail] = useState('');
-  const [allocatedHours, setAllocatedHours] = useState('8');
+  const [allocatedHours, setAllocatedHours] = useState('');
 
   // Step 4: Contact & Nominee
   const [contactPerson, setContactPerson] = useState('');
   const [emergencyContactName, setEmergencyContactName] = useState('');
   const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
   const [emergencyContactRelation, setEmergencyContactRelation] = useState('');
-  const [primaryService, setPrimaryService] = useState('Community Participation & Daily Living');
+  const [primaryService, setPrimaryService] = useState('');
 
   // Step 5: Options
-  const [completeProfileLater, setCompleteProfileLater] = useState(false);
 
   const validateStep = (currentStep: number): boolean => {
     setError('');
@@ -75,6 +74,10 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
         setError('Suburb / Town is required.');
         return false;
       }
+    }
+    if (currentStep === 3 && !fundingType) {
+      setError('Funding management must be explicitly selected.');
+      return false;
     }
     return true;
   };
@@ -120,7 +123,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
         emergencyContactName: emergencyContactName.trim() || undefined,
         emergencyContactPhone: emergencyContactPhone.trim() || undefined,
         emergencyContactRelation: emergencyContactRelation.trim() || undefined,
-        status: completeProfileLater ? 'pending_intake' : 'active',
+        status: 'pending_intake',
       };
 
       const res = await fetch('/api/crm/participants', {
@@ -148,7 +151,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
     <FormDrawer isOpen onClose={onClose} wide>
       <DrawerHeader
         title="Add NDIS Participant"
-        description="Create and onboard a participant into the Opus Care system."
+        description="Create a non-rosterable intake record. Suitability assessment is required before onboarding."
         onClose={onClose}
         badge={<span className="compliance-pill">NDIS Onboarding</span>}
       />
@@ -235,6 +238,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                   setInServiceArea(e.target.value !== 'Other NSW');
                 }}
               >
+                <option value="" disabled>Select actual service location</option>
                 <option value="Yamba NSW">Yamba NSW (Core Hub)</option>
                 <option value="Maclean NSW">Maclean NSW</option>
                 <option value="Grafton NSW">Grafton NSW</option>
@@ -287,6 +291,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 value={fundingType}
                 onChange={(e) => setFundingType(e.target.value)}
               >
+                <option value="" disabled>Select verified funding type</option>
                 <option value="Plan-Managed">Plan-Managed (Invoices sent to Plan Manager)</option>
                 <option value="Self-Managed">Self-Managed (Participant / Nominee pays directly)</option>
                 <option value="NDIA-Managed">Agency / NDIA-Managed</option>
@@ -335,6 +340,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                   value={primaryService}
                   onChange={(e) => setPrimaryService(e.target.value)}
                 >
+                  <option value="">Not yet assessed</option>
                   <option value="Community Participation & Daily Living">Community Participation & Daily Living</option>
                   <option value="Personal Care & In-Home Support">Personal Care & In-Home Support</option>
                   <option value="Social & Civic Access">Social & Civic Access</option>
@@ -396,7 +402,7 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
           <FormSection title="5. Review & Create Record">
             <FormSummaryCard
               title="Participant Registration Summary"
-              badge="Ready for Verification"
+              badge="Intake only — suitability required"
               rows={[
                 { label: 'Full Legal Name', value: name || 'Not specified' },
                 { label: 'NDIS Number', value: ndisNumber || 'Not recorded' },
@@ -404,34 +410,12 @@ export default function AddParticipantModal({ onClose, onCreated }: AddParticipa
                 { label: 'Funding Structure', value: fundingType },
                 {
                   label: 'Plan Manager',
-                  value: fundingType === 'Plan-Managed' ? planManagerName || 'Pending' : 'N/A (Self-Managed)',
+                  value: fundingType === 'Plan-Managed' ? planManagerName || 'Pending verification' : 'Not applicable to selected funding type',
                 },
-                { label: 'Allocated Weekly Hours', value: `${allocatedHours} hrs / week` },
-                { label: 'Primary Support Service', value: primaryService },
+                { label: 'Allocated Weekly Hours', value: allocatedHours ? `${allocatedHours} hrs / week` : 'Not recorded' },
+                { label: 'Primary Support Service', value: primaryService || 'Not yet assessed' },
               ]}
             />
-
-            <div style={{ marginTop: 20 }}>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  color: 'var(--text-heading)',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={completeProfileLater}
-                  onChange={(e) => setCompleteProfileLater(e.target.checked)}
-                  style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
-                />
-                <span>Mark as Pending Intake (Coordinator will follow up for full care notes)</span>
-              </label>
-            </div>
           </FormSection>
         )}
       </div>

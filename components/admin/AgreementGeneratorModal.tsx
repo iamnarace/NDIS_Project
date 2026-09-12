@@ -92,7 +92,7 @@ export default function AgreementGeneratorModal({
   );
   const [ndisNumber, setNdisNumber] = useState<string>(sourceAgreement?.questionnaire_data?.ndis_number || '');
   const [fundingType, setFundingType] = useState<string>(
-    sourceAgreement?.questionnaire_data?.funding_type || 'Plan-Managed'
+    sourceAgreement?.questionnaire_data?.funding_type || ''
   );
   const [planManagerName, setPlanManagerName] = useState<string>(
     sourceAgreement?.questionnaire_data?.plan_manager_name || ''
@@ -219,7 +219,7 @@ export default function AgreementGeneratorModal({
       if (part) {
         setRecipientName(part.name);
         setNdisNumber(part.ndisNumber || '');
-        setFundingType(part.fundingType || 'Plan-Managed');
+        setFundingType(part.fundingType || '');
         setPlanManagerName(part.planManager || '');
         setSignerName(part.name);
       }
@@ -620,7 +620,7 @@ export default function AgreementGeneratorModal({
                     {ownerType === 'participant'
                       ? participants.map((p) => (
                           <option key={p.id} value={p.id}>
-                            {p.name} {p.ndisNumber ? `(NDIS #${p.ndisNumber})` : ''} - {p.suburb || 'Yamba'}
+                            {p.name} {p.ndisNumber ? `(NDIS #${p.ndisNumber})` : ''} - {p.suburb || 'Location not recorded'}
                           </option>
                         ))
                       : staff.map((s) => (

@@ -382,7 +382,7 @@ export default function InvoicingTab({ participants }: InvoicingTabProps) {
                     <option value="">Select participant...</option>
                     {participants.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} ({p.referenceNumber || 'PAR'}) - {p.fundingType || 'Plan-Managed'}
+                        {p.name} ({p.referenceNumber || 'PAR'}) - {p.fundingType || 'Funding not recorded'}
                       </option>
                     ))}
                   </FormSelect>

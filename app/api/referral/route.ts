@@ -56,6 +56,18 @@ export async function POST(request: Request) {
       }
     }
 
+    const suburb = text(body.suburb, 120);
+    const funding = text(body.funding, 120);
+    const services = text(body.service, 300) || text(body.services, 300);
+    if (!suburb) return NextResponse.json({ message: 'Please provide the participant town or suburb.' }, { status: 400 });
+    if (!['Plan-Managed', 'Self-Managed'].includes(funding)) {
+      return NextResponse.json({ message: 'Please select a supported NDIS funding management type.' }, { status: 400 });
+    }
+    if (!services) return NextResponse.json({ message: 'Please select at least one requested support service.' }, { status: 400 });
+    if (body.privacyConsent !== true || body.participantConsent !== true) {
+      return NextResponse.json({ message: 'Privacy acknowledgement and participant/nominee consent are required.' }, { status: 400 });
+    }
+
     const supabase = createAdminClient();
     if (!supabase) return NextResponse.json({ message: 'We could not submit your referral right now. Please try again.' }, { status: 503 });
     const referenceNumber = await nextReferenceNumber(supabase, 'referrals', 'REF');
@@ -69,10 +81,10 @@ export async function POST(request: Request) {
             phone: text(body.phone, 80),
             email: text(body.email, 160),
             participant_name: text(body.participantName, 120) || text(body.name, 120),
-            suburb: text(body.suburb, 120) || 'Not provided',
-            funding_type: text(body.funding, 120) || 'Plan-Managed',
-            services: text(body.service, 300) || text(body.services, 300) || 'General Support',
-            schedule_preference: text(body.schedulePreference, 200) || 'Flexible',
+            suburb,
+            funding_type: funding,
+            services,
+            schedule_preference: text(body.schedulePreference, 200) || null,
             notes: text(body.message, 2500) || '',
             status: 'new',
           })
@@ -91,10 +103,10 @@ export async function POST(request: Request) {
       phone: text(body.phone, 80),
       email: text(body.email, 160),
       participantName: text(body.participantName, 120) || text(body.name, 120),
-      suburb: text(body.suburb, 120) || 'Not provided',
-      funding: text(body.funding, 120) || 'Plan-Managed',
-      services: text(body.service, 300) || text(body.services, 300) || 'General Support',
-      schedulePreference: text(body.schedulePreference, 200) || 'Flexible',
+      suburb,
+      funding,
+      services,
+      schedulePreference: text(body.schedulePreference, 200) || 'Not specified',
       message: text(body.message, 2500) || 'No additional message.',
       status: 'new',
       createdAt: new Date().toISOString(),
@@ -135,6 +147,12 @@ export async function PATCH(request: Request) {
 
     if (!id || !status) {
       return NextResponse.json({ message: 'Missing referral ID or status.' }, { status: 400 });
+    }
+    if (status === 'accepted') {
+      return NextResponse.json({ message: 'Accepted status is set only by the governed onboarding conversion.' }, { status: 400 });
+    }
+    if (!['new', 'contacted', 'assessment', 'agreement_sent', 'declined'].includes(status)) {
+      return NextResponse.json({ message: 'Invalid referral intake stage.' }, { status: 400 });
     }
 
     const supabase = createAdminClient();

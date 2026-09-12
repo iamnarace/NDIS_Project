@@ -1,0 +1,4 @@
+-- Live migration history marker.
+-- Supabase connector applied repository migration
+-- 20260912160000_governance_g1_signoff_jsonb_compatibility.sql under this
+-- generated live version. The canonical SQL remains in that repository file.

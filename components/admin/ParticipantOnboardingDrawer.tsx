@@ -89,7 +89,6 @@ export default function ParticipantOnboardingDrawer({
           code,
           status: newStatus,
           waiverReason: reason,
-          actorId: 'Coordinator / Admin',
         }),
       });
 
@@ -119,7 +118,6 @@ export default function ParticipantOnboardingDrawer({
         body: JSON.stringify({
           participantId: participant.id,
           action: 'signoff',
-          actorId: 'Registered Manager / Director',
         }),
       });
 
@@ -238,6 +236,7 @@ export default function ParticipantOnboardingDrawer({
                   return (
                     <div
                       key={item.code}
+                      data-testid={`checklist-item-${item.code}`}
                       style={{
                         padding: '12px 16px',
                         borderRadius: 6,
@@ -383,6 +382,7 @@ export default function ParticipantOnboardingDrawer({
               State the mandatory governance rationale for waiving this requirement:
             </p>
             <textarea
+              aria-label="Waiver rationale"
               rows={3}
               value={waiverReason}
               onChange={(e) => setWaiverReason(e.target.value)}

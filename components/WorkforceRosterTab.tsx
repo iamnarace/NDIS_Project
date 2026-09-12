@@ -160,12 +160,12 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
 
   // New Shift Form State
   const [formParticipantId, setFormParticipantId] = useState('');
-  const [formServiceType, setFormServiceType] = useState(SERVICE_TYPES[0].label);
-  const [formItemCode, setFormItemCode] = useState(SERVICE_TYPES[0].code);
+  const [formServiceType, setFormServiceType] = useState('');
+  const [formItemCode, setFormItemCode] = useState('');
   const [formDate, setFormDate] = useState('');
   const [formStartTime, setFormStartTime] = useState('09:00');
   const [formEndTime, setFormEndTime] = useState('13:00');
-  const [formSuburb, setFormSuburb] = useState('Yamba');
+  const [formSuburb, setFormSuburb] = useState('');
   const [formAddress, setFormAddress] = useState('');
   const [formStaffId, setFormStaffId] = useState('');
   const [formInstructions, setFormInstructions] = useState('');
@@ -316,14 +316,11 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
   const handleOpenSchedule = (dateStr?: string) => {
     const initialDate = dateStr || new Date().toISOString().split('T')[0];
     setFormDate(initialDate);
-    if (participants.length > 0) {
-      setFormParticipantId(participants[0].id);
-      const cleanSub = (participants[0].suburb || 'Yamba').replace(/NSW|\d+/gi, '').trim();
-      setFormSuburb(cleanSub || 'Yamba');
-      setFormAddress(participants[0].street_address || '');
-    }
-    setFormServiceType(SERVICE_TYPES[0].label);
-    setFormItemCode(SERVICE_TYPES[0].code);
+    setFormParticipantId('');
+    setFormSuburb('');
+    setFormAddress('');
+    setFormServiceType('');
+    setFormItemCode('');
     setFormStartTime('09:00');
     setFormEndTime('13:00');
     setFormStaffId('');
@@ -339,8 +336,8 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
     setFormParticipantId(pid);
     const p = participants.find((item) => item.id === pid);
     if (p) {
-      const cleanSub = (p.suburb || 'Yamba').replace(/NSW|\d+/gi, '').trim();
-      setFormSuburb(cleanSub || 'Yamba');
+      const cleanSub = (p.suburb || '').replace(/NSW|\d+/gi, '').trim();
+      setFormSuburb(cleanSub);
       setFormAddress(p.street_address || '');
     }
   };
@@ -1038,6 +1035,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                   onChange={(e) => handleParticipantChange(e.target.value)}
                   required
                 >
+                  <option value="">Select participant...</option>
                   {participants.map((p) => (
                     <option key={p.id} value={p.id}>{p.name} ({p.referenceNumber || 'NDIS'} — {p.suburb})</option>
                   ))}
@@ -1051,6 +1049,7 @@ export default function WorkforceRosterTab({ participants, staff }: WorkforceRos
                     onChange={(e) => handleServiceChange(e.target.value)}
                     required
                   >
+                    <option value="">Select governed service...</option>
                     {SERVICE_TYPES.map((st) => (
                       <option key={st.label} value={st.label}>{st.label}</option>
                     ))}

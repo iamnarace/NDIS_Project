@@ -51,32 +51,32 @@ export default function SuitabilityAssessmentModal({
     referral?.participantName || participant?.name || ''
   );
   const [dob, setDob] = useState(participant?.dateOfBirth || '');
-  const [isAdultConfirmed, setIsAdultConfirmed] = useState(true);
+  const [isAdultConfirmed, setIsAdultConfirmed] = useState<boolean | null>(null);
 
   // Step 2: Location
   const [suburb, setSuburb] = useState(
-    referral?.suburb || participant?.suburb || 'Yamba'
+    referral?.suburb || participant?.suburb || ''
   );
   const [postcode, setPostcode] = useState('');
   const [areaValidation, setAreaValidation] = useState<any>(null);
 
   // Step 3: Funding
   const [fundingType, setFundingType] = useState<string>(
-    referral?.funding || participant?.fundingType || 'Plan-Managed'
+    referral?.funding || participant?.fundingType || ''
   );
   const [planManagerName, setPlanManagerName] = useState(participant?.planManager || '');
   const [planManagerEmail, setPlanManagerEmail] = useState(participant?.planManagerEmail || '');
   const [registeredContractingProvider, setRegisteredContractingProvider] = useState('');
+  const [contractingProviderRelationshipId, setContractingProviderRelationshipId] = useState('');
+  const [verifiedProviderRelationships, setVerifiedProviderRelationships] = useState<any[]>([]);
 
   // Step 4: Services
   const [availableServices, setAvailableServices] = useState<any[]>([]);
-  const [selectedServices, setSelectedServices] = useState<string[]>([
-    'OC-SRV-COMM-01',
-    'OC-SRV-DAILY-01',
-  ]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
   // Step 5: Risk Triage
-  const [personalSupport, setPersonalSupport] = useState(false);
+  const [mobilityTransfers, setMobilityTransfers] = useState(false);
+  const [continenceSupport, setContinenceSupport] = useState(false);
   const [manualHandling, setManualHandling] = useState(false);
   const [medicationSupport, setMedicationSupport] = useState(false);
   const [allergies, setAllergies] = useState('');
@@ -88,7 +88,7 @@ export default function SuitabilityAssessmentModal({
   const [behavioursOfConcern, setBehavioursOfConcern] = useState(false);
   const [bspInPlace, setBspInPlace] = useState(false);
   const [restrictivePractices, setRestrictivePractices] = useState(false);
-  const [transportRequired, setTransportRequired] = useState(true);
+  const [transportRequired, setTransportRequired] = useState(false);
 
   // Step 6: Evaluation
   const [assessorNotes, setAssessorNotes] = useState('');
@@ -101,20 +101,29 @@ export default function SuitabilityAssessmentModal({
     }
   }, [suburb]);
 
-  // Load active services
+  // Load the governed internal catalogue and structured provider relationships.
   useEffect(() => {
-    async function loadServices() {
+    async function loadGovernanceOptions() {
       try {
-        const res = await fetch('/api/governance/service-scope');
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableServices(data.services || []);
+        const [servicesRes, providersRes] = await Promise.all([
+          fetch('/api/governance/service-scope?view=internal'),
+          fetch('/api/crm/contracting-providers'),
+        ]);
+        if (!servicesRes.ok) throw new Error('Internal service catalogue is unavailable.');
+        const servicesData = await servicesRes.json();
+        setAvailableServices(servicesData.services || []);
+        if (providersRes.ok) {
+          const providersData = await providersRes.json();
+          setVerifiedProviderRelationships(
+            (providersData.relationships || []).filter((item: any) => item.verification_status === 'verified')
+          );
         }
       } catch (err) {
-        console.error('Could not load services for suitability modal', err);
+        console.error('Could not load governed suitability options', err);
+        setError('Governance options could not be loaded. Assessment remains unavailable.');
       }
     }
-    loadServices();
+    loadGovernanceOptions();
   }, []);
 
   const handleNext = () => {
@@ -123,12 +132,16 @@ export default function SuitabilityAssessmentModal({
       setError('Participant name is required.');
       return;
     }
+    if (step === 1 && !dob && isAdultConfirmed === null) {
+      setError('Record date of birth or explicitly confirm the adult 18+ intake evidence.');
+      return;
+    }
     if (step === 2 && !suburb.trim()) {
       setError('Suburb / location is required.');
       return;
     }
-    if (step === 3 && fundingType === 'NDIA-Managed' && !registeredContractingProvider.trim()) {
-      setError('NDIA-Managed pathway requires a registered partner provider or billing intermediary.');
+    if (step === 3 && !fundingType) {
+      setError('Select the verified funding management type.');
       return;
     }
     if (step === 4 && selectedServices.length === 0) {
@@ -159,19 +172,21 @@ export default function SuitabilityAssessmentModal({
         participantId: participant?.id,
         participantName: participantName.trim(),
         dateOfBirth: dob || undefined,
-        isAdult: isAdultConfirmed,
+        isAdult: dob ? undefined : isAdultConfirmed,
         fundingType,
         payerDetails: {
           fundingType,
           planManagerName: planManagerName.trim() || undefined,
           planManagerEmail: planManagerEmail.trim() || undefined,
           registeredContractingProvider: registeredContractingProvider.trim() || undefined,
+          contractingProviderRelationshipId: contractingProviderRelationshipId || undefined,
         },
         suburb: suburb.trim(),
         postcode: postcode.trim() || undefined,
         requestedServices: selectedServices,
         riskTriage: {
           manualHandling,
+          mobilityTransfers,
           medicationSupport,
           allergies: allergies.trim() || undefined,
           dysphagiaMealtime,
@@ -179,12 +194,12 @@ export default function SuitabilityAssessmentModal({
           clinicalTasks,
           catheterCare,
           bowelCare,
+          continenceSupport,
           behavioursOfConcern,
           bspInPlace,
           restrictivePracticesIndicated: restrictivePractices,
           transportRequired,
         },
-        assessedBy: 'Coordinator / Intake Specialist',
         assessorNotes: assessorNotes.trim(),
       };
 
@@ -258,7 +273,7 @@ export default function SuitabilityAssessmentModal({
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, cursor: 'pointer' }}>
                 <input
                   type="checkbox"
-                  checked={isAdultConfirmed}
+                  checked={isAdultConfirmed === true}
                   onChange={(e) => setIsAdultConfirmed(e.target.checked)}
                   style={{ width: 16, height: 16, accentColor: 'var(--brand-primary)' }}
                 />
@@ -266,7 +281,7 @@ export default function SuitabilityAssessmentModal({
               </label>
             </div>
 
-            {!isAdultConfirmed && (
+            {isAdultConfirmed === false && (
               <div style={{ marginTop: 12, padding: '10px 14px', background: '#FEF2F2', border: '1px solid #F87171', borderRadius: 6, color: '#B91C1C', fontSize: 13 }}>
                 <AlertCircle size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: -3 }} />
                 Referrals under 18 years old cannot be onboarded. A decline outcome will be recorded.
@@ -367,7 +382,22 @@ export default function SuitabilityAssessmentModal({
                   <Shield size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: -3 }} />
                   <strong>Provider Boundary Notice:</strong> Opus Care is an unregistered provider and cannot directly lodge NDIA claims. A formal subcontract with a registered provider is mandatory.
                 </div>
-                <FormField label="Registered Contracting Provider / Partner Name" required id="regPartner">
+                <FormField label="Verified Contracting Provider Relationship" id="regPartnerRelationship">
+                  <FormSelect
+                    id="regPartnerRelationship"
+                    value={contractingProviderRelationshipId}
+                    onChange={(e) => setContractingProviderRelationshipId(e.target.value)}
+                  >
+                    <option value="">No verified relationship selected</option>
+                    {verifiedProviderRelationships.map((relationship) => (
+                      <option key={relationship.id} value={relationship.id}>
+                        {relationship.provider_name} — {relationship.contract_reference}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </FormField>
+                <div style={{ marginTop: 12 }}>
+                <FormField label="Provider name supplied with enquiry (does not verify billing)" id="regPartner">
                   <FormInput
                     id="regPartner"
                     value={registeredContractingProvider}
@@ -375,6 +405,12 @@ export default function SuitabilityAssessmentModal({
                     placeholder="Registered Partner Organisation Legal Name"
                   />
                 </FormField>
+                </div>
+                {verifiedProviderRelationships.length === 0 && (
+                  <p style={{ margin: '10px 0 0', fontSize: 12.5, color: '#92400E' }}>
+                    No verified contracting relationship is recorded. This assessment will remain Billing Configuration Required.
+                  </p>
+                )}
               </div>
             )}
           </FormSection>
@@ -410,8 +446,10 @@ export default function SuitabilityAssessmentModal({
                       style={{ marginTop: 3, accentColor: 'var(--brand-primary)' }}
                     />
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 13 }}>{srv.name}</div>
-                      <div style={{ fontSize: 11.5, color: 'var(--oc-muted)' }}>{srv.category}</div>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{srv.publicName || srv.name}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--oc-muted)' }}>
+                        {srv.operationalStatus || srv.status || srv.category}
+                      </div>
                     </div>
                   </label>
                 );
@@ -428,6 +466,10 @@ export default function SuitabilityAssessmentModal({
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5 }}>
+                <input type="checkbox" checked={mobilityTransfers} onChange={(e) => setMobilityTransfers(e.target.checked)} />
+                <span>Mobility or transfer assistance required</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5 }}>
                 <input type="checkbox" checked={manualHandling} onChange={(e) => setManualHandling(e.target.checked)} />
                 <span>Manual handling / hoist / physical transfer assistance required</span>
               </label>
@@ -442,6 +484,14 @@ export default function SuitabilityAssessmentModal({
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5 }}>
                 <input type="checkbox" checked={seizures} onChange={(e) => setSeizures(e.target.checked)} />
                 <span>Epilepsy or seizure management plan in place</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5 }}>
+                <input type="checkbox" checked={continenceSupport} onChange={(e) => setContinenceSupport(e.target.checked)} />
+                <span>Continence or toileting support required</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5 }}>
+                <input type="checkbox" checked={transportRequired} onChange={(e) => setTransportRequired(e.target.checked)} />
+                <span>Participant transport is requested as part of service delivery</span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5 }}>
                 <input type="checkbox" checked={catheterCare} onChange={(e) => setCatheterCare(e.target.checked)} />
@@ -491,7 +541,7 @@ export default function SuitabilityAssessmentModal({
               title="Assessment Summary"
               rows={[
                 { label: 'Participant', value: participantName },
-                { label: 'Age Status', value: isAdultConfirmed ? 'Adult 18+' : 'Under 18 (Declined)' },
+                { label: 'Age Status', value: dob ? 'Calculated from date of birth' : isAdultConfirmed === true ? 'Adult 18+ confirmed' : isAdultConfirmed === false ? 'Under 18' : 'Unconfirmed' },
                 { label: 'Location / Region', value: `${suburb} (${areaValidation?.regionCanonical || 'Review Needed'})` },
                 { label: 'Funding Basis', value: fundingType },
                 { label: 'Selected Supports', value: `${selectedServices.length} items selected` },

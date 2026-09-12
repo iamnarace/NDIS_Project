@@ -12,9 +12,17 @@ export async function GET(request: NextRequest) {
   try {
     const isAdmin = await isAuthenticatedAdmin(request);
     const { searchParams } = new URL(request.url);
+    const requestedInternalView = searchParams.get('view') === 'internal';
+
+    if (requestedInternalView && !isAdmin) {
+      return NextResponse.json(
+        { ok: false, error: 'Unauthorized: Admin access required.' },
+        { status: 401 }
+      );
+    }
 
     // 1. Authenticated Admin View: Full internal governance registry
-    if (isAdmin) {
+    if (requestedInternalView && isAdmin) {
       const supabase = createAdminClient();
       if (!supabase) {
         return NextResponse.json(

@@ -1,8 +1,8 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userFacingError } from '@/lib/userFacingError';
-import { checkParticipantReadiness, ChecklistRequirement } from '@/lib/services/participantIntake';
+import { checkParticipantReadiness } from '@/lib/services/participantIntake';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
     return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
@@ -60,7 +60,6 @@ export async function PATCH(req: NextRequest) {
       status,
       waiverReason,
       notes,
-      actorId = 'Admin / Coordinator',
       documentId,
     } = body;
 
@@ -73,66 +72,19 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Governance service unavailable.' }, { status: 503 });
     }
 
-    const { data: checklist, error: chkErr } = await supabase
-      .from('participant_onboarding_checklists')
-      .select('*')
-      .eq('participant_id', participantId)
-      .maybeSingle();
-
-    if (chkErr || !checklist) {
-      return NextResponse.json({ ok: false, error: 'Onboarding checklist not found for participant.' }, { status: 404 });
+    if (!['pending', 'completed', 'waived'].includes(status)) {
+      return NextResponse.json({ ok: false, error: 'Checklist status is invalid.' }, { status: 400 });
     }
 
-    const reqs: Record<string, ChecklistRequirement> = checklist.requirements || {};
-    const item = reqs[code];
-    if (!item) {
-      return NextResponse.json({ ok: false, error: `Requirement code "${code}" does not exist on checklist.` }, { status: 400 });
-    }
-
-    // Waiver validation
-    if (status === 'waived') {
-      if (!item.waivable) {
-        return NextResponse.json(
-          { ok: false, error: `Critical requirement "${item.title}" is non-waivable and cannot be bypassed.` },
-          { status: 400 }
-        );
-      }
-      if (!waiverReason || !waiverReason.trim()) {
-        return NextResponse.json(
-          { ok: false, error: `Mandatory waiver rationale must be provided to waive "${item.title}".` },
-          { status: 400 }
-        );
-      }
-      item.status = 'waived';
-      item.waivedAt = new Date().toISOString();
-      item.waivedBy = actorId;
-      item.waiverReason = waiverReason.trim();
-    } else if (status === 'completed') {
-      item.status = 'completed';
-      item.completedAt = new Date().toISOString();
-      item.completedBy = actorId;
-    } else {
-      item.status = 'pending';
-      delete item.completedAt;
-      delete item.completedBy;
-      delete item.waivedAt;
-      delete item.waivedBy;
-      delete item.waiverReason;
-    }
-
-    if (notes) item.notes = notes;
-    if (documentId) item.documentId = documentId;
-
-    reqs[code] = item;
-
-    // Update checklist in database
-    const { error: updErr } = await supabase
-      .from('participant_onboarding_checklists')
-      .update({
-        requirements: reqs,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('participant_id', participantId);
+    const { error: updErr } = await supabase.rpc('governance_g1_update_checklist_item', {
+      p_participant_id: participantId,
+      p_actor_id: actorId,
+      p_item_code: code,
+      p_item_status: status,
+      p_waiver_reason: waiverReason?.trim() || null,
+      p_notes: notes?.trim() || null,
+      p_document_id: documentId || null,
+    });
 
     if (updErr) {
       return NextResponse.json({ ok: false, error: userFacingError(updErr.message) }, { status: 500 });
@@ -140,38 +92,6 @@ export async function PATCH(req: NextRequest) {
 
     // Recalculate readiness
     const readiness = await checkParticipantReadiness(participantId, supabase);
-
-    // If previously ready but now broken, revoke roster eligibility
-    if (!readiness.isReady) {
-      await supabase
-        .from('participants')
-        .update({ is_rosterable: false, updated_at: new Date().toISOString() })
-        .eq('id', participantId);
-
-      await supabase
-        .from('participant_onboarding_checklists')
-        .update({ is_ready_for_rostering: false, updated_at: new Date().toISOString() })
-        .eq('participant_id', participantId);
-    }
-
-    // Emit audit event
-    await supabase.from('audit_events').insert({
-      entity_type: 'participant_onboarding_checklist',
-      entity_id: checklist.id,
-      actor_type: 'admin',
-      actor_id: actorId,
-      action: 'checklist_item_updated',
-      changes: {
-        code,
-        status,
-        waiverReason: item.waiverReason,
-      },
-      metadata: {
-        participantId,
-        readinessPercentage: readiness.percentage,
-        isReady: readiness.isReady,
-      },
-    });
 
     return NextResponse.json({
       ok: true,
@@ -183,14 +103,14 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
     return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
   try {
     const body = await req.json();
-    const { participantId, actorId = 'Director / Admin', action } = body;
+    const { participantId, action } = body;
 
     if (!participantId) {
       return NextResponse.json({ ok: false, error: 'participantId is required.' }, { status: 400 });
@@ -213,49 +133,14 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
-      // Update participant to active / rosterable
-      const { error: partErr } = await supabase
-        .from('participants')
-        .update({
-          is_rosterable: true,
-          lifecycle_stage: 'active_rosterable',
-          status: 'active',
-          readiness_notes: `Onboarding verified and approved by ${actorId} on ${new Date().toISOString()}`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', participantId);
+      const { error: partErr } = await supabase.rpc('governance_g1_signoff_onboarding', {
+        p_participant_id: participantId,
+        p_actor_id: actorId,
+      });
 
       if (partErr) {
         return NextResponse.json({ ok: false, error: userFacingError(partErr.message) }, { status: 500 });
       }
-
-      // Update checklist record
-      await supabase
-        .from('participant_onboarding_checklists')
-        .update({
-          is_ready_for_rostering: true,
-          signoff_by: actorId,
-          signoff_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('participant_id', participantId);
-
-      // Emit audit log
-      await supabase.from('audit_events').insert({
-        entity_type: 'participant',
-        entity_id: participantId,
-        actor_type: 'admin',
-        actor_id: actorId,
-        action: 'readiness_approved',
-        changes: {
-          is_rosterable: true,
-          lifecycle_stage: 'active_rosterable',
-        },
-        metadata: {
-          participantId,
-          approvedAt: new Date().toISOString(),
-        },
-      });
 
       return NextResponse.json({
         ok: true,

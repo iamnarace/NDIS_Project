@@ -1,0 +1,8 @@
+-- Live migration marker only.
+--
+-- The Supabase connector assigned version 20260912045818 when it applied the
+-- reviewed G1 atomic acceptance closure to the linked project. The canonical,
+-- dependency-ordered and idempotent migration remains
+-- 20260912140000_governance_g1_atomic_acceptance_closure.sql for fresh and
+-- future environments. Do not move that SQL into this earlier slot because it
+-- depends on the G1 tables and functions created later in the migration chain.

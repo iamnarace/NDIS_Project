@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from 'next/server';
-import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { getAuthenticatedAdminActor } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userFacingError } from '@/lib/userFacingError';
 import { nextReferenceNumber } from '@/lib/referenceNumber';
@@ -8,14 +8,14 @@ import { computeOnboardingRequirements } from '@/lib/services/participantIntake'
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
     return NextResponse.json({ message: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
   try {
     const body = await req.json();
-    const { referralId, suitabilityAssessmentId, ndisNumber, allocatedHours, actorId = 'Coordinator / Admin' } = body;
+    const { referralId, suitabilityAssessmentId, ndisNumber, allocatedHours } = body;
 
     if (!referralId) {
       return NextResponse.json({ message: 'Missing referral ID.' }, { status: 400 });
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       .select('*');
 
     if (suitabilityAssessmentId) {
-      assessmentQuery = assessmentQuery.eq('id', suitabilityAssessmentId);
+      assessmentQuery = assessmentQuery.eq('id', suitabilityAssessmentId).eq('referral_id', ref.id);
     } else {
       assessmentQuery = assessmentQuery.eq('referral_id', ref.id).order('created_at', { ascending: false }).limit(1);
     }
@@ -65,34 +65,12 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // 3. Create Participant in 'onboarding' lifecycle stage (NOT active / NOT rosterable)
-    const participantReference = await nextReferenceNumber(supabase, 'participants', 'PAR');
-    const { data: part, error: partErr } = await supabase
-      .from('participants')
-      .insert({
-        reference_number: participantReference,
-        referral_id: ref.id,
-        suitability_assessment_id: assessment.id,
-        full_name: ref.participant_name,
-        ndis_number: ndisNumber || null,
-        phone: ref.phone,
-        email: ref.email,
-        suburb: ref.suburb,
-        funding_type: ref.funding_type || 'Plan-Managed',
-        allocated_weekly_hours: Number(allocatedHours) || 0.0,
-        status: 'pending_intake', // Governed: pending onboarding review
-        lifecycle_stage: 'onboarding', // Governance G1: in onboarding gate
-        is_rosterable: false, // Governance G1: NOT rosterable until onboarding signoff
-        readiness_notes: `Converted from referral ${ref.reference_number || ref.id} following suitability assessment ${assessment.reference_number} (${assessment.outcome}).`,
-      })
-      .select()
-      .single();
-
-    if (partErr || !part) {
-      return NextResponse.json({ message: userFacingError(partErr?.message || 'Participant insert failed.') }, { status: 500 });
+    if (!['verified_self_managed', 'verified_plan_managed', 'verified_registered_provider_contract'].includes(assessment.billing_relationship_status)) {
+      return NextResponse.json({ ok: false, message: 'Cannot start onboarding: billing relationship is not verified.' }, { status: 400 });
     }
 
-    // 4. Generate dynamic onboarding requirements
+    const participantReference = await nextReferenceNumber(supabase, 'participants', 'PAR');
+    // Generate dynamic requirements from the accepted governed assessment.
     const dynamicReqs = computeOnboardingRequirements(
       {
         outcome: assessment.outcome,
@@ -104,7 +82,7 @@ export async function POST(req: Request) {
         serviceValidation: assessment.service_scope_validation || [],
       },
       assessment.risk_triage || {},
-      part.funding_type
+      assessment.funding_type
     );
 
     // Auto-complete the suitability assessment requirement since it just passed
@@ -115,50 +93,20 @@ export async function POST(req: Request) {
       dynamicReqs['suitability_assessment_approved'].notes = `Approved under ${assessment.reference_number}`;
     }
 
-    // 5. Initialize participant onboarding checklist
-    const { data: checklist, error: chkErr } = await supabase
-      .from('participant_onboarding_checklists')
-      .insert({
-        participant_id: part.id,
-        requirements: dynamicReqs,
-        is_ready_for_rostering: false,
-      })
-      .select()
-      .single();
-
-    if (chkErr) {
-      console.error('Checklist creation error:', chkErr);
-    }
-
-    // 6. Link participant back to assessment and referral
-    await supabase
-      .from('service_suitability_assessments')
-      .update({ participant_id: part.id, updated_at: new Date().toISOString() })
-      .eq('id', assessment.id);
-
-    await supabase
-      .from('referrals')
-      .update({ status: 'accepted', updated_at: new Date().toISOString() })
-      .eq('id', ref.id);
-
-    // 7. Emit immutable audit log
-    await supabase.from('audit_events').insert({
-      entity_type: 'participant',
-      entity_id: part.id,
-      actor_type: 'admin',
-      actor_id: actorId,
-      action: 'converted_to_onboarding',
-      changes: {
-        lifecycle_stage: 'onboarding',
-        is_rosterable: false,
-        suitability_assessment_id: assessment.id,
-      },
-      metadata: {
-        referralId: ref.id,
-        assessmentReference: assessment.reference_number,
-        outcome: assessment.outcome,
-      },
+    const { data: conversion, error: conversionError } = await supabase.rpc('governance_g1_convert_referral', {
+      p_referral_id: ref.id,
+      p_assessment_id: assessment.id,
+      p_participant_reference: participantReference,
+      p_ndis_number: ndisNumber || null,
+      p_allocated_hours: Number(allocatedHours) || 0,
+      p_requirements: dynamicReqs,
+      p_actor_id: actorId,
     });
+    if (conversionError || !conversion) {
+      return NextResponse.json({ message: userFacingError(conversionError?.message || 'Atomic onboarding conversion failed.') }, { status: 500 });
+    }
+    const part = conversion.participant;
+    const checklist = conversion.checklist;
 
     return NextResponse.json({
       ok: true,

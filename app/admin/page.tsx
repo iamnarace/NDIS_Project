@@ -216,6 +216,7 @@ export default function AdminCrmPage() {
   const [agreementsLoading, setAgreementsLoading] = useState(false);
   const [showAddParticipant, setShowAddParticipant] = useState(false);
   const [selectedReferralForSuitability, setSelectedReferralForSuitability] = useState<Referral | null>(null);
+  const [acceptedAssessment, setAcceptedAssessment] = useState<any | null>(null);
   const [selectedParticipantForOnboarding, setSelectedParticipantForOnboarding] = useState<Participant | null>(null);
   const [showAddWorker, setShowAddWorker] = useState(false);
   const [showAgreementGenerator, setShowAgreementGenerator] = useState(false);
@@ -462,6 +463,11 @@ export default function AdminCrmPage() {
     if (selectedReferral) {
       loadActivities({ referralId: selectedReferral.id });
       loadDocuments('referral', selectedReferral.id);
+      setAcceptedAssessment(null);
+      fetch(`/api/crm/suitability?referral_id=${encodeURIComponent(selectedReferral.id)}`)
+        .then(async (res) => res.ok ? res.json() : null)
+        .then((data) => setAcceptedAssessment(data?.assessments?.[0] || null))
+        .catch(() => setAcceptedAssessment(null));
     } else if (selectedParticipant) {
       loadActivities({ participantId: selectedParticipant.id });
       loadDocuments('participant', selectedParticipant.id);
@@ -499,7 +505,6 @@ export default function AdminCrmPage() {
     setGoalsLoading(true);
     try {
       const res = await fetch(`/api/portal/participant/goals?participant_id=${participantId}`, {
-        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
       });
       const data = await res.json();
       setGoals(data.goals || []);
@@ -513,7 +518,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/portal/participant/goals', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ participant_id: selectedGoalParticipant, ...newGoal }),
       });
       const data = await res.json();
@@ -531,7 +536,7 @@ export default function AdminCrmPage() {
     try {
       await fetch('/api/portal/participant/goals', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: goalId, status, ...(status === 'achieved' ? { achieved_date: new Date().toISOString().split('T')[0] } : {}) }),
       });
       setGoals(prev => prev.map(g => g.id === goalId ? { ...g, status } : g));
@@ -543,7 +548,6 @@ export default function AdminCrmPage() {
     setPlansLoading(true);
     try {
       const res = await fetch(`/api/portal/participant/support-plans?participant_id=${participantId}`, {
-        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
       });
       const data = await res.json();
       setSupportPlans(data.plans || []);
@@ -557,7 +561,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/portal/participant/support-plans', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           participant_id: selectedPlanParticipant,
           ...newPlan,
@@ -578,7 +582,7 @@ export default function AdminCrmPage() {
     try {
       await fetch('/api/portal/participant/support-plans', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: planId, status: 'active' }),
       });
       if (selectedPlanParticipant) loadSupportPlans(selectedPlanParticipant);
@@ -591,7 +595,6 @@ export default function AdminCrmPage() {
     setRisksLoading(true);
     try {
       const res = await fetch(`/api/portal/participant/risk-assessments?participant_id=${participantId}`, {
-        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
       });
       const data = await res.json();
       setRiskAssessments(data.assessments || []);
@@ -605,7 +608,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/portal/participant/risk-assessments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           participant_id: selectedRiskParticipant,
           assessment_title: newRisk.assessment_title,
@@ -632,7 +635,7 @@ export default function AdminCrmPage() {
     try {
       await fetch('/api/portal/participant/risk-assessments', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: assessmentId, status: 'active' }),
       });
       if (selectedRiskParticipant) loadRiskAssessments(selectedRiskParticipant);
@@ -645,7 +648,6 @@ export default function AdminCrmPage() {
     setIncidentsLoading(true);
     try {
       const res = await fetch('/api/safeguarding/incidents', {
-        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
       });
       const data = await res.json();
       setIncidentsList(data.incidents || []);
@@ -659,7 +661,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/safeguarding/incidents', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...updates }),
       });
       const data = await res.json();
@@ -677,7 +679,6 @@ export default function AdminCrmPage() {
     setComplaintsLoading(true);
     try {
       const res = await fetch('/api/safeguarding/complaints', {
-        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
       });
       const data = await res.json();
       setComplaintsList(data.complaints || []);
@@ -691,7 +692,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/safeguarding/complaints', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...updates }),
       });
       const data = await res.json();
@@ -709,7 +710,6 @@ export default function AdminCrmPage() {
     setActionsLoading(true);
     try {
       const res = await fetch('/api/safeguarding/corrective-actions', {
-        headers: { 'x-admin-key': 'OpusCare2025!Admin' },
       });
       const data = await res.json();
       setActionsList(data.actions || []);
@@ -723,7 +723,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/safeguarding/corrective-actions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -741,7 +741,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/safeguarding/corrective-actions', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...updates }),
       });
       if (res.ok) {
@@ -758,7 +758,7 @@ export default function AdminCrmPage() {
     try {
       const res = await fetch('/api/safeguarding/incidents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           participant_id: complaint.participant_id || (participants[0]?.id || ''),
           category: escalateIncidentForm.category,
@@ -1137,19 +1137,19 @@ export default function AdminCrmPage() {
     }
   }
 
-  async function handleConvertToParticipant(referral: Referral) {
-    if (!confirm(`Convert referral "${referral.participantName}" to active NDIS Participant?`)) return;
+  async function handleConvertToParticipant(referral: Referral, assessmentId?: string) {
+    if (!confirm(`Start governed onboarding for "${referral.participantName}"? The participant will remain non-rosterable until readiness sign-off.`)) return;
 
     setConverting(true);
     try {
       const res = await fetch('/api/crm/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referralId: referral.id })
+        body: JSON.stringify({ referralId: referral.id, suitabilityAssessmentId: assessmentId })
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        setStatusNotice(`Referral successfully converted to Participant (${data.participant.name})!`);
+        setStatusNotice(`Onboarding started for ${data.participant.full_name || data.participant.name}. Rostering remains locked pending readiness sign-off.`);
         loadAllData();
         setSelectedReferral(null);
         setTab('participants');
@@ -1622,13 +1622,13 @@ export default function AdminCrmPage() {
 
                               <div style={{ fontSize: '0.8125rem', color: 'var(--oc-muted)', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
                                 <MapPin size={12} />
-                                <span>{item.suburb || 'Northern Rivers'}</span>
+                                <span>{item.suburb || 'Location not recorded'}</span>
                                 <span style={{ margin: '0 4px' }}>&bull;</span>
                                 <span style={{ color: '#15803D', fontWeight: 600 }}>{item.funding}</span>
                               </div>
 
                               <div style={{ fontSize: '0.8125rem', color: 'var(--oc-secondary)', background: 'var(--oc-background)', padding: '6px 8px', borderRadius: 6, marginBottom: 8 }}>
-                                <strong>Services:</strong> {item.services || 'General Support'}
+                                <strong>Services:</strong> {item.services || 'Not selected'}
                               </div>
 
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
@@ -1681,7 +1681,7 @@ export default function AdminCrmPage() {
                           <td>
                             <span className="suburbBadge">
                               <MapPin size={12} />
-                              {r.suburb || 'Northern Rivers'}
+                              {r.suburb || 'Location not recorded'}
                             </span>
                           </td>
                           <td>
@@ -1703,7 +1703,6 @@ export default function AdminCrmPage() {
                               <option value="contacted">Contacted</option>
                               <option value="assessment">Assessment</option>
                               <option value="agreement_sent">Agreement Sent</option>
-                              <option value="accepted">Active / Enrolled</option>
                             </select>
                           </td>
                           <td>
@@ -1989,30 +1988,44 @@ export default function AdminCrmPage() {
                           <span className="fundingPillMini">{p.fundingType}</span>
                         </td>
                         <td>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>{p.planManager || 'Self-Managed'}</span>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--oc-secondary)' }}>{p.planManager || 'Not recorded'}</span>
                         </td>
                         <td>
                           <span className="suburbBadge"><MapPin size={12} /> {p.suburb}</span>
                         </td>
                         <td className="ocNumeric">
-                          <strong style={{ color: 'var(--oc-text)' }}>{p.allocatedHours || 15} hrs/wk</strong>
+                          <strong style={{ color: 'var(--oc-text)' }}>{p.allocatedHours} hrs/wk</strong>
                         </td>
                         <td>
                           <span className="workerPill"><UserCheck size={14} /> {p.workerAssigned || 'Unassigned'}</span>
                         </td>
                         <td>
+                          <span className="fundingPillMini">{p.lifecycleStage || 'Not assessed'}</span>
+                          <div style={{ marginTop: 4, fontSize: '0.75rem', color: p.isRosterable ? '#166534' : '#92400E' }}>
+                            {p.isRosterable ? 'Roster ready' : 'Rostering blocked'}
+                          </div>
+                        </td>
+                        <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           <button
                             onClick={() => setSelectedParticipant(p)}
                             className="crmViewBtn"
                           >
                             View profile
                           </button>
+                          {p.lifecycleStage === 'onboarding' && (
+                            <button
+                              onClick={() => setSelectedParticipantForOnboarding(p)}
+                              className="crmViewBtn"
+                            >
+                              Readiness checklist
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
                     {filteredParticipants.length === 0 && (
                       <tr>
-                        <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--oc-muted)' }}>
+                        <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: 'var(--oc-muted)' }}>
                           No participant records found. Convert referrals to populate this directory.
                         </td>
                       </tr>
@@ -2546,7 +2559,7 @@ export default function AdminCrmPage() {
                     onClick={async () => {
                       const res = await fetch('/api/portal/participant/risk-assessments', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                           participant_id: selectedRiskParticipant,
                           assessment_title: 'Initial Risk Assessment',
@@ -4439,7 +4452,7 @@ export default function AdminCrmPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
                   <button
                     type="button"
-                    onClick={() => notify('Admin Key is managed via ADMIN_ACCESS_KEY environment secret.')}
+                    onClick={() => notify('Admin access is managed through secure server configuration.')}
                     className="vsBtnBlack"
                     style={{ flex: 1, padding: '7px 12px', fontSize: '0.8125rem' }}
                   >
@@ -4741,11 +4754,11 @@ export default function AdminCrmPage() {
                         </div>
                         <div>
                           <label>Location / Suburb</label>
-                          <p>{selectedReferral.suburb || 'Northern Rivers, NSW'}</p>
+                          <p>{selectedReferral.suburb || 'Location not recorded'}</p>
                         </div>
                         <div>
                           <label>Schedule Preference</label>
-                          <p>{selectedReferral.schedulePreference || 'Standard daytime'}</p>
+                          <p>{selectedReferral.schedulePreference || 'Not specified'}</p>
                         </div>
                         <div className="fullCol">
                           <label>Requested Services</label>
@@ -4759,22 +4772,32 @@ export default function AdminCrmPage() {
                         </div>
                       </div>
 
-                      {/* Convert to Participant Action */}
+                      {/* Governed suitability and onboarding action */}
                       {selectedReferral.status !== 'accepted' && (
                         <div style={{ marginTop: 20, padding: 16, background: 'var(--oc-success-soft)', border: '1px solid #BBF7D0', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div>
-                            <strong style={{ color: 'var(--oc-success)', fontSize: '0.9rem' }}>Enrol as Active Participant?</strong>
+                            <strong style={{ color: 'var(--oc-success)', fontSize: '0.9rem' }}>
+                              {acceptedAssessment?.referral_id === selectedReferral.id && ['Suitable', 'Suitable With Conditions'].includes(acceptedAssessment.outcome)
+                                ? 'Suitability accepted — Start Onboarding'
+                                : 'Service Suitability Assessment Required'}
+                            </strong>
                             <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: '#15803D' }}>
-                              Creates official Participant record and links all documents & history.
+                              Assessment outcomes control whether onboarding is available. Onboarding never makes a participant rosterable automatically.
                             </p>
                           </div>
                           <button
-                            onClick={() => handleConvertToParticipant(selectedReferral)}
+                            onClick={() => {
+                              if (acceptedAssessment?.referral_id === selectedReferral.id && ['Suitable', 'Suitable With Conditions'].includes(acceptedAssessment.outcome)) {
+                                handleConvertToParticipant(selectedReferral, acceptedAssessment.id);
+                              } else {
+                                setSelectedReferralForSuitability(selectedReferral);
+                              }
+                            }}
                             disabled={converting}
                             className="headerCtaBtn"
                             style={{ padding: '8px 18px', fontSize: '0.85rem' }}
                           >
-                            {converting ? 'Converting...' : 'Convert to Participant'}
+                            {converting ? 'Starting...' : acceptedAssessment?.referral_id === selectedReferral.id && ['Suitable', 'Suitable With Conditions'].includes(acceptedAssessment.outcome) ? 'Start Onboarding' : 'Assess Suitability'}
                           </button>
                         </div>
                       )}
@@ -4783,7 +4806,7 @@ export default function AdminCrmPage() {
                       <div className="modalStatusAction">
                         <label>Update Intake Stage</label>
                         <div className="statusBtnGroup">
-                          {PIPELINE_STAGES.map((s) => (
+                          {PIPELINE_STAGES.filter((s) => s.id !== 'accepted').map((s) => (
                             <button
                               key={s.id}
                               onClick={() => handleStatusChange(selectedReferral.id, s.id as any)}
@@ -4813,7 +4836,7 @@ export default function AdminCrmPage() {
                       </div>
                       <div>
                         <label>Plan Manager</label>
-                        <p>{selectedParticipant.planManager || 'Self-Managed'}</p>
+                        <p>{selectedParticipant.planManager || 'Not recorded'}</p>
                       </div>
                       <div>
                         <label>Suburb</label>
@@ -4821,7 +4844,7 @@ export default function AdminCrmPage() {
                       </div>
                       <div>
                         <label>Allocated Hours</label>
-                        <p>{selectedParticipant.allocatedHours || 15} hours / week</p>
+                        <p>{selectedParticipant.allocatedHours} hours / week</p>
                       </div>
                       <div className="fullCol">
                         <label>Assigned Support Worker</label>
@@ -4889,7 +4912,7 @@ export default function AdminCrmPage() {
                                   try {
                                     const res = await fetch('/api/crm/participants', {
                                       method: 'PATCH',
-                                      headers: { 'Content-Type': 'application/json', 'x-admin-key': 'OpusCare2025!Admin' },
+                                      headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({
                                         id: selectedParticipant.id,
                                         emergencyContactName: name,
@@ -5439,9 +5462,9 @@ export default function AdminCrmPage() {
           referral={selectedReferralForSuitability}
           onClose={() => setSelectedReferralForSuitability(null)}
           onSuccess={(assessment) => {
-            notify(`Suitability assessment recorded (${assessment.outcome}). Advancing to onboarding.`);
+            setAcceptedAssessment(assessment);
+            notify(`Suitability assessment recorded: ${assessment.outcome}. ${['Suitable', 'Suitable With Conditions'].includes(assessment.outcome) ? 'Use Start Onboarding when ready.' : 'Onboarding remains blocked.'}`);
             loadAllData();
-            setSelectedReferral(null);
           }}
         />
       )}

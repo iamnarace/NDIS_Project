@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userFacingError } from '@/lib/userFacingError';
 import { nextReferenceNumber } from '@/lib/referenceNumber';
@@ -31,12 +31,12 @@ export async function GET(req: Request) {
     ndisNumber: p.ndis_number || 'Pending NDIS #',
     dateOfBirth: p.date_of_birth || undefined,
     fundingType: p.funding_type,
-    planManager: p.plan_manager_name || 'Self-Managed',
+    planManager: p.plan_manager_name || undefined,
     planManagerEmail: p.plan_manager_email || undefined,
     suburb: p.suburb,
     streetAddress: p.street_address || undefined,
     allocatedHours: Number(p.allocated_weekly_hours) || 0,
-    primaryService: p.primary_service || 'Daily Living & Community Participation',
+    primaryService: p.primary_service || undefined,
     status: p.status,
     workerAssigned: 'To be assigned',
     contactPerson: p.contact_person || (p.phone ? `${p.full_name} (${p.phone})` : p.full_name),
@@ -63,8 +63,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
     return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.', message: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
@@ -73,6 +73,12 @@ export async function POST(req: Request) {
 
     if (!body.name || !body.name.trim()) {
       return NextResponse.json({ ok: false, error: 'Participant full legal name is required.', message: 'Participant full legal name is required.' }, { status: 400 });
+    }
+    if (!body.suburb || !body.suburb.trim()) {
+      return NextResponse.json({ ok: false, error: 'Suburb must be explicitly recorded.', message: 'Suburb must be explicitly recorded.' }, { status: 400 });
+    }
+    if (!body.fundingType || !['Self-Managed', 'Plan-Managed', 'NDIA-Managed', 'Unsure'].includes(body.fundingType)) {
+      return NextResponse.json({ ok: false, error: 'Funding type must be explicitly selected.', message: 'Funding type must be explicitly selected.' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
@@ -87,17 +93,18 @@ export async function POST(req: Request) {
       full_name: body.name.trim(),
       ndis_number: body.ndisNumber ? body.ndisNumber.trim() : null,
       date_of_birth: body.dateOfBirth || body.dob || null,
-      suburb: (body.suburb && body.suburb.trim()) || 'Yamba NSW',
+      suburb: body.suburb.trim(),
       street_address: (body.streetAddress && body.streetAddress.trim()) || null,
-      funding_type: body.fundingType || 'Plan-Managed',
+      funding_type: body.fundingType,
       plan_manager_name: (body.planManager && body.planManager.trim()) || null,
       plan_manager_email: (body.planManagerEmail && body.planManagerEmail.trim()) || null,
       allocated_weekly_hours: Number(body.allocatedHours) || 0,
       phone: (body.phone && body.phone.trim()) || null,
       email: (body.email && body.email.trim()) || null,
       status: body.status === 'active' ? 'pending_intake' : (body.status || 'pending_intake'),
-      lifecycle_stage: body.lifecycle_stage || 'onboarding',
+      lifecycle_stage: 'intake_assessment',
       is_rosterable: false,
+      readiness_notes: 'Manual intake record. A formal service suitability assessment is required before onboarding can begin.',
       primary_service: (body.primaryService && body.primaryService.trim()) || null,
       contact_person: (body.contactPerson && body.contactPerson.trim()) || null,
       emergency_contact_name: body.emergencyContactName || body.emergency_contact_name || null,
@@ -113,11 +120,10 @@ export async function POST(req: Request) {
       communication_preferences: body.communicationPreferences || body.communication_preferences || null,
     };
 
-    const { data, error } = await supabase
-      .from('participants')
-      .insert(insertData)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('governance_g1_create_manual_participant', {
+      p_participant: insertData,
+      p_actor_id: actorId,
+    });
 
     if (error || !data) {
       const errMsg = error?.message || 'Participant insert returned no record.';
@@ -143,6 +149,23 @@ export async function PATCH(req: Request) {
     if (!id) {
       return NextResponse.json({ ok: false, error: 'Participant ID is required', message: 'Participant ID is required' }, { status: 400 });
     }
+    if (
+      updates.status !== undefined ||
+      updates.fundingType !== undefined ||
+      updates.funding_type !== undefined ||
+      updates.isRosterable !== undefined ||
+      updates.is_rosterable !== undefined ||
+      updates.lifecycleStage !== undefined ||
+      updates.lifecycle_stage !== undefined ||
+      updates.suitabilityAssessmentId !== undefined ||
+      updates.suitability_assessment_id !== undefined
+    ) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Funding, lifecycle, status and roster readiness changes require the governed assessment/onboarding workflow.',
+        message: 'Funding, lifecycle, status and roster readiness changes require the governed assessment/onboarding workflow.',
+      }, { status: 400 });
+    }
 
     const supabase = createAdminClient();
     if (!supabase) {
@@ -155,8 +178,6 @@ export async function PATCH(req: Request) {
     if (updates.suburb !== undefined) dbUpdates.suburb = updates.suburb;
     if (updates.streetAddress !== undefined) dbUpdates.street_address = updates.streetAddress;
     if (updates.allocatedHours !== undefined) dbUpdates.allocated_weekly_hours = Number(updates.allocatedHours);
-    if (updates.fundingType !== undefined) dbUpdates.funding_type = updates.fundingType;
-    if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.dateOfBirth !== undefined || updates.dob !== undefined) {
       dbUpdates.date_of_birth = updates.dateOfBirth ?? updates.dob;
     }

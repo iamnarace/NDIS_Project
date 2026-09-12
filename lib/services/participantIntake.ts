@@ -21,6 +21,8 @@ export interface PayerDetails {
   planManagerName?: string;
   planManagerEmail?: string;
   registeredContractingProvider?: string;
+  contractingProviderRelationshipId?: string;
+  verifiedContractingRelationshipId?: string;
   contractingArrangementDescription?: string;
   invoiceRecipient?: string;
 }
@@ -56,7 +58,7 @@ export interface SuitabilityInput {
   postcode?: string;
   requestedServices: string[];
   riskTriage: RiskTriageInput;
-  assessedBy: string;
+  assessedBy?: string;
   assessorNotes?: string;
 }
 
@@ -64,7 +66,7 @@ export interface SuitabilityResult {
   outcome: SuitabilityOutcome;
   outcomeReasons: string[];
   conditions: string[];
-  isAdult: boolean;
+  isAdult: boolean | null;
   inServiceArea: boolean;
   region: string;
   serviceValidation: Array<{
@@ -106,32 +108,39 @@ export async function validateSuitability(
   const conditions: string[] = [];
 
   // A. Age Verification: Opus Care launch scope is strictly Adults 18+
-  let isAdult = true;
+  let isAdult: boolean | null = null;
   if (input.dateOfBirth) {
-    const dob = new Date(input.dateOfBirth);
+    const dob = new Date(`${input.dateOfBirth}T00:00:00`);
     if (!isNaN(dob.getTime())) {
-      const diffMs = Date.now() - dob.getTime();
-      const age = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
-      if (age < 18) {
-        isAdult = false;
-      }
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const beforeBirthday = today.getMonth() < dob.getMonth() ||
+        (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate());
+      if (beforeBirthday) age--;
+      isAdult = age >= 18;
     }
-  } else if (input.isAdult === false || (input.age !== undefined && input.age < 18)) {
-    isAdult = false;
+  } else if (typeof input.isAdult === 'boolean') {
+    isAdult = input.isAdult;
+  } else if (input.age !== undefined) {
+    isAdult = input.age >= 18;
   }
 
   if (!isAdult) {
-    return {
-      outcome: 'Declined / Outside Scope',
-      outcomeReasons: [
-        'Participant is under 18 years of age. Opus Care operational launch scope is strictly Adults 18+. Child service governance is not supported in the current operational phase.'
-      ],
-      conditions: [],
-      isAdult: false,
-      inServiceArea: false,
-      region: 'Outside Scope',
-      serviceValidation: []
-    };
+    if (isAdult === null) {
+      reasons.push('Adult 18+ scope is unconfirmed. Date of birth or explicit intake confirmation is required.');
+    } else {
+      return {
+        outcome: 'Declined / Outside Scope',
+        outcomeReasons: [
+          'Participant is under 18 years of age. Opus Care operational launch scope is strictly Adults 18+. Child service governance is not supported in the current operational phase.'
+        ],
+        conditions: [],
+        isAdult: false,
+        inServiceArea: false,
+        region: 'Outside Scope',
+        serviceValidation: []
+      };
+    }
   }
 
   // B. Location / Regional Serviceability Check
@@ -155,10 +164,10 @@ export async function validateSuitability(
     }
   } else if (funding === 'NDIA-Managed') {
     // NDIA-Managed relationships require genuine contracting/subcontracting partner identity
-    const regProvider = input.payerDetails?.registeredContractingProvider?.trim();
-    if (regProvider && regProvider.length > 2) {
+    const verifiedRelationshipId = input.payerDetails?.verifiedContractingRelationshipId?.trim();
+    if (verifiedRelationshipId) {
       hasValidFundingBasis = true;
-      conditions.push(`Service delivery under NDIA-Managed arrangement requires verified third-party contracting agreement with registered provider: ${regProvider}.`);
+      conditions.push('Service delivery is limited to the verified registered-provider contracting relationship recorded in CRM.');
     } else {
       reasons.push(
         'Billing Configuration Required: Opus Care operates as an unregistered provider and cannot directly claim from the NDIA. A verified subcontract or billing intermediary arrangement with a registered provider is required.'
@@ -176,7 +185,7 @@ export async function validateSuitability(
         'Regulated Restrictive Practices indicated. As an unregistered NDIS provider, Opus Care workers cannot implement or administer regulated restrictive practices without formal NDIS Quality and Safeguards Commission registration, approved Behaviour Support Plans, and practitioner oversight.'
       ],
       conditions: ['Immediate escalation to Opus Care Director / Safeguarding Lead required.'],
-      isAdult: true,
+      isAdult,
       inServiceArea: areaCheck.inServiceArea,
       region,
       serviceValidation: []
@@ -286,7 +295,7 @@ export async function validateSuitability(
   } else if (hasConditionalClinical) {
     outcome = 'Clinical Review Required';
     reasons.push('Requested supports require clinical governance review and supervisory sign-off.');
-  } else if (!hasValidFundingBasis) {
+  } else if (isAdult === null || !hasValidFundingBasis || serviceValidations.length === 0) {
     outcome = 'Further Information Required';
   } else if (conditions.length > 0 || hasActiveWithControls) {
     outcome = 'Suitable With Conditions';
@@ -298,7 +307,7 @@ export async function validateSuitability(
     outcome,
     outcomeReasons: reasons,
     conditions,
-    isAdult: true,
+    isAdult,
     inServiceArea: areaCheck.inServiceArea,
     region,
     serviceValidation: serviceValidations,
@@ -361,6 +370,12 @@ export function computeOnboardingRequirements(
   // Care & Risk Governance
   addReq('participant_risk_assessment_completed', 'Participant Risk Assessment Completed', 'Care & Risk Governance', true, false, 'Identified environmental, mobility, and community access risks.');
   addReq('participant_support_plan_completed', 'Individual Support Plan Completed', 'Care & Risk Governance', true, false, 'Participant-centred routines, goals, and support strategies.');
+
+  addReq('medication_authority_verified', 'Medication Authority / Support Plan Verified', 'Care & Risk Governance', Boolean(riskTriage.medicationSupport), false, 'Required only when medication support is requested.');
+  addReq('mealtime_management_plan_verified', 'Mealtime / Dysphagia Management Plan Verified', 'Care & Risk Governance', Boolean(riskTriage.dysphagiaMealtime), false, 'Participant-specific plan from an authorised practitioner where applicable.');
+  addReq('manual_handling_plan_verified', 'Manual Handling / Transfer Plan Verified', 'Care & Risk Governance', Boolean(riskTriage.manualHandling || riskTriage.mobilityTransfers), false, 'Participant-specific transfer and manual-handling controls.');
+  addReq('seizure_management_plan_verified', 'Seizure Management Plan Verified', 'Care & Risk Governance', Boolean(riskTriage.seizures), false, 'Participant-specific seizure response and escalation information.');
+  addReq('transport_governance_confirmed', 'Participant Transport Governance Confirmed', 'Care & Risk Governance', Boolean(riskTriage.transportRequired), false, 'Confirm consent, vehicle/driver controls and billing basis only when transport is requested.');
 
   // Conditional Clinical Requirements
   const needsClinical = Boolean(

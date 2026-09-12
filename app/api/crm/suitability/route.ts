@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { getAuthenticatedAdminActor } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userFacingError } from '@/lib/userFacingError';
 import { validateSuitability, SuitabilityInput } from '@/lib/services/participantIntake';
@@ -7,8 +7,8 @@ import { validateSuitability, SuitabilityInput } from '@/lib/services/participan
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
     return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const authed = await isAuthenticatedAdmin(req);
-  if (!authed) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
     return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
   }
 
@@ -59,7 +59,6 @@ export async function POST(req: NextRequest) {
       postcode = '',
       requestedServices = [],
       riskTriage = {},
-      assessedBy = 'Coordinator / Admin',
       assessorNotes = '',
     } = body;
 
@@ -70,39 +69,72 @@ export async function POST(req: NextRequest) {
     if (!suburb || !suburb.trim()) {
       return NextResponse.json({ ok: false, error: 'Suburb / location is required for serviceability check.' }, { status: 400 });
     }
+    if (!fundingType || !['Self-Managed', 'Plan-Managed', 'NDIA-Managed', 'Unsure'].includes(fundingType)) {
+      return NextResponse.json({ ok: false, error: 'Funding type must be explicitly selected.' }, { status: 400 });
+    }
+    if (!Array.isArray(requestedServices) || requestedServices.length === 0) {
+      return NextResponse.json({ ok: false, error: 'At least one requested service must be explicitly selected.' }, { status: 400 });
+    }
 
     const supabase = createAdminClient();
     if (!supabase) {
       return NextResponse.json({ ok: false, error: 'Governance service unavailable.' }, { status: 503 });
     }
 
-    // Run deterministic suitability engine
+    let verifiedContractingRelationshipId: string | undefined;
+    if (fundingType === 'NDIA-Managed' && payerDetails?.contractingProviderRelationshipId) {
+      const { data: relationship, error: relationshipError } = await supabase
+        .from('contracting_provider_relationships')
+        .select('id, effective_from, effective_to')
+        .eq('id', payerDetails.contractingProviderRelationshipId)
+        .eq('verification_status', 'verified')
+        .not('verified_by', 'is', null)
+        .not('verified_at', 'is', null)
+        .maybeSingle();
+      if (relationshipError) {
+        return NextResponse.json({ ok: false, error: userFacingError(relationshipError.message) }, { status: 500 });
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      const isEffective = relationship
+        && (!relationship.effective_from || relationship.effective_from <= today)
+        && (!relationship.effective_to || relationship.effective_to >= today);
+      verifiedContractingRelationshipId = isEffective ? relationship.id : undefined;
+    }
+
     const suitabilityInput: SuitabilityInput = {
       referralId,
       participantId,
       participantName: participantName.trim(),
       dateOfBirth,
       isAdult,
-      fundingType: fundingType || 'Plan-Managed',
-      payerDetails,
+      fundingType,
+      payerDetails: { ...payerDetails, verifiedContractingRelationshipId },
       suburb: suburb.trim(),
       postcode: postcode.trim(),
       requestedServices,
       riskTriage,
-      assessedBy,
       assessorNotes,
     };
 
     const evalResult = await validateSuitability(suitabilityInput, supabase);
 
     // Persist assessment record to live database
+    const billingRelationshipStatus = fundingType === 'Self-Managed'
+      ? 'verified_self_managed'
+      : fundingType === 'Plan-Managed'
+        ? 'verified_plan_managed'
+        : verifiedContractingRelationshipId
+          ? 'verified_registered_provider_contract'
+          : fundingType === 'NDIA-Managed'
+            ? 'billing_configuration_required'
+            : 'pending_verification';
     const insertPayload = {
       referral_id: referralId || null,
       participant_id: participantId || null,
-      assessed_by: assessedBy,
-      funding_type: fundingType || 'Plan-Managed',
-      payer_details: payerDetails,
-      billing_relationship_status: evalResult.outcome === 'Registered Provider Requirement' ? 'requires_registered_provider' : 'verified',
+      assessed_by: actorId,
+      funding_type: fundingType,
+      payer_details: { ...payerDetails, verifiedContractingRelationshipId },
+      billing_relationship_status: billingRelationshipStatus,
       region: evalResult.region,
       suburb: suburb.trim(),
       postcode: postcode.trim() || null,
@@ -116,11 +148,10 @@ export async function POST(req: NextRequest) {
       assessor_notes: assessorNotes,
     };
 
-    const { data: assessment, error: insErr } = await supabase
-      .from('service_suitability_assessments')
-      .insert(insertPayload)
-      .select()
-      .single();
+    const { data: assessment, error: insErr } = await supabase.rpc('governance_g1_record_suitability', {
+      p_assessment: insertPayload,
+      p_actor_id: actorId,
+    });
 
     if (insErr || !assessment) {
       return NextResponse.json(
@@ -128,37 +159,6 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-
-    // Update referral stage if referralId is present
-    if (referralId) {
-      await supabase
-        .from('referrals')
-        .update({
-          status: evalResult.outcome === 'Declined / Outside Scope' ? 'declined' : 'assessment',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', referralId);
-    }
-
-    // Emit immutable audit event
-    await supabase.from('audit_events').insert({
-      entity_type: 'service_suitability_assessment',
-      entity_id: assessment.id,
-      actor_type: 'admin',
-      actor_id: assessedBy,
-      action: 'suitability_assessed',
-      changes: {
-        outcome: evalResult.outcome,
-        reasons: evalResult.outcomeReasons,
-        conditions: evalResult.conditions,
-      },
-      metadata: {
-        referralId,
-        participantId,
-        fundingType,
-        region: evalResult.region,
-      },
-    });
 
     return NextResponse.json({
       ok: true,

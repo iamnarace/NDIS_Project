@@ -1,0 +1,7 @@
+-- Live migration marker only.
+--
+-- The Supabase connector assigned version 20260912051130 when it applied the
+-- reviewed removal of invented funding/billing defaults. The canonical,
+-- dependency-ordered and idempotent migration remains
+-- 20260912150000_governance_g1_remove_invented_defaults.sql for fresh and
+-- future environments.
