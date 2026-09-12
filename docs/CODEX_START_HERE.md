@@ -1,72 +1,92 @@
 # Codex — START HERE: Autonomous Opus Care Governance Run
 
-The owner has explicitly authorised Codex to complete the remaining Opus Care governance roadmap **continuously without returning for phase-by-phase approval**.
+The owner has authorised Codex to complete the remaining Opus Care governance roadmap continuously without phase-by-phase approval.
 
 Repository: `iamnarace/NDIS_Project`
-
-Primary branch: `main`
 
 ## Read in this exact order
 
 1. `AGENTS.md`
 2. `docs/CODEX_AUTONOMOUS_RUNBOOK.md`
-3. `docs/EXECUTION_PROTOCOL.md`
-4. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
-5. the current phase specification under `docs/governance/`
+3. `docs/CODEX_SECURITY_RECOVERY.md`
+4. `docs/CODEX_AUTONOMOUS_RESUME.md`
+5. `docs/EXECUTION_PROTOCOL.md`
+6. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
+7. current governance phase specification
 
-## Current starting gate
+## Current continuation gate
 
-Start with:
+Resume the preserved local G1 closure implementation and execute:
 
 `docs/governance/G1_REVIEW_CLOSURE_AUTONOMOUS.md`
 
-That wrapper requires execution of every technical requirement in `G1_REVIEW_CLOSURE.md`, but replaces the old supervised STOP with autonomous self-acceptance when all criteria pass.
+Do not restart G1 from scratch.
 
-After G1 closure passes, continue automatically through:
+Known live migrations must be verified before any reapplication:
 
-1. G2 — Worker Readiness & Roster Safety
-2. G3 — Privacy, Participant Documents & Help Centre
-3. G4 — Complaints, Incidents & Safeguarding
-4. G5 — WHS, Home Safety, Transport & Continuity
-5. G6 — Clinical / High-Intensity Governance
-6. G7 — Website & Public Launch Compliance
-7. Final Go-Live Verification + independent global audit
+- `20260912120000_governance_g1_review_closure.sql`
+- `20260912130000_governance_g1_rpc_access_closure.sql`
 
-## Critical behaviour
+## Security incident
 
-- Do not create another implementation plan.
-- Do not ask for approval at normal phase boundaries.
-- Implement the current phase directly.
-- Run its full acceptance gate.
-- Independently review the implementation against the spec.
-- If anything fails, fix it and rerun the gate.
-- Only after all criteria pass, mark the phase complete, commit/push it, then immediately begin the next phase.
-- Stop only for a true hard blocker defined in `docs/EXECUTION_PROTOCOL.md`.
-- Missing owner-supplied real-world values such as bank details, proprietor legal name, or insurance certificate values should normally remain fail-closed operational configuration items and must not stop unrelated development phases.
-- Do not deploy Vercel Production unless separately authorised.
+A previously exposed application admin shared password is compromised.
 
-## First commands
+Do not use or disclose it.
 
-Do not trust cached `origin/main`.
+Follow `docs/CODEX_SECURITY_RECOVERY.md`:
+
+- production rotation/session invalidation/cutover remains owner input before live operation;
+- it does not block unrelated software completion;
+- local authenticated acceptance may use only a fresh ignored temporary local test credential;
+- privileged credentials must never appear in browser/client output.
+
+## Git/deployment isolation
+
+`main` is connected to Vercel Production.
+
+Do not push autonomous implementation work to `main`.
+
+The dedicated branch exists:
+
+`codex/autonomous-governance`
+
+Push verified phase commits only there. Do not merge to main and do not deploy Vercel Production.
+
+## Continuous sequence
+
+After G1 software closure passes, continue automatically through:
+
+G2 → G3 → G4 → G5 → G6 → G7 → Final Go-Live Verification → global independent audit.
+
+No phase-by-phase owner review.
+
+## Required first Git actions
+
+Do not trust cached refs:
 
 ```powershell
 git remote -v
 git fetch --prune origin
 git ls-remote origin refs/heads/main
-git rev-parse HEAD
-git rev-parse origin/main
+git ls-remote origin refs/heads/codex/autonomous-governance
 git status
 git log --oneline --decorate -12
 ```
 
-Safely reconcile local work with current GitHub main. Preserve all verified governance commits and documentation.
+Preserve existing uncommitted G1 work. Reconcile documentation safely without reset/clean/history rewrite.
 
-## Required final response
+## Final response
 
-Do not send separate G1/G2/G3/etc. approval requests to the owner.
+Do not send normal intermediate approval requests.
 
-At the end of the full autonomous run, return one consolidated:
+Return only after the executable roadmap and independent audit are complete, with one:
 
 `OPUS CARE AUTONOMOUS GOVERNANCE COMPLETION REPORT`
 
-The report must show each phase, evidence, migrations, tests, security checks, final Git SHA, live Supabase state, Vercel state, and any remaining `OWNER INPUT REQUIRED` items before real launch.
+The report must distinguish:
+
+- completed software/governance phases;
+- live Supabase state;
+- autonomous branch final SHA;
+- Vercel Production unchanged;
+- `OWNER INPUT REQUIRED BEFORE LIVE OPERATION`, including production credential rotation/session invalidation/cutover if still outstanding.
