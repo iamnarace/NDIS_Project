@@ -75,6 +75,7 @@ export default function OwnerReadinessDashboard({
   const isFullyInsured = insuranceStatus === 'ACTIVE' || insuranceStatus === 'EXPIRING';
   const isBankConfigured = orgData?.isBankConfigured ?? true; // fallback to true if remittance present
   const isBusinessConfigured = orgData?.isAbnConfigured ?? true;
+  const isProprietorConfigured = Boolean(orgData?.isProprietorConfigured);
   const workerComplianceReady = staffCount > 0 && clearedStaffCount > 0;
   const standardCommencementReady = isFullyInsured && isBankConfigured && workerComplianceReady;
 
@@ -191,7 +192,32 @@ export default function OwnerReadinessDashboard({
           <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: 2 }}>ABN 41 267 197 576 · Unregistered NDIS</div>
         </div>
 
-        {/* 2. Remittance */}
+        {/* 2. Registered Proprietor (Private Scope) */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+              Registered Proprietor
+            </span>
+            <span style={{
+              fontSize: '0.7rem',
+              background: isProprietorConfigured ? '#dcfce7' : '#fef3c7',
+              color: isProprietorConfigured ? '#15803d' : '#b45309',
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: 10
+            }}>
+              {isProprietorConfigured ? '✓ Configured' : 'Owner Input Required'}
+            </span>
+          </div>
+          <div style={{ fontWeight: 600, fontSize: '0.86rem', color: isProprietorConfigured ? 'var(--oc-text)' : '#b45309' }}>
+            {isProprietorConfigured ? 'Private Contract Scope' : 'Input Pending (Optional)'}
+          </div>
+          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: 2 }}>
+            {isProprietorConfigured ? 'Private to legal agreements · Never public' : 'Self-service field in Admin Settings'}
+          </div>
+        </div>
+
+        {/* 3. Remittance */}
         <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
@@ -209,7 +235,7 @@ export default function OwnerReadinessDashboard({
           </div>
         </div>
 
-        {/* 3. Admin Security */}
+        {/* 4. Admin Security */}
         <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
@@ -223,7 +249,7 @@ export default function OwnerReadinessDashboard({
           <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: 2 }}>HttpOnly / SameSite Lax session cookies</div>
         </div>
 
-        {/* 4. General Insurance */}
+        {/* 5. General Insurance */}
         <div
           style={{
             background: isFullyInsured ? '#ffffff' : '#fffbeb',

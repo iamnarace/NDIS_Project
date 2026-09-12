@@ -269,7 +269,7 @@ export default function AdminCrmPage() {
     policyType: 'Public Liability',
     insurer: '',
     policyNumber: '',
-    coverageAmount: 10000000,
+    coverageAmount: '' as any,
     commencementDate: new Date().toISOString().slice(0, 10),
     expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
     certificateStoragePath: '',
@@ -1081,7 +1081,7 @@ export default function AdminCrmPage() {
           policyType: 'Public Liability',
           insurer: '',
           policyNumber: '',
-          coverageAmount: 10000000,
+          coverageAmount: '' as any,
           commencementDate: new Date().toISOString().slice(0, 10),
           expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
           certificateStoragePath: '',
@@ -4500,6 +4500,42 @@ export default function AdminCrmPage() {
               </div>
             </div>
 
+            {/* Registered Proprietor (Owner Self-Service - Private Legal/Agreement Scope) */}
+            <div style={{ background: '#f8fafc', borderRadius: 8, padding: '16px 18px', border: '1px solid #cbd5e1', marginTop: 14 }}>
+              <div style={{ marginBottom: 12 }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '0.92rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                  Registered Proprietor (Private Contractual &amp; Agreement Scope)
+                </h4>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
+                  If legally required for private service agreements or formal contracting documents, enter the proprietor legal name here. This remains strictly confidential to internal agreement documents and is NEVER displayed on the public website.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 260 }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Proprietor Legal Name (Optional for Private Documents)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter proprietor full legal name if required for agreements"
+                    value={proprietorInput}
+                    onChange={(e) => setProprietorInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveProprietor}
+                  disabled={proprietorSaving || !proprietorInput.trim()}
+                  className="vsBtnBlack"
+                  style={{ padding: '7px 18px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                >
+                  {proprietorSaving ? 'Saving...' : 'Save Proprietor Name'}
+                </button>
+              </div>
+            </div>
+
             {/* Website & Social Media Profiles (Owner Self-Service) */}
             <div style={{ background: '#f8fafc', borderRadius: 8, padding: '16px 18px', border: '1px solid #cbd5e1', marginTop: 14 }}>
               <div style={{ marginBottom: 12 }}>
@@ -4615,7 +4651,7 @@ export default function AdminCrmPage() {
                   </h3>
                 </div>
                 <p style={{ margin: '4px 0 0', fontSize: '0.8125rem', color: 'var(--oc-muted)' }}>
-                  Statutory and operational risk insurance policies covering provider operations, worker liability, and transport.
+                  Operational risk and public liability insurance policies covering provider operations, worker liability, and transport.
                 </p>
               </div>
               <button
@@ -4644,7 +4680,7 @@ export default function AdminCrmPage() {
                 <Shield size={32} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--oc-text)' }}>No Insurance Policies Registered</div>
                 <p style={{ margin: '4px 0 12px', fontSize: '0.8rem', color: '#64748b', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
-                  Opus Care operations require verified Public &amp; Products Liability ($10M+) and Professional Indemnity policies prior to participant service delivery.
+                  Opus Care operations require verified Public Liability — coverage appropriate to the nature, scale and risk of services provided — and Professional Indemnity policies prior to participant service delivery.
                 </p>
                 <button
                   type="button"
@@ -5996,9 +6032,9 @@ export default function AdminCrmPage() {
                     </label>
                     <input
                       type="number"
-                      placeholder="10000000"
+                      placeholder="e.g. 10000000 or 20000000"
                       value={newInsurance.coverageAmount}
-                      onChange={(e) => setNewInsurance({ ...newInsurance, coverageAmount: Number(e.target.value) })}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, coverageAmount: e.target.value ? Number(e.target.value) : ('' as any) })}
                       className="crmInput"
                       style={{ width: '100%', padding: '8px 12px' }}
                     />
