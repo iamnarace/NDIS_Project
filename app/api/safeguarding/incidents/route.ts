@@ -5,6 +5,11 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { logAuditEvent } from '@/lib/audit';
 import { isValidUuid, resolveParticipantUuid, resolveStaffUuid, resolveShiftUuid } from '@/lib/uuid';
+import {
+  assessExternalReportingDuty,
+  evaluateRestrictivePracticeBoundary,
+  canCloseIncident,
+} from '@/lib/services/safeguardingGovernance';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const incidentFields = isAdmin
       ? `*, participant:participants(id, full_name, reference_number, funding_type, suburb), worker:staff(id, full_name, reference_number, role)`
-      : `id, incident_reference, participant_id, worker_id, shift_id, reported_by, incident_at, location, category, severity, description, immediate_actions_taken, injury_or_harm_details, emergency_services_contacted, emergency_services_details, witnesses, attachment_urls, status, created_at, updated_at, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, reference_number, role)`;
+      : `id, incident_reference, participant_id, worker_id, shift_id, reported_by, incident_at, location, category, severity, description, immediate_actions_taken, injury_or_harm_details, emergency_services_contacted, emergency_services_details, witnesses, attachment_urls, safeguarding_indicators, management_regulatory_review_stop, external_reporting_duty, open_disclosure_provided, status, created_at, updated_at, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, reference_number, role)`;
 
     let query = supabase
       .from('incidents')
@@ -112,6 +117,14 @@ export async function POST(request: NextRequest) {
       emergency_services_details,
       witnesses,
       attachment_urls,
+      safeguarding_indicators,
+      management_regulatory_review_stop,
+      external_reporting_duty,
+      external_reporting_rationale,
+      bsp_reference,
+      bsp_practitioner,
+      open_disclosure_provided,
+      open_disclosure_notes,
     } = body;
 
     if (!participant_id || !description || !severity) {
@@ -156,6 +169,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Select a valid participant.' }, { status: 400 });
     }
 
+    // Process safeguarding indicators and restrictive practice boundary
+    const indicators: string[] = Array.isArray(safeguarding_indicators) ? safeguarding_indicators : [];
+    const hasRestrictive = indicators.includes('restrictive_practice_concern');
+    const restrictiveResult = evaluateRestrictivePracticeBoundary({
+      hasRestrictivePracticeIndicator: hasRestrictive,
+      bspReference: bsp_reference,
+      isRegisteredProvider: false,
+    });
+
+    // Assess external reporting duty (enforces unregistered provider boundary)
+    const reportingAssessment = assessExternalReportingDuty({
+      severity,
+      indicators,
+      emergencyServicesContacted: Boolean(emergency_services_contacted),
+      workerWorkplaceInjury: category === 'worker_injury' || category === 'whs',
+    });
+
+    const finalReviewStop = Boolean(management_regulatory_review_stop) || restrictiveResult.managementRegulatoryReviewStop;
+    const finalDuty = external_reporting_duty || reportingAssessment.duty;
+    const finalRationale = external_reporting_rationale || reportingAssessment.rationale;
+
     // Generate unique reference INC-YYYY-XXXX
     const year = new Date().getFullYear();
     const { count } = await supabase
@@ -185,10 +219,18 @@ export async function POST(request: NextRequest) {
         status: 'Reported',
         reportable_assessment: 'Pending Review',
         external_notification_status: 'Not Required',
+        safeguarding_indicators: indicators,
+        management_regulatory_review_stop: finalReviewStop,
+        external_reporting_duty: finalDuty,
+        external_reporting_rationale: finalRationale,
+        bsp_reference: bsp_reference || null,
+        bsp_practitioner: bsp_practitioner || null,
+        open_disclosure_provided: Boolean(open_disclosure_provided),
+        open_disclosure_notes: open_disclosure_notes || null,
       })
       .select(isAdmin
         ? '*, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, role)'
-        : 'id, incident_reference, participant_id, worker_id, shift_id, reported_by, incident_at, location, category, severity, description, immediate_actions_taken, injury_or_harm_details, emergency_services_contacted, emergency_services_details, witnesses, attachment_urls, status, created_at, updated_at, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, role)')
+        : 'id, incident_reference, participant_id, worker_id, shift_id, reported_by, incident_at, location, category, severity, description, immediate_actions_taken, injury_or_harm_details, emergency_services_contacted, emergency_services_details, witnesses, attachment_urls, safeguarding_indicators, management_regulatory_review_stop, external_reporting_duty, open_disclosure_provided, status, created_at, updated_at, participant:participants(id, full_name, reference_number), worker:staff(id, full_name, role)')
       .single();
 
     if (error) {
@@ -216,8 +258,15 @@ export async function POST(request: NextRequest) {
       actor_type: actorType,
       actor_id: actorId,
       action: 'created',
-      changes: { status: 'Reported', severity, category },
-      metadata: { incident_reference: ref, participant_id },
+      changes: {
+        status: 'Reported',
+        severity,
+        category,
+        indicators,
+        management_regulatory_review_stop: finalReviewStop,
+        external_reporting_duty: finalDuty,
+      },
+      metadata: { incident_reference: ref, participant_id: resolvedParticipantId },
     });
 
     return NextResponse.json({ incident: data }, { status: 201 });
@@ -259,10 +308,37 @@ export async function PATCH(request: NextRequest) {
       delete updates.participant_family_followup;
     }
 
-    // If closing, record closed_at and closed_by
-    if (updates.status === 'Closed' && !updates.closed_at) {
-      updates.closed_at = new Date().toISOString();
-      updates.closed_by = actorId !== 'admin' ? actorId : null;
+    // Check existing incident before status change or closure
+    const { data: existingIncident } = await supabase
+      .from('incidents')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!existingIncident) {
+      return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
+    }
+
+    // If updating safeguarding indicators, check restrictive practice concern
+    if (Array.isArray(updates.safeguarding_indicators)) {
+      if (updates.safeguarding_indicators.includes('restrictive_practice_concern')) {
+        updates.management_regulatory_review_stop = true;
+      }
+    }
+
+    // If closing, enforce G4 closure guard
+    if (updates.status === 'Closed') {
+      const merged = { ...existingIncident, ...updates };
+      const actorRole = isAdmin ? 'admin' : 'staff';
+      const closureGate = canCloseIncident(merged, actorRole);
+      if (!closureGate.allowed) {
+        return NextResponse.json({ error: closureGate.reason }, { status: 403 });
+      }
+
+      if (!updates.closed_at) {
+        updates.closed_at = new Date().toISOString();
+        updates.closed_by = actorId !== 'admin' ? actorId : null;
+      }
     }
 
     const { data, error } = await supabase

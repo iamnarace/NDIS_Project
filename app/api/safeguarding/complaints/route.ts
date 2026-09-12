@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { logAuditEvent } from '@/lib/audit';
 import { isValidUuid, resolveParticipantUuid, resolveIncidentUuid } from '@/lib/uuid';
+import { processComplaintLodgement } from '@/lib/services/safeguardingGovernance';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,9 +20,22 @@ export async function GET(request: NextRequest) {
 
     if (!supabase) return NextResponse.json({ complaints: [] });
 
+    let currentParticipantId: string | null = null;
     if (!isAdmin) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      if (authError || !user) {
+        // Public users cannot browse complaints register
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('portal_participant_id, role, is_active')
+        .eq('id', user.id)
+        .single();
+      if (!profile?.is_active || profile.role !== 'participant' || !profile.portal_participant_id) {
+        return NextResponse.json({ error: 'Unauthorised' }, { status: 403 });
+      }
+      currentParticipantId = profile.portal_participant_id;
     }
 
     const { searchParams } = new URL(request.url);
@@ -30,14 +44,19 @@ export async function GET(request: NextRequest) {
 
     const complaintFields = isAdmin
       ? '*, participant:participants(id, full_name, reference_number), linked_incident:incidents(id, incident_reference, severity, status)'
-      : 'id, complaint_reference, participant_id, complainant_name, complainant_role, received_date, summary, status, acknowledgement_date, resolution_summary, closed_at, created_at, updated_at, participant:participants(id, full_name, reference_number)';
+      : 'id, complaint_reference, participant_id, complainant_name, complainant_role, received_date, summary, status, acknowledgement_date, response_target_date, resolution_summary, closed_at, created_at, updated_at, participant:participants(id, full_name, reference_number)';
+
     let query = supabase
       .from('complaints')
       .select(complaintFields)
       .order('received_date', { ascending: false });
 
     if (status && status !== 'all') query = query.eq('status', status);
-    if (isAdmin && participantId) query = query.eq('participant_id', participantId);
+    if (isAdmin && participantId) {
+      query = query.eq('participant_id', participantId);
+    } else if (!isAdmin && currentParticipantId) {
+      query = query.eq('participant_id', currentParticipantId);
+    }
 
     const { data, error } = await query;
     if (error) {
@@ -66,22 +85,24 @@ export async function POST(request: NextRequest) {
       supabase = await createClient();
     }
 
-    if (!supabase) return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
-
-    if (!isAdmin) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
-      actorId = user.id;
-      actorType = 'participant';
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('portal_participant_id, role, is_active')
-        .eq('id', user.id)
-        .single();
-      if (!profile?.is_active || profile.role !== 'participant' || !profile.portal_participant_id) {
-        return NextResponse.json({ error: 'Your account does not have participant portal access.' }, { status: 403 });
+    if (!isAdmin && supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        actorId = user.id;
+        actorType = 'participant';
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('portal_participant_id, role, is_active')
+          .eq('id', user.id)
+          .single();
+        if (profile?.is_active && profile.role === 'participant' && profile.portal_participant_id) {
+          portalParticipantId = profile.portal_participant_id;
+        }
+      } else {
+        // Public complaint / feedback lodgement allowed per G4 spec
+        actorId = 'public';
+        actorType = 'public';
       }
-      portalParticipantId = profile.portal_participant_id;
     }
 
     const body = await request.json();
@@ -97,61 +118,98 @@ export async function POST(request: NextRequest) {
       immediate_safety_issue,
       linked_incident_id,
       assigned_manager,
+      is_anonymous,
+      advocate_name,
+      advocate_relationship,
+      advocate_contact,
+      accessibility_communication_needs,
+      category,
+      urgency,
     } = body;
 
     const resolvedSummary = summary || body.title || body.description?.slice(0, 100) || '';
     const resolvedDetails = details || body.description || '';
-    const resolvedRole = complainant_role || body.complainant_type || 'Participant';
-    const resolvedContact = contact_details || body.complainant_contact || null;
+    const resolvedName = Boolean(is_anonymous) ? 'Anonymous' : (complainant_name || body.name || 'Participant / Complainant');
 
-    if (!complainant_name || !resolvedSummary || !resolvedDetails) {
+    if (!resolvedSummary || !resolvedDetails) {
       return NextResponse.json(
-        { error: 'complainant_name, summary, and details are required.' },
+        { error: 'Summary and details are required to submit a complaint.' },
         { status: 400 }
       );
     }
 
-    let resolvedParticipantId = portalParticipantId || participant_id || null;
+    // Always use admin client for database insert to ensure unauthenticated public lodgement succeeds
+    const insertClient = createAdminClient() || supabase;
+    if (!insertClient) {
+      return NextResponse.json({ error: "We couldn't complete this action. Please refresh and try again." }, { status: 503 });
+    }
+
+    let resolvedParticipantId = Boolean(is_anonymous) ? null : (portalParticipantId || participant_id || null);
     if (isAdmin && resolvedParticipantId && !isValidUuid(resolvedParticipantId)) {
-      resolvedParticipantId = await resolveParticipantUuid(supabase, resolvedParticipantId);
+      resolvedParticipantId = await resolveParticipantUuid(insertClient, resolvedParticipantId);
     }
 
     let resolvedLinkedIncidentId = linked_incident_id || null;
     if (!isAdmin) {
       resolvedLinkedIncidentId = null;
-      supabase = createAdminClient();
-      if (!supabase) return NextResponse.json({ error: 'We could not submit your complaint right now.' }, { status: 503 });
     } else if (resolvedLinkedIncidentId && !isValidUuid(resolvedLinkedIncidentId)) {
-      resolvedLinkedIncidentId = await resolveIncidentUuid(supabase, resolvedLinkedIncidentId);
+      resolvedLinkedIncidentId = await resolveIncidentUuid(insertClient, resolvedLinkedIncidentId);
     }
+
+    // Process complaint through governance engine
+    const processed = processComplaintLodgement({
+      is_anonymous: Boolean(is_anonymous),
+      complainant_name: resolvedName,
+      complainant_role,
+      contact_details,
+      advocate_name,
+      advocate_relationship,
+      advocate_contact,
+      accessibility_communication_needs,
+      category,
+      urgency,
+      immediate_safety_issue: Boolean(immediate_safety_issue),
+      summary: resolvedSummary,
+      details: resolvedDetails,
+      source: source || (isAdmin ? 'Admin' : (actorType === 'public' ? 'Public Website' : 'Participant Portal')),
+      participant_id: resolvedParticipantId,
+    });
 
     // Generate unique reference CMP-YYYY-XXXX
     const year = new Date().getFullYear();
-    const { count } = await supabase
+    const { count } = await insertClient
       .from('complaints')
       .select('*', { count: 'exact', head: true });
     const ref = `CMP-${year}-${String((count ?? 0) + 1).padStart(4, '0')}`;
 
-    const { data, error } = await supabase
+    const { data, error } = await insertClient
       .from('complaints')
       .insert({
         complaint_reference: ref,
-        participant_id: resolvedParticipantId,
-        complainant_name,
-        complainant_role: resolvedRole,
-        contact_details: resolvedContact,
-        source: source || 'Portal',
+        participant_id: processed.participant_id,
+        complainant_name: processed.complainant_name,
+        complainant_role: processed.complainant_role,
+        contact_details: processed.contact_details,
+        source: processed.source,
         received_date: received_date || new Date().toISOString().split('T')[0],
-        summary: resolvedSummary,
-        details: resolvedDetails,
-        immediate_safety_issue: Boolean(immediate_safety_issue),
+        summary: processed.summary,
+        details: processed.details,
+        immediate_safety_issue: processed.immediate_safety_issue,
         linked_incident_id: resolvedLinkedIncidentId,
         assigned_manager: isAdmin ? (assigned_manager || null) : null,
+        is_anonymous: processed.is_anonymous,
+        advocate_name: processed.advocate_name,
+        advocate_relationship: processed.advocate_relationship,
+        advocate_contact: processed.advocate_contact,
+        accessibility_communication_needs: processed.accessibility_communication_needs,
+        category: processed.category,
+        urgency: processed.urgency,
+        response_target_date: processed.response_target_date,
         status: 'Received',
       })
       .select(isAdmin
         ? '*, participant:participants(id, full_name, reference_number), linked_incident:incidents(id, incident_reference, severity, status)'
-        : 'id, complaint_reference, participant_id, complainant_name, complainant_role, received_date, summary, status, acknowledgement_date, resolution_summary, closed_at, created_at, updated_at, participant:participants(id, full_name, reference_number)')
+        : 'id, complaint_reference, participant_id, complainant_name, complainant_role, received_date, summary, status, response_target_date, created_at')
       .single();
 
     if (error) {
@@ -166,7 +224,7 @@ export async function POST(request: NextRequest) {
       actor_type: actorType,
       actor_id: actorId,
       action: 'created',
-      changes: { status: 'Received', immediate_safety_issue },
+      changes: { status: 'Received', urgency: processed.urgency, is_anonymous: processed.is_anonymous },
       metadata: { complaint_reference: ref },
     });
 
