@@ -10,9 +10,10 @@ Before changing code, read:
 2. `docs/CODEX_AUTONOMOUS_RUNBOOK.md`
 3. `docs/CODEX_SECURITY_RECOVERY.md`
 4. `docs/CODEX_AUTONOMOUS_RESUME.md`
-5. `docs/EXECUTION_PROTOCOL.md`
-6. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
-7. the current phase specification under `docs/governance/`
+5. `docs/CODEX_BROWSER_ACCEPTANCE.md`
+6. `docs/EXECUTION_PROTOCOL.md`
+7. `docs/OPUS_CARE_GOVERNANCE_ROADMAP.md`
+8. the current phase specification under `docs/governance/`
 
 ## Current start point
 
@@ -31,6 +32,20 @@ The previously exposed application admin shared password is compromised.
 - This production-only remediation does not stop unrelated software phases.
 - For local authenticated acceptance, use only a fresh high-entropy temporary credential in ignored local runtime configuration and verify it never reaches browser bundles.
 - Follow `docs/CODEX_SECURITY_RECOVERY.md`.
+
+## Browser acceptance rule
+
+Do not depend on the in-app browser clipboard or file chooser for secrets.
+
+Use the automated local browser procedure in:
+
+`docs/CODEX_BROWSER_ACCEPTANCE.md`
+
+The test must exercise the real application login flow with a fresh local-only ephemeral credential supplied only to the server/test process.
+
+Do not inject cookies, forge sessions, weaken authentication, expose the credential in client source, or reuse the compromised credential.
+
+A clipboard/file-chooser limitation is not a hard blocker if Playwright or the repository's supported browser automation can perform the real login flow.
 
 ## Branch / deployment isolation
 
