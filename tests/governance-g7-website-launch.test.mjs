@@ -135,11 +135,12 @@ test('Governance G7 — Referral Journey & G1 Gate Linkage', async (t) => {
 });
 
 test('Governance G7 — Pricing, Travel & GST Integrity', async (t) => {
-  await t.test('pricing document states sole trader, not registered for GST, and NDIS price limits', () => {
+  await t.test('pricing document states ABN, GST statement, and NDIS price limits', () => {
     const pricingDoc = readProjectFile('app/documents/pricing-travel-cancellation/page.tsx');
-    assert.ok(pricingDoc.includes('Sole Trader (Not Registered for GST)'));
-    assert.ok(pricingDoc.includes('As Opus Care is not registered for GST, invoices do not include GST.'));
+    assert.ok(pricingDoc.includes('ABN: 41 267 197 576'));
+    assert.ok(pricingDoc.includes('GST has not been charged – supplier is not registered for GST.'));
     assert.ok(pricingDoc.includes('NDIS Pricing Arrangements'));
+    assert.ok(!pricingDoc.includes('Sole Trader'));
   });
 
   await t.test('complaints page displays external escalation avenue (NDIS Commission 1800 035 544)', () => {

@@ -5,16 +5,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SiteHeader } from '../../../components/SiteHeader';
 import { SiteFooter } from '../../../components/SiteFooter';
-import { 
-  Printer, 
-  Download, 
-  ArrowLeft, 
-  CheckCircle2, 
-  FileText, 
-  ShieldCheck, 
+import {
+  Printer,
+  Download,
+  ArrowLeft,
+  CheckCircle2,
+  FileText,
+  ShieldCheck,
   Calendar,
-  Lock,
-  AlertTriangle
+  Lock
 } from 'lucide-react';
 
 export default function ServiceAgreementPage() {
@@ -81,7 +80,7 @@ export default function ServiceAgreementPage() {
         {/* Printable Contract Document Container */}
         <div className="shell">
           <div className="printableAgreementCard">
-            
+
             {/* Agreement Header */}
             <header className="contractHeader">
               <div className="contractBrandRow">
@@ -95,8 +94,8 @@ export default function ServiceAgreementPage() {
                     className="contractLogo"
                   />
                   <p className="contractEntityDetails">
-                    <strong>{orgProfile.contractingEntityDisplay}</strong><br />
-                    ABN: {orgProfile.abn || '41 267 197 576'} (Sole Trader · Unregistered NDIS Provider)<br />
+                    <strong>Opus Care Support Services</strong><br />
+                    ABN: {orgProfile.abn || '41 267 197 576'} (Unregistered NDIS Provider)<br />
                     Email: support@opuscare.com.au · Web: opuscare.com.au<br />
                     Operating across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers NSW
                   </p>
@@ -109,44 +108,20 @@ export default function ServiceAgreementPage() {
               </div>
             </header>
 
-            {!orgProfile.isProprietorConfigured && (
-              <div style={{
-                background: '#fffbeb',
-                border: '1px solid #f59e0b',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                margin: '16px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontSize: '0.875rem',
-                color: '#92400e',
-              }} className="no-print">
-                <AlertTriangle size={18} style={{ flexShrink: 0, color: '#d97706' }} />
-                <span>
-                  <strong>Legal Readiness Notice:</strong> Proprietor legal name is pending configuration in Admin Settings. Formal agreements will display a pending notice until entered.
-                </span>
-              </div>
-            )}
-
             {/* Fillable Participant Details Box */}
             <section className="contractSection fillableBox">
               <h2 className="sectionClauseTitle">Part 1: Schedule of Parties & Participant Details</h2>
               <p className="clauseText">
                 This Service Agreement is made between{' '}
-                <strong>
-                  {orgProfile.isProprietorConfigured && orgProfile.proprietorLegalName
-                    ? `${orgProfile.proprietorLegalName} trading as Opus Care Support Services`
-                    : '[Proprietor Legal Name Pending Configuration] trading as Opus Care Support Services'}
-                </strong>{' '}
+                <strong>Opus Care Support Services</strong>{' '}
                 (ABN: {orgProfile.abn || '41 267 197 576'}) (&quot;the Provider&quot;) and the Participant or their authorised representative (&quot;the Participant&quot;).
               </p>
 
               <div className="contractFieldsGrid">
                 <div className="contractField">
                   <label>Participant Full Name:</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="e.g. John Doe"
                     value={participantName}
                     onChange={(e) => setParticipantName(e.target.value)}
@@ -156,8 +131,8 @@ export default function ServiceAgreementPage() {
 
                 <div className="contractField">
                   <label>NDIS Participant Number:</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="e.g. 430 000 000"
                     value={ndisNumber}
                     onChange={(e) => setNdisNumber(e.target.value)}
@@ -175,8 +150,8 @@ export default function ServiceAgreementPage() {
 
                 <div className="contractField">
                   <label>Plan Manager / Invoice Contact (if applicable):</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Plan Management Company & Accounts Email"
                     value={planManager}
                     onChange={(e) => setPlanManager(e.target.value)}
@@ -186,8 +161,8 @@ export default function ServiceAgreementPage() {
 
                 <div className="contractField">
                   <label>Agreement Start Date:</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="contractInput"
@@ -196,8 +171,8 @@ export default function ServiceAgreementPage() {
 
                 <div className="contractField">
                   <label>Agreement End / Plan Review Date:</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="contractInput"
@@ -287,7 +262,7 @@ export default function ServiceAgreementPage() {
                 <li>Ensure all support workers hold valid National Police Checks, NDIS Worker Screening (NDISWC), and Working with Children Checks (WWCC).</li>
                 <li>Maintain comprehensive Public Liability and Personal Accident Insurance across all staff.</li>
                 <li>Protect participant privacy and personal information in accordance with the <em>Privacy Act 1988 (Cth)</em> and Australian Privacy Principles.</li>
-                <li>Issue clear, compliant tax invoices with accurate hours, line items, and date stamps within 7 days of service.</li>
+                <li>Issue clear, compliant invoices with accurate hours, line items, and date stamps within 7 days of service.</li>
               </ul>
 
               <h2 className="sectionClauseTitle" style={{ marginTop: '24px' }}>Part 4: Responsibilities of the Participant</h2>
@@ -365,8 +340,8 @@ export default function ServiceAgreementPage() {
             </section>
 
             <footer className="contractFooterLegal">
-              <p>{orgProfile.contractingEntityDisplay} · ABN {orgProfile.abn || '41 267 197 576'} · NSW North Coast &amp; Northern Rivers · support@opuscare.com.au</p>
-              <small>Unregistered NDIS Provider · Sole Trader · Supporting Self-Managed and Plan-Managed Participants with Choice &amp; Control · GST has not been charged.</small>
+              <p>Opus Care Support Services · ABN {orgProfile.abn || '41 267 197 576'} · NSW North Coast &amp; Northern Rivers · support@opuscare.com.au</p>
+              <small>Unregistered NDIS Provider · Supporting Self-Managed and Plan-Managed Participants with Choice &amp; Control · GST has not been charged – supplier is not registered for GST.</small>
             </footer>
 
           </div>

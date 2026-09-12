@@ -40,7 +40,7 @@ export default function ScheduleOfSupportsPage() {
                   />
                   <p className="contractEntityDetails">
                     <strong>Opus Care Support Services</strong><br />
-                    ABN: 41 267 197 576 · Sole Trader (Not Registered for GST)<br />
+                    ABN: 41 267 197 576<br />
                     Supporting Self-Managed and Plan-Managed Participants
                   </p>
                 </div>

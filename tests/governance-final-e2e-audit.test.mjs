@@ -122,8 +122,9 @@ test('Final Audit 1 — Full Participant Lifecycle End-to-End Simulation', async
 
   // Step 7: Compliant Billing & Invoice Structure (Zero GST)
   const pricingPage = readProjectFile('app/documents/pricing-travel-cancellation/page.tsx');
-  assert.ok(pricingPage.includes('Sole Trader (Not Registered for GST)'));
-  assert.ok(pricingPage.includes('As Opus Care is not registered for GST, invoices do not include GST.'));
+  assert.ok(pricingPage.includes('ABN: 41 267 197 576'));
+  assert.ok(pricingPage.includes('GST has not been charged – supplier is not registered for GST.'));
+  assert.ok(!pricingPage.includes('Sole Trader'));
 });
 
 test('Final Audit 2 — Full Worker Lifecycle and Screening Verification', async (t) => {

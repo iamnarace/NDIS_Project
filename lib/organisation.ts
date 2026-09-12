@@ -147,7 +147,7 @@ export async function getOrganisationProfile(
     canIssueTaxInvoice: false,
     proprietorLegalName: null,
     isProprietorConfigured: false,
-    contractingEntityDisplay: 'Opus Care Support Services (Proprietor legal name pending configuration)',
+    contractingEntityDisplay: 'Opus Care Support Services',
     designatedSignatoryName: 'Director of Operations',
     designatedSignatoryTitle: 'Managing Director, Opus Care',
     bankName: null,
@@ -194,9 +194,7 @@ export async function getOrganisationProfile(
     const tradingName = config.trading_name?.trim() || config.legal_name?.trim() || fallback.tradingName;
     const rawProprietor = config.proprietor_legal_name?.trim() || null;
     const isProprietorConfigured = Boolean(rawProprietor);
-    const contractingEntityDisplay = isProprietorConfigured
-      ? `${rawProprietor} trading as ${tradingName}`
-      : `${tradingName} (Proprietor legal name pending configuration)`;
+    const contractingEntityDisplay = tradingName;
 
     return {
       legalName: config.legal_name?.trim() || fallback.legalName,

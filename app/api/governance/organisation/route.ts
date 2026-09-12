@@ -21,7 +21,7 @@ export async function GET() {
       gstStatus: profile.gstStatus,
       isGstRegistered: profile.isGstRegistered,
       canIssueTaxInvoice: profile.canIssueTaxInvoice,
-      proprietorLegalName: profile.proprietorLegalName,
+      proprietorLegalName: null,
       isProprietorConfigured: profile.isProprietorConfigured,
       contractingEntityDisplay: profile.contractingEntityDisplay,
       designatedSignatoryName: profile.designatedSignatoryName,

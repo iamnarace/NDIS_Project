@@ -40,7 +40,7 @@ export default function PricingTravelCancellationPage() {
                   />
                   <p className="contractEntityDetails">
                     <strong>Opus Care Support Services</strong><br />
-                    ABN: 41 267 197 576 · Sole Trader (Not Registered for GST)<br />
+                    ABN: 41 267 197 576<br />
                     Supporting Self-Managed and Plan-Managed Participants
                   </p>
                 </div>
@@ -55,7 +55,7 @@ export default function PricingTravelCancellationPage() {
             <section className="contractSection">
               <h2 className="sectionClauseTitle">1. Core Support Pricing Limits (2026–27)</h2>
               <p className="clauseText">
-                Opus Care Support Services delivers support strictly adhering to the maximum price limits set out in the official NDIS Pricing Arrangements and Price Limits 2026–27. We never charge above the gazetted NDIS price cap. As Opus Care is not registered for GST, invoices do not include GST.
+                Opus Care Support Services delivers support strictly adhering to the maximum price limits set out in the official NDIS Pricing Arrangements and Price Limits 2026–27. We never charge above the gazetted NDIS price cap. GST has not been charged – supplier is not registered for GST.
               </p>
               <div className="crmTableWrapper" style={{ marginTop: 12 }}>
                 <table className="crmTable">

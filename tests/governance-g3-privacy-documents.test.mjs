@@ -89,7 +89,7 @@ test('Governance G3 - Agreement & Legal Baseline Alignment', async (t) => {
   await t.test('reflects authorised sole trader, ABN 41 267 197 576, and not registered for GST', () => {
     const pricingContent = readFileSync('app/documents/pricing-travel-cancellation/page.tsx', 'utf8');
     assert.ok(pricingContent.includes('41 267 197 576'));
-    assert.ok(pricingContent.includes('Not Registered for GST'));
+    assert.ok(pricingContent.includes('not registered for GST'));
     assert.ok(!pricingContent.includes('Pty Ltd'));
 
     const rightsContent = readFileSync('app/documents/rights-and-responsibilities/page.tsx', 'utf8');
