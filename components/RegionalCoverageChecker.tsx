@@ -13,7 +13,7 @@ export function RegionalCoverageChecker() {
   const current = REGIONS.find(r => r.id === activeRegion) || REGIONS[1];
 
   const allSuburbs = REGIONS.flatMap(r => r.suburbs.map(s => ({ suburb: s, region: r.name })));
-  const searchResults = searchTerm.trim() 
+  const searchResults = searchTerm.trim()
     ? allSuburbs.filter(item => item.suburb.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
 
@@ -29,6 +29,9 @@ export function RegionalCoverageChecker() {
         <h3 className="coverageTitle">Supporting participants across the NSW North Coast and Northern Rivers</h3>
         <p className="coverageSubtitle">
           Opus Care Support Services provides person-centred disability support from Coffs Harbour through the Clarence Valley, Richmond Valley and Lismore region to Ballina, including surrounding towns and communities.
+        </p>
+        <p className="coverageQualifierNotice" style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic', marginTop: '6px' }}>
+          Service availability depends on location, participant requirements and current worker capacity.
         </p>
 
         {/* Clean Major Locations Strip */}

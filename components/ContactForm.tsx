@@ -9,7 +9,7 @@ const initialFormData = {
   email: '',
   suburb: '',
   enquiringFor: 'Self / NDIS Participant',
-  selectedServices: ['Community supports'],
+  selectedServices: [] as string[],
   message: '',
   agreePrivacy: true,
 };

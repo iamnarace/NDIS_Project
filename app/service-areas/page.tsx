@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function ServiceAreasPage() {
   const majorLocations = [
-    'Coffs Harbour', 'Woolgoolga', 'Grafton', 'Maclean', 'Yamba', 
+    'Coffs Harbour', 'Woolgoolga', 'Grafton', 'Maclean', 'Yamba',
     'Casino', 'Lismore', 'Alstonville', 'Lennox Head', 'Ballina'
   ];
 
@@ -45,6 +45,9 @@ export default function ServiceAreasPage() {
               </h1>
               <p className="sectionSubDesc">
                 Opus Care Support Services provides person-centred disability support from Coffs Harbour through the Clarence Valley, Richmond Valley and Lismore region to Ballina, including surrounding towns and communities.
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#64748b', fontStyle: 'italic', marginTop: '8px' }}>
+                Service availability depends on location, participant requirements and current worker capacity.
               </p>
 
               {/* Major Locations Ticker */}
@@ -110,6 +113,53 @@ export default function ServiceAreasPage() {
                   </div>
                 </div>
               ))}
+
+              {/* Sydney Operational Service Corridor */}
+              <div className="controlledCardPane regionDirectoryCard">
+                <div className="regionDirHeader">
+                  <div className="dirIconWrap">
+                    <MapPin size={22} />
+                  </div>
+                  <div>
+                    <span className="dirSuperBadge">Sydney Hub</span>
+                    <h2>Sydney Metropolitan &amp; Western Sydney</h2>
+                  </div>
+                </div>
+
+                <p className="regionDirDesc">
+                  Selected operational support coverage across metropolitan and Western Sydney hubs. Service availability depends on location, participant requirements and current worker capacity.
+                </p>
+
+                <div className="keyHubsRow">
+                  <span className="hubsLabel">Key Hubs:</span>
+                  <div className="hubsPills">
+                    <span className="hubPill">Blacktown</span>
+                    <span className="hubPill">Parramatta</span>
+                    <span className="hubPill">Western Sydney</span>
+                    <span className="hubPill">Sydney CBD</span>
+                    <span className="hubPill">Redfern</span>
+                  </div>
+                </div>
+
+                <div className="allSuburbsSection">
+                  <span className="suburbsListLabel">Operational Localities (By Arrangement):</span>
+                  <div className="suburbsPillsWrap">
+                    {['Blacktown', 'Parramatta', 'Western Sydney', 'Sydney CBD', 'Redfern', 'Penrith', 'Liverpool', 'Strathfield', 'Auburn', 'Burwood', 'Westmead', 'Granville', 'Ryde'].map(sub => (
+                      <span key={sub} className="suburbTag">
+                        <CheckCircle2 size={13} className="subCheckIcon" />
+                        {sub}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="dirCardFooter">
+                  <Link href="/referral" className="heroPillBtn filled sm">
+                    <span>Start Intake in Sydney</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
             </div>
 
             {/* Location Consultation Callout */}

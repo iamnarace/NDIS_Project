@@ -1,4 +1,4 @@
-CAREPOINT SUPPORT SERVICES — LOGO BRAND PACK
+OPUS CARE SUPPORT SERVICES — LOGO BRAND PACK
 
 Included:
 - Master PNG
@@ -11,13 +11,13 @@ Included:
 - 300 DPI business-card and print versions
 
 WORKING BRAND
-CarePoint Support Services
-Tagline shown in supplied logo:
+Opus Care Support Services
+Tagline:
 Compassion. Empowerment. Independence.
 
 IMPORTANT
-The original generated artwork has a white background, so these exported files preserve that background.
-For professional printing and signage, a true vector SVG/PDF logo and transparent-background master should be created from the approved mark rather than simply converting the raster PNG.
+The brand assets support digital, print, and website surfaces.
+For professional printing and signage, vector SVG/PDF master assets should be used.
 
 Suggested use:
 Website header: Website_Header_512.png

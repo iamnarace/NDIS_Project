@@ -1,6 +1,6 @@
-CAREPOINT SUPPORT SERVICES — SEPARATE MARKETING ASSETS
+OPUS CARE SUPPORT SERVICES — MARKETING ASSETS
 
-This ZIP contains separate PNG crops extracted from the approved CarePoint brand-board concept.
+This archive contains PNG crops extracted from the approved Opus Care brand concept.
 
 Files include:
 - Primary logo
@@ -20,5 +20,5 @@ Files include:
 - Usage guide
 
 IMPORTANT:
-These files are cropped from a generated concept board, so they are useful for mockups, planning, website concepts and marketing drafts.
-For final public advertising/printing, we should regenerate each important asset individually at full resolution so text is perfectly clean and logos remain consistent.
+These files support marketing drafts, social mockups, and website concepts.
+For final public advertising/printing, vector assets should be used so text is perfectly clean and logos remain consistent.

@@ -4,7 +4,7 @@
 
 ## Status
 
-`READY AFTER G6 PASSES`
+`STATUS: COMPLETE`
 
 ## Objective
 
