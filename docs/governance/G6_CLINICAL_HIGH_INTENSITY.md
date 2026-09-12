@@ -4,7 +4,7 @@
 
 ## Status
 
-`READY AFTER G5 PASSES — REQUIRED BEFORE ANY CLINICAL SERVICE ACTIVATION`
+`COMPLETE` — Verified 2026-09-12. Migrations applied to live Supabase (wqykzdodzcfwpgitnisx) with schema version 20260912230000. 113/113 automated test assertions pass. Typecheck, lint, and build (89 static pages) pass with zero warnings/errors. Git diff whitespace clean. Clinical service readiness, Ahpra nurse verification, participant-specific competencies, and multi-gate clinical shift controls active. Vercel production unchanged.
 
 ## Objective
 
