@@ -2,15 +2,16 @@ import React from 'react';
 import Link from 'next/link';
 import { SiteHeader } from '../../components/SiteHeader';
 import { SiteFooter } from '../../components/SiteFooter';
-import { 
-  FileText, 
-  FileCheck2, 
-  Shield, 
-  Download, 
-  ArrowRight, 
-  Printer, 
+import {
+  FileText,
+  FileCheck2,
+  Shield,
+  Download,
+  ArrowRight,
+  Printer,
   Lock,
-  Sparkles
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 
 export const metadata = {
@@ -31,26 +32,114 @@ const DOCUMENTS = [
     icon: FileText
   },
   {
+    id: 'schedule-of-supports',
+    title: 'Schedule of Supports',
+    category: 'Official Contract',
+    tag: '2026–27 Catalogue',
+    tagColor: '#0284C7',
+    tagBg: '#E0F2FE',
+    desc: 'Tailored support item allocations, hourly rates strictly capped at 2026-27 NDIS price limits, and claiming schedules.',
+    href: '/documents/schedule-of-supports',
+    icon: FileText
+  },
+  {
+    id: 'pricing-travel-cancellation',
+    title: 'Pricing, Travel & Cancellation Policy',
+    category: 'Finance & Pricing',
+    tag: 'NDIS Price Limits',
+    tagColor: '#0284C7',
+    tagBg: '#E0F2FE',
+    desc: 'Clear breakdown of hourly line-item rates across Weekday Daytime ($73.58/hr), evenings, weekends, travel rules, and the 2-clear-business-days cancellation policy.',
+    href: '/documents/pricing-travel-cancellation',
+    icon: Shield
+  },
+  {
+    id: 'privacy-notice',
+    title: 'Privacy Collection Notice & Handling',
+    category: 'Privacy & Governance',
+    tag: 'Privacy Act 1988',
+    tagColor: '#059669',
+    tagBg: '#ECFDF5',
+    desc: 'How Opus Care collects, protects, uses, and retains your personal and sensitive data under the Australian Privacy Principles.',
+    href: '/privacy',
+    icon: Lock
+  },
+  {
+    id: 'rights-and-responsibilities',
+    title: 'Participant Charter of Rights & Responsibilities',
+    category: 'Quality & Safeguarding',
+    tag: 'Choice & Control',
+    tagColor: '#7C3AED',
+    tagBg: '#F3E8FF',
+    desc: 'Your fundamental rights to dignity, autonomy, independent advocacy, freedom from abuse, and participant responsibilities.',
+    href: '/documents/rights-and-responsibilities',
+    icon: Shield
+  },
+  {
+    id: 'complaints-feedback',
+    title: 'Complaints, Feedback & Dispute Resolution',
+    category: 'Quality & Safeguarding',
+    tag: 'Fair & Protected',
+    tagColor: '#D97706',
+    tagBg: '#FEF3C7',
+    desc: 'How to share feedback, raise concerns, and escalate complaints internally or to the NDIS Quality & Safeguards Commission without fear of retribution.',
+    href: '/complaints',
+    icon: FileCheck2
+  },
+  {
+    id: 'incident-safeguarding',
+    title: 'Incident Management & Safeguarding Information',
+    category: 'Quality & Safeguarding',
+    tag: 'Safety & Protection',
+    tagColor: '#DC2626',
+    tagBg: '#FEE2E2',
+    desc: 'Our zero-tolerance approach to abuse and neglect, incident reporting procedures, and immediate support protocols.',
+    href: '/incident-management',
+    icon: Shield
+  },
+  {
     id: 'welcome-pack',
     title: 'Participant Welcome & Onboarding Pack',
     category: 'Client Handbook',
     tag: 'Essential Reading',
     tagColor: '#7C3AED',
     tagBg: '#F3E8FF',
-    desc: 'A comprehensive handbook for new participants and family carers. Explains how worker matching works, participant charter of rights, incident escalation, and quality standards.',
+    desc: 'A comprehensive handbook for new participants and family carers explaining worker matching, care coordination, and service standards.',
     href: '/documents/welcome-pack',
     icon: FileCheck2
   },
   {
-    id: 'pricing-schedule',
-    title: 'Schedule of Supports & Pricing Rates',
-    category: 'Financial Guide',
-    tag: 'NDIS Price Limits',
-    tagColor: '#0284C7',
-    tagBg: '#E0F2FE',
-    desc: 'Clear breakdown of hourly line-item rates across Weekday Daytime ($65.47/hr), Weekday Evening, Saturday, Sunday, and Public Holidays strictly aligned with the NDIS Support Catalogue.',
-    href: '/faq#pricing',
-    icon: Shield
+    id: 'emergency-support',
+    title: 'Emergency & Urgent Support Protocol',
+    category: 'Safety & Emergency',
+    tag: 'Critical Care',
+    tagColor: '#DC2626',
+    tagBg: '#FEE2E2',
+    desc: '000 emergency escalation, 24/7 mental health crisis contacts (Lifeline 13 11 14, Beyond Blue), and urgent shift disruption contacts.',
+    href: '/documents/emergency-support',
+    icon: AlertTriangle
+  },
+  {
+    id: 'exit-transition',
+    title: 'Service Exit & Transition Policy',
+    category: 'Client Lifecycle',
+    tag: 'Fair Transition',
+    tagColor: '#059669',
+    tagBg: '#ECFDF5',
+    desc: '14-day notice terms, unhindered exit rights, continuity of care, and orderly transfer of progress records.',
+    href: '/documents/exit-transition',
+    icon: FileText
+  },
+  {
+    id: 'information-sharing',
+    title: 'Information Sharing Authority',
+    category: 'Privacy & Governance',
+    tag: 'Consent Instrument',
+    tagColor: '#7C3AED',
+    tagBg: '#F3E8FF',
+    desc: 'Consent instrument authorising information sharing with Plan Managers, Support Coordinators, and treating health practitioners.',
+    href: '/documents/information-sharing',
+    icon: Lock
   }
 ];
 
@@ -84,7 +173,7 @@ export default function DocumentsHubPage() {
                       <div className="docIconWrap">
                         <Icon size={28} />
                       </div>
-                      <span 
+                      <span
                         className="docTagPill"
                         style={{ color: doc.tagColor, backgroundColor: doc.tagBg }}
                       >

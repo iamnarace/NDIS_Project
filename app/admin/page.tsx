@@ -20,6 +20,8 @@ import CanonicalDashboard from '@/components/admin/CanonicalDashboard';
 import SuitabilityAssessmentModal from '@/components/admin/SuitabilityAssessmentModal';
 import ParticipantOnboardingDrawer from '@/components/admin/ParticipantOnboardingDrawer';
 import WorkerReadinessPanel from '@/components/admin/WorkerReadinessPanel';
+import HelpCentrePanel from '@/components/admin/HelpCentrePanel';
+import ParticipantConsentDrawer from '@/components/admin/ParticipantConsentDrawer';
 import {
   FormDrawer,
   DrawerHeader,
@@ -198,7 +200,7 @@ interface TrainingCompletion {
 }
 
 
-type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'timesheets' | 'progress_notes' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'settings';
+type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'timesheets' | 'progress_notes' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'help' | 'settings';
 
 const PIPELINE_STAGES = [
   { id: 'new', label: 'New Inbound', color: 'var(--oc-info)', bg: '#E0F2FE' },
@@ -222,6 +224,7 @@ export default function AdminCrmPage() {
   const [selectedReferralForSuitability, setSelectedReferralForSuitability] = useState<Referral | null>(null);
   const [acceptedAssessment, setAcceptedAssessment] = useState<any | null>(null);
   const [selectedParticipantForOnboarding, setSelectedParticipantForOnboarding] = useState<Participant | null>(null);
+  const [selectedParticipantForConsents, setSelectedParticipantForConsents] = useState<Participant | null>(null);
   const [showAddWorker, setShowAddWorker] = useState(false);
   const [showAgreementGenerator, setShowAgreementGenerator] = useState(false);
   const [selectedAgreementToView, setSelectedAgreementToView] = useState<any | null>(null);
@@ -4609,6 +4612,13 @@ export default function AdminCrmPage() {
         </div>
       )}
 
+      {/* TAB: HELP CENTRE & OPERATIONS GUIDE (GOVERNANCE G3) */}
+      {tab === 'help' && (
+        <div className="crmTabPanel">
+          <HelpCentrePanel />
+        </div>
+      )}
+
       {/* DETAIL MODAL / DRAWER (Referral, Participant, or Staff) */}
       {(selectedReferral || selectedParticipant || selectedStaff) && (
         <div className="crmModalOverlay ocRecordOverlay" onClick={() => {
@@ -4679,6 +4689,28 @@ export default function AdminCrmPage() {
                 <FolderLock size={15} />
                 <span>Document Vault ({documents.length})</span>
               </button>
+
+              {selectedParticipant && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedParticipantForConsents(selectedParticipant)}
+                  style={{
+                    padding: '12px 0',
+                    border: 'none',
+                    background: 'none',
+                    color: 'var(--oc-info)',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <ShieldCheck size={15} />
+                  <span>Consents &amp; Privacy</span>
+                </button>
+              )}
 
               {selectedParticipant && (
                 <button
@@ -5495,6 +5527,15 @@ export default function AdminCrmPage() {
           onUpdated={() => {
             loadAllData();
           }}
+        />
+      )}
+
+      {selectedParticipantForConsents && (
+        <ParticipantConsentDrawer
+          isOpen={Boolean(selectedParticipantForConsents)}
+          participantId={selectedParticipantForConsents.id}
+          participantName={selectedParticipantForConsents.name}
+          onClose={() => setSelectedParticipantForConsents(null)}
         />
       )}
 

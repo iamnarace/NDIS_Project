@@ -30,6 +30,7 @@ import {
   Plus,
   CheckCircle2,
   Menu,
+  BookOpen,
 } from 'lucide-react';
 import CrmNotificationItem from './CrmNotificationItem';
 
@@ -49,6 +50,7 @@ export type CrmTab =
   | 'staff'
   | 'workforce'
   | 'compliance'
+  | 'help'
   | 'settings';
 
 
@@ -336,6 +338,18 @@ export default function CrmContainer({
                 <div className="nav-link-left">
                   <ShieldCheck size={17} />
                   <span>Compliance &amp; Training</span>
+                </div>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`nav-link ${isTabActive('help') ? 'active' : ''}`}
+                onClick={() => handleTabClick('help')}
+              >
+                <div className="nav-link-left">
+                  <BookOpen size={17} />
+                  <span>Help Centre &amp; Guide</span>
                 </div>
               </button>
             </li>
