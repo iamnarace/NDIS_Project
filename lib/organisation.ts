@@ -33,6 +33,18 @@ export interface OrganisationProfile {
   bankAccountNumber: string | null;
   isBankConfigured: boolean;
   logoDataUri: string;
+  websiteUrl: string;
+  supportEmail: string;
+  referralsEmail: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  linkedinUrl: string;
+  serviceRegions: string[];
+  ageScope: string;
+  isFullyInsured: boolean;
+  insuranceStatus: 'NOT_SUPPLIED' | 'ACTIVE' | 'EXPIRING' | 'EXPIRED' | 'NEEDS_REVIEW';
+  operationalReadiness: 'READY' | 'BLOCKED';
+  operationalBlockers: string[];
 }
 
 // Authoritative configured/owner-confirmed Australian Business Number
@@ -157,6 +169,18 @@ export async function getOrganisationProfile(
     bankAccountNumber: null,
     isBankConfigured: false,
     logoDataUri,
+    websiteUrl: 'https://opuscare.com.au',
+    supportEmail: 'support@opuscare.com.au',
+    referralsEmail: 'referrals@opuscare.com.au',
+    facebookUrl: 'https://opuscare.com.au',
+    instagramUrl: 'https://opuscare.com.au',
+    linkedinUrl: 'https://opuscare.com.au',
+    serviceRegions: ['Northern NSW', 'Sydney'],
+    ageScope: '18+',
+    isFullyInsured: false,
+    insuranceStatus: 'NOT_SUPPLIED',
+    operationalReadiness: 'BLOCKED',
+    operationalBlockers: ['Operational insurance (Public Liability) has not been supplied.'],
   };
 
   if (!supabase) return fallback;
@@ -198,6 +222,64 @@ export async function getOrganisationProfile(
     const isProprietorConfigured = Boolean(rawProprietor);
     const contractingEntityDisplay = tradingName;
 
+    // Evaluate real-world insurance status from organisation_insurance
+    let isFullyInsured = false;
+    let insuranceStatus: 'NOT_SUPPLIED' | 'ACTIVE' | 'EXPIRING' | 'EXPIRED' | 'NEEDS_REVIEW' = 'NOT_SUPPLIED';
+    const operationalBlockers: string[] = [];
+
+    const { data: policies } = await supabase
+      .from('organisation_insurance')
+      .select('*')
+      .neq('status', 'cancelled');
+
+    const activePolicies = (policies || []).filter((p: any) => p.status === 'active');
+    const now = Date.now();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+    if (!policies || policies.length === 0) {
+      insuranceStatus = 'NOT_SUPPLIED';
+      operationalBlockers.push('Required operational insurance (Public Liability) has not been supplied.');
+    } else {
+      const plPolicy = activePolicies.find((p: any) => p.policy_type === 'Public Liability');
+      if (!plPolicy) {
+        insuranceStatus = 'NOT_SUPPLIED';
+        operationalBlockers.push('Public Liability insurance policy is required.');
+      } else {
+        const expiryTime = new Date(plPolicy.expiry_date).getTime();
+        const isExpired = expiryTime < now;
+        const isExpiringSoon = !isExpired && (expiryTime - now) <= thirtyDaysMs;
+
+        if (isExpired) {
+          insuranceStatus = 'EXPIRED';
+          operationalBlockers.push(`Public Liability insurance expired on ${plPolicy.expiry_date}.`);
+        } else if (plPolicy.verified_state === 'needs_review' || plPolicy.verified_state === 'rejected') {
+          insuranceStatus = 'NEEDS_REVIEW';
+          operationalBlockers.push('Insurance documentation requires review or verification.');
+        } else if (isExpiringSoon) {
+          insuranceStatus = 'EXPIRING';
+          isFullyInsured = true;
+        } else {
+          insuranceStatus = 'ACTIVE';
+          isFullyInsured = true;
+        }
+      }
+    }
+
+    if (!isBankGenuine) {
+      operationalBlockers.push('Remittance details (EFT) must be configured for billing.');
+    }
+
+    const operationalReadiness = operationalBlockers.length === 0 ? 'READY' : 'BLOCKED';
+
+    const websiteUrl = config.website_url?.trim() || 'https://opuscare.com.au';
+    const supportEmail = config.support_email?.trim() || config.email?.trim() || fallback.email;
+    const referralsEmail = config.referrals_email?.trim() || 'referrals@opuscare.com.au';
+    const facebookUrl = config.facebook_url?.trim() || 'https://opuscare.com.au';
+    const instagramUrl = config.instagram_url?.trim() || 'https://opuscare.com.au';
+    const linkedinUrl = config.linkedin_url?.trim() || 'https://opuscare.com.au';
+    const serviceRegions = Array.isArray(config.service_regions) ? config.service_regions : ['Northern NSW', 'Sydney'];
+    const ageScope = config.age_scope?.trim() || '18+';
+
     return {
       legalName: config.legal_name?.trim() || fallback.legalName,
       tradingName,
@@ -225,6 +307,18 @@ export async function getOrganisationProfile(
       bankAccountNumber: isBankGenuine ? rawAcc : null,
       isBankConfigured: isBankGenuine,
       logoDataUri,
+      websiteUrl,
+      supportEmail,
+      referralsEmail,
+      facebookUrl,
+      instagramUrl,
+      linkedinUrl,
+      serviceRegions,
+      ageScope,
+      isFullyInsured,
+      insuranceStatus,
+      operationalReadiness,
+      operationalBlockers,
     };
   } catch (err) {
     console.error('getOrganisationProfile error:', err);

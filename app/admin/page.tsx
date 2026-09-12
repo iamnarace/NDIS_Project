@@ -255,6 +255,13 @@ export default function AdminCrmPage() {
   const [bankBsbInput, setBankBsbInput] = useState('');
   const [bankAccountNumberInput, setBankAccountNumberInput] = useState('');
   const [remittanceSaving, setRemittanceSaving] = useState(false);
+  const [websiteUrlInput, setWebsiteUrlInput] = useState('https://opuscare.com.au');
+  const [supportEmailInput, setSupportEmailInput] = useState('support@opuscare.com.au');
+  const [referralsEmailInput, setReferralsEmailInput] = useState('referrals@opuscare.com.au');
+  const [facebookUrlInput, setFacebookUrlInput] = useState('');
+  const [instagramUrlInput, setInstagramUrlInput] = useState('');
+  const [linkedinUrlInput, setLinkedinUrlInput] = useState('');
+  const [socialsSaving, setSocialsSaving] = useState(false);
   const [insurances, setInsurances] = useState<any[]>([]);
   const [insurancesLoading, setInsurancesLoading] = useState(false);
   const [showAddInsurance, setShowAddInsurance] = useState(false);
@@ -265,6 +272,9 @@ export default function AdminCrmPage() {
     coverageAmount: 10000000,
     commencementDate: new Date().toISOString().slice(0, 10),
     expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+    certificateStoragePath: '',
+    verifiedState: 'verified',
+    renewalReminderState: 'pending',
     notes: '',
   });
   // Participant Contacts State
@@ -880,6 +890,12 @@ export default function AdminCrmPage() {
         if (data?.bank_account_name) setBankAccountNameInput(data.bank_account_name);
         if (data?.bank_bsb) setBankBsbInput(data.bank_bsb);
         if (data?.bank_account_number) setBankAccountNumberInput(data.bank_account_number);
+        if (data?.website_url) setWebsiteUrlInput(data.website_url);
+        if (data?.support_email) setSupportEmailInput(data.support_email);
+        if (data?.referrals_email) setReferralsEmailInput(data.referrals_email);
+        if (data?.facebook_url) setFacebookUrlInput(data.facebook_url);
+        if (data?.instagram_url) setInstagramUrlInput(data.instagram_url);
+        if (data?.linkedin_url) setLinkedinUrlInput(data.linkedin_url);
       }
     } catch (err) {
       console.error('Failed to load provider config', err);
@@ -943,6 +959,79 @@ export default function AdminCrmPage() {
     }
   }
 
+  async function handleSaveSocialsAndWebsite() {
+    setSocialsSaving(true);
+    try {
+      const res = await fetch('/api/crm/provider-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: providerConfig?.id,
+          website_url: websiteUrlInput.trim() || 'https://opuscare.com.au',
+          support_email: supportEmailInput.trim() || 'support@opuscare.com.au',
+          referrals_email: referralsEmailInput.trim() || 'referrals@opuscare.com.au',
+          facebook_url: facebookUrlInput.trim() || null,
+          instagram_url: instagramUrlInput.trim() || null,
+          linkedin_url: linkedinUrlInput.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        notify('Website & social profile configuration saved successfully.');
+        setProviderConfig((prev: any) => ({
+          ...prev,
+          website_url: websiteUrlInput.trim() || 'https://opuscare.com.au',
+          support_email: supportEmailInput.trim() || 'support@opuscare.com.au',
+          referrals_email: referralsEmailInput.trim() || 'referrals@opuscare.com.au',
+          facebook_url: facebookUrlInput.trim() || null,
+          instagram_url: instagramUrlInput.trim() || null,
+          linkedin_url: linkedinUrlInput.trim() || null,
+        }));
+      } else {
+        notify(data.message || 'Failed to update website and social settings.');
+      }
+    } catch {
+      notify('Error saving website and social settings.');
+    } finally {
+      setSocialsSaving(false);
+    }
+  }
+
+  async function handleVerifyInsurance(policyId: string) {
+    try {
+      const res = await fetch('/api/governance/insurance', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: policyId, verifiedState: 'verified', status: 'active' }),
+      });
+      if (res.ok) {
+        notify('Insurance policy verified successfully.');
+        loadInsurances();
+      } else {
+        notify('Failed to update insurance verification.');
+      }
+    } catch {
+      notify('Error updating insurance verification.');
+    }
+  }
+
+  async function handleDeleteInsurance(policyId: string) {
+    if (!confirm('Remove this registered insurance policy?')) return;
+    try {
+      const res = await fetch(`/api/governance/insurance?id=${encodeURIComponent(policyId)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        notify('Insurance policy removed.');
+        loadInsurances();
+      } else {
+        notify('Failed to remove insurance policy.');
+      }
+    } catch {
+      notify('Error removing insurance policy.');
+    }
+  }
+
   async function handleSaveProprietor() {
     if (!proprietorInput.trim()) {
       notify('Please enter a proprietor legal name.');
@@ -995,6 +1084,9 @@ export default function AdminCrmPage() {
           coverageAmount: 10000000,
           commencementDate: new Date().toISOString().slice(0, 10),
           expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+          certificateStoragePath: '',
+          verifiedState: 'verified',
+          renewalReminderState: 'pending',
           notes: '',
         });
         loadInsurances();
@@ -4407,6 +4499,109 @@ export default function AdminCrmPage() {
                 </button>
               </div>
             </div>
+
+            {/* Website & Social Media Profiles (Owner Self-Service) */}
+            <div style={{ background: '#f8fafc', borderRadius: 8, padding: '16px 18px', border: '1px solid #cbd5e1', marginTop: 14 }}>
+              <div style={{ marginBottom: 12 }}>
+                <h4 style={{ margin: '0 0 4px', fontSize: '0.92rem', fontWeight: 600, color: 'var(--oc-text)' }}>
+                  Website &amp; Social Profile Destinations
+                </h4>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
+                  Configure genuine public social profiles and communications endpoints. Social icons on the public website safely fallback to <code>https://opuscare.com.au</code> until real URLs are entered here.
+                </p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Website Canonical URL
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="https://opuscare.com.au"
+                    value={websiteUrlInput}
+                    onChange={(e) => setWebsiteUrlInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Support Inbound Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="support@opuscare.com.au"
+                    value={supportEmailInput}
+                    onChange={(e) => setSupportEmailInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Referrals Inbound Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="referrals@opuscare.com.au"
+                    value={referralsEmailInput}
+                    onChange={(e) => setReferralsEmailInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Facebook Profile URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://facebook.com/opuscare (or leave blank for fallback)"
+                    value={facebookUrlInput}
+                    onChange={(e) => setFacebookUrlInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    Instagram Profile URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://instagram.com/opuscare (or leave blank for fallback)"
+                    value={instagramUrlInput}
+                    onChange={(e) => setInstagramUrlInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--oc-text)', marginBottom: 4 }}>
+                    LinkedIn Profile URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://linkedin.com/company/opuscare (or leave blank for fallback)"
+                    value={linkedinUrlInput}
+                    onChange={(e) => setLinkedinUrlInput(e.target.value)}
+                    className="crmInput"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={handleSaveSocialsAndWebsite}
+                  disabled={socialsSaving}
+                  className="vsBtnBlack"
+                  style={{ padding: '7px 18px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                >
+                  {socialsSaving ? 'Saving...' : 'Save Social & Website Settings'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Organisation Insurance Register Section */}
@@ -4470,13 +4665,16 @@ export default function AdminCrmPage() {
                       <th style={{ textAlign: 'left', padding: '10px 12px' }}>Policy Number</th>
                       <th style={{ textAlign: 'right', padding: '10px 12px' }}>Coverage Limit</th>
                       <th style={{ textAlign: 'left', padding: '10px 12px' }}>Expiry Date</th>
+                      <th style={{ textAlign: 'center', padding: '10px 12px' }}>Verification</th>
                       <th style={{ textAlign: 'center', padding: '10px 12px' }}>Status</th>
+                      <th style={{ textAlign: 'center', padding: '10px 12px' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {insurances.map((ins: any) => {
                       const isExpired = ins.isExpired;
                       const isExpiringSoon = ins.isExpiringSoon;
+                      const isVerified = ins.verifiedState === 'verified';
                       return (
                         <tr key={ins.id}>
                           <td style={{ padding: '10px 12px', fontWeight: 600 }}>{ins.policyType}</td>
@@ -4494,11 +4692,45 @@ export default function AdminCrmPage() {
                             )}
                           </td>
                           <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            <span style={{
+                              fontSize: '0.74rem',
+                              fontWeight: 600,
+                              padding: '2px 8px',
+                              borderRadius: 12,
+                              background: isVerified ? '#dcfce7' : '#fef3c7',
+                              color: isVerified ? '#15803d' : '#b45309',
+                            }}>
+                              {isVerified ? '✓ Verified' : 'Needs Review'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                             {isExpired ? (
                               <span style={{ fontSize: '0.75rem', background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Expired</span>
                             ) : (
                               <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Active</span>
                             )}
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', alignItems: 'center' }}>
+                              {!isVerified && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleVerifyInsurance(ins.id)}
+                                  className="vsBtnOutline"
+                                  style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                                >
+                                  Verify
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteInsurance(ins.id)}
+                                style={{ color: '#dc2626', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+                                title="Remove policy"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -5719,10 +5951,14 @@ export default function AdminCrmPage() {
                   >
                     <option value="Public Liability">Public Liability</option>
                     <option value="Professional Indemnity">Professional Indemnity</option>
+                    <option value="Personal Accident">Personal Accident</option>
                     <option value="Workers Compensation">Workers Compensation</option>
                     <option value="Business/Participant Transport Vehicle Cover">Business/Participant Transport Vehicle Cover</option>
+                    <option value="Motor/Vehicle related cover">Motor/Vehicle related cover</option>
                     <option value="Cyber/Data Cover">Cyber/Data Cover</option>
                     <option value="Clinical/High Intensity Extension">Clinical/High Intensity Extension</option>
+                    <option value="Clinical/Professional extension">Clinical/Professional extension</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
@@ -5791,6 +6027,35 @@ export default function AdminCrmPage() {
                       required
                       value={newInsurance.expiryDate}
                       onChange={(e) => setNewInsurance({ ...newInsurance, expiryDate: e.target.value })}
+                      className="crmInput"
+                      style={{ width: '100%', padding: '8px 12px' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                      Verification Status
+                    </label>
+                    <select
+                      value={newInsurance.verifiedState}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, verifiedState: e.target.value })}
+                      className="crmSelect"
+                      style={{ width: '100%', padding: '8px 12px' }}
+                    >
+                      <option value="verified">Verified (Active on Record)</option>
+                      <option value="needs_review">Needs Review / Pending Check</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6 }}>
+                      Certificate / Document Ref
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. docs/insurance/coi_2026.pdf"
+                      value={newInsurance.certificateStoragePath}
+                      onChange={(e) => setNewInsurance({ ...newInsurance, certificateStoragePath: e.target.value })}
                       className="crmInput"
                       style={{ width: '100%', padding: '8px 12px' }}
                     />

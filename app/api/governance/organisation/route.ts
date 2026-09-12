@@ -27,6 +27,16 @@ export async function GET() {
       designatedSignatoryName: profile.designatedSignatoryName,
       designatedSignatoryTitle: profile.designatedSignatoryTitle,
       isBankConfigured: profile.isBankConfigured,
+      websiteUrl: profile.websiteUrl,
+      supportEmail: profile.supportEmail,
+      referralsEmail: profile.referralsEmail,
+      facebookUrl: profile.facebookUrl,
+      instagramUrl: profile.instagramUrl,
+      linkedinUrl: profile.linkedinUrl,
+      isFullyInsured: profile.isFullyInsured,
+      insuranceStatus: profile.insuranceStatus,
+      operationalReadiness: profile.operationalReadiness,
+      ageScope: profile.ageScope,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to retrieve organisation profile';

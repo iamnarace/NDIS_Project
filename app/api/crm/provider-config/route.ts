@@ -35,6 +35,20 @@ export async function POST(req: Request) {
     const { id, ...updates } = body;
     updates.updated_at = new Date().toISOString();
 
+    // Preserve existing remittance details if not explicitly provided with non-empty values
+    if (updates.bank_account_number === '' || updates.bank_account_number === undefined) {
+      delete updates.bank_account_number;
+    }
+    if (updates.bank_bsb === '' || updates.bank_bsb === undefined) {
+      delete updates.bank_bsb;
+    }
+    if (updates.bank_name === '' || updates.bank_name === undefined) {
+      delete updates.bank_name;
+    }
+    if (updates.bank_account_name === '' || updates.bank_account_name === undefined) {
+      delete updates.bank_account_name;
+    }
+
     let result;
     if (id) {
       result = await supabase

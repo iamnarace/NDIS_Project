@@ -10,10 +10,12 @@ type Evidence = {
 };
 
 const BASE_REQUIREMENTS = [
-  'identity_verified', 'right_to_work', 'ndis_worker_screening', 'first_aid', 'cpr',
-  'code_of_conduct', 'privacy_confidentiality', 'whs_induction', 'safeguarding',
+  'identity_verified', 'right_to_work', 'national_police_check', 'ndis_worker_screening', 'first_aid', 'cpr',
   'valid_driver_licence', 'vehicle_registration', 'vehicle_insurance_comprehensive',
-  'vehicle_roadworthiness', 'business_use_insurance', 'ahpra_nursing', 'clinical_indemnity',
+  'vehicle_roadworthiness', 'business_use_insurance', 'professional_references',
+  'code_of_conduct', 'worker_orientation', 'privacy_confidentiality', 'whs_induction', 'safeguarding',
+  'manual_handling', 'medication_administration', 'ahpra_nursing', 'clinical_indemnity',
+  'wwcc',
 ];
 
 export default function WorkerReadinessPanel({ staffId }: { staffId: string }) {

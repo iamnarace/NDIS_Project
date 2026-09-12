@@ -11,6 +11,7 @@ import {
   Clock,
   ArrowRight,
 } from 'lucide-react';
+import OwnerReadinessDashboard from '@/components/admin/OwnerReadinessDashboard';
 
 export interface CanonicalDashboardProps {
   participants: any[];
@@ -40,6 +41,9 @@ export default function CanonicalDashboard({
   countNew,
   financeMetrics,
   onSelectTab,
+  onOpenAgreementGenerator,
+  onOpenAddParticipant,
+  onOpenAddWorker,
 }: CanonicalDashboardProps) {
   const [upcomingShifts, setUpcomingShifts] = useState<any[]>([]);
   const [shiftsLoading, setShiftsLoading] = useState(true);
@@ -155,6 +159,17 @@ export default function CanonicalDashboard({
           Review incoming referrals, coordinate your team, and keep participant support moving.
         </p>
       </div>
+
+      {/* Owner Operational Readiness Dashboard */}
+      <OwnerReadinessDashboard
+        participantsCount={participants.length}
+        activeParticipantsCount={activeParticipantsCount}
+        staffCount={staffCount}
+        clearedStaffCount={clearedStaffCount}
+        agreementsCount={agreements.length}
+        onSelectTab={onSelectTab}
+        onOpenAddInsurance={() => onSelectTab('settings')}
+      />
 
       {/* ONE High-Priority Action Banner */}
       <div className="priority-alert-banner">

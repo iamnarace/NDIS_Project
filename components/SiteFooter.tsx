@@ -1,17 +1,43 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  MapPin, Mail, ArrowRight, Heart, Shield, CheckCircle2, 
-  Facebook, Linkedin, Instagram, Sparkles, ExternalLink, Lock 
+import {
+  MapPin, Mail, ArrowRight, Heart, Shield, CheckCircle2,
+  Facebook, Linkedin, Instagram, Sparkles, ExternalLink, Lock
 } from 'lucide-react';
 
 export function SiteFooter() {
+  const [socials, setSocials] = useState({
+    facebook: 'https://opuscare.com.au',
+    instagram: 'https://opuscare.com.au',
+    linkedin: 'https://opuscare.com.au',
+    email: 'support@opuscare.com.au',
+  });
+
+  useEffect(() => {
+    fetch('/api/governance/organisation')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setSocials({
+            facebook: data.facebookUrl || 'https://opuscare.com.au',
+            instagram: data.instagramUrl || 'https://opuscare.com.au',
+            linkedin: data.linkedinUrl || 'https://opuscare.com.au',
+            email: data.supportEmail || 'support@opuscare.com.au',
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <footer className="siteFooterWrapper lightModernFooter">
       {/* Main 4-Column Structured Footer */}
       <div className="mainFooterArea">
         <div className="shell mainFooterGrid">
-          
+
           {/* Column 1: Brand, Mission, Locations & Contact */}
           <div className="footerCol brandCol">
             <Link href="/" className="footerLogoLink" aria-label="Opus Care Support Services Home">
@@ -28,31 +54,28 @@ export function SiteFooter() {
             </p>
 
             <div className="footerLocationsList">
-              <span className="locItem"><MapPin size={13} className="locPin" /> Coffs Harbour NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Woolgoolga NSW</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Grafton & Clarence Valley</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Maclean & Yamba</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Casino & Richmond Valley</span>
-              <span className="locItem"><MapPin size={13} className="locPin" /> Lismore & Ballina</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Coffs Harbour &amp; Clarence Valley</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Casino &amp; Richmond Valley</span>
+              <span className="locItem"><MapPin size={13} className="locPin" /> Lismore &amp; Ballina</span>
             </div>
 
             <div className="footerDirectContact">
-              <a href="mailto:support@opuscare.com.au" className="footerContactItem">
-                <Mail size={15} /> <span>support@opuscare.com.au</span>
+              <a href={`mailto:${socials.email}`} className="footerContactItem">
+                <Mail size={15} /> <span>{socials.email}</span>
               </a>
             </div>
 
             <div className="footerSocialIcons">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="socialIconBtn" aria-label="Facebook">
+              <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="socialIconBtn" aria-label="Facebook">
                 <Facebook size={16} />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="socialIconBtn" aria-label="LinkedIn">
+              <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="socialIconBtn" aria-label="LinkedIn">
                 <Linkedin size={16} />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="socialIconBtn" aria-label="Instagram">
+              <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="socialIconBtn" aria-label="Instagram">
                 <Instagram size={16} />
               </a>
-              <a href="mailto:support@opuscare.com.au" className="socialIconBtn" aria-label="Email Us">
+              <a href={`mailto:${socials.email}`} className="socialIconBtn" aria-label="Email Us">
                 <Mail size={16} />
               </a>
             </div>
@@ -100,7 +123,7 @@ export function SiteFooter() {
           {/* Column 4: About Us & Intake CTA */}
           <div className="footerCol recognitionCol">
             <h4 className="footerColTitle">Client Access</h4>
-            
+
             {/* Supporting Self & Plan Managed */}
             <div className="cleanStatusBadgeCard">
               <Heart size={18} className="badgeHeartIcon" />
