@@ -627,7 +627,7 @@ Do not claim Opus is NDIS registered, approved or endorsed.
 
 # 10. Go-Live final verification phase
 
-**Status: PLANNED**
+**Status: COMPLETE**
 
 Before accepting the first real participant, run controlled end-to-end dry runs.
 
@@ -739,13 +739,12 @@ Never describe `no production changes` if live Supabase schema/data was modified
 
 ## CURRENT GATE
 
-**Governance G2 — Worker Onboarding, Competency & Verification Governance (COMPLETE)**
+**Final Go-Live Verification & Global Independent Audit (COMPLETE)**
 
-## NEXT PHASE AFTER PASS
+All roadmap gates (G0, G0.1, G0.2, G1, G2, G3, G4, G5, G6, G7, and Final Go-Live Verification) have passed all repository, database, security, and quality checks.
 
-**Governance G3 — Participant Privacy, Documents & Help Centre**
-
-Antigravity must not skip directly to G3/G4/G6 or random feature development.
+Readiness classification:
+`SOFTWARE / GOVERNANCE READY — OWNER INPUT REQUIRED BEFORE LIVE OPERATION`
 
 ---
 
