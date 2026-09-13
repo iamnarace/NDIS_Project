@@ -136,13 +136,13 @@ export default function PricingTravelCancellationPage() {
             <section className="contractSection">
               <h2 className="sectionClauseTitle">3. Short-Notice Cancellation Policy</h2>
               <p className="clauseText">
-                Under current NDIS pricing rules, a cancellation is considered a <strong>Short-Notice Cancellation</strong> if the participant gives less than <strong>two (2) clear business days&apos; notice</strong> before the scheduled support session.
+                Under NDIS pricing arrangements, cancellation rules are governed by the relevant support schedule and agreed Service Agreement terms. A cancellation is considered a <strong>Short-Notice Cancellation</strong> where the participant cancels without the notice required under their agreed support schedule.
               </p>
               <div className="calloutRuleBox">
                 <strong>Cancellation Terms:</strong><br />
-                • If 2 or more clear business days&apos; notice is provided: No cancellation fee applies.<br />
-                • If less than 2 clear business days&apos; notice is provided: Opus Care may claim up to 100% of the agreed support fee for the scheduled hours, provided the worker cannot be reassigned.<br />
-                • Opus Care actively makes every reasonable effort to find alternative productive duties or reassign workers to avoid charging cancellation fees where possible.
+                • <strong>Timely Notice:</strong> Where timely notice is provided in accordance with the agreed schedule prior to the shift, no cancellation fee applies.<br />
+                • <strong>Short-Notice Claims:</strong> Where notice is provided after the required cut-off (or where a participant is not present at the agreed location), Opus Care may claim up to 100% of the agreed fee for the scheduled hours from the participant&apos;s plan, provided the worker cannot be reasonably reassigned to other duties.<br />
+                • <strong>Mitigation Duty:</strong> Opus Care actively makes every reasonable effort to find alternative productive duties or reassign workers to avoid charging cancellation fees whenever possible.
               </div>
             </section>
 

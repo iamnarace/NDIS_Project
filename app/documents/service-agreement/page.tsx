@@ -281,7 +281,7 @@ export default function ServiceAgreementPage() {
                 Opus Care operates strictly in accordance with the NDIS Pricing Arrangements Short Notice Cancellation rule:
               </p>
               <div className="calloutRuleBox">
-                <strong>Notice Period Required:</strong> If the Participant needs to cancel a scheduled support shift, they must give notice at least <strong>two (2) clear business days</strong> prior to the scheduled start time. Where notice is provided with less than 2 clear business days, the Provider may claim 100% of the agreed shift fee from the Participant&apos;s NDIS plan.
+                <strong>Notice Period Required:</strong> If the Participant needs to cancel a scheduled support shift, they must provide notice in accordance with the NDIS Pricing Arrangements and Price Limits and their agreed Schedule of Supports (for standard supports, notice prior to the start time as specified in the agreed schedule, or the agreed minimum notice where rostered commitments have been confirmed). Where a short-notice cancellation occurs and the worker cannot be reasonably reassigned, the Provider may claim up to 100% of the agreed shift fee from the Participant&apos;s NDIS plan.
               </div>
             </section>
 

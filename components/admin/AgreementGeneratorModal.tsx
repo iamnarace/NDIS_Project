@@ -149,7 +149,7 @@ export default function AgreementGeneratorModal({
     sourceAgreement?.questionnaire_data?.hourly_rate || 38.50
   );
   const [superRate, setSuperRate] = useState<number>(
-    sourceAgreement?.questionnaire_data?.super_rate_pct || 11.50
+    sourceAgreement?.questionnaire_data?.super_rate_pct || 12.00
   );
   const [workerAgreedHours, setWorkerAgreedHours] = useState<number>(
     sourceAgreement?.questionnaire_data?.agreed_weekly_hours || 20

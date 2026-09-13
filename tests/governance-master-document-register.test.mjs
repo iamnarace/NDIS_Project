@@ -171,7 +171,7 @@ test('Master Document Register — Payroll Boundary & SCHADS Export', async (t) 
   await t.test('Timesheets tab includes payroll export action', () => {
     const timesheetsTab = readProjectFile('components/admin/TimesheetsTab.tsx');
     assert.ok(
-      timesheetsTab.includes('Export Payroll (SCHADS CSV)'),
+      timesheetsTab.includes('Export Payroll Inputs') || timesheetsTab.includes('Export Payroll (SCHADS CSV)'),
       'TimesheetsTab must offer Export Payroll button'
     );
   });
@@ -186,15 +186,42 @@ test('Master Document Register — Summary KPIs & API Endpoint', async (t) => {
     assert.strictEqual(summary.byCategory['15. Clinical & High-Intensity Transition Documents'], 10);
   });
 
-  await t.test('Document Register API route is implemented and supports filtering', () => {
+  await t.test('Document Register API route is implemented and requires admin auth', () => {
     const route = readProjectFile('app/api/governance/document-register/route.ts');
     assert.ok(route.includes('getMasterDocumentSummary'), 'API route calls getMasterDocumentSummary');
     assert.ok(route.includes('MASTER_DOCUMENT_REGISTER'), 'API route references MASTER_DOCUMENT_REGISTER');
+    assert.ok(route.includes('isAuthenticatedAdmin'), 'API route checks admin authentication');
+    assert.ok(route.includes('401'), 'API route rejects unauthenticated requests with 401');
   });
 
   await t.test('Admin page imports and renders MasterDocumentRegisterPanel', () => {
     const adminPage = readProjectFile('app/admin/page.tsx');
     assert.ok(adminPage.includes('MasterDocumentRegisterPanel'), 'Admin page imports MasterDocumentRegisterPanel');
     assert.ok(adminPage.includes('<MasterDocumentRegisterPanel />'), 'Admin page renders MasterDocumentRegisterPanel');
+  });
+
+  await t.test('Evidence-backed status audit: incomplete items are marked PARTIAL and not falsely READY', () => {
+    const partialCodes = ['DOC-WRK-02', 'DOC-FIN-03', 'DOC-REG-03', 'DOC-AUD-02', 'DOC-AUD-04'];
+    for (const code of partialCodes) {
+      const doc = MASTER_DOCUMENT_REGISTER.find((d) => d.code === code);
+      assert.ok(doc, `Doc ${code} must exist in register`);
+      assert.strictEqual(doc.status, 'PARTIAL', `Doc ${code} must be marked PARTIAL as verified`);
+      assert.ok(doc.notes && doc.notes.length > 10, `Doc ${code} must explain status in notes`);
+    }
+  });
+
+  await t.test('Payroll export route enforces Australia/Sydney timezone and effective-dated vehicle allowances', () => {
+    const exportRoute = readProjectFile('app/api/workforce/payroll/export/route.ts');
+    assert.ok(exportRoute.includes('Australia/Sydney'), 'Export must use Australia/Sydney IANA timezone');
+    assert.ok(exportRoute.includes('getEffectiveVehicleRate'), 'Export must compute effective-dated vehicle rate');
+    assert.ok(exportRoute.includes('VehicleRatePerKm'), 'Export must output VehicleRatePerKm');
+    assert.ok(exportRoute.includes('VehicleReimbursementAmount'), 'Export must output VehicleReimbursementAmount');
+    assert.ok(exportRoute.includes('Approved Payroll Input Export'), 'Export must be labelled Approved Payroll Input Export');
+  });
+
+  await t.test('Superannuation default rate is set to 12.00% across system', () => {
+    const agreementModal = readProjectFile('components/admin/AgreementGeneratorModal.tsx');
+    assert.ok(agreementModal.includes('12.00'), 'AgreementGeneratorModal default super rate must be 12.00%');
+    assert.ok(!agreementModal.includes('11.50'), 'AgreementGeneratorModal must not contain legacy 11.50%');
   });
 });

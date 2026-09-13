@@ -273,10 +273,10 @@ export default function TimesheetsTab() {
               fontWeight: 600,
               color: 'var(--oc-navy)',
             }}
-            title="Export approved timesheets into a SCHADS-mapped external STP payroll CSV file"
+            title="Export approved worker hours and travel inputs for external STP payroll engine (Xero/MYOB/Employment Hero)"
           >
             <Download size={14} style={{ marginRight: 6 }} />
-            Export Payroll (SCHADS CSV)
+            Export Payroll Inputs
           </a>
           <button
             onClick={handleBatchApproveClean}

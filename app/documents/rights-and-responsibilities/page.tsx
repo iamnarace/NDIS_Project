@@ -76,7 +76,7 @@ export default function RightsAndResponsibilitiesPage() {
                 <li><strong>Safe Environment:</strong> Maintain a safe physical environment free from hazards, smoke, and violence when workers provide supports in your home.</li>
                 <li><strong>Mutual Respect:</strong> Treat support workers and coordination staff with courtesy and respect at all times.</li>
                 <li><strong>Accurate Information:</strong> Provide up-to-date and accurate information regarding your support needs, emergency contacts, medical directives, and NDIS plan details.</li>
-                <li><strong>Timely Notice:</strong> Provide at least two (2) clear business days&apos; notice if you need to cancel or reschedule a support session.</li>
+                <li><strong>Timely Notice:</strong> Provide timely notice in accordance with your agreed Service Agreement schedule if you need to cancel or reschedule a support session.</li>
                 <li><strong>Payment Cooperation:</strong> Ensure that agreed invoices are promptly authorized through your Plan Manager or paid within agreed invoice terms.</li>
               </ul>
             </section>

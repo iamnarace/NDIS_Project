@@ -475,7 +475,7 @@ create table if not exists public.provider_config (
   bank_account_number text,
   min_public_liability_limit numeric(12,2) default 10000000.00,
   min_professional_indemnity_limit numeric(12,2) default 2000000.00,
-  default_super_rate_pct numeric(4,2) default 11.50,
+  default_super_rate_pct numeric(4,2) default 12.00,
   cancellation_policy_version text default '2026.1',
   cancellation_clause_text text not null,
   updated_at timestamptz default now()

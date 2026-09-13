@@ -62,7 +62,7 @@ export const CANONICAL_PARTICIPANT_DOCUMENTS: ControlledDocument[] = [
     acknowledgement_required: false,
     is_public: true,
     target_audience: 'all',
-    change_summary: 'Transparent pricing under NDIS price limits; strict 2-clear-business-days cancellation rules.',
+    change_summary: 'Transparent pricing under NDIS price limits; short-notice cancellation rules aligned with NDIS pricing arrangements and support schedule.',
     source_template_url: '/documents/pricing-travel-cancellation',
   },
   {
@@ -122,7 +122,7 @@ export const CANONICAL_PARTICIPANT_DOCUMENTS: ControlledDocument[] = [
     acknowledgement_required: false,
     is_public: true,
     target_audience: 'all',
-    change_summary: 'Participant safety, incident response, zero tolerance for abuse, open disclosure.',
+    change_summary: 'Participant safety, incident response, zero tolerance for abuse, and management / regulatory reporting assessment.',
     source_template_url: '/incident-management',
   },
   {
@@ -305,7 +305,7 @@ export const CANONICAL_OPERATIONAL_POLICIES: ControlledDocument[] = [
     acknowledgement_required: true,
     is_public: true,
     target_audience: 'worker',
-    change_summary: 'Driver licensing, comprehensive insurance, seatbelt adherence, roadworthiness, and transport incident management.',
+    change_summary: 'Driver licensing, comprehensive insurance, seatbelt adherence, roadworthiness, and statutory SCHADS vehicle reimbursement rates ($1.01/km base, $1.05/km temporary 1 Sep 2026 - 28 Feb 2027).',
     source_template_url: '/documents/transport-safety',
   },
   {
@@ -365,7 +365,7 @@ export const CANONICAL_OPERATIONAL_POLICIES: ControlledDocument[] = [
     acknowledgement_required: true,
     is_public: true,
     target_audience: 'worker',
-    change_summary: 'Mandatory NDIS Worker Screening Check, National Police Check, WWCC, and referee verification before roster placement.',
+    change_summary: 'Mandatory NDIS Worker Screening Clearance for direct disability roles; conditional WWCC for child-related roles (<18); National Police Check; referee verification prior to roster placement.',
     source_template_url: '/documents/worker-screening-policy',
   },
   {

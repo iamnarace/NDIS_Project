@@ -87,6 +87,7 @@ export default function IncidentManagementPage() {
                   Opus Care distinguishes internal quality management from statutory reporting duties:
                 </p>
                 <ul style={{ paddingLeft: '20px', lineHeight: 1.8 }}>
+                  <li><strong>Management / Regulatory Reporting Assessment:</strong> As an unregistered provider, direct reportable incident notification to the NDIS Commission applies to registered providers. Opus Care requires immediate management assessment for all high-severity incidents to determine external statutory obligations (including Police, SafeWork NSW, and lead registered partner notifications).</li>
                   <li><strong>Emergency & Crime:</strong> Suspected sexual assault, physical assault, or severe unlawful conduct is reported immediately to NSW Police.</li>
                   <li><strong>Work Health & Safety (WHS):</strong> Any notifiable workplace incident resulting in worker death or serious injury is reported immediately to <strong>SafeWork NSW (13 10 50)</strong> under the <em>Work Health and Safety Act 2011</em>.</li>
                   <li><strong>Subcontracting / Intermediary Notifications:</strong> When delivering supports under subcontract to a registered NDIS provider, Opus Care reports all incidents to the lead registered provider within statutory timeframes to support their NDIS Commission reportable incident obligations.</li>

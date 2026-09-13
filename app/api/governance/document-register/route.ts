@@ -8,6 +8,14 @@ import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 
 export async function GET(request: NextRequest) {
   try {
+    const isAuthed = await isAuthenticatedAdmin(request);
+    if (!isAuthed) {
+      return NextResponse.json(
+        { ok: false, error: 'Unauthorized: Admin authentication required' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category') || undefined;
     const status = searchParams.get('status') || undefined;

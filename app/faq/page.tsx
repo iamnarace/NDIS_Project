@@ -44,13 +44,13 @@ const FAQS: FaqItem[] = [
     id: 'worker-checks',
     question: 'What qualifications and clearances do your support workers hold?',
     category: 'Safety & Compliance',
-    answer: 'All Opus Care support workers hold verified NDIS Worker Screening Check (NWSC) clearances, Working With Children Checks (WWCC), current First Aid & CPR certifications, comprehensive vehicle insurance, and adhere strictly to the NDIS Code of Conduct.',
+    answer: 'All Opus Care support workers hold verified NDIS Worker Screening Check (NWSC) clearances, Working With Children Checks (WWCC) where engaged in child-related support under 18 years of age, current First Aid & CPR certifications, comprehensive vehicle insurance, and adhere strictly to the NDIS Code of Conduct.',
   },
   {
     id: 'cancellation-policy',
     question: 'What is your cancellation and reschedule policy?',
     category: 'Policies',
-    answer: 'Our cancellation policy strictly complies with standard NDIS pricing guidelines (at least 2 clear business days notice for short-notice cancellations). We always work flexibly with participants and families to reschedule shifts whenever reasonably possible.',
+    answer: 'Our cancellation policy complies with the NDIS Pricing Arrangements and Price Limits and the participant\'s Service Agreement schedule. Where short-notice cancellations occur without the required agreed notice, standard NDIS claiming rules apply. We always work flexibly with participants and families to reschedule shifts whenever reasonably possible.',
   },
 ];
 
