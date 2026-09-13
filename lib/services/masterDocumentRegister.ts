@@ -435,9 +435,9 @@ export const MASTER_DOCUMENT_REGISTER: MasterDocumentItem[] =
     "officialUrl": "https://www.ato.gov.au/forms-and-instructions/tax-file-number-declaration",
     "templateAvailable": true,
     "generationAvailable": false,
-    "storageAvailable": true,
+    "storageAvailable": false,
     "status": "EXTERNAL-OFFICIAL",
-    "notes": "Privacy Rule: Never store raw TFNs in CRM. Forwarded directly to external STP payroll engine."
+    "notes": "Privacy Rule: Never store raw TFNs, completed forms, or scans in CRM. TFN declarations belong directly in the external compliant STP payroll engine. Opus CRM tracks only the boolean compliance flag (tfn_declaration_collected)."
   },
   {
     "code": "DOC-WRK-07",

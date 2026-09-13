@@ -112,6 +112,18 @@ test('Master Document Register — Statutory Fair Work & ATO Boundary', async (t
       'Raw TFN text field must never be present in CRM form'
     );
   });
+
+  await t.test('documents table migration and code reject tfn_declaration category', () => {
+    const migrationFile = readProjectFile('supabase/migrations/20260913130000_remove_tfn_declaration_category.sql');
+    assert.ok(migrationFile.includes('documents_category_check'), 'Migration alters documents_category_check');
+    assert.ok(!migrationFile.includes("'tfn_declaration'"), 'Migration strictly excludes tfn_declaration');
+
+    const prevMigration = readProjectFile('supabase/migrations/20260913120000_document_categories_payslip_and_super_12.sql');
+    assert.ok(!prevMigration.includes("'tfn_declaration'"), 'Previous migration must not contain tfn_declaration');
+
+    const tfn = getDocumentByCode('DOC-WRK-06');
+    assert.strictEqual(tfn?.storageAvailable, false, 'DOC-WRK-06 must have storageAvailable false');
+  });
 });
 
 test('Master Document Register — Financial & Invoicing Compliance', async (t) => {
@@ -150,16 +162,38 @@ test('Master Document Register — Clinical Fail-Closed Gate', async (t) => {
   });
 });
 
-test('Master Document Register — Payroll Boundary & SCHADS Export', async (t) => {
-  await t.test('SCHADS payroll export route exists and contains required CSV headers', () => {
+test('Master Document Register — Payroll Boundary & Factual Approved Input Export', async (t) => {
+  await t.test('payroll export route outputs factual raw shift inputs and strips partial award engine', () => {
     const exportRoute = readProjectFile('app/api/workforce/payroll/export/route.ts');
-    assert.ok(exportRoute.includes('OrdinaryHours'), 'Export route must have OrdinaryHours');
-    assert.ok(exportRoute.includes('SaturdayHours'), 'Export route must have SaturdayHours');
-    assert.ok(exportRoute.includes('SundayHours'), 'Export route must have SundayHours');
-    assert.ok(exportRoute.includes('EveningShiftHours'), 'Export route must have EveningShiftHours');
-    assert.ok(exportRoute.includes('NightShiftHours'), 'Export route must have NightShiftHours');
-    assert.ok(exportRoute.includes('TravelKmAllowance'), 'Export route must have TravelKmAllowance');
-    assert.ok(exportRoute.includes('SCHADS_Award_Level'), 'Export route must have SCHADS_Award_Level');
+    const requiredHeaders = [
+      'WorkerReference',
+      'WorkerName',
+      'EngagementRelationship',
+      'ShiftReference',
+      'ActualStartAustraliaSydney',
+      'ActualEndAustraliaSydney',
+      'ActualHours',
+      'BreakMinutes',
+      'TravelMinutes',
+      'Kilometres',
+      'VehicleRatePerKm',
+      'VehicleReimbursementAmount',
+      'TimesheetID',
+      'TimesheetStatus',
+      'PayPeriodStart',
+      'PayPeriodEnd',
+    ];
+    for (const h of requiredHeaders) {
+      assert.ok(exportRoute.includes(`'${h}'`), `Export route must contain header ${h}`);
+    }
+
+    // Stripped partial award engine / fabricated classifications
+    assert.ok(!exportRoute.includes('OrdinaryHours'), 'Export route must not have OrdinaryHours');
+    assert.ok(!exportRoute.includes('SaturdayHours'), 'Export route must not have SaturdayHours');
+    assert.ok(!exportRoute.includes('SundayHours'), 'Export route must not have SundayHours');
+    assert.ok(!exportRoute.includes('EveningShiftHours'), 'Export route must not have EveningShiftHours');
+    assert.ok(!exportRoute.includes('NightShiftHours'), 'Export route must not have NightShiftHours');
+    assert.ok(!exportRoute.includes('SCHADS_Award_Level'), 'Export route must not have SCHADS_Award_Level');
   });
 
   await t.test('Worker portal payslips API exists and verifies worker authorization', () => {
@@ -173,6 +207,34 @@ test('Master Document Register — Payroll Boundary & SCHADS Export', async (t) 
     assert.ok(
       timesheetsTab.includes('Export Payroll Inputs') || timesheetsTab.includes('Export Payroll (SCHADS CSV)'),
       'TimesheetsTab must offer Export Payroll button'
+    );
+  });
+});
+
+test('Brand Asset Integrity — Zero Stale CarePoint Files in Public', async (t) => {
+  await t.test('verifies zero CarePoint files exist across public directory', () => {
+    function checkDir(dir) {
+      if (!fs.existsSync(dir)) return;
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        assert.ok(
+          !entry.name.toLowerCase().includes('carepoint'),
+          `Found stale CarePoint file/directory: ${fullPath}`
+        );
+        if (entry.isDirectory()) {
+          checkDir(fullPath);
+        }
+      }
+    }
+    checkDir(path.join(rootDir, 'public'));
+  });
+
+  await t.test('verifies public/marketing directory is completely removed', () => {
+    assert.strictEqual(
+      fs.existsSync(path.join(rootDir, 'public', 'marketing')),
+      false,
+      'public/marketing directory must not exist'
     );
   });
 });

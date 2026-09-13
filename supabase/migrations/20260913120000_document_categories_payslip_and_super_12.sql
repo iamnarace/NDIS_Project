@@ -21,7 +21,6 @@ ALTER TABLE public.documents ADD CONSTRAINT documents_category_check
     'payslip'::text,
     'employment_contract'::text,
     'super_choice'::text,
-    'tfn_declaration'::text,
     'worker_screening'::text,
     'contractor_insurance'::text,
     'vehicle_insurance'::text,

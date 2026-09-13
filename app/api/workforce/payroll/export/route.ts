@@ -5,10 +5,13 @@ import { userFacingError } from '@/lib/userFacingError';
 
 /**
  * GET /api/workforce/payroll/export
- * Exports approved timesheets as "Approved Payroll Input Export" for external STP payroll engines.
- * Boundary: Timesheet/Hours -> Validated Hours & Mileage Inputs -> External STP Engine (Xero/MYOB/Employment Hero).
- * Real payroll engine (PAYG tax withholding, 12.00% Superannuation Guarantee, STP phase 2 lodging)
- * is processed externally.
+ * Exports approved source data for import/reconciliation with an external payroll system.
+ * External payroll software remains responsible for award interpretation, PAYG,
+ * superannuation, STP reporting and statutory payslips.
+ *
+ * Architecture:
+ * OPUS = factual approved payroll INPUT export
+ * EXTERNAL STP/PAYROLL = award interpretation + PAYG + super + STP + statutory payslip
  */
 
 // Effective-dated SCHADS vehicle allowance rate:
@@ -23,22 +26,24 @@ function getEffectiveVehicleRate(dateStr?: string): number {
   return 1.01;
 }
 
-// Parse timestamp in Australia/Sydney IANA timezone
-function getSydneyDateTime(isoDateStr: string): { weekday: string; hour: number } {
+// Format timestamp in Australia/Sydney IANA timezone
+function formatSydneyDateTime(isoDateStr?: string | null): string {
+  if (!isoDateStr) return 'N/A';
   try {
-    const date = new Date(isoDateStr);
-    const formatter = new Intl.DateTimeFormat('en-AU', {
+    const d = new Date(isoDateStr);
+    if (isNaN(d.getTime())) return 'N/A';
+    return new Intl.DateTimeFormat('en-AU', {
       timeZone: 'Australia/Sydney',
-      weekday: 'short',
-      hour: 'numeric',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
       hour12: false,
-    });
-    const parts = formatter.formatToParts(date);
-    const weekday = parts.find((p) => p.type === 'weekday')?.value || '';
-    const hourStr = parts.find((p) => p.type === 'hour')?.value || '0';
-    return { weekday, hour: parseInt(hourStr, 10) };
+    }).format(d);
   } catch {
-    return { weekday: '', hour: 12 };
+    return 'N/A';
   }
 }
 
@@ -58,7 +63,7 @@ export async function GET(request: NextRequest) {
     const weekStart = searchParams.get('week_start');
     const markExported = searchParams.get('mark_exported') === 'true';
 
-    // Fetch approved or submitted timesheets
+    // Fetch approved or submitted timesheets with worker and shift entries
     let query = supabase
       .from('timesheets')
       .select(`
@@ -99,113 +104,100 @@ export async function GET(request: NextRequest) {
     }
 
     // Build Approved Payroll Input Export CSV
-    // Columns provide clean inputs for external STP payroll engine with full audit traceability
+    // Factual source data only — no partial award interpretation engine
     const headers = [
-      'EmployeeID',
-      'EmployeeName',
-      'EngagementType',
-      'ClassificationRole',
-      'SCHADS_Award_Level',
-      'BaseHourlyRate',
-      'PayPeriodStart',
-      'PayPeriodEnd',
-      'OrdinaryHours',
-      'SaturdayHours',
-      'SundayHours',
-      'PublicHolidayHours',
-      'EveningShiftHours',
-      'NightShiftHours',
-      'TravelKmAllowance',
+      'WorkerReference',
+      'WorkerName',
+      'EngagementRelationship',
+      'ShiftReference',
+      'ActualStartAustraliaSydney',
+      'ActualEndAustraliaSydney',
+      'ActualHours',
+      'BreakMinutes',
+      'TravelMinutes',
+      'Kilometres',
       'VehicleRatePerKm',
       'VehicleReimbursementAmount',
-      'TravelTimeHours',
-      'TotalPayableHours',
       'TimesheetID',
-      'Status',
-      'ExportType',
+      'TimesheetStatus',
+      'PayPeriodStart',
+      'PayPeriodEnd',
     ];
+
+    const commentHeader = [
+      '# OPUS CARE SUPPORT SERVICES - APPROVED PAYROLL INPUT EXPORT',
+      '# Exports approved source data for import/reconciliation with an external payroll system. External payroll software remains responsible for award interpretation, PAYG, superannuation, STP reporting and statutory payslips.',
+      '# Timezone: Australia/Sydney | Base vehicle allowance: $1.01/km ($1.05/km 1 Sep 2026 - 28 Feb 2027)',
+    ].join('\r\n');
 
     const rows: string[] = [headers.join(',')];
 
     for (const ts of timesheets) {
-      const staffRef = (ts.staff as any)?.reference_number || (ts.staff as any)?.id || 'UNKNOWN';
-      const staffName = `"${((ts.staff as any)?.full_name || 'Worker').replace(/"/g, '""')}"`;
-      const role = (ts.staff as any)?.role || 'Disability Support Worker';
-      const engagementType = (ts.staff as any)?.engagement_type || 'Casual';
-      const hourlyRate = (ts.staff as any)?.hourly_rate ? Number((ts.staff as any).hourly_rate).toFixed(2) : '0.00';
-      const awardLevel = `"${role} (${engagementType})"`;
-
-      let ordinaryHours = 0;
-      let saturdayHours = 0;
-      let sundayHours = 0;
-      let eveningHours = 0;
-      let nightHours = 0;
-      let totalKm = 0;
-      let totalTravelMin = 0;
-      let totalReimbursement = 0;
+      const workerRef = (ts.staff as any)?.reference_number || (ts.staff as any)?.id || 'UNKNOWN';
+      const workerName = `"${((ts.staff as any)?.full_name || 'Worker').replace(/"/g, '""')}"`;
+      const engagement = `"${((ts.staff as any)?.engagement_type || 'Unspecified').replace(/"/g, '""')}"`;
 
       const entries = (ts.entries as any[]) || [];
-      for (const entry of entries) {
-        const hours = Number(entry.actual_hours) || 0;
-        const km = Number(entry.kilometres) || 0;
-        const travelMin = Number(entry.travel_minutes) || 0;
 
-        totalKm += km;
-        totalTravelMin += travelMin;
+      if (entries.length === 0) {
+        // Output timesheet-level row if no detailed entries
+        const vehicleRate = getEffectiveVehicleRate(ts.week_start).toFixed(2);
+        rows.push([
+          workerRef,
+          workerName,
+          engagement,
+          'NONE',
+          'N/A',
+          'N/A',
+          '0.00',
+          '0',
+          '0',
+          '0.0',
+          vehicleRate,
+          '0.00',
+          ts.id,
+          ts.status,
+          ts.week_start,
+          ts.week_end,
+        ].join(','));
+      } else {
+        for (const entry of entries) {
+          const shiftRef = entry.shift?.shift_reference || entry.id || 'SHIFT';
+          const shiftStartStr = entry.actual_start || entry.scheduled_start || entry.shift?.start_time;
+          const shiftEndStr = entry.actual_end || entry.scheduled_end || entry.shift?.end_time;
 
-        // Effective-dated vehicle allowance calculation
-        const shiftDateStr = entry.actual_start || entry.scheduled_start || entry.shift?.start_time || ts.week_start;
-        const vehicleRate = getEffectiveVehicleRate(shiftDateStr);
-        totalReimbursement += km * vehicleRate;
+          const startSydney = `"${formatSydneyDateTime(shiftStartStr)}"`;
+          const endSydney = `"${formatSydneyDateTime(shiftEndStr)}"`;
 
-        // Detect day of week and time of day in Australia/Sydney IANA timezone
-        if (shiftDateStr) {
-          const { weekday, hour } = getSydneyDateTime(shiftDateStr);
+          const actualHours = (Number(entry.actual_hours) || 0).toFixed(2);
+          const breakMin = (Number(entry.break_minutes) || 0).toString();
+          const travelMin = (Number(entry.travel_minutes) || 0).toString();
+          const km = Number(entry.kilometres) || 0;
 
-          if (weekday === 'Sun') {
-            sundayHours += hours;
-          } else if (weekday === 'Sat') {
-            saturdayHours += hours;
-          } else if (hour >= 20 || hour < 6) {
-            nightHours += hours;
-          } else if (hour >= 18) {
-            eveningHours += hours;
-          } else {
-            ordinaryHours += hours;
-          }
-        } else {
-          ordinaryHours += hours;
+          const rateDate = shiftStartStr || ts.week_start;
+          const vehicleRate = getEffectiveVehicleRate(rateDate);
+          const reimbursement = (km * vehicleRate).toFixed(2);
+
+          rows.push([
+            workerRef,
+            workerName,
+            engagement,
+            `"${shiftRef}"`,
+            startSydney,
+            endSydney,
+            actualHours,
+            breakMin,
+            travelMin,
+            km.toFixed(1),
+            vehicleRate.toFixed(2),
+            reimbursement,
+            ts.id,
+            ts.status,
+            ts.week_start,
+            ts.week_end,
+          ].join(','));
         }
       }
-
-      const totalPayableHours = (ordinaryHours + saturdayHours + sundayHours + eveningHours + nightHours).toFixed(2);
-      const travelTimeHours = (totalTravelMin / 60).toFixed(2);
-      const defaultVehicleRate = getEffectiveVehicleRate(ts.week_start).toFixed(2);
-
-      rows.push([
-        staffRef,
-        staffName,
-        `"${engagementType}"`,
-        `"${role}"`,
-        awardLevel,
-        hourlyRate,
-        ts.week_start,
-        ts.week_end,
-        ordinaryHours.toFixed(2),
-        saturdayHours.toFixed(2),
-        sundayHours.toFixed(2),
-        '0.00', // Public holiday default
-        eveningHours.toFixed(2),
-        nightHours.toFixed(2),
-        totalKm.toFixed(1),
-        defaultVehicleRate,
-        totalReimbursement.toFixed(2),
-        travelTimeHours,
-        totalPayableHours,
-        ts.id,
-        ts.status,
-        '"Approved Payroll Input Export"',
-      ].join(','));
     }
 
     // If mark_exported requested, update status to 'Exported'
@@ -219,7 +211,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const csvContent = rows.join('\r\n');
+    const csvContent = `${commentHeader}\r\n${rows.join('\r\n')}`;
     const filename = `OpusCare_Approved_Payroll_Input_Export_${weekStart || new Date().toISOString().slice(0, 10)}.csv`;
 
     return new NextResponse(csvContent, {

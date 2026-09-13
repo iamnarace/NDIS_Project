@@ -13,7 +13,8 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const ownerType = searchParams.get('ownerType');
+  const rawOwnerType = searchParams.get('ownerType');
+  const canonicalOwnerType = rawOwnerType === 'contractor' ? 'staff' : rawOwnerType;
   const ownerId = searchParams.get('ownerId');
 
   if (!ownerId) {
@@ -24,13 +25,13 @@ export async function GET(req: Request) {
   if (!supabase) return NextResponse.json({ message: 'Documents could not be loaded.' }, { status: 503 });
   let resolvedOwnerId = ownerId;
   if (!isValidUuid(ownerId)) {
-    if (ownerType === 'participant') resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
-    else if (ownerType === 'staff' || ownerType === 'contractor') resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
+    if (canonicalOwnerType === 'participant') resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
+    else if (canonicalOwnerType === 'staff') resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
   }
   if (!isValidUuid(resolvedOwnerId)) return NextResponse.json({ message: 'The selected record is invalid. Please refresh and try again.' }, { status: 400 });
 
   let query = supabase.from('documents').select('*').order('created_at', { ascending: false });
-  if (ownerType) query = query.eq('owner_type', ownerType);
+  if (canonicalOwnerType) query = query.eq('owner_type', canonicalOwnerType);
   query = query.eq('owner_id', resolvedOwnerId);
 
   const { data, error } = await query;
@@ -52,7 +53,8 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const ownerType = (formData.get('ownerType') as string) || 'participant';
+    const rawOwnerType = (formData.get('ownerType') as string) || 'participant';
+    const canonicalOwnerType = rawOwnerType === 'contractor' ? 'staff' : rawOwnerType;
     const ownerId = (formData.get('ownerId') as string) || '';
     const category = (formData.get('category') as string) || 'other';
     const expiryDate = formData.get('expiryDate') as string | null;
@@ -72,42 +74,46 @@ export async function POST(req: Request) {
     const supabase = createAdminClient();
     if (!supabase) return NextResponse.json({ message: 'Document could not be uploaded.' }, { status: 503 });
     let resolvedOwnerId = ownerId;
-        if (!isValidUuid(ownerId)) {
-          if (ownerType === 'participant') {
-            resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
-          } else if (ownerType === 'staff' || ownerType === 'contractor') {
-            resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
-          }
-        }
+    if (!isValidUuid(ownerId)) {
+      if (canonicalOwnerType === 'participant') {
+        resolvedOwnerId = (await resolveParticipantUuid(supabase, ownerId)) || ownerId;
+      } else if (canonicalOwnerType === 'staff') {
+        resolvedOwnerId = (await resolveStaffUuid(supabase, ownerId)) || ownerId;
+      }
+    }
 
     if (!isValidUuid(resolvedOwnerId)) return NextResponse.json({ message: 'The selected record is invalid. Please refresh and try again.' }, { status: 400 });
 
-    const resolvedStoragePath = `${ownerType}/${resolvedOwnerId}/${Date.now()}_${safeFileName}`;
+    const resolvedStoragePath = `${canonicalOwnerType}/${resolvedOwnerId}/${Date.now()}_${safeFileName}`;
     const { error: uploadErr } = await supabase.storage
-          .from('crm-documents')
-          .upload(resolvedStoragePath, buffer, {
-            contentType: file.type || 'application/octet-stream',
-            upsert: false,
-          });
+      .from('crm-documents')
+      .upload(resolvedStoragePath, buffer, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false,
+      });
 
     if (uploadErr) return NextResponse.json({ message: userFacingError(uploadErr.message) }, { status: 500 });
 
+    const finalNotes = rawOwnerType === 'contractor'
+      ? (notes ? `[Contractor Document] ${notes}` : '[Contractor Document]')
+      : (notes || null);
+
     const { data: docRecord, error: docErr } = await supabase
-          .from('documents')
-          .insert({
-            owner_type: ownerType,
-            owner_id: resolvedOwnerId,
-            file_name: file.name,
-            file_size: file.size,
-            file_type: file.type || 'application/octet-stream',
-            storage_path: resolvedStoragePath,
-            category,
-            expiry_date: expiryDate ? expiryDate : null,
-            notes: notes || null,
-            uploaded_by: 'Opus Staff',
-          })
-          .select()
-          .single();
+      .from('documents')
+      .insert({
+        owner_type: canonicalOwnerType,
+        owner_id: resolvedOwnerId,
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type || 'application/octet-stream',
+        storage_path: resolvedStoragePath,
+        category,
+        expiry_date: expiryDate ? expiryDate : null,
+        notes: finalNotes,
+        uploaded_by: 'Opus Staff',
+      })
+      .select()
+      .single();
 
     if (docErr || !docRecord) {
       await supabase.storage.from('crm-documents').remove([resolvedStoragePath]);
@@ -115,12 +121,12 @@ export async function POST(req: Request) {
     }
 
     const { error: activityError } = await supabase.from('activities').insert({
-            participant_id: ownerType === 'participant' ? resolvedOwnerId : null,
-            referral_id: ownerType === 'referral' ? resolvedOwnerId : null,
-            activity_type: 'note',
-            title: `Document Uploaded: ${file.name}`,
-            description: `Document category: ${category.replace('_', ' ').toUpperCase()}${expiryDate ? ` (Expires: ${expiryDate})` : ''}`,
-            author_name: 'Opus Staff',
+      participant_id: canonicalOwnerType === 'participant' ? resolvedOwnerId : null,
+      referral_id: canonicalOwnerType === 'referral' ? resolvedOwnerId : null,
+      activity_type: 'note',
+      title: `Document Uploaded: ${file.name}`,
+      description: `Document category: ${category.replace('_', ' ').toUpperCase()}${rawOwnerType === 'contractor' ? ' (Contractor)' : ''}${expiryDate ? ` (Expires: ${expiryDate})` : ''}`,
+      author_name: 'Opus Staff',
     });
     if (activityError) console.error('Document activity log failed:', activityError.message);
 
