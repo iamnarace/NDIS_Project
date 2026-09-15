@@ -1,4 +1,4 @@
-﻿export interface VacancyPublicationValidationResult {
+export interface VacancyPublicationValidationResult {
   valid: boolean;
   errors: string[];
 }
@@ -26,7 +26,7 @@ export function validateVacancyForPublication(data: any): VacancyPublicationVali
     errors.push('At least one service area must be selected for the vacancy.');
   }
 
-  const engagementRelationship = data.engagement_relationship;
+  const engagementRelationship = data.engagement_relationship || data.engagement_type;
   if (!['employee', 'contractor'].includes(engagementRelationship)) {
     errors.push('Valid engagement relationship (employee or contractor) is required.');
   }
@@ -34,6 +34,8 @@ export function validateVacancyForPublication(data: any): VacancyPublicationVali
   const employmentBasis = Array.isArray(data.employment_basis) ? data.employment_basis : [];
   if (engagementRelationship === 'employee' && employmentBasis.length === 0) {
     errors.push('At least one employment basis (casual, part-time, full-time, or fixed-term) is required for an employee role.');
+  } else if (engagementRelationship === 'contractor' && employmentBasis.length > 0) {
+    errors.push('Employment basis must be empty for contractor opportunities.');
   }
 
   const responsibilities = Array.isArray(data.responsibilities) ? data.responsibilities : [];

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { nextYearlyReferenceNumber } from '@/lib/referenceNumber';
 import { validateVacancyForPublication } from '@/lib/recruitmentValidation';
 import { userFacingError } from '@/lib/userFacingError';
 
@@ -12,6 +11,30 @@ function generateSlug(title: string, ref: string): string {
     .replace(/(^-|-$)/g, '');
   const refSuffix = ref.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return `${base || 'vacancy'}-${refSuffix}`;
+}
+
+async function getNextVacancyReference(supabase: any): Promise<string> {
+  try {
+    const { data, error } = await supabase.rpc('next_recruitment_reference', { p_prefix: 'JOB' });
+    if (!error && typeof data === 'string' && data.startsWith('JOB-')) {
+      return data;
+    }
+  } catch {}
+
+  let year = String(new Date().getFullYear());
+  try {
+    year = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', year: 'numeric' }).format(new Date());
+  } catch {}
+
+  const fullPrefix = `JOB-${year}`;
+  const { data } = await supabase.from('job_vacancies').select('reference_number');
+  const matcher = new RegExp(`^${fullPrefix}-(\\d+)$`);
+  const highest = (data || []).reduce((max: number, row: any) => {
+    const match = row.reference_number?.match(matcher);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+
+  return `${fullPrefix}-${String(highest + 1).padStart(5, '0')}`;
 }
 
 export async function GET(req: Request) {
@@ -75,7 +98,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const title = String(body.title || '').trim();
     const shortSummary = String(body.short_summary || '').trim();
     const aboutRole = String(body.about_role || '').trim();
@@ -90,7 +113,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Role overview / about role is required.' }, { status: 400 });
     }
 
-    const referenceNumber = await nextYearlyReferenceNumber(supabase, 'job_vacancies', 'JOB');
+    const engagementRelationship = body.engagement_relationship === 'contractor' || body.engagement_type === 'contractor'
+      ? 'contractor'
+      : 'employee';
+
+    const employmentBasis = engagementRelationship === 'contractor'
+      ? []
+      : (Array.isArray(body.employment_basis) ? body.employment_basis : []);
+
+    const referenceNumber = await getNextVacancyReference(supabase);
     const slug = body.slug ? String(body.slug).trim().toLowerCase() : generateSlug(title, referenceNumber);
 
     const now = new Date().toISOString();
@@ -108,8 +139,8 @@ export async function POST(req: Request) {
       desirable_criteria: Array.isArray(body.desirable_criteria) ? body.desirable_criteria : [],
       service_area_ids: Array.isArray(body.service_area_ids) ? body.service_area_ids : [],
       location_notes: body.location_notes ? String(body.location_notes).trim() : null,
-      employment_basis: Array.isArray(body.employment_basis) ? body.employment_basis : [],
-      engagement_relationship: body.engagement_relationship || 'employee',
+      employment_basis: employmentBasis,
+      engagement_relationship: engagementRelationship,
       positions_count: body.positions_count ? Number(body.positions_count) : null,
       driver_licence_required: Boolean(body.driver_licence_required),
       vehicle_required: Boolean(body.vehicle_required),

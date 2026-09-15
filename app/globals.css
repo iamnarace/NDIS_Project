@@ -10,7 +10,7 @@
   --priv-purple-dark: #6D28D9;
   --priv-purple-light: #8B5CF6;
   --priv-purple-soft: #F3E8FF;
-
+  
   --comp-blue: #0284C7;
   --comp-blue-light: #38BDF8;
   --comp-blue-dark: #0369A1;
@@ -4854,7 +4854,7 @@ a {
   .sectionSubDesc {
     font-size: 0.98rem;
   }
-
+  
   /* Stacking all grids to single column without zig-zag */
   .approachStepsGrid4,
   .servicesPanesGrid3,
@@ -4912,7 +4912,7 @@ a {
 
 /* ═════════════════════════════════════════════════════════════════════════════
    NDIS SECTIONS, COMPACT MOBILE OVERHAUL & MODERN LUXURY ANIMATIONS
-   Includes: Funding Guide, Journey Begins, Tools & Resources, Blog Reads,
+   Includes: Funding Guide, Journey Begins, Tools & Resources, Blog Reads, 
    Ready CTA Banner, Indigenous Flags Footer & Uniting-Style Form
 ═════════════════════════════════════════════════════════════════════════════ */
 
@@ -5974,16 +5974,16 @@ a {
   .fundingCardsGrid3 {
     grid-template-columns: 1fr;
   }
-
+  
   .journeySplitGrid {
     grid-template-columns: 1fr;
     gap: 36px;
   }
-
+  
   .toolsCardsGrid3 {
     grid-template-columns: 1fr;
   }
-
+  
   .blogReadsGrid4 {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -6776,9 +6776,9 @@ a {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    90deg,
-    rgba(15, 23, 42, 0.90) 0%,
-    rgba(15, 23, 42, 0.78) 45%,
+    90deg, 
+    rgba(15, 23, 42, 0.90) 0%, 
+    rgba(15, 23, 42, 0.78) 45%, 
     rgba(15, 23, 42, 0.25) 100%
   );
   z-index: 2;
@@ -7111,8 +7111,8 @@ a {
   }
   .unifiedHeroOverlay {
     background: linear-gradient(
-      180deg,
-      rgba(15, 23, 42, 0.85) 0%,
+      180deg, 
+      rgba(15, 23, 42, 0.85) 0%, 
       rgba(15, 23, 42, 0.92) 100%
     );
   }
@@ -7179,9 +7179,9 @@ a {
 ============================================================================= */
 .unifiedHeroOverlay.lightOverlay {
   background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.25) 50%,
+    90deg, 
+    rgba(255, 255, 255, 0.45) 0%, 
+    rgba(255, 255, 255, 0.25) 50%, 
     rgba(255, 255, 255, 0.05) 100%
   ) !important;
 }

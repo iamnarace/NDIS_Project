@@ -78,11 +78,12 @@ export async function GET(
 
   // 5. Linked staff record if hired
   let linkedStaff = null;
-  if (application.converted_staff_id) {
+  const staffId = application.hired_staff_id || application.converted_staff_id;
+  if (staffId) {
     const { data: staffData } = await supabase
       .from('staff')
       .select('id, reference_number, full_name, status, lifecycle_stage, is_rosterable, employment_basis, created_at')
-      .eq('id', application.converted_staff_id)
+      .eq('id', staffId)
       .maybeSingle();
     linkedStaff = staffData || null;
   }
@@ -166,6 +167,14 @@ export async function DELETE(
       }, { status: 400 });
     }
 
+    const purgeReason = String(body.purge_reason || 'Retention period expired / Candidate privacy redaction').trim();
+    if (purgeReason.length < 3) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Purge reason must be at least 3 characters long.'
+      }, { status: 400 });
+    }
+
     // 1. Find all private files for this application
     const { data: files } = await supabase
       .from('job_application_files')
@@ -173,21 +182,57 @@ export async function DELETE(
       .eq('application_id', id);
 
     if (files && files.length > 0) {
-      const paths = files.map(f => f.storage_path);
+      const paths = files.map((f: any) => f.storage_path);
       await supabase.storage.from('crm-documents').remove(paths);
     }
 
-    // 2. Delete application (cascades files, events, interviews, reference checks in DB)
-    const { error: delError } = await supabase
-      .from('job_applications')
-      .delete()
-      .eq('id', id);
+    // 2. Delete file rows
+    await supabase.from('job_application_files').delete().eq('application_id', id);
 
-    if (delError) {
-      return NextResponse.json({ ok: false, error: userFacingError(delError.message) }, { status: 500 });
+    // 3. Perform governed PII redaction on job_applications record
+    const nowIso = new Date().toISOString();
+    const { data: redactedApp, error: redactError } = await supabase
+      .from('job_applications')
+      .update({
+        first_name: '[REDACTED]',
+        last_name: '[REDACTED]',
+        email: `purged-${id}@redacted.internal`,
+        phone: '[REDACTED]',
+        suburb: '[REDACTED]',
+        postcode: '0000',
+        experience_summary: null,
+        qualification_summary: null,
+        availability_notes: null,
+        motivation: null,
+        role_interest_other: null,
+        purged_at: nowIso,
+        purged_by: actorId,
+        purge_reason: purgeReason,
+        updated_at: nowIso
+      })
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (redactError) {
+      return NextResponse.json({ ok: false, error: userFacingError(redactError.message) }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, message: 'Application and associated private files purged successfully.' });
+    // 4. Log immutable timeline event
+    try {
+      await supabase.from('job_application_events').insert({
+        application_id: id,
+        event_type: 'application_purged',
+        note: `Application PII and attachments purged under privacy governance: ${purgeReason}`,
+        actor: actorId
+      });
+    } catch {}
+
+    return NextResponse.json({
+      ok: true,
+      message: 'Application PII redacted and private documents purged successfully.',
+      application: redactedApp
+    });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err?.message || 'Failed to purge application.' }, { status: 500 });
   }

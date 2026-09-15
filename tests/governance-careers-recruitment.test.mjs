@@ -73,11 +73,20 @@ test('File Upload Security — Magic Bytes & Size Limits', async (t) => {
     assert.equal(result.canonicalMime, 'application/pdf');
   });
 
-  await t.test('Accepts valid DOCX with PK zip header bytes', async () => {
-    const docxBuf = Buffer.from([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0x00, 0x00]);
+  await t.test('Accepts valid DOCX with PK zip header bytes and Office structure', async () => {
+    const docxHeader = Buffer.from([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0x00, 0x00]);
+    const docxPayload = Buffer.from('[Content_Types].xml and word/document.xml package structure');
+    const docxBuf = Buffer.concat([docxHeader, docxPayload]);
     const result = await validateCandidateFile(makeMockFile(docxBuf, 'cv.docx'), 'resume');
     assert.equal(result.valid, true);
     assert.equal(result.canonicalMime, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  });
+
+  await t.test('Rejects generic zip renamed to .docx without Word document structures', async () => {
+    const genericZip = Buffer.from([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x69, 0x6C, 0x65, 0x2E, 0x74, 0x78, 0x74]);
+    const result = await validateCandidateFile(makeMockFile(genericZip, 'renamed_archive.docx'), 'resume');
+    assert.equal(result.valid, false);
+    assert.ok(result.error.toLowerCase().includes('word') || result.error.toLowerCase().includes('package'));
   });
 
   await t.test('Accepts valid legacy DOC with OLE compound header bytes', async () => {

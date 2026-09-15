@@ -103,6 +103,8 @@ interface Application {
   availability?: any;
   availability_notes?: string;
   motivation?: string;
+  role_interest?: string;
+  role_interest_other?: string;
   stage: 'new' | 'reviewing' | 'shortlisted' | 'interview' | 'reference_check' | 'offer' | 'hired' | 'unsuccessful' | 'withdrawn';
   source: string;
   submitted_at: string;
@@ -322,7 +324,7 @@ export default function RecruitmentTab({
 
   // Owner settings state
   const [ownerConfig, setOwnerConfig] = useState({
-    careers_email: 'careers@opuscare.com.au',
+    careers_email: 'support@opuscare.com.au',
     recruitment_retention_months: 12
   });
   const [savingConfig, setSavingConfig] = useState(false);
@@ -350,7 +352,7 @@ export default function RecruitmentTab({
       if (configRes.ok) {
         const cData = await configRes.json();
         setOwnerConfig({
-          careers_email: cData.careers_email || 'careers@opuscare.com.au',
+          careers_email: cData.careers_email || cData.support_email || 'support@opuscare.com.au',
           recruitment_retention_months: cData.recruitment_retention_months || 12
         });
       }
@@ -1843,6 +1845,37 @@ export default function RecruitmentTab({
                     </button>
                   </div>
                 )}
+
+                {/* Candidate Stated Preferences */}
+                <div style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  marginBottom: 16,
+                  fontSize: '0.825rem'
+                }}>
+                  <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: 6 }}>
+                    Candidate Stated Preferences
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', color: '#475569' }}>
+                    <div>
+                      <strong>Role Applied / Interest:</strong> {appDetail.job_vacancies?.title || appDetail.role_interest || 'General'}
+                    </div>
+                    <div>
+                      <strong>Work Rights:</strong> {appDetail.work_rights_status || 'Declared'}
+                    </div>
+                    <div>
+                      <strong>Employment Prefs:</strong> {Array.isArray(appDetail.employment_preferences) && appDetail.employment_preferences.length > 0 ? appDetail.employment_preferences.join(', ') : 'Not specified'}
+                    </div>
+                    <div>
+                      <strong>Earliest Start:</strong> {appDetail.earliest_start_date || 'Immediate'}
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <strong>Preferred Service Areas:</strong> {Array.isArray(appDetail.preferred_service_area_ids) && appDetail.preferred_service_area_ids.length > 0 ? appDetail.preferred_service_area_ids.map(getRecruitmentAreaName).join(', ') : 'All Broad Areas'}
+                    </div>
+                  </div>
+                </div>
 
                 <form onSubmit={handleExecuteHire}>
                   <div style={{ marginBottom: 14 }}>

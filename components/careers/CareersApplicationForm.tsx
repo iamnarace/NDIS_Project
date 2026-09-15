@@ -50,7 +50,7 @@ export function CareersApplicationForm({
     setFormLoadedAt(Date.now());
   }, []);
 
-  // Form State with neutral initial declarations
+  // Form State with neutral unselected defaults
   const [formData, setFormData] = useState({
     // Step 1: Contact & Role
     first_name: '',
@@ -65,11 +65,10 @@ export function CareersApplicationForm({
     // Step 2: Work Preferences
     preferred_service_area_ids: [] as string[],
     employment_preferences: [] as string[],
-    work_rights_status: '', // neutral: must be explicitly selected
-    work_rights_visa_details: '',
+    work_rights_status: '', // Neutral: user must choose
     earliest_start_date: '',
 
-    // Step 3: Experience & Readiness Declarations (all neutral)
+    // Step 3: Experience & Screening Declarations (neutral defaults)
     experience_summary: '',
     qualification_summary: '',
     driver_licence_status: '',
@@ -174,17 +173,16 @@ export function CareersApplicationForm({
     }
 
     if (currentStep === 3) {
-      // Declarations check if role requirements apply
       if (driverLicenceRequired && !formData.driver_licence_status) {
-        setErrorMessage('Please answer the driver licence declaration question.');
+        setErrorMessage('Please declare your driver licence status (required for this position).');
         return false;
       }
       if (vehicleRequired && !formData.vehicle_access_status) {
-        setErrorMessage('Please answer the vehicle access declaration question.');
+        setErrorMessage('Please declare your vehicle access status (required for this position).');
         return false;
       }
       if (childRelatedRole && !formData.wwcc_status_declared) {
-        setErrorMessage('Please answer the Working With Children Check (WWCC) declaration question.');
+        setErrorMessage('Please declare your Working With Children Check (WWCC) status (required for child-related roles).');
         return false;
       }
       return true;
@@ -216,6 +214,38 @@ export function CareersApplicationForm({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const uploadFileToSession = async (file: File, kind: 'resume' | 'cover_letter'): Promise<string> => {
+    const sessionRes = await fetch('/api/careers/upload-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type || 'application/octet-stream',
+        file_kind: kind
+      })
+    });
+
+    const sessionData = await sessionRes.json().catch(() => ({}));
+    if (!sessionRes.ok || !sessionData.ok || !sessionData.signed_url) {
+      throw new Error(sessionData.error || `Failed to initialize secure upload channel for ${kind}.`);
+    }
+
+    const uploadRes = await fetch(sessionData.signed_url, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream'
+      }
+    });
+
+    if (!uploadRes.ok) {
+      throw new Error(`Failed to upload ${kind} to secure storage.`);
+    }
+
+    return sessionData.session_id;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -237,72 +267,59 @@ export function CareersApplicationForm({
     setSubmitting(true);
 
     try {
-      const dataPayload = new FormData();
-      dataPayload.append('application_type', applicationType);
-      if (applicationType === 'vacancy' && vacancyId) {
-        dataPayload.append('vacancy_id', vacancyId);
-      }
-      dataPayload.append('_form_loaded_at', String(formLoadedAt || Date.now()));
-      dataPayload.append('first_name', formData.first_name.trim());
-      dataPayload.append('last_name', formData.last_name.trim());
-      dataPayload.append('email', formData.email.trim());
-      dataPayload.append('phone', formData.phone.trim());
-      dataPayload.append('suburb', formData.suburb.trim());
-      dataPayload.append('postcode', formData.postcode.trim());
-
-      if (applicationType === 'eoi') {
-        dataPayload.append('role_interest', formData.role_interest);
-        if (formData.role_interest === 'Other') {
-          dataPayload.append('role_interest_other', formData.role_interest_other.trim());
-        }
-      }
-
-      dataPayload.append('preferred_service_area_ids', JSON.stringify(formData.preferred_service_area_ids));
-      dataPayload.append('employment_preferences', JSON.stringify(formData.employment_preferences));
-      dataPayload.append('work_rights_status', formData.work_rights_status);
-      if (formData.work_rights_visa_details) {
-        dataPayload.append('work_rights_visa_details', formData.work_rights_visa_details.trim());
-      }
-      if (formData.earliest_start_date) {
-        dataPayload.append('earliest_start_date', formData.earliest_start_date);
-      }
-
-      dataPayload.append('experience_summary', formData.experience_summary.trim());
-      dataPayload.append('qualification_summary', formData.qualification_summary.trim());
-      if (formData.driver_licence_status) dataPayload.append('driver_licence_status', formData.driver_licence_status);
-      if (formData.vehicle_access_status) dataPayload.append('vehicle_access_status', formData.vehicle_access_status);
-      if (formData.ndiswc_status_declared) dataPayload.append('ndis_worker_screening_status', formData.ndiswc_status_declared);
-      if (formData.police_check_status_declared) dataPayload.append('national_police_check_status', formData.police_check_status_declared);
-      if (formData.first_aid_status_declared) dataPayload.append('first_aid_cpr_status', formData.first_aid_status_declared);
-
-      const notesSummary = [
-        formData.experience_summary ? `Experience: ${formData.experience_summary}` : '',
-        formData.qualification_summary ? `Qualifications: ${formData.qualification_summary}` : '',
-        formData.motivation ? `Motivation: ${formData.motivation}` : '',
-        formData.availability_notes ? `Availability Notes: ${formData.availability_notes}` : ''
-      ].filter(Boolean).join('\n\n');
-
-      if (notesSummary) {
-        dataPayload.append('notes_summary', notesSummary);
-      }
-
-      dataPayload.append('declaration_accurate_information', 'true');
-      dataPayload.append('declaration_privacy_consent', 'true');
-
-      if (formData.website_url) {
-        dataPayload.append('website_url', formData.website_url);
-      }
+      let resumeSessionId: string | null = null;
+      let coverSessionId: string | null = null;
 
       if (resumeFile) {
-        dataPayload.append('resume', resumeFile);
+        resumeSessionId = await uploadFileToSession(resumeFile, 'resume');
       }
+
       if (coverFile) {
-        dataPayload.append('cover_letter', coverFile);
+        coverSessionId = await uploadFileToSession(coverFile, 'cover_letter');
       }
+
+      const payload = {
+        application_type: applicationType,
+        vacancy_id: applicationType === 'vacancy' ? vacancyId : null,
+        _form_loaded_at: String(formLoadedAt || Date.now()),
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        suburb: formData.suburb.trim(),
+        postcode: formData.postcode.trim(),
+        role_interest: applicationType === 'eoi' ? formData.role_interest : null,
+        role_interest_other: applicationType === 'eoi' && formData.role_interest === 'Other' ? formData.role_interest_other.trim() : null,
+        preferred_service_area_ids: formData.preferred_service_area_ids,
+        employment_preferences: formData.employment_preferences,
+        work_rights_status: formData.work_rights_status,
+        earliest_start_date: formData.earliest_start_date || null,
+        experience_summary: formData.experience_summary.trim() || null,
+        qualification_summary: formData.qualification_summary.trim() || null,
+        driver_licence_status: formData.driver_licence_status || null,
+        vehicle_access_status: formData.vehicle_access_status || null,
+        ndiswc_status_declared: formData.ndiswc_status_declared || null,
+        police_check_status_declared: formData.police_check_status_declared || null,
+        first_aid_status_declared: formData.first_aid_status_declared || null,
+        cpr_status_declared: formData.cpr_status_declared || null,
+        wwcc_status_declared: formData.wwcc_status_declared || null,
+        availability: {
+          days: formData.available_days,
+          periods: formData.available_periods
+        },
+        availability_notes: formData.availability_notes.trim() || null,
+        motivation: formData.motivation.trim() || null,
+        declaration_accurate_information: true,
+        declaration_privacy_consent: true,
+        website_url: formData.website_url || undefined,
+        resume_upload_session_id: resumeSessionId,
+        cover_letter_upload_session_id: coverSessionId
+      };
 
       const res = await fetch('/api/careers/applications', {
         method: 'POST',
-        body: dataPayload
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       const result = await res.json().catch(() => ({}));
@@ -611,10 +628,10 @@ export function CareersApplicationForm({
                   value={formData.work_rights_status}
                   onChange={e => handleInputChange('work_rights_status', e.target.value)}
                 >
-                  <option value="yes">Yes — I hold valid unrestricted work rights in Australia</option>
-                  <option value="student_visa">Yes — Student / Visa with work rights</option>
-                  <option value="unsure">Not sure / Would like to discuss</option>
-                  <option value="no">No</option>
+                  <option value="">-- Please select your work rights --</option>
+                  <option value="citizen_pr">Australian Citizen / Permanent Resident / NZ Citizen</option>
+                  <option value="valid_visa">Valid Visa with Australian Work Rights</option>
+                  <option value="no_rights">No current Australian work rights</option>
                 </select>
               </div>
 
@@ -684,13 +701,16 @@ export function CareersApplicationForm({
 
             <div className="screeningGrid">
               <div className="formGroup">
-                <label htmlFor="driver_licence_status" className="formLabel">Current Driver Licence</label>
+                <label htmlFor="driver_licence_status" className="formLabel">
+                  Current Driver Licence {driverLicenceRequired ? '*' : ''}
+                </label>
                 <select
                   id="driver_licence_status"
                   className="formSelect"
                   value={formData.driver_licence_status}
                   onChange={e => handleInputChange('driver_licence_status', e.target.value)}
                 >
+                  <option value="">-- Please select --</option>
                   <option value="yes">Current Full / Provisional Licence</option>
                   <option value="no">No current licence</option>
                   <option value="not_applicable">Not applicable</option>
@@ -698,13 +718,16 @@ export function CareersApplicationForm({
               </div>
 
               <div className="formGroup">
-                <label htmlFor="vehicle_access_status" className="formLabel">Access to Reliable Vehicle</label>
+                <label htmlFor="vehicle_access_status" className="formLabel">
+                  Access to Reliable Vehicle {vehicleRequired ? '*' : ''}
+                </label>
                 <select
                   id="vehicle_access_status"
                   className="formSelect"
                   value={formData.vehicle_access_status}
                   onChange={e => handleInputChange('vehicle_access_status', e.target.value)}
                 >
+                  <option value="">-- Please select --</option>
                   <option value="yes">Yes — Available for participant travel</option>
                   <option value="no">No</option>
                   <option value="not_applicable">Not applicable</option>
@@ -719,6 +742,7 @@ export function CareersApplicationForm({
                   value={formData.ndiswc_status_declared}
                   onChange={e => handleInputChange('ndiswc_status_declared', e.target.value)}
                 >
+                  <option value="">-- Please select --</option>
                   <option value="current">Current Clearance Held</option>
                   <option value="in_progress">Application In Progress</option>
                   <option value="not_held">Not currently held / Willing to apply</option>
@@ -734,6 +758,7 @@ export function CareersApplicationForm({
                   value={formData.police_check_status_declared}
                   onChange={e => handleInputChange('police_check_status_declared', e.target.value)}
                 >
+                  <option value="">-- Please select --</option>
                   <option value="current">Current / Issued within 12 months</option>
                   <option value="expired">Expired / Renewal needed</option>
                   <option value="not_held">Not currently held / Willing to apply</option>
@@ -748,6 +773,7 @@ export function CareersApplicationForm({
                   value={formData.first_aid_status_declared}
                   onChange={e => handleInputChange('first_aid_status_declared', e.target.value)}
                 >
+                  <option value="">-- Please select --</option>
                   <option value="current">Current Certificate</option>
                   <option value="expired">Expired / Renewal needed</option>
                   <option value="not_held">Not held / Willing to complete</option>
@@ -762,6 +788,7 @@ export function CareersApplicationForm({
                   value={formData.cpr_status_declared}
                   onChange={e => handleInputChange('cpr_status_declared', e.target.value)}
                 >
+                  <option value="">-- Please select --</option>
                   <option value="current">Current Certificate (within 12 mo)</option>
                   <option value="expired">Expired / Renewal needed</option>
                   <option value="not_held">Not held / Willing to complete</option>
@@ -770,13 +797,14 @@ export function CareersApplicationForm({
 
               {childRelatedRole && (
                 <div className="formGroup">
-                  <label htmlFor="wwcc_status_declared" className="formLabel">Working With Children Check (WWCC)</label>
+                  <label htmlFor="wwcc_status_declared" className="formLabel">Working With Children Check (WWCC) *</label>
                   <select
                     id="wwcc_status_declared"
                     className="formSelect"
                     value={formData.wwcc_status_declared}
                     onChange={e => handleInputChange('wwcc_status_declared', e.target.value)}
                   >
+                    <option value="">-- Please select --</option>
                     <option value="current">Current NSW WWCC clearance</option>
                     <option value="in_progress">Application in progress</option>
                     <option value="not_held">Not currently held</option>
