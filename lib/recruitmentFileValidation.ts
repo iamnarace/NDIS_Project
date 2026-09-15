@@ -96,16 +96,7 @@ export function extractZipEntryNames(buffer: Uint8Array | Buffer): string[] | nu
     }
   }
 
-  if (localEntries.length > 0) return localEntries;
-
-  // Text content fallback scan for Office packages
-  const bufStr = buf.toString('binary');
-  const found: string[] = [];
-  if (bufStr.includes('[Content_Types].xml')) found.push('[Content_Types].xml');
-  if (bufStr.includes('word/document.xml')) found.push('word/document.xml');
-  if (bufStr.includes('word/')) found.push('word/');
-
-  return found.length > 0 ? found : null;
+  return localEntries.length > 0 ? localEntries : null;
 }
 
 export function validateCandidateBuffer(

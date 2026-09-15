@@ -329,6 +329,7 @@ export default function RecruitmentTab({
   });
   const [savingConfig, setSavingConfig] = useState(false);
   const [configSavedNotice, setConfigSavedNotice] = useState(false);
+  const [configSaveError, setConfigSaveError] = useState('');
 
   // Load All Data
   const loadRecruitmentData = useCallback(async () => {
@@ -472,8 +473,8 @@ export default function RecruitmentTab({
       role: app.job_vacancies?.title || app.role_interest || '',
       engagement_type: '',
       employment_basis: '',
-      employment_start_date: app.earliest_start_date || '',
-      suburbs: app.preferred_service_area_ids?.length ? app.preferred_service_area_ids : [],
+      employment_start_date: '',
+      suburbs: [],
       hourly_rate: '',
       link_existing_staff_id: ''
     });
@@ -662,7 +663,10 @@ export default function RecruitmentTab({
     e.preventDefault();
     setSavingConfig(true);
     setConfigSavedNotice(false);
+    setConfigSaveError('');
     try {
+      const submittedEmail = ownerConfig.careers_email;
+      const submittedRetention = ownerConfig.recruitment_retention_months;
       const res = await fetch('/api/crm/provider-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -673,16 +677,37 @@ export default function RecruitmentTab({
         const readbackRes = await fetch('/api/crm/provider-config');
         if (readbackRes.ok) {
           const cData = await readbackRes.json();
+          const readbackEmail = cData.careers_email || cData.support_email || '';
+          const readbackRetention = cData.recruitment_retention_months || 12;
           setOwnerConfig({
-            careers_email: cData.careers_email || cData.support_email || 'support@opuscare.com.au',
-            recruitment_retention_months: cData.recruitment_retention_months || 12
+            careers_email: readbackEmail || 'support@opuscare.com.au',
+            recruitment_retention_months: readbackRetention
           });
-          setConfigSavedNotice(true);
-          setTimeout(() => setConfigSavedNotice(false), 4000);
+
+          // Compare readback values to submitted values
+          const mismatches: string[] = [];
+          if (submittedEmail && readbackEmail !== submittedEmail) {
+            mismatches.push(`Careers email: submitted "${submittedEmail}" but server returned "${readbackEmail}"`);
+          }
+          if (submittedRetention && Number(readbackRetention) !== Number(submittedRetention)) {
+            mismatches.push(`Retention months: submitted "${submittedRetention}" but server returned "${readbackRetention}"`);
+          }
+
+          if (mismatches.length > 0) {
+            setConfigSaveError(`Settings save verification failed: ${mismatches.join('; ')}. The saved values may not match what you entered.`);
+          } else {
+            setConfigSavedNotice(true);
+            setTimeout(() => setConfigSavedNotice(false), 4000);
+          }
+        } else {
+          setConfigSaveError('Settings saved but readback verification failed. Please reload to confirm.');
         }
+      } else {
+        setConfigSaveError('Failed to save settings. Please try again.');
       }
     } catch (err) {
       console.error('Failed to save settings:', err);
+      setConfigSaveError('An error occurred while saving settings.');
     }
     setSavingConfig(false);
   };
@@ -1223,6 +1248,24 @@ export default function RecruitmentTab({
               }}>
                 <CheckCircle2 size={16} />
                 <span>Recruitment configuration saved successfully.</span>
+              </div>
+            )}
+
+            {configSaveError && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 14px',
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
+                borderRadius: 8,
+                color: '#991B1B',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                marginBottom: 18
+              }}>
+                <span>⚠ {configSaveError}</span>
               </div>
             )}
 

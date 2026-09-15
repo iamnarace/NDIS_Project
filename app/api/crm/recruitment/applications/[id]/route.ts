@@ -205,7 +205,10 @@ export async function DELETE(
 
     if (files && files.length > 0) {
       const paths = files.map((f: any) => f.storage_path);
-      await supabase.storage.from('crm-documents').remove(paths);
+      const { error: removeErr } = await supabase.storage.from('crm-documents').remove(paths);
+      if (removeErr) {
+        return NextResponse.json({ ok: false, error: 'Storage deletion failed. Purge aborted to ensure data consistency.' }, { status: 500 });
+      }
     }
 
     // 2. Delete file rows

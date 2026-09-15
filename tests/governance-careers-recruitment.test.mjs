@@ -35,9 +35,25 @@ test('Governance & Compliance — Careers & Recruitment Navigation & Profile', a
   await t.test('regions.ts defines Northern NSW and Sydney recruitment service areas', () => {
     const content = readProjectFile('lib/regions.ts');
     assert.ok(content.includes('RECRUITMENT_SERVICE_AREAS'), 'Must export RECRUITMENT_SERVICE_AREAS');
-    assert.ok(content.includes('coffs-coast') && content.includes('clarence-valley'), 'Must include Northern NSW areas');
-    assert.ok(content.includes('western-sydney') || content.includes('blacktown'), 'Must include Sydney areas');
     assert.ok(content.includes('getRecruitmentAreaName'), 'Must export getRecruitmentAreaName helper');
+
+    // Verify every current canonical region ID is present
+    const canonicalRegionIds = [
+      'coffs-coast',
+      'clarence-valley',
+      'maclean-yamba',
+      'richmond-valley',
+      'lismore-region',
+      'ballina-northern-rivers',
+      'western-sydney',
+      'blacktown',
+      'parramatta',
+      'sydney-cbd-redfern',
+      'sydney-surrounding'
+    ];
+    for (const regionId of canonicalRegionIds) {
+      assert.ok(content.includes(`'${regionId}'`), `RECRUITMENT_SERVICE_AREAS must include '${regionId}'`);
+    }
   });
 
   await t.test('organisation.ts includes careersEmail and recruitmentRetentionMonths', () => {
@@ -73,13 +89,91 @@ test('File Upload Security — Magic Bytes & Size Limits', async (t) => {
     assert.equal(result.canonicalMime, 'application/pdf');
   });
 
-  await t.test('Accepts valid DOCX with PK zip header bytes and Office structure', async () => {
-    const docxHeader = Buffer.from([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00, 0x00, 0x00]);
-    const docxPayload = Buffer.from('[Content_Types].xml and word/document.xml package structure');
-    const docxBuf = Buffer.concat([docxHeader, docxPayload]);
+  await t.test('Accepts valid DOCX with genuine ZIP structure containing Office entries', async () => {
+    // Build a minimal genuine ZIP file with [Content_Types].xml and word/document.xml entries
+    function buildMinimalZip(entries) {
+      const localHeaders = [];
+      const centralHeaders = [];
+      let offset = 0;
+
+      for (const name of entries) {
+        const nameBytes = Buffer.from(name, 'utf8');
+        const content = Buffer.from('', 'utf8');
+
+        // Local file header
+        const local = Buffer.alloc(30 + nameBytes.length + content.length);
+        local.writeUInt32LE(0x04034b50, 0); // PK\x03\x04
+        local.writeUInt16LE(20, 4);          // version needed
+        local.writeUInt16LE(0, 6);           // flags
+        local.writeUInt16LE(0, 8);           // compression
+        local.writeUInt16LE(0, 10);          // mod time
+        local.writeUInt16LE(0, 12);          // mod date
+        local.writeUInt32LE(0, 14);          // crc32
+        local.writeUInt32LE(content.length, 18); // compressed size
+        local.writeUInt32LE(content.length, 22); // uncompressed size
+        local.writeUInt16LE(nameBytes.length, 26); // name length
+        local.writeUInt16LE(0, 28);          // extra length
+        nameBytes.copy(local, 30);
+        content.copy(local, 30 + nameBytes.length);
+        localHeaders.push(local);
+
+        // Central directory header
+        const central = Buffer.alloc(46 + nameBytes.length);
+        central.writeUInt32LE(0x02014b50, 0); // PK\x01\x02
+        central.writeUInt16LE(20, 4);
+        central.writeUInt16LE(20, 6);
+        central.writeUInt16LE(0, 8);
+        central.writeUInt16LE(0, 10);
+        central.writeUInt16LE(0, 12);
+        central.writeUInt16LE(0, 14);
+        central.writeUInt32LE(0, 16);
+        central.writeUInt32LE(content.length, 20);
+        central.writeUInt32LE(content.length, 24);
+        central.writeUInt16LE(nameBytes.length, 28);
+        central.writeUInt16LE(0, 30);
+        central.writeUInt16LE(0, 32);
+        central.writeUInt16LE(0, 34);
+        central.writeUInt16LE(0, 36);
+        central.writeUInt32LE(0, 38);
+        central.writeUInt32LE(offset, 42);
+        nameBytes.copy(central, 46);
+        centralHeaders.push(central);
+
+        offset += local.length;
+      }
+
+      const cdOffset = offset;
+      const cdBuf = Buffer.concat(centralHeaders);
+      const cdSize = cdBuf.length;
+
+      // EOCD
+      const eocd = Buffer.alloc(22);
+      eocd.writeUInt32LE(0x06054b50, 0);
+      eocd.writeUInt16LE(0, 4);
+      eocd.writeUInt16LE(0, 6);
+      eocd.writeUInt16LE(entries.length, 8);
+      eocd.writeUInt16LE(entries.length, 10);
+      eocd.writeUInt32LE(cdSize, 12);
+      eocd.writeUInt32LE(cdOffset, 16);
+      eocd.writeUInt16LE(0, 20);
+
+      return Buffer.concat([...localHeaders, cdBuf, eocd]);
+    }
+
+    const docxBuf = buildMinimalZip(['[Content_Types].xml', 'word/document.xml', 'word/styles.xml']);
     const result = await validateCandidateFile(makeMockFile(docxBuf, 'cv.docx'), 'resume');
     assert.equal(result.valid, true);
     assert.equal(result.canonicalMime, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  });
+
+  await t.test('Rejects PK header with literal Office filenames in text but malformed ZIP structure', async () => {
+    // This has the PK magic bytes but no valid local file headers or central directory
+    const pkHeader = Buffer.from([0x50, 0x4B, 0x03, 0x04, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+    const fakeText = Buffer.from('[Content_Types].xml word/document.xml word/ fake structure');
+    const malformedBuf = Buffer.concat([pkHeader, fakeText]);
+    const result = await validateCandidateFile(makeMockFile(malformedBuf, 'fake.docx'), 'resume');
+    assert.equal(result.valid, false);
+    assert.ok(result.error.toLowerCase().includes('zip') || result.error.toLowerCase().includes('package'));
   });
 
   await t.test('Rejects generic zip renamed to .docx without Word document structures', async () => {

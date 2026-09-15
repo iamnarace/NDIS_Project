@@ -198,10 +198,14 @@ async function performCompleteTeardown() {
   }
 
   // Delete test counters to maintain clean state
-  await supabase.from('recruitment_reference_counters').delete().neq('prefix', 'PROD_PERSIST');
 }
 
-test('Opus Care Careers & Recruitment — Full HTTP Route Handler E2E Suite', async (t) => {
+if (process.env.RUN_RECRUITMENT_ACCEPTANCE !== '1') {
+  console.log('Skipping acceptance tests. RUN_RECRUITMENT_ACCEPTANCE=1 required.');
+  process.exit(0);
+}
+
+test('Recruitment Route-Handler Integration Acceptance', async (t) => {
   t.after(async () => {
     await performCompleteTeardown();
 
@@ -752,6 +756,93 @@ test('Opus Care Careers & Recruitment — Full HTTP Route Handler E2E Suite', as
 
     const purgedFound = listBody.applications.find(a => a.id === eoiApplication.id);
     assert.equal(purgedFound, undefined, 'Purged application must NOT be returned in active applications list');
+  });
+
+  await t.test('13.5. Purge fail-closed: Aborts and does NOT redact PII if storage deletion fails', async () => {
+    // Create a temporary application to purge using the API to ensure all relations and fields are valid
+    const eoiReq = createMockRequest('http://localhost:3000/api/careers/applications', 'POST', {
+      application_type: 'eoi',
+      first_name: 'Fail',
+      last_name: 'Closed',
+      email: 'failclose@example.com',
+      phone: '0400000000',
+      suburb: 'Sydney',
+      postcode: '2000',
+      work_rights_status: 'citizen_pr',
+      preferred_service_area_ids: ['sydney-surrounding'],
+      employment_preferences: ['casual'],
+      role_interest: 'Other',
+      role_interest_other: 'Testing Fail Closed',
+      declaration_accuracy: true,
+      declaration_privacy: true,
+      bot_check: ''
+    });
+    
+    const eoiRes = await applicationsHandler(eoiReq);
+    const body = await eoiRes.json();
+    assert.ok(body.ok, `Failed to create test application: ${JSON.stringify(body)}`);
+    
+    const tempAppId = body.application_id;
+
+    // Progress it to unsuccessful
+    await patchApplicationStageHandler(
+      createMockRequest(`http://localhost:3000/api/crm/recruitment/applications/${tempAppId}/stage`, 'PATCH', {
+        stage: 'unsuccessful',
+        note: 'Candidate not suitable for current capacity.'
+      }, adminAuthHeaders),
+      { params: Promise.resolve({ id: tempAppId }) }
+    );
+
+    // Add a dummy file record so it attempts to delete from storage
+    await supabase.from('job_application_files').insert({
+      application_id: tempAppId,
+      file_kind: 'resume',
+      storage_path: 'recruitment/applications/fail-close-test/resume.pdf',
+      file_name: 'resume.pdf',
+      file_size: 1024,
+      mime_type: 'application/pdf'
+    });
+
+    const purgeReq = createMockRequest(`http://localhost:3000/api/crm/recruitment/applications/${tempAppId}`, 'DELETE', {
+      confirm_purge: true,
+      purge_reason: 'Testing fail-closed storage deletion'
+    }, adminAuthHeaders);
+
+    const originalFetch = global.fetch;
+    global.fetch = async (url, options) => {
+      if (url.toString().includes('/storage/v1/object/crm-documents') && options?.method === 'DELETE') {
+        return new Response(JSON.stringify({ error: 'Forced Storage Failure' }), { 
+          status: 500, 
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      return originalFetch(url, options);
+    };
+
+    let purgeRes;
+    try {
+      purgeRes = await deleteApplicationHandler(purgeReq, { params: Promise.resolve({ id: tempAppId }) });
+    } finally {
+      global.fetch = originalFetch;
+    }
+
+    assert.equal(purgeRes.status, 500, 'Expected 500 when storage deletion fails');
+    const purgeBody = await purgeRes.json();
+    assert.equal(purgeBody.ok, false);
+
+    // Verify PII is NOT redacted
+    const { data: unredactedApp } = await supabase
+      .from('job_applications')
+      .select('first_name, purged_at')
+      .eq('id', tempAppId)
+      .single();
+
+    assert.equal(unredactedApp.first_name, 'Fail', 'PII should not be redacted on storage failure');
+    assert.equal(unredactedApp.purged_at, null, 'purged_at should remain null');
+
+    // Clean up
+    await supabase.from('job_application_files').delete().eq('application_id', tempAppId);
+    await supabase.from('job_applications').delete().eq('id', tempAppId);
   });
 
   // 14. Provider Settings Save & Readback Verification

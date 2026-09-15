@@ -101,6 +101,11 @@ async function performCompleteCleanup() {
   console.log('Cleanup complete. 0 test artifacts remaining.');
 }
 
+if (process.env.RUN_RECRUITMENT_ACCEPTANCE !== '1') {
+  console.log('Skipping acceptance tests. RUN_RECRUITMENT_ACCEPTANCE=1 required.');
+  process.exit(0);
+}
+
 test('Opus Care Careers & Recruitment — Real Supabase Contract & E2E Acceptance', async (t) => {
   t.after(async () => {
     await performCompleteCleanup();

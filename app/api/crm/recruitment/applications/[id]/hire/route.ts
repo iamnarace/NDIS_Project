@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedAdminActor } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { userFacingError } from '@/lib/userFacingError';
+import { RECRUITMENT_SERVICE_AREAS } from '@/lib/regions';
 
 export async function POST(
   req: Request,
@@ -35,8 +36,8 @@ export async function POST(
     if (engagementRelationship === 'contractor') {
       employmentBasis = 'not_applicable';
     } else {
-      if (!employmentBasis || !['full_time', 'part_time', 'casual'].includes(employmentBasis)) {
-        return NextResponse.json({ ok: false, error: 'Valid employment basis (full_time, part_time, or casual) is required for employee hires.' }, { status: 400 });
+      if (!employmentBasis || !['full_time', 'part_time', 'casual', 'fixed_term'].includes(employmentBasis)) {
+        return NextResponse.json({ ok: false, error: 'Valid employment basis (full_time, part_time, casual, or fixed_term) is required for employee hires.' }, { status: 400 });
       }
     }
 
@@ -47,6 +48,13 @@ export async function POST(
 
     if (!approvedServiceAreas || approvedServiceAreas.length === 0) {
       return NextResponse.json({ ok: false, error: 'At least one approved service area / location is required.' }, { status: 400 });
+    }
+    
+    const validAreaIds = RECRUITMENT_SERVICE_AREAS.map(a => a.id);
+    for (const area of approvedServiceAreas) {
+      if (!validAreaIds.includes(area)) {
+        return NextResponse.json({ ok: false, error: `Invalid service area: ${area}` }, { status: 400 });
+      }
     }
 
     const linkExistingStaffId = body.link_existing_staff_id || null;

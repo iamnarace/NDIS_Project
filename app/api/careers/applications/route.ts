@@ -3,23 +3,11 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { sendCareersApplicantAcknowledgement, sendCareersAdminAlert } from '@/lib/email';
 import { validateCandidateBuffer } from '@/lib/recruitmentFileValidation';
 import { getAtomicRecruitmentReference } from '@/lib/referenceNumber';
-import { checkRecruitmentRateLimit } from '@/lib/rateLimit';
+import { checkRecruitmentRateLimitAsync } from '@/lib/rateLimit';
+import { RECRUITMENT_SERVICE_AREAS } from '@/lib/regions';
 import crypto from 'crypto';
 
-const ALLOWED_SERVICE_AREAS = new Set([
-  'coffs-coast',
-  'clarence-valley',
-  'tweed-byron',
-  'richmond-valley',
-  'ballina-richmond',
-  'western-sydney',
-  'blacktown',
-  'parramatta',
-  'penrith',
-  'inner-west',
-  'south-west-sydney',
-  'sydney-eastern-suburbs'
-]);
+const ALLOWED_SERVICE_AREAS = new Set(RECRUITMENT_SERVICE_AREAS.map(a => a.id));
 
 const ALLOWED_EMPLOYMENT_PREFERENCES = new Set([
   'casual',
@@ -61,7 +49,7 @@ function constantTimeEqualHex(a: string, b: string): boolean {
 
 export async function POST(req: Request) {
   // 1. Abuse control / rate limiting
-  const rateCheck = checkRecruitmentRateLimit(req, 'application_submission', 25, 60);
+  const rateCheck = await checkRecruitmentRateLimitAsync(req, 'application_submission', 25, 60);
   if (!rateCheck.ok) {
     return NextResponse.json({
       ok: false,
@@ -424,6 +412,14 @@ export async function POST(req: Request) {
       if (!sErr && sess && !sess.finalized_at && new Date(sess.expires_at).getTime() >= Date.now()) {
         const computedHash = crypto.createHash('sha256').update(coverSessionToken).digest('hex');
         if (constantTimeEqualHex(computedHash, sess.session_secret_hash)) {
+          // Validate binding for cover letter session
+          if (sess.application_type && sess.application_type !== applicationType) {
+            return NextResponse.json({ ok: false, error: 'Cover letter upload session application type mismatch.' }, { status: 400 });
+          }
+          if (applicationType === 'vacancy' && sess.vacancy_id && sess.vacancy_id !== vacancyId) {
+            return NextResponse.json({ ok: false, error: 'Cover letter upload session vacancy binding mismatch.' }, { status: 400 });
+          }
+
           coverSessionStoragePath = sess.cover_storage_path || sess.storage_path;
           if (coverSessionStoragePath) {
             const { data: blob } = await supabase.storage
@@ -484,10 +480,33 @@ export async function POST(req: Request) {
     const retentionUntil = retentionDate.toISOString();
 
     const roleInterest = applicationType === 'eoi' ? (fields.role_interest ? String(fields.role_interest).slice(0, 100) : null) : null;
-    const roleInterestOther = applicationType === 'eoi' && fields.role_interest === 'Other' ? (fields.role_interest_other ? String(fields.role_interest_other).slice(0, 200) : null) : null;
+
+    // Validate EOI role_interest against canonical public values
+    const CANONICAL_ROLE_INTERESTS = new Set([
+      'Disability Support Worker',
+      'Community Support Worker',
+      'Future support opportunities',
+      'Administration / coordination',
+      'Other'
+    ]);
+    if (applicationType === 'eoi' && roleInterest && !CANONICAL_ROLE_INTERESTS.has(roleInterest)) {
+      return NextResponse.json({ ok: false, error: `Invalid role interest '${roleInterest}'.` }, { status: 400 });
+    }
+
+    const roleInterestOther = applicationType === 'eoi' && fields.role_interest === 'Other' ? (fields.role_interest_other ? String(fields.role_interest_other).trim() : null) : null;
+    if (roleInterestOther !== null) {
+      if (roleInterestOther.length < 2 || roleInterestOther.length > 200) {
+        return NextResponse.json({ ok: false, error: 'Role interest (Other) must be between 2 and 200 characters.' }, { status: 400 });
+      }
+    }
 
     const experienceSummary = fields.experience_summary || fields.notes_summary || null;
     const qualificationSummary = fields.qualification_summary || null;
+
+    // Enforce qualification_required -> qualification_summary
+    if (vacancyRecord && vacancyRecord.qualification_required && !qualificationSummary) {
+      return NextResponse.json({ ok: false, error: 'Qualification summary is required for this role.' }, { status: 400 });
+    }
 
     // 10. Store Resume in Canonical Storage Path
     let uploadedResumePath: string | null = null;
@@ -510,13 +529,6 @@ export async function POST(req: Request) {
           ok: false,
           error: 'Failed to securely store your resume. Please try again.'
         }, { status: 500 });
-      }
-
-      if (resumeSessionRecord && resumeSessionStoragePath) {
-        try {
-          await supabase.storage.from('crm-documents').remove([resumeSessionStoragePath]);
-          await supabase.from('job_application_upload_sessions').update({ finalized_at: nowIso }).eq('id', resumeSessionRecord.id);
-        } catch {}
       }
     }
 
@@ -583,6 +595,14 @@ export async function POST(req: Request) {
           await supabase.storage.from('crm-documents').remove([uploadedResumePath]);
         } catch {}
         return NextResponse.json({ ok: false, error: 'Failed to register resume metadata. Please try again.' }, { status: 500 });
+      }
+
+      // Finalize resume upload session only after DB inserts succeed
+      if (resumeSessionRecord && resumeSessionStoragePath) {
+        try {
+          await supabase.storage.from('crm-documents').remove([resumeSessionStoragePath]);
+          await supabase.from('job_application_upload_sessions').update({ finalized_at: nowIso }).eq('id', resumeSessionRecord.id);
+        } catch {}
       }
     }
 

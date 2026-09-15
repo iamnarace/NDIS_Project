@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sanitizeRecruitmentFilename } from '@/lib/recruitmentFileValidation';
-import { checkRecruitmentRateLimit } from '@/lib/rateLimit';
+import { checkRecruitmentRateLimitAsync } from '@/lib/rateLimit';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
   // 1. Abuse control / rate limiting
-  const rateCheck = checkRecruitmentRateLimit(req, 'upload_session', 30, 60);
+  const rateCheck = await checkRecruitmentRateLimitAsync(req, 'upload_session', 30, 60);
   if (!rateCheck.ok) {
     return NextResponse.json({
       ok: false,
