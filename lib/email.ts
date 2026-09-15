@@ -78,3 +78,106 @@ export async function sendContactEmails(contact: ContactData) {
     return { ok: false, error };
   }
 }
+
+export interface CareersApplicantEmailData {
+  firstName: string;
+  referenceNumber: string;
+  roleOrEoi: string;
+  applicationLabel: string; // e.g. 'application' or 'Expression of Interest'
+  email: string;
+}
+
+export interface CareersAdminEmailData {
+  referenceNumber: string;
+  applicantName: string;
+  roleOrEoi: string;
+  applicationType: 'vacancy' | 'eoi';
+  email: string;
+  phone: string;
+  suburb: string;
+  postcode: string;
+  preferredServiceAreas: string[];
+  employmentPreferences: string[];
+  submittedAt: string;
+  toEmail?: string;
+  appUrl?: string;
+}
+
+const CAREERS_DEFAULT_EMAIL = process.env.CAREERS_TO_EMAIL || 'careers@opuscare.com.au';
+
+export async function sendCareersApplicantAcknowledgement(data: CareersApplicantEmailData) {
+  if (!data.email) return { ok: false, message: 'No applicant email provided' };
+
+  const subject = `We've received your application · Opus Care Support Services · ${data.referenceNumber}`;
+  const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1e293b;line-height:1.6">
+<h2>Thank you for your interest in Opus Care</h2>
+<p>Hello <strong>${data.firstName}</strong>,</p>
+<p>Thank you for your interest in joining Opus Care Support Services.</p>
+<p>We've received your ${data.applicationLabel || 'application'} for:</p>
+<p style="font-size:1.1rem;font-weight:bold;color:#0f172a;background:#f1f5f9;padding:10px 14px;border-radius:6px;">${data.roleOrEoi}</p>
+<p>Application reference: <strong>${data.referenceNumber}</strong></p>
+<p>Our team will review your information and contact you if we need anything further or would like to progress your application.</p>
+<p style="color:#64748b;font-size:0.875rem;border-left:3px solid #cbd5e1;padding-left:12px;margin:20px 0;">
+Please do not email sensitive identity, banking, tax or screening documents unless an authorised Opus Care team member asks you to use an approved secure process.
+</p>
+<p>Kind regards,<br><strong>Opus Care Support Services</strong></p>
+</body></html>`;
+
+  if (!resend) return { ok: true, simulated: true };
+  try {
+    const result = await resend.emails.send({
+      from: DEFAULT_FROM,
+      to: [data.email],
+      replyTo: CAREERS_DEFAULT_EMAIL,
+      subject,
+      html,
+    });
+    return { ok: true, data: result };
+  } catch (error) {
+    console.error('Failed to send careers applicant acknowledgement', error);
+    return { ok: false, error };
+  }
+}
+
+export async function sendCareersAdminAlert(data: CareersAdminEmailData) {
+  const targetEmail = data.toEmail || CAREERS_DEFAULT_EMAIL;
+  const subject = `New Careers Application · ${data.referenceNumber} · ${data.applicantName}`;
+  const adminUrl = `${data.appUrl || 'https://opuscare.com.au'}/admin?tab=recruitment`;
+  const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#0f172a;line-height:1.5">
+<h2>New Careers Application Received</h2>
+<table style="border-collapse:collapse;width:100%;max-width:600px;font-size:0.95rem;">
+  <tr><td style="padding:6px 0;color:#64748b;width:160px;">Reference:</td><td><strong>${data.referenceNumber}</strong></td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Type / Role:</td><td><strong>${data.roleOrEoi}</strong> (${data.applicationType.toUpperCase()})</td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Applicant:</td><td><strong>${data.applicantName}</strong></td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Email:</td><td><a href="mailto:${data.email}">${data.email}</a></td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Mobile:</td><td>${data.phone}</td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Location:</td><td>${data.suburb} NSW ${data.postcode}</td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Preferred Areas:</td><td>${data.preferredServiceAreas?.join(', ') || 'None specified'}</td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Employment Prefs:</td><td>${data.employmentPreferences?.join(', ') || 'Not specified'}</td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Submitted At:</td><td>${data.submittedAt}</td></tr>
+</table>
+<p style="margin-top:20px;">
+  <a href="${adminUrl}" style="display:inline-block;background:#0369a1;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;">
+    Review in Recruitment CRM
+  </a>
+</p>
+<p style="font-size:0.8rem;color:#94a3b8;margin-top:24px;">
+Note: For privacy and security, candidate CVs and cover letters are stored securely and never attached to email notifications. Open the authenticated CRM to view uploaded documents.
+</p>
+</body></html>`;
+
+  if (!resend) return { ok: true, simulated: true };
+  try {
+    const result = await resend.emails.send({
+      from: DEFAULT_FROM,
+      to: [targetEmail],
+      replyTo: data.email,
+      subject,
+      html,
+    });
+    return { ok: true, data: result };
+  } catch (error) {
+    console.error('Failed to send careers admin alert email', error);
+    return { ok: false, error };
+  }
+}

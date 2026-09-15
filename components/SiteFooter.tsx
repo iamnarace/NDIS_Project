@@ -88,6 +88,7 @@ export function SiteFooter() {
               <li><span className="bulletDot"></span><Link href="/portal"><strong>Participant Portal</strong></Link></li>
               <li><span className="bulletDot"></span><Link href="/admin">Staff CRM Portal</Link></li>
               <li><span className="bulletDot"></span><Link href="/about">About Opus Care</Link></li>
+              <li><span className="bulletDot"></span><Link href="/careers">Careers</Link></li>
               <li><span className="bulletDot"></span><Link href="/services">Services & Supports</Link></li>
               <li><span className="bulletDot"></span><Link href="/service-areas">Areas We Serve</Link></li>
               <li><span className="bulletDot"></span><Link href="/faq">Pricing & FAQs</Link></li>

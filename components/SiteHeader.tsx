@@ -69,6 +69,7 @@ export function SiteHeader() {
             <Link href="/services" className="navLink">Services & Supports</Link>
             <Link href="/service-areas" className="navLink">Areas We Serve</Link>
             <Link href="/about" className="navLink">About Opus Care</Link>
+            <Link href="/careers" className="navLink">Careers</Link>
             <Link href="/faq" className="navLink">Pricing & FAQ</Link>
             <Link href="/portal" className="navLink portalHighlight">
               <Lock size={13} /> Portal
@@ -124,6 +125,7 @@ export function SiteHeader() {
           <Link href="/services" onClick={() => setOpen(false)}>Services & Supports</Link>
           <Link href="/service-areas" onClick={() => setOpen(false)}>Areas We Serve</Link>
           <Link href="/about" onClick={() => setOpen(false)}>About Opus Care</Link>
+          <Link href="/careers" onClick={() => setOpen(false)}>Careers</Link>
           <Link href="/faq" onClick={() => setOpen(false)}>Pricing & FAQ</Link>
           <Link href="/contact" onClick={() => setOpen(false)}>Contact Us</Link>
           <div className="mobileDrawerCta">

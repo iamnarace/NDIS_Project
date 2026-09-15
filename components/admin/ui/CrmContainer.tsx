@@ -31,12 +31,14 @@ import {
   CheckCircle2,
   Menu,
   BookOpen,
+  Briefcase,
 } from 'lucide-react';
 import CrmNotificationItem from './CrmNotificationItem';
 
 export type CrmTab =
   | 'dashboard'
   | 'referrals'
+  | 'recruitment'
   | 'agreements'
   | 'participants'
   | 'goals'
@@ -192,6 +194,18 @@ export default function CrmContainer({
                 {referralsCount > 0 && (
                   <span className="nav-counter alert">{referralsCount}</span>
                 )}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`nav-link ${isTabActive('recruitment') ? 'active' : ''}`}
+                onClick={() => handleTabClick('recruitment')}
+              >
+                <div className="nav-link-left">
+                  <Briefcase size={17} />
+                  <span>Recruitment</span>
+                </div>
               </button>
             </li>
             <li>

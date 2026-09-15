@@ -1,0 +1,208 @@
+import { NextResponse } from 'next/server';
+import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { userFacingError } from '@/lib/userFacingError';
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authed = await isAuthenticatedAdmin(req);
+  if (!authed) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const supabase = createAdminClient();
+  if (!supabase) {
+    return NextResponse.json({ ok: false, error: 'Database service unavailable.' }, { status: 503 });
+  }
+
+  const { data: application, error } = await supabase
+    .from('job_applications')
+    .select(`
+      *,
+      job_vacancies (
+        id,
+        reference_number,
+        title,
+        slug,
+        category,
+        service_area_ids,
+        employment_basis,
+        status
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error || !application) {
+    return NextResponse.json({ ok: false, error: 'Application not found.' }, { status: 404 });
+  }
+
+  // 1. Files with signed download URLs
+  const { data: rawFiles } = await supabase
+    .from('job_application_files')
+    .select('*')
+    .eq('application_id', id);
+
+  const filesWithSignedUrls = await Promise.all(
+    (rawFiles || []).map(async (f: any) => {
+      let signedUrl = null;
+      try {
+        const { data: signData } = await supabase.storage
+          .from('crm-documents')
+          .createSignedUrl(f.storage_path, 900); // 15 min expiry
+        signedUrl = signData?.signedUrl || null;
+      } catch (err: any) {
+        console.error('Failed to generate signed URL for application file:', err?.message);
+      }
+      return {
+        id: f.id,
+        file_kind: f.file_kind,
+        file_name: f.file_name,
+        file_size: f.file_size,
+        mime_type: f.mime_type,
+        created_at: f.created_at,
+        download_url: signedUrl
+      };
+    })
+  );
+
+  // 2. Timeline events
+  const { data: events } = await supabase
+    .from('job_application_events')
+    .select('*')
+    .eq('application_id', id)
+    .order('created_at', { ascending: true });
+
+  // 3. Interviews
+  const { data: interviews } = await supabase
+    .from('job_interviews')
+    .select('*')
+    .eq('application_id', id)
+    .order('scheduled_at', { ascending: false });
+
+  // 4. Reference checks
+  const { data: references } = await supabase
+    .from('job_reference_checks')
+    .select('*')
+    .eq('application_id', id)
+    .order('created_at', { ascending: false });
+
+  // 5. Linked staff record if hired
+  let linkedStaff = null;
+  if (application.converted_staff_id) {
+    const { data: staffData } = await supabase
+      .from('staff')
+      .select('id, reference_number, full_name, status, lifecycle_stage, is_rosterable, employment_basis, created_at')
+      .eq('id', application.converted_staff_id)
+      .maybeSingle();
+    linkedStaff = staffData || null;
+  }
+
+  return NextResponse.json({
+    ok: true,
+    application: {
+      ...application,
+      files: filesWithSignedUrls,
+      events: events || [],
+      interviews: interviews || [],
+      references: references || [],
+      linked_staff: linkedStaff
+    }
+  });
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const supabase = createAdminClient();
+  if (!supabase) {
+    return NextResponse.json({ ok: false, error: 'Database service unavailable.' }, { status: 503 });
+  }
+
+  try {
+    const body = await req.json();
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (body.retention_until !== undefined) {
+      updates.retention_until = body.retention_until;
+    }
+
+    const { data: updated, error } = await supabase
+      .from('job_applications')
+      .update(updates)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      return NextResponse.json({ ok: false, error: userFacingError(error.message) }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, application: updated });
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err?.message || 'Invalid update payload.' }, { status: 400 });
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const actorId = await getAuthenticatedAdminActor(req);
+  if (!actorId) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required.' }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const supabase = createAdminClient();
+  if (!supabase) {
+    return NextResponse.json({ ok: false, error: 'Database service unavailable.' }, { status: 503 });
+  }
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    if (!body.confirm_purge) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Purge action requires explicit confirmation ({ confirm_purge: true }).'
+      }, { status: 400 });
+    }
+
+    // 1. Find all private files for this application
+    const { data: files } = await supabase
+      .from('job_application_files')
+      .select('storage_path')
+      .eq('application_id', id);
+
+    if (files && files.length > 0) {
+      const paths = files.map(f => f.storage_path);
+      await supabase.storage.from('crm-documents').remove(paths);
+    }
+
+    // 2. Delete application (cascades files, events, interviews, reference checks in DB)
+    const { error: delError } = await supabase
+      .from('job_applications')
+      .delete()
+      .eq('id', id);
+
+    if (delError) {
+      return NextResponse.json({ ok: false, error: userFacingError(delError.message) }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: 'Application and associated private files purged successfully.' });
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err?.message || 'Failed to purge application.' }, { status: 500 });
+  }
+}

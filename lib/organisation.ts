@@ -36,6 +36,8 @@ export interface OrganisationProfile {
   websiteUrl: string;
   supportEmail: string;
   referralsEmail: string;
+  careersEmail?: string | null;
+  recruitmentRetentionMonths?: number;
   facebookUrl: string;
   instagramUrl: string;
   linkedinUrl: string;
@@ -310,6 +312,8 @@ export async function getOrganisationProfile(
       websiteUrl,
       supportEmail,
       referralsEmail,
+      careersEmail: config.careers_email?.trim() || 'careers@opuscare.com.au',
+      recruitmentRetentionMonths: config.recruitment_retention_months || 12,
       facebookUrl,
       instagramUrl,
       linkedinUrl,

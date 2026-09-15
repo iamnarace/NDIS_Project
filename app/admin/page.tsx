@@ -16,6 +16,7 @@ import InvoicingTab from '@/components/admin/InvoicingTab';
 import QuotesTab from '@/components/admin/QuotesTab';
 import TimesheetsTab from '@/components/admin/TimesheetsTab';
 import ProgressNotesTab from '@/components/admin/ProgressNotesTab';
+import RecruitmentTab from '@/components/admin/RecruitmentTab';
 import CanonicalDashboard from '@/components/admin/CanonicalDashboard';
 import SuitabilityAssessmentModal from '@/components/admin/SuitabilityAssessmentModal';
 import ParticipantOnboardingDrawer from '@/components/admin/ParticipantOnboardingDrawer';
@@ -201,7 +202,7 @@ interface TrainingCompletion {
 }
 
 
-type TabType = 'dashboard' | 'referrals' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'timesheets' | 'progress_notes' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'help' | 'settings';
+type TabType = 'dashboard' | 'referrals' | 'recruitment' | 'agreements' | 'participants' | 'goals' | 'support_plans' | 'risk_assessments' | 'safeguarding' | 'timesheets' | 'progress_notes' | 'invoicing' | 'quotes' | 'staff' | 'workforce' | 'compliance' | 'help' | 'settings';
 
 const PIPELINE_STAGES = [
   { id: 'new', label: 'New Inbound', color: 'var(--oc-info)', bg: '#E0F2FE' },
@@ -453,6 +454,13 @@ export default function AdminCrmPage() {
   useEffect(() => {
     checkAuth();
     loadFinanceMetrics();
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlTab = params.get('tab');
+      if (urlTab) {
+        setTab(urlTab as any);
+      }
+    } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1867,6 +1875,30 @@ export default function AdminCrmPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* TAB: RECRUITMENT */}
+          {tab === 'recruitment' && (
+            <RecruitmentTab
+              onSelectTab={(newTab: string, extra?: any) => {
+                if (newTab === 'staff') {
+                  setTab('staff');
+                  if (extra?.staffId) {
+                    const found = staff.find(s => s.id === extra.staffId);
+                    if (found) setSelectedStaff(found);
+                  }
+                } else if (newTab === 'agreements') {
+                  setTab('agreements');
+                  if (extra?.staffId) {
+                    setShowAgreementGenerator(true);
+                  }
+                } else if (newTab === 'compliance') {
+                  setTab('compliance');
+                } else {
+                  setTab(newTab as any);
+                }
+              }}
+            />
           )}
 
           {/* TAB 2: SERVICE AGREEMENTS */}
@@ -6139,4 +6171,3 @@ export default function AdminCrmPage() {
     </CrmContainer>
   );
 }
-

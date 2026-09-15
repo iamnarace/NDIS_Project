@@ -14,9 +14,9 @@ export const REGIONS: Region[] = [
     badge: 'Coffs Coast Hub',
     majorTowns: ['Coffs Harbour', 'Woolgoolga', 'Sawtell', 'Toormina'],
     suburbs: [
-      'Coffs Harbour', 'North Boambee Valley', 'Boambee', 'Boambee East', 
-      'Toormina', 'Sawtell', 'Bonville', 'Korora', 'Sapphire Beach', 
-      'Moonee Beach', 'Emerald Beach', 'Sandy Beach', 'Woolgoolga', 
+      'Coffs Harbour', 'North Boambee Valley', 'Boambee', 'Boambee East',
+      'Toormina', 'Sawtell', 'Bonville', 'Korora', 'Sapphire Beach',
+      'Moonee Beach', 'Emerald Beach', 'Sandy Beach', 'Woolgoolga',
       'Safety Beach', 'Mullaway', 'Arrawarra', 'Corindi Beach'
     ],
     description: 'Providing compassionate in-home and community participation supports across Coffs Harbour and the coastal northern corridor.'
@@ -27,9 +27,9 @@ export const REGIONS: Region[] = [
     badge: 'Primary Valley Hub',
     majorTowns: ['Grafton', 'Maclean', 'Yamba', 'Iluka'],
     suburbs: [
-      'Red Rock', 'Wooli', 'Minnie Water', 'Grafton', 'South Grafton', 
-      'Junction Hill', 'Clarenza', 'Waterview Heights', 'Ulmarra', 
-      'Maclean', 'Townsend', 'Gulmarrad', 'Lawrence', 'Yamba', 
+      'Red Rock', 'Wooli', 'Minnie Water', 'Grafton', 'South Grafton',
+      'Junction Hill', 'Clarenza', 'Waterview Heights', 'Ulmarra',
+      'Maclean', 'Townsend', 'Gulmarrad', 'Lawrence', 'Yamba',
       'Angourie', 'Iluka'
     ],
     description: 'Our established coastal and valley base with immediate daily support capacity for self and plan-managed participants.'
@@ -40,7 +40,7 @@ export const REGIONS: Region[] = [
     badge: 'Richmond Hub',
     majorTowns: ['Casino', 'Evans Head', 'Woodburn'],
     suburbs: [
-      'New Italy', 'Woodburn', 'Evans Head', 'Broadwater', 'Coraki', 
+      'New Italy', 'Woodburn', 'Evans Head', 'Broadwater', 'Coraki',
       'Casino', 'Surrounding Richmond Valley Communities'
     ],
     description: 'Dependable disability support and skills development throughout the Richmond Valley corridor.'
@@ -51,8 +51,8 @@ export const REGIONS: Region[] = [
     badge: 'Lismore Hub',
     majorTowns: ['Lismore', 'Goonellabah', 'Nimbin'],
     suburbs: [
-      'Lismore', 'East Lismore', 'South Lismore', 'North Lismore', 
-      'Goonellabah', 'Girards Hill', 'Lismore Heights', 'Richmond Hill', 
+      'Lismore', 'East Lismore', 'South Lismore', 'North Lismore',
+      'Goonellabah', 'Girards Hill', 'Lismore Heights', 'Richmond Hill',
       'Wyrallah', 'Clunes', 'Nimbin', 'Surrounding Communities'
     ],
     description: 'Person-centred 1-on-1 support workers assisting participants across central and outer Lismore communities.'
@@ -63,8 +63,8 @@ export const REGIONS: Region[] = [
     badge: 'Northern Rivers Hub',
     majorTowns: ['Ballina', 'Lennox Head', 'Alstonville'],
     suburbs: [
-      'Alstonville', 'Wollongbar', 'Wardell', 'Meerschaum Vale', 'Rous', 
-      'Tintenbar', 'Lennox Head', 'Skennars Head', 'East Ballina', 
+      'Alstonville', 'Wollongbar', 'Wardell', 'Meerschaum Vale', 'Rous',
+      'Tintenbar', 'Lennox Head', 'Skennars Head', 'East Ballina',
       'West Ballina', 'Ballina', 'Surrounding Ballina Shire Communities'
     ],
     description: 'Supporting participants across Ballina Shire and coastal communities with reliable, personalized routines.'
@@ -72,7 +72,7 @@ export const REGIONS: Region[] = [
 ];
 
 export const MAJOR_LOCATIONS = [
-  'Coffs Harbour', 'Woolgoolga', 'Grafton', 'Maclean', 'Yamba', 
+  'Coffs Harbour', 'Woolgoolga', 'Grafton', 'Maclean', 'Yamba',
   'Casino', 'Lismore', 'Alstonville', 'Lennox Head', 'Ballina'
 ];
 
@@ -195,3 +195,27 @@ export const OPERATIONAL_SERVICE_COVERAGE: OperationalServiceCoverage = {
   ],
 };
 
+export interface RecruitmentServiceArea {
+  id: string;
+  name: string;
+  region: 'Northern NSW' | 'Sydney';
+}
+
+export const RECRUITMENT_SERVICE_AREAS: RecruitmentServiceArea[] = [
+  { id: 'coffs-coast', name: 'Coffs Coast / Coffs Harbour', region: 'Northern NSW' },
+  { id: 'clarence-valley', name: 'Clarence Valley / Grafton', region: 'Northern NSW' },
+  { id: 'maclean-yamba', name: 'Maclean / Yamba', region: 'Northern NSW' },
+  { id: 'richmond-valley', name: 'Richmond Valley (Casino, Evans Head)', region: 'Northern NSW' },
+  { id: 'lismore-region', name: 'Lismore Region', region: 'Northern NSW' },
+  { id: 'ballina-northern-rivers', name: 'Ballina / Northern Rivers', region: 'Northern NSW' },
+  { id: 'western-sydney', name: 'Western Sydney', region: 'Sydney' },
+  { id: 'blacktown', name: 'Blacktown', region: 'Sydney' },
+  { id: 'parramatta', name: 'Parramatta', region: 'Sydney' },
+  { id: 'sydney-cbd-redfern', name: 'Sydney CBD / Redfern', region: 'Sydney' },
+  { id: 'sydney-surrounding', name: 'Selected surrounding Sydney locations', region: 'Sydney' },
+];
+
+export function getRecruitmentAreaName(id: string): string {
+  const found = RECRUITMENT_SERVICE_AREAS.find(a => a.id === id);
+  return found ? found.name : id;
+}
