@@ -52,3 +52,19 @@ export async function nextYearlyReferenceNumber(
 
   return `${fullPrefix}-${String(highest + 1).padStart(width, '0')}`;
 }
+
+/**
+ * Strict fail-closed atomic recruitment reference generator.
+ * Calls PostgreSQL sequence function `next_recruitment_reference`.
+ * Fails closed without race-prone table-scan fallback.
+ */
+export async function getAtomicRecruitmentReference(
+  supabase: any,
+  prefix: 'APP' | 'JOB'
+): Promise<string> {
+  const { data, error } = await supabase.rpc('next_recruitment_reference', { p_prefix: prefix });
+  if (error || typeof data !== 'string' || !data.startsWith(`${prefix}-`)) {
+    throw new Error(`Failed to generate atomic recruitment reference for ${prefix}: ${error?.message || 'Invalid sequence response'}`);
+  }
+  return data;
+}

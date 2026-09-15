@@ -21,13 +21,34 @@ export async function POST(
   try {
     const body = await req.json().catch(() => ({}));
 
-    const roleTitle = body.role_title || body.role || 'Support Worker';
-    const engagementRelationship = body.engagement_relationship || body.engagement_type || 'employee';
-    const employmentBasis = engagementRelationship === 'contractor' ? 'not_applicable' : (body.employment_basis || 'casual');
+    const roleTitle = String(body.role_title || body.role || '').trim();
+    if (!roleTitle) {
+      return NextResponse.json({ ok: false, error: 'Role title is required for hiring candidate.' }, { status: 400 });
+    }
+
+    const engagementRelationship = body.engagement_relationship || body.engagement_type;
+    if (!engagementRelationship || !['employee', 'contractor'].includes(engagementRelationship)) {
+      return NextResponse.json({ ok: false, error: 'Valid engagement relationship (employee or contractor) is required.' }, { status: 400 });
+    }
+
+    let employmentBasis = body.employment_basis;
+    if (engagementRelationship === 'contractor') {
+      employmentBasis = 'not_applicable';
+    } else {
+      if (!employmentBasis || !['full_time', 'part_time', 'casual'].includes(employmentBasis)) {
+        return NextResponse.json({ ok: false, error: 'Valid employment basis (full_time, part_time, or casual) is required for employee hires.' }, { status: 400 });
+      }
+    }
+
     const startDate = body.employment_start_date ? String(body.employment_start_date).slice(0, 10) : null;
     const approvedServiceAreas = Array.isArray(body.approved_service_areas)
       ? body.approved_service_areas
       : (Array.isArray(body.suburbs) ? body.suburbs : []);
+
+    if (!approvedServiceAreas || approvedServiceAreas.length === 0) {
+      return NextResponse.json({ ok: false, error: 'At least one approved service area / location is required.' }, { status: 400 });
+    }
+
     const linkExistingStaffId = body.link_existing_staff_id || null;
     const confirmDuplicate = Boolean(body.confirm_duplicate);
 

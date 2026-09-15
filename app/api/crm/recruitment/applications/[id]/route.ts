@@ -175,6 +175,28 @@ export async function DELETE(
       }, { status: 400 });
     }
 
+    // Check application existence and stage eligibility
+    const { data: appToPurge, error: fetchErr } = await supabase
+      .from('job_applications')
+      .select('id, stage, purged_at')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !appToPurge) {
+      return NextResponse.json({ ok: false, error: 'Application not found.' }, { status: 404 });
+    }
+
+    if (appToPurge.purged_at) {
+      return NextResponse.json({ ok: false, error: 'Application has already been purged.' }, { status: 400 });
+    }
+
+    if (!['unsuccessful', 'withdrawn'].includes(appToPurge.stage)) {
+      return NextResponse.json({
+        ok: false,
+        error: `Cannot purge candidate in active or hired stage '${appToPurge.stage}'. Purge is restricted strictly to unsuccessful or withdrawn applications.`
+      }, { status: 400 });
+    }
+
     // 1. Find all private files for this application
     const { data: files } = await supabase
       .from('job_application_files')

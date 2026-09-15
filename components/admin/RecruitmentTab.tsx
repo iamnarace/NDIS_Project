@@ -469,11 +469,11 @@ export default function RecruitmentTab({
     setHireDuplicate(null);
     setHireResult(null);
     setHireForm({
-      role: app.job_vacancies?.title || 'Disability Support Worker',
-      engagement_type: 'employee',
-      employment_basis: app.employment_preferences?.[0] === 'part_time' ? 'part_time' : 'casual',
+      role: app.job_vacancies?.title || app.role_interest || '',
+      engagement_type: '',
+      employment_basis: '',
       employment_start_date: app.earliest_start_date || '',
-      suburbs: app.preferred_service_area_ids || [],
+      suburbs: app.preferred_service_area_ids?.length ? app.preferred_service_area_ids : [],
       hourly_rate: '',
       link_existing_staff_id: ''
     });
@@ -484,14 +484,41 @@ export default function RecruitmentTab({
   const handleExecuteHire = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!selectedAppId) return;
+
+    if (!hireForm.role.trim()) {
+      alert('Role title is required.');
+      return;
+    }
+    if (!hireForm.engagement_type) {
+      alert('Please select an engagement type (Employee or Contractor).');
+      return;
+    }
+    if (hireForm.engagement_type === 'employee' && !hireForm.employment_basis) {
+      alert('Please select an employment basis for the employee hire.');
+      return;
+    }
+    if (!hireForm.suburbs || hireForm.suburbs.length === 0) {
+      alert('Please select at least one approved service area.');
+      return;
+    }
+
     setHiring(true);
     setHireDuplicate(null);
 
     try {
+      const payload = {
+        role_title: hireForm.role.trim(),
+        engagement_relationship: hireForm.engagement_type,
+        employment_basis: hireForm.engagement_type === 'contractor' ? 'not_applicable' : hireForm.employment_basis,
+        employment_start_date: hireForm.employment_start_date || null,
+        approved_service_areas: hireForm.suburbs,
+        link_existing_staff_id: hireForm.link_existing_staff_id || null
+      };
+
       const res = await fetch(`/api/crm/recruitment/applications/${selectedAppId}/hire`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(hireForm)
+        body: JSON.stringify(payload)
       });
 
       const result = await res.json();
@@ -506,9 +533,12 @@ export default function RecruitmentTab({
         setHireResult(result);
         loadAppDetail(selectedAppId);
         loadRecruitmentData();
+      } else {
+        alert(result.error || 'Failed to hire candidate.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to hire candidate:', err);
+      alert(err?.message || 'Failed to hire candidate.');
     }
     setHiring(false);
   };
@@ -639,8 +669,17 @@ export default function RecruitmentTab({
         body: JSON.stringify(ownerConfig)
       });
       if (res.ok) {
-        setConfigSavedNotice(true);
-        setTimeout(() => setConfigSavedNotice(false), 4000);
+        // Readback verification
+        const readbackRes = await fetch('/api/crm/provider-config');
+        if (readbackRes.ok) {
+          const cData = await readbackRes.json();
+          setOwnerConfig({
+            careers_email: cData.careers_email || cData.support_email || 'support@opuscare.com.au',
+            recruitment_retention_months: cData.recruitment_retention_months || 12
+          });
+          setConfigSavedNotice(true);
+          setTimeout(() => setConfigSavedNotice(false), 4000);
+        }
       }
     } catch (err) {
       console.error('Failed to save settings:', err);
@@ -1897,10 +1936,12 @@ export default function RecruitmentTab({
                         Engagement Type *
                       </label>
                       <select
+                        required
                         value={hireForm.engagement_type}
                         onChange={e => setHireForm(f => ({ ...f, engagement_type: e.target.value }))}
                         style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: 8, fontSize: '0.875rem' }}
                       >
+                        <option value="">-- Select Engagement --</option>
                         <option value="employee">Employee (PAYG)</option>
                         <option value="contractor">Contractor (ABN)</option>
                       </select>
@@ -1908,14 +1949,16 @@ export default function RecruitmentTab({
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: '#334155', marginBottom: 4 }}>
-                        Employment Basis
+                        Employment Basis {hireForm.engagement_type === 'employee' ? '*' : ''}
                       </label>
                       <select
+                        required={hireForm.engagement_type === 'employee'}
                         disabled={hireForm.engagement_type === 'contractor'}
                         value={hireForm.employment_basis}
                         onChange={e => setHireForm(f => ({ ...f, employment_basis: e.target.value }))}
                         style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: 8, fontSize: '0.875rem' }}
                       >
+                        <option value="">-- Select Basis --</option>
                         <option value="casual">Casual</option>
                         <option value="part_time">Part-Time</option>
                         <option value="full_time">Full-Time</option>

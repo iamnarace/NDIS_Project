@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sanitizeRecruitmentFilename } from '@/lib/recruitmentFileValidation';
+import { checkRecruitmentRateLimit } from '@/lib/rateLimit';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
+  // 1. Abuse control / rate limiting
+  const rateCheck = checkRecruitmentRateLimit(req, 'upload_session', 30, 60);
+  if (!rateCheck.ok) {
+    return NextResponse.json({
+      ok: false,
+      error: `Too many upload requests. Please try again in ${rateCheck.resetInSeconds} seconds.`
+    }, { status: 429 });
+  }
+
   const supabase = createAdminClient();
   if (!supabase) {
     return NextResponse.json({ ok: false, error: 'Database service unavailable.' }, { status: 503 });
@@ -13,6 +23,10 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const applicationType = body.application_type === 'vacancy' ? 'vacancy' : 'eoi';
     const vacancyId = body.vacancy_id || null;
+
+    if (applicationType === 'vacancy' && !vacancyId) {
+      return NextResponse.json({ ok: false, error: 'Vacancy ID is required for vacancy upload sessions.' }, { status: 400 });
+    }
 
     // Support both single file and multi-file payload
     let files: Array<{ file_kind: string; file_name: string; file_size: number; mime_type?: string }> = [];
@@ -53,6 +67,7 @@ export async function POST(req: Request) {
       const kind = f.file_kind === 'cover_letter' ? 'cover_letter' : 'resume';
       const name = String(f.file_name || '').trim();
       const size = Number(f.file_size) || 0;
+      const declaredMime = String(f.mime_type || '').trim();
       const maxSize = kind === 'resume' ? 8 * 1024 * 1024 : 5 * 1024 * 1024;
       const maxMb = kind === 'resume' ? 8 : 5;
 
@@ -76,6 +91,21 @@ export async function POST(req: Request) {
       }
 
       const ext = extMatch[1].toLowerCase();
+
+      // Check declared MIME against extension
+      if (declaredMime) {
+        const normDeclared = declaredMime.toLowerCase();
+        if (ext === 'pdf' && !['application/pdf', 'application/x-pdf', 'application/octet-stream'].includes(normDeclared)) {
+          return NextResponse.json({ ok: false, error: `MIME mismatch: ${declaredMime} is not valid for .pdf.` }, { status: 400 });
+        }
+        if (ext === 'doc' && !['application/msword', 'application/doc', 'application/octet-stream'].includes(normDeclared)) {
+          return NextResponse.json({ ok: false, error: `MIME mismatch: ${declaredMime} is not valid for .doc.` }, { status: 400 });
+        }
+        if (ext === 'docx' && !['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/octet-stream'].includes(normDeclared)) {
+          return NextResponse.json({ ok: false, error: `MIME mismatch: ${declaredMime} is not valid for .docx.` }, { status: 400 });
+        }
+      }
+
       const sanitizedName = sanitizeRecruitmentFilename(name, ext);
       const storagePath = `recruitment/temp/${sessionId}/${kind}_${sanitizedName}`;
 
@@ -92,13 +122,13 @@ export async function POST(req: Request) {
         resumeStoragePath = storagePath;
         resumeFileName = name;
         resumeFileSize = size;
-        resumeMimeType = f.mime_type || 'application/octet-stream';
+        resumeMimeType = declaredMime || 'application/octet-stream';
         resumeSignedData = { signedUrl: signed.signedUrl, token: signed.token, path: storagePath };
       } else {
         coverStoragePath = storagePath;
         coverFileName = name;
         coverFileSize = size;
-        coverMimeType = f.mime_type || 'application/octet-stream';
+        coverMimeType = declaredMime || 'application/octet-stream';
         coverSignedData = { signedUrl: signed.signedUrl, token: signed.token, path: storagePath };
       }
     }
@@ -125,6 +155,27 @@ export async function POST(req: Request) {
       console.error('Failed to insert upload session:', dbErr.message);
       return NextResponse.json({ ok: false, error: 'Failed to record upload session.' }, { status: 500 });
     }
+
+    // Opportunistic cleanup of expired unfinalized sessions
+    (async () => {
+      try {
+        const { data: expired } = await supabase
+          .from('job_application_upload_sessions')
+          .select('id, resume_storage_path, cover_storage_path')
+          .is('finalized_at', null)
+          .lt('expires_at', new Date().toISOString())
+          .limit(10);
+
+        if (expired && expired.length > 0) {
+          const stalePaths = expired.flatMap(e => [e.resume_storage_path, e.cover_storage_path].filter(Boolean));
+          if (stalePaths.length > 0) {
+            await supabase.storage.from('crm-documents').remove(stalePaths as string[]);
+          }
+          const expiredIds = expired.map(e => e.id);
+          await supabase.from('job_application_upload_sessions').delete().in('id', expiredIds);
+        }
+      } catch {}
+    })().catch(() => {});
 
     return NextResponse.json({
       ok: true,

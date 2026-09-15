@@ -28,6 +28,11 @@ export interface CareersApplicationFormProps {
   childRelatedRole?: boolean;
   driverLicenceRequired?: boolean;
   vehicleRequired?: boolean;
+  ndiswcRequired?: boolean;
+  policeCheckRequired?: boolean;
+  firstAidRequired?: boolean;
+  cprRequired?: boolean;
+  qualificationRequired?: boolean;
   onSuccess?: (referenceNumber: string) => void;
 }
 
@@ -38,6 +43,11 @@ export function CareersApplicationForm({
   childRelatedRole = false,
   driverLicenceRequired = false,
   vehicleRequired = false,
+  ndiswcRequired = false,
+  policeCheckRequired = false,
+  firstAidRequired = false,
+  cprRequired = false,
+  qualificationRequired = false,
   onSuccess
 }: CareersApplicationFormProps) {
   const [step, setStep] = useState(1);
@@ -185,6 +195,26 @@ export function CareersApplicationForm({
         setErrorMessage('Please declare your Working With Children Check (WWCC) status (required for child-related roles).');
         return false;
       }
+      if (ndiswcRequired && !formData.ndiswc_status_declared) {
+        setErrorMessage('Please declare your NDIS Worker Screening Check status (required for this position).');
+        return false;
+      }
+      if (policeCheckRequired && !formData.police_check_status_declared) {
+        setErrorMessage('Please declare your National Police Certificate status (required for this position).');
+        return false;
+      }
+      if (firstAidRequired && !formData.first_aid_status_declared) {
+        setErrorMessage('Please declare your First Aid certificate status (required for this position).');
+        return false;
+      }
+      if (cprRequired && !formData.cpr_status_declared) {
+        setErrorMessage('Please declare your CPR certificate status (required for this position).');
+        return false;
+      }
+      if (qualificationRequired && !formData.qualification_summary.trim()) {
+        setErrorMessage('Please summarize your relevant qualifications (required for this position).');
+        return false;
+      }
       return true;
     }
 
@@ -214,11 +244,13 @@ export function CareersApplicationForm({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const uploadFileToSession = async (file: File, kind: 'resume' | 'cover_letter'): Promise<string> => {
+  const uploadFileToSession = async (file: File, kind: 'resume' | 'cover_letter'): Promise<{ sessionId: string; sessionToken: string }> => {
     const sessionRes = await fetch('/api/careers/upload-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        application_type: applicationType,
+        vacancy_id: applicationType === 'vacancy' ? vacancyId : undefined,
         file_name: file.name,
         file_size: file.size,
         mime_type: file.type || 'application/octet-stream',
@@ -227,7 +259,7 @@ export function CareersApplicationForm({
     });
 
     const sessionData = await sessionRes.json().catch(() => ({}));
-    if (!sessionRes.ok || !sessionData.ok || !sessionData.signed_url) {
+    if (!sessionRes.ok || !sessionData.ok || !sessionData.signed_url || !sessionData.session_token) {
       throw new Error(sessionData.error || `Failed to initialize secure upload channel for ${kind}.`);
     }
 
@@ -243,7 +275,10 @@ export function CareersApplicationForm({
       throw new Error(`Failed to upload ${kind} to secure storage.`);
     }
 
-    return sessionData.session_id;
+    return {
+      sessionId: sessionData.session_id,
+      sessionToken: sessionData.session_token
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -267,15 +302,15 @@ export function CareersApplicationForm({
     setSubmitting(true);
 
     try {
-      let resumeSessionId: string | null = null;
-      let coverSessionId: string | null = null;
+      let resumeUpload: { sessionId: string; sessionToken: string } | null = null;
+      let coverUpload: { sessionId: string; sessionToken: string } | null = null;
 
       if (resumeFile) {
-        resumeSessionId = await uploadFileToSession(resumeFile, 'resume');
+        resumeUpload = await uploadFileToSession(resumeFile, 'resume');
       }
 
       if (coverFile) {
-        coverSessionId = await uploadFileToSession(coverFile, 'cover_letter');
+        coverUpload = await uploadFileToSession(coverFile, 'cover_letter');
       }
 
       const payload = {
@@ -312,8 +347,10 @@ export function CareersApplicationForm({
         declaration_accurate_information: true,
         declaration_privacy_consent: true,
         website_url: formData.website_url || undefined,
-        resume_upload_session_id: resumeSessionId,
-        cover_letter_upload_session_id: coverSessionId
+        resume_upload_session_id: resumeUpload?.sessionId || null,
+        resume_upload_session_token: resumeUpload?.sessionToken || null,
+        cover_letter_upload_session_id: coverUpload?.sessionId || null,
+        cover_letter_upload_session_token: coverUpload?.sessionToken || null
       };
 
       const res = await fetch('/api/careers/applications', {

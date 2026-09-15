@@ -62,6 +62,7 @@ export async function GET(req: Request) {
         status
       )
     `)
+    .is('purged_at', null)
     .order('submitted_at', { ascending: false });
 
   if (stageFilter && stageFilter !== 'all') {

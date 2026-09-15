@@ -9,6 +9,18 @@ export async function resolve(specifier, context, nextResolve) {
     };
   }
 
+  if (specifier === 'next/server') {
+    return nextResolve('next/server.js', context);
+  }
+
+  if (specifier === 'next/headers') {
+    return nextResolve('next/headers.js', context);
+  }
+
+  if (specifier === 'next/navigation') {
+    return nextResolve('next/navigation.js', context);
+  }
+
   if (specifier.startsWith('@/')) {
     const root = new URL('../', import.meta.url);
     const rawPath = specifier.slice(2);

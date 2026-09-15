@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { validateVacancyForPublication } from '@/lib/recruitmentValidation';
 import { userFacingError } from '@/lib/userFacingError';
 
+import { getAtomicRecruitmentReference } from '@/lib/referenceNumber';
+
 function generateSlug(title: string, ref: string): string {
   const base = title
     .toLowerCase()
@@ -11,30 +13,6 @@ function generateSlug(title: string, ref: string): string {
     .replace(/(^-|-$)/g, '');
   const refSuffix = ref.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return `${base || 'vacancy'}-${refSuffix}`;
-}
-
-async function getNextVacancyReference(supabase: any): Promise<string> {
-  try {
-    const { data, error } = await supabase.rpc('next_recruitment_reference', { p_prefix: 'JOB' });
-    if (!error && typeof data === 'string' && data.startsWith('JOB-')) {
-      return data;
-    }
-  } catch {}
-
-  let year = String(new Date().getFullYear());
-  try {
-    year = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', year: 'numeric' }).format(new Date());
-  } catch {}
-
-  const fullPrefix = `JOB-${year}`;
-  const { data } = await supabase.from('job_vacancies').select('reference_number');
-  const matcher = new RegExp(`^${fullPrefix}-(\\d+)$`);
-  const highest = (data || []).reduce((max: number, row: any) => {
-    const match = row.reference_number?.match(matcher);
-    return match ? Math.max(max, Number(match[1])) : max;
-  }, 0);
-
-  return `${fullPrefix}-${String(highest + 1).padStart(5, '0')}`;
 }
 
 export async function GET(req: Request) {
@@ -121,7 +99,7 @@ export async function POST(req: Request) {
       ? []
       : (Array.isArray(body.employment_basis) ? body.employment_basis : []);
 
-    const referenceNumber = await getNextVacancyReference(supabase);
+    const referenceNumber = await getAtomicRecruitmentReference(supabase, 'JOB');
     const slug = body.slug ? String(body.slug).trim().toLowerCase() : generateSlug(title, referenceNumber);
 
     const now = new Date().toISOString();

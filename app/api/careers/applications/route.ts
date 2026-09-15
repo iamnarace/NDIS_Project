@@ -2,34 +2,73 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendCareersApplicantAcknowledgement, sendCareersAdminAlert } from '@/lib/email';
 import { validateCandidateBuffer } from '@/lib/recruitmentFileValidation';
+import { getAtomicRecruitmentReference } from '@/lib/referenceNumber';
+import { checkRecruitmentRateLimit } from '@/lib/rateLimit';
 import crypto from 'crypto';
 
-async function getNextApplicationReference(supabase: any): Promise<string> {
+const ALLOWED_SERVICE_AREAS = new Set([
+  'coffs-coast',
+  'clarence-valley',
+  'tweed-byron',
+  'richmond-valley',
+  'ballina-richmond',
+  'western-sydney',
+  'blacktown',
+  'parramatta',
+  'penrith',
+  'inner-west',
+  'south-west-sydney',
+  'sydney-eastern-suburbs'
+]);
+
+const ALLOWED_EMPLOYMENT_PREFERENCES = new Set([
+  'casual',
+  'part_time',
+  'full_time',
+  'fixed_term',
+  'flexible'
+]);
+
+const ALLOWED_WORK_RIGHTS = new Set([
+  'citizen_pr',
+  'valid_visa',
+  'no_rights'
+]);
+
+const ALLOWED_DAYS = new Set([
+  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+]);
+
+const ALLOWED_PERIODS = new Set([
+  'Morning', 'Daytime', 'Evening', 'Sleepover / Active Night', 'Flexible'
+]);
+
+const ALLOWED_YES_NO = new Set(['yes', 'no', 'not_applicable']);
+const ALLOWED_NDISWC = new Set(['current', 'in_progress', 'not_held', 'unsure']);
+const ALLOWED_SCREENING = new Set(['current', 'expired', 'not_held']);
+const ALLOWED_WWCC = new Set(['current', 'in_progress', 'not_held']);
+
+function constantTimeEqualHex(a: string, b: string): boolean {
   try {
-    const { data, error } = await supabase.rpc('next_recruitment_reference', { p_prefix: 'APP' });
-    if (!error && typeof data === 'string' && data.startsWith('APP-')) {
-      return data;
-    }
-  } catch {}
-
-  // Fallback Sydney yearly counter
-  let year = String(new Date().getFullYear());
-  try {
-    year = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', year: 'numeric' }).format(new Date());
-  } catch {}
-
-  const fullPrefix = `APP-${year}`;
-  const { data } = await supabase.from('job_applications').select('reference_number');
-  const matcher = new RegExp(`^${fullPrefix}-(\\d+)$`);
-  const highest = (data || []).reduce((max: number, row: any) => {
-    const match = row.reference_number?.match(matcher);
-    return match ? Math.max(max, Number(match[1])) : max;
-  }, 0);
-
-  return `${fullPrefix}-${String(highest + 1).padStart(5, '0')}`;
+    const bufA = Buffer.from(a, 'hex');
+    const bufB = Buffer.from(b, 'hex');
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(req: Request) {
+  // 1. Abuse control / rate limiting
+  const rateCheck = checkRecruitmentRateLimit(req, 'application_submission', 25, 60);
+  if (!rateCheck.ok) {
+    return NextResponse.json({
+      ok: false,
+      error: `Too many application submissions. Please try again in ${rateCheck.resetInSeconds} seconds.`
+    }, { status: 429 });
+  }
+
   const supabase = createAdminClient();
   if (!supabase) {
     return NextResponse.json({ ok: false, error: 'Database service unavailable. Please try again later.' }, { status: 503 });
@@ -64,7 +103,7 @@ export async function POST(req: Request) {
       fields = await req.json().catch(() => ({}));
     }
 
-    // 1. Anti-Bot / Honeypot Checks
+    // 2. Anti-Bot / Honeypot Checks
     if (fields.website_url || fields.fax_number || fields.bot_check) {
       return NextResponse.json({ ok: true, reference_number: 'APP-2026-99999' });
     }
@@ -81,6 +120,8 @@ export async function POST(req: Request) {
     const vacancyId = applicationType === 'vacancy' ? (fields.vacancy_id || null) : null;
 
     let vacancyTitle = 'General Expression of Interest';
+    let vacancyRecord: any = null;
+
     if (applicationType === 'vacancy') {
       if (!vacancyId) {
         return NextResponse.json({ ok: false, error: 'Vacancy ID is required for vacancy applications.' }, { status: 400 });
@@ -88,7 +129,7 @@ export async function POST(req: Request) {
 
       const { data: vacancy, error: vacError } = await supabase
         .from('job_vacancies')
-        .select('id, title, status, opens_at, closes_at')
+        .select('*')
         .eq('id', vacancyId)
         .maybeSingle();
 
@@ -110,9 +151,10 @@ export async function POST(req: Request) {
       }
 
       vacancyTitle = vacancy.title;
+      vacancyRecord = vacancy;
     }
 
-    // 2. Validate Identity & Contact
+    // 3. Server-side validation of applicant identity & contact
     const firstName = String(fields.first_name || '').trim();
     const lastName = String(fields.last_name || '').trim();
     const email = String(fields.email || '').trim().toLowerCase();
@@ -120,20 +162,139 @@ export async function POST(req: Request) {
     const suburb = String(fields.suburb || '').trim();
     const postcode = String(fields.postcode || '').trim();
 
-    if (!firstName || !lastName) {
-      return NextResponse.json({ ok: false, error: 'First name and last name are required.' }, { status: 400 });
+    if (!firstName || firstName.length > 80 || !lastName || lastName.length > 80) {
+      return NextResponse.json({ ok: false, error: 'First name and last name are required (maximum 80 characters).' }, { status: 400 });
     }
-    if (!email || !email.includes('@') || email.length > 150) {
-      return NextResponse.json({ ok: false, error: 'A valid email address is required.' }, { status: 400 });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || email.length > 160 || !emailRegex.test(email)) {
+      return NextResponse.json({ ok: false, error: 'A valid email address is required (maximum 160 characters).' }, { status: 400 });
     }
-    if (!phone || phone.length < 8 || phone.length > 30) {
-      return NextResponse.json({ ok: false, error: 'A valid Australian contact number is required.' }, { status: 400 });
+    if (!phone || phone.length < 8 || phone.length > 40) {
+      return NextResponse.json({ ok: false, error: 'A valid Australian contact phone number is required.' }, { status: 400 });
     }
-    if (!suburb || !postcode || !/^\d{4}$/.test(postcode)) {
+    if (!suburb || suburb.length > 100 || !postcode || !/^\d{4}$/.test(postcode)) {
       return NextResponse.json({ ok: false, error: 'NSW suburb and a valid 4-digit postcode are required.' }, { status: 400 });
     }
 
-    // 3. Duplicate Prevention (15 min window for same email + vacancy/eoi)
+    // 4. Server-side validation of service areas and employment preferences
+    const preferredAreas = Array.isArray(fields.preferred_service_area_ids) ? fields.preferred_service_area_ids : [];
+    if (preferredAreas.length === 0) {
+      return NextResponse.json({ ok: false, error: 'Please select at least one preferred service area.' }, { status: 400 });
+    }
+    for (const area of preferredAreas) {
+      if (!ALLOWED_SERVICE_AREAS.has(area)) {
+        return NextResponse.json({ ok: false, error: `Invalid service area '${area}'.` }, { status: 400 });
+      }
+    }
+
+    const employmentPrefs = Array.isArray(fields.employment_preferences) ? fields.employment_preferences : [];
+    if (employmentPrefs.length === 0) {
+      return NextResponse.json({ ok: false, error: 'Please select at least one employment preference.' }, { status: 400 });
+    }
+    for (const pref of employmentPrefs) {
+      if (!ALLOWED_EMPLOYMENT_PREFERENCES.has(pref)) {
+        return NextResponse.json({ ok: false, error: `Invalid employment preference '${pref}'.` }, { status: 400 });
+      }
+    }
+
+    const workRights = String(fields.work_rights_status || '').trim();
+    if (!ALLOWED_WORK_RIGHTS.has(workRights)) {
+      return NextResponse.json({ ok: false, error: 'Please explicitly specify a valid Australian work rights status.' }, { status: 400 });
+    }
+
+    // 5. Declarations validation against vacancy requirements
+    const driverLicenceStatus = fields.driver_licence_status ? String(fields.driver_licence_status).trim() : null;
+    const vehicleAccessStatus = fields.vehicle_access_status ? String(fields.vehicle_access_status).trim() : null;
+    const ndiswcStatus = fields.ndiswc_status_declared ? String(fields.ndiswc_status_declared).trim() : null;
+    const policeCheckStatus = fields.police_check_status_declared ? String(fields.police_check_status_declared).trim() : null;
+    const firstAidStatus = fields.first_aid_status_declared ? String(fields.first_aid_status_declared).trim() : null;
+    const cprStatus = fields.cpr_status_declared ? String(fields.cpr_status_declared).trim() : null;
+    const wwccStatus = fields.wwcc_status_declared ? String(fields.wwcc_status_declared).trim() : null;
+
+    if (driverLicenceStatus && !ALLOWED_YES_NO.has(driverLicenceStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid driver licence declaration.' }, { status: 400 });
+    }
+    if (vehicleAccessStatus && !ALLOWED_YES_NO.has(vehicleAccessStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid vehicle access declaration.' }, { status: 400 });
+    }
+    if (ndiswcStatus && !ALLOWED_NDISWC.has(ndiswcStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid NDIS worker screening declaration.' }, { status: 400 });
+    }
+    if (policeCheckStatus && !ALLOWED_SCREENING.has(policeCheckStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid police check declaration.' }, { status: 400 });
+    }
+    if (firstAidStatus && !ALLOWED_SCREENING.has(firstAidStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid first aid declaration.' }, { status: 400 });
+    }
+    if (cprStatus && !ALLOWED_SCREENING.has(cprStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid CPR declaration.' }, { status: 400 });
+    }
+    if (wwccStatus && !ALLOWED_WWCC.has(wwccStatus)) {
+      return NextResponse.json({ ok: false, error: 'Invalid WWCC declaration.' }, { status: 400 });
+    }
+
+    if (vacancyRecord) {
+      if (vacancyRecord.driver_licence_required && !driverLicenceStatus) {
+        return NextResponse.json({ ok: false, error: 'Driver licence declaration is required for this role.' }, { status: 400 });
+      }
+      if (vacancyRecord.vehicle_required && !vehicleAccessStatus) {
+        return NextResponse.json({ ok: false, error: 'Vehicle access declaration is required for this role.' }, { status: 400 });
+      }
+      if (vacancyRecord.ndiswc_required && !ndiswcStatus) {
+        return NextResponse.json({ ok: false, error: 'NDIS Worker Screening declaration is required for this role.' }, { status: 400 });
+      }
+      if (vacancyRecord.police_check_required && !policeCheckStatus) {
+        return NextResponse.json({ ok: false, error: 'Police check declaration is required for this role.' }, { status: 400 });
+      }
+      if (vacancyRecord.first_aid_required && !firstAidStatus) {
+        return NextResponse.json({ ok: false, error: 'First aid declaration is required for this role.' }, { status: 400 });
+      }
+      if (vacancyRecord.cpr_required && !cprStatus) {
+        return NextResponse.json({ ok: false, error: 'CPR declaration is required for this role.' }, { status: 400 });
+      }
+      if (vacancyRecord.child_related_role && !wwccStatus) {
+        return NextResponse.json({ ok: false, error: 'Working With Children Check declaration is required for child-related roles.' }, { status: 400 });
+      }
+    }
+
+    // Availability validation
+    const availabilityObj = typeof fields.availability === 'object' && fields.availability !== null ? fields.availability : {};
+    const availDays = Array.isArray(availabilityObj.days) ? availabilityObj.days : [];
+    for (const d of availDays) {
+      if (!ALLOWED_DAYS.has(d)) {
+        return NextResponse.json({ ok: false, error: `Invalid availability day '${d}'.` }, { status: 400 });
+      }
+    }
+    const availPeriods = Array.isArray(availabilityObj.periods) ? availabilityObj.periods : [];
+    for (const p of availPeriods) {
+      if (!ALLOWED_PERIODS.has(p)) {
+        return NextResponse.json({ ok: false, error: `Invalid availability period '${p}'.` }, { status: 400 });
+      }
+    }
+
+    // 6. Mandatory legal consents
+    const declarationAccurate =
+      fields.declaration_accurate_information === true ||
+      fields.declaration_accurate_information === 'true' ||
+      fields.declaration_accuracy === true ||
+      fields.declaration_accuracy === 'true' ||
+      Boolean(fields.accuracy_declaration_at);
+
+    const declarationPrivacy =
+      fields.declaration_privacy_consent === true ||
+      fields.declaration_privacy_consent === 'true' ||
+      fields.declaration_privacy === true ||
+      fields.declaration_privacy === 'true' ||
+      Boolean(fields.privacy_consent_at);
+
+    if (!declarationAccurate || !declarationPrivacy) {
+      return NextResponse.json({
+        ok: false,
+        error: 'You must confirm the accuracy of your application and agree to the privacy policy before submitting.'
+      }, { status: 400 });
+    }
+
+    // 7. Duplicate Prevention (15 min window for same email + vacancy/eoi)
     const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     let dupQuery = supabase
       .from('job_applications')
@@ -156,40 +317,12 @@ export async function POST(req: Request) {
       }, { status: 409 });
     }
 
-    // 4. Validate Declarations & Work Rights
-    const declarationAccurate =
-      fields.declaration_accurate_information === true ||
-      fields.declaration_accurate_information === 'true' ||
-      fields.declaration_accuracy === true ||
-      fields.declaration_accuracy === 'true' ||
-      Boolean(fields.accuracy_declaration_at);
-
-    const declarationPrivacy =
-      fields.declaration_privacy_consent === true ||
-      fields.declaration_privacy_consent === 'true' ||
-      fields.declaration_privacy === true ||
-      fields.declaration_privacy === 'true' ||
-      Boolean(fields.privacy_consent_at);
-
-    if (!declarationAccurate || !declarationPrivacy) {
-      return NextResponse.json({
-        ok: false,
-        error: 'You must confirm the accuracy of your application and agree to the privacy policy before submitting.'
-      }, { status: 400 });
-    }
-
-    const workRights = fields.work_rights_status;
-    const validWorkRights = ['citizen_pr', 'valid_visa', 'no_rights'];
-    if (!workRights || !validWorkRights.includes(workRights)) {
-      return NextResponse.json({
-        ok: false,
-        error: 'Please explicitly specify your Australian work rights status.'
-      }, { status: 400 });
-    }
-
-    // 5. Resolve Resume & Cover Letter (from Upload Sessions or direct multipart)
+    // 8. Upload Session Verification & Secret Token Validation
     const resumeSessionId = fields.resume_upload_session_id || fields.resume_session_id;
+    const resumeSessionToken = fields.resume_upload_session_token || fields.resume_session_token;
+
     const coverSessionId = fields.cover_letter_upload_session_id || fields.cover_letter_session_id;
+    const coverSessionToken = fields.cover_letter_upload_session_token || fields.cover_letter_session_token;
 
     let resumeBuffer: Buffer | null = null;
     let resumeFileName = '';
@@ -197,6 +330,10 @@ export async function POST(req: Request) {
     let resumeSessionStoragePath: string | null = null;
 
     if (resumeSessionId) {
+      if (!resumeSessionToken || typeof resumeSessionToken !== 'string') {
+        return NextResponse.json({ ok: false, error: 'Resume upload session token is missing or invalid.' }, { status: 400 });
+      }
+
       const { data: sess, error: sErr } = await supabase
         .from('job_application_upload_sessions')
         .select('*')
@@ -204,11 +341,29 @@ export async function POST(req: Request) {
         .maybeSingle();
 
       if (sErr || !sess) {
-        return NextResponse.json({ ok: false, error: 'Resume upload session not found or invalid.' }, { status: 400 });
+        return NextResponse.json({ ok: false, error: 'Resume upload session not found.' }, { status: 400 });
+      }
+
+      if (sess.finalized_at) {
+        return NextResponse.json({ ok: false, error: 'Upload session has already been finalized and cannot be reused.' }, { status: 400 });
       }
 
       if (new Date(sess.expires_at).getTime() < Date.now()) {
         return NextResponse.json({ ok: false, error: 'Resume upload session has expired. Please re-upload your resume.' }, { status: 400 });
+      }
+
+      // Verify token hash constant time
+      const computedHash = crypto.createHash('sha256').update(resumeSessionToken).digest('hex');
+      if (!constantTimeEqualHex(computedHash, sess.session_secret_hash)) {
+        return NextResponse.json({ ok: false, error: 'Resume upload session security verification failed.' }, { status: 400 });
+      }
+
+      // Verify binding
+      if (sess.application_type !== applicationType) {
+        return NextResponse.json({ ok: false, error: 'Upload session application type mismatch.' }, { status: 400 });
+      }
+      if (applicationType === 'vacancy' && sess.vacancy_id !== vacancyId) {
+        return NextResponse.json({ ok: false, error: 'Upload session vacancy binding mismatch.' }, { status: 400 });
       }
 
       resumeSessionStoragePath = sess.resume_storage_path || sess.storage_path;
@@ -238,34 +393,47 @@ export async function POST(req: Request) {
 
     let resumeValidation: any = null;
     if (resumeBuffer && resumeBuffer.length > 0) {
-      resumeValidation = validateCandidateBuffer(resumeBuffer, resumeFileName, 'resume');
+      resumeValidation = validateCandidateBuffer(
+        resumeBuffer,
+        resumeFileName,
+        'resume',
+        resumeSessionRecord?.resume_mime_type || directResumeFile?.type
+      );
       if (!resumeValidation.valid) {
         return NextResponse.json({ ok: false, error: resumeValidation.error }, { status: 400 });
       }
     }
 
+    // Cover letter verification
     let coverBuffer: Buffer | null = null;
     let coverFileName = '';
     let coverSessionRecord: any = null;
     let coverSessionStoragePath: string | null = null;
 
     if (coverSessionId) {
+      if (!coverSessionToken || typeof coverSessionToken !== 'string') {
+        return NextResponse.json({ ok: false, error: 'Cover letter upload session token is missing or invalid.' }, { status: 400 });
+      }
+
       const { data: sess, error: sErr } = await supabase
         .from('job_application_upload_sessions')
         .select('*')
         .eq('id', coverSessionId)
         .maybeSingle();
 
-      if (!sErr && sess && new Date(sess.expires_at).getTime() >= Date.now()) {
-        coverSessionStoragePath = sess.cover_storage_path || sess.storage_path;
-        if (coverSessionStoragePath) {
-          const { data: blob } = await supabase.storage
-            .from('crm-documents')
-            .download(coverSessionStoragePath);
-          if (blob) {
-            coverBuffer = Buffer.from(await blob.arrayBuffer());
-            coverFileName = sess.cover_file_name || sess.file_name || 'cover_letter.pdf';
-            coverSessionRecord = sess;
+      if (!sErr && sess && !sess.finalized_at && new Date(sess.expires_at).getTime() >= Date.now()) {
+        const computedHash = crypto.createHash('sha256').update(coverSessionToken).digest('hex');
+        if (constantTimeEqualHex(computedHash, sess.session_secret_hash)) {
+          coverSessionStoragePath = sess.cover_storage_path || sess.storage_path;
+          if (coverSessionStoragePath) {
+            const { data: blob } = await supabase.storage
+              .from('crm-documents')
+              .download(coverSessionStoragePath);
+            if (blob) {
+              coverBuffer = Buffer.from(await blob.arrayBuffer());
+              coverFileName = sess.cover_file_name || sess.file_name || 'cover_letter.pdf';
+              coverSessionRecord = sess;
+            }
           }
         }
       }
@@ -276,14 +444,26 @@ export async function POST(req: Request) {
 
     let coverValidation: any = null;
     if (coverBuffer && coverBuffer.length > 0) {
-      coverValidation = validateCandidateBuffer(coverBuffer, coverFileName, 'cover_letter');
+      coverValidation = validateCandidateBuffer(
+        coverBuffer,
+        coverFileName,
+        'cover_letter',
+        coverSessionRecord?.cover_mime_type || directCoverFile?.type
+      );
       if (!coverValidation.valid) {
         return NextResponse.json({ ok: false, error: coverValidation.error }, { status: 400 });
       }
     }
 
-    // 6. Generate Reference Number & Retention Window
-    const referenceNumber = await getNextApplicationReference(supabase);
+    // 9. Fail-Closed Atomic Reference Generator
+    let referenceNumber: string;
+    try {
+      referenceNumber = await getAtomicRecruitmentReference(supabase, 'APP');
+    } catch (refErr: any) {
+      console.error('Fatal: Reference counter generation failed:', refErr?.message);
+      return NextResponse.json({ ok: false, error: 'Failed to generate canonical reference number. Please try again.' }, { status: 500 });
+    }
+
     const applicationId = crypto.randomUUID();
     const nowIso = new Date().toISOString();
 
@@ -303,20 +483,13 @@ export async function POST(req: Request) {
     retentionDate.setMonth(retentionDate.getMonth() + retentionMonths);
     const retentionUntil = retentionDate.toISOString();
 
-    const preferredServiceAreas = Array.isArray(fields.preferred_service_area_ids)
-      ? fields.preferred_service_area_ids.slice(0, 20)
-      : [];
-    const employmentPreferences = Array.isArray(fields.employment_preferences)
-      ? fields.employment_preferences.slice(0, 10)
-      : [];
-
     const roleInterest = applicationType === 'eoi' ? (fields.role_interest ? String(fields.role_interest).slice(0, 100) : null) : null;
-    const roleInterestOther = applicationType === 'eoi' ? (fields.role_interest_other ? String(fields.role_interest_other).slice(0, 200) : null) : null;
+    const roleInterestOther = applicationType === 'eoi' && fields.role_interest === 'Other' ? (fields.role_interest_other ? String(fields.role_interest_other).slice(0, 200) : null) : null;
 
     const experienceSummary = fields.experience_summary || fields.notes_summary || null;
     const qualificationSummary = fields.qualification_summary || null;
 
-    // 7. Store Resume in Canonical Storage Path
+    // 10. Store Resume in Canonical Storage Path
     let uploadedResumePath: string | null = null;
     let uploadedCoverPath: string | null = null;
 
@@ -347,7 +520,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 8. Insert canonical job_applications row
+    // 11. Insert canonical job_applications row
     const { error: appErr } = await supabase.from('job_applications').insert({
       id: applicationId,
       reference_number: referenceNumber,
@@ -359,20 +532,20 @@ export async function POST(req: Request) {
       phone,
       suburb,
       postcode,
-      preferred_service_area_ids: preferredServiceAreas,
-      employment_preferences: employmentPreferences,
+      preferred_service_area_ids: preferredAreas,
+      employment_preferences: employmentPrefs,
       earliest_start_date: fields.earliest_start_date || null,
       experience_summary: experienceSummary ? String(experienceSummary).slice(0, 3000) : null,
       qualification_summary: qualificationSummary ? String(qualificationSummary).slice(0, 3000) : null,
-      driver_licence_status: fields.driver_licence_status || null,
-      vehicle_access_status: fields.vehicle_access_status || null,
+      driver_licence_status: driverLicenceStatus,
+      vehicle_access_status: vehicleAccessStatus,
       work_rights_status: workRights,
-      ndiswc_status_declared: fields.ndiswc_status_declared || fields.ndis_worker_screening_status || null,
-      police_check_status_declared: fields.police_check_status_declared || fields.national_police_check_status || null,
-      first_aid_status_declared: fields.first_aid_status_declared || fields.first_aid_cpr_status || null,
-      cpr_status_declared: fields.cpr_status_declared || null,
-      wwcc_status_declared: fields.wwcc_status_declared || null,
-      availability: typeof fields.availability === 'object' && fields.availability !== null ? fields.availability : {},
+      ndiswc_status_declared: ndiswcStatus,
+      police_check_status_declared: policeCheckStatus,
+      first_aid_status_declared: firstAidStatus,
+      cpr_status_declared: cprStatus,
+      wwcc_status_declared: wwccStatus,
+      availability: availabilityObj,
       availability_notes: fields.availability_notes ? String(fields.availability_notes).slice(0, 1000) : null,
       motivation: fields.motivation ? String(fields.motivation).slice(0, 2000) : null,
       role_interest: roleInterest,
@@ -392,7 +565,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Failed to record application. Please try again.' }, { status: 500 });
     }
 
-    // 9. Insert job_application_files record for Resume
+    // 12. Insert job_application_files record for Resume
     if (resumeBuffer && resumeValidation && uploadedResumePath) {
       const { error: fileErr } = await supabase.from('job_application_files').insert({
         application_id: applicationId,
@@ -413,7 +586,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 10. Store optional Cover Letter if present
+    // 13. Store optional Cover Letter if present
     let coverLetterFailed = false;
     if (coverBuffer && coverValidation && coverValidation.valid) {
       const coverUuid = crypto.randomUUID();
@@ -452,7 +625,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // 11. Transactional Timeline Event with Fail-Closed Rollback
+    // 14. Transactional Timeline Event with Fail-Closed Rollback
     const { error: eventErr } = await supabase.from('job_application_events').insert({
       application_id: applicationId,
       event_type: 'submitted',
@@ -487,7 +660,7 @@ export async function POST(req: Request) {
       } catch {}
     }
 
-    // 12. Fail-Safe Email Dispatch
+    // 15. Fail-Safe Email Dispatch
     const applicantEmailPromise = sendCareersApplicantAcknowledgement({
       firstName,
       referenceNumber,
@@ -507,8 +680,8 @@ export async function POST(req: Request) {
       phone,
       suburb,
       postcode,
-      preferredServiceAreas,
-      employmentPreferences,
+      preferredServiceAreas: preferredAreas,
+      employmentPreferences: employmentPrefs,
       submittedAt: new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' }),
       appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://opuscare.com.au'
     });

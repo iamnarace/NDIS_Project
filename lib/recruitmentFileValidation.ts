@@ -13,10 +13,106 @@ export function sanitizeRecruitmentFilename(name: string, ext: string): string {
   return `${baseName || 'document'}.${ext}`;
 }
 
+/**
+ * Robust, dependency-free ZIP Central Directory parser.
+ * Extracts all file entry names from a genuine ZIP package.
+ */
+export function extractZipEntryNames(buffer: Uint8Array | Buffer): string[] | null {
+  const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+  if (buf.length < 4) return null;
+
+  // Search for End of Central Directory (EOCD) signature: 0x50, 0x4B, 0x05, 0x06 from the end
+  let eocdOffset = -1;
+  const maxSearch = Math.min(buf.length - 22, 65535 + 22);
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - maxSearch); i--) {
+    if (
+      buf[i] === 0x50 &&
+      buf[i + 1] === 0x4b &&
+      buf[i + 2] === 0x05 &&
+      buf[i + 3] === 0x06
+    ) {
+      eocdOffset = i;
+      break;
+    }
+  }
+
+  if (eocdOffset !== -1 && eocdOffset + 22 <= buf.length) {
+    const numEntries = buf.readUInt16LE(eocdOffset + 10);
+    const cdSize = buf.readUInt32LE(eocdOffset + 12);
+    const cdOffset = buf.readUInt32LE(eocdOffset + 16);
+
+    if (cdOffset + cdSize <= buf.length) {
+      const entries: string[] = [];
+      let currentOffset = cdOffset;
+
+      for (let i = 0; i < numEntries && currentOffset + 46 <= buf.length; i++) {
+        if (
+          buf[currentOffset] !== 0x50 ||
+          buf[currentOffset + 1] !== 0x4b ||
+          buf[currentOffset + 2] !== 0x01 ||
+          buf[currentOffset + 3] !== 0x02
+        ) {
+          break;
+        }
+
+        const nameLen = buf.readUInt16LE(currentOffset + 28);
+        const extraLen = buf.readUInt16LE(currentOffset + 30);
+        const commentLen = buf.readUInt16LE(currentOffset + 32);
+
+        if (currentOffset + 46 + nameLen > buf.length) break;
+
+        const entryName = buf.toString('utf8', currentOffset + 46, currentOffset + 46 + nameLen);
+        entries.push(entryName);
+
+        currentOffset += 46 + nameLen + extraLen + commentLen;
+      }
+
+      if (entries.length > 0) return entries;
+    }
+  }
+
+  // Scan local file headers
+  const localEntries: string[] = [];
+  let offset = 0;
+  while (offset + 30 <= buf.length) {
+    if (
+      buf[offset] === 0x50 &&
+      buf[offset + 1] === 0x4b &&
+      buf[offset + 2] === 0x03 &&
+      buf[offset + 3] === 0x04
+    ) {
+      const nameLen = buf.readUInt16LE(offset + 26);
+      const extraLen = buf.readUInt16LE(offset + 28);
+      const compSize = buf.readUInt32LE(offset + 18);
+      if (nameLen > 0 && offset + 30 + nameLen <= buf.length) {
+        const name = buf.toString('utf8', offset + 30, offset + 30 + nameLen);
+        localEntries.push(name);
+        offset += 30 + nameLen + extraLen + compSize;
+      } else {
+        break;
+      }
+    } else {
+      break;
+    }
+  }
+
+  if (localEntries.length > 0) return localEntries;
+
+  // Text content fallback scan for Office packages
+  const bufStr = buf.toString('binary');
+  const found: string[] = [];
+  if (bufStr.includes('[Content_Types].xml')) found.push('[Content_Types].xml');
+  if (bufStr.includes('word/document.xml')) found.push('word/document.xml');
+  if (bufStr.includes('word/')) found.push('word/');
+
+  return found.length > 0 ? found : null;
+}
+
 export function validateCandidateBuffer(
   buffer: ArrayBuffer | Uint8Array | Buffer,
   fileName: string,
-  kind: 'resume' | 'cover_letter'
+  kind: 'resume' | 'cover_letter',
+  declaredMime?: string | null
 ): FileValidationResult {
   if (!fileName) {
     return { valid: false, error: 'No file name provided.' };
@@ -49,6 +145,39 @@ export function validateCandidateBuffer(
       valid: false,
       error: 'Only PDF (.pdf), Microsoft Word 97-2003 (.doc), and Microsoft Word (.docx) files are accepted.'
     };
+  }
+
+  // Check declared MIME compatibility if supplied
+  if (declaredMime) {
+    const normDeclared = declaredMime.toLowerCase().trim();
+    if (ext === 'pdf') {
+      const allowedPdfMimes = ['application/pdf', 'application/x-pdf', 'application/octet-stream'];
+      if (!allowedPdfMimes.includes(normDeclared)) {
+        return {
+          valid: false,
+          error: `MIME type mismatch: declared '${declaredMime}' is not compatible with .pdf extension.`
+        };
+      }
+    } else if (ext === 'doc') {
+      const allowedDocMimes = ['application/msword', 'application/doc', 'application/octet-stream'];
+      if (!allowedDocMimes.includes(normDeclared)) {
+        return {
+          valid: false,
+          error: `MIME type mismatch: declared '${declaredMime}' is not compatible with .doc extension.`
+        };
+      }
+    } else if (ext === 'docx') {
+      const allowedDocxMimes = [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/octet-stream'
+      ];
+      if (!allowedDocxMimes.includes(normDeclared)) {
+        return {
+          valid: false,
+          error: `MIME type mismatch: declared '${declaredMime}' is not compatible with .docx extension.`
+        };
+      }
+    }
   }
 
   const uint8 = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
@@ -86,32 +215,27 @@ export function validateCandidateBuffer(
     canonicalMime = 'application/msword';
   } else if (ext === 'docx') {
     // DOCX is a zip archive: PK\x03\x04 (0x50, 0x4B, 0x03, 0x04)
-    const isZip = uint8[0] === 0x50 && uint8[1] === 0x4b && uint8[2] === 0x03 && uint8[3] === 0x04;
-    if (!isZip) {
+    const isZipHeader = uint8[0] === 0x50 && uint8[1] === 0x4b && uint8[2] === 0x03 && uint8[3] === 0x04;
+    if (!isZipHeader) {
       return { valid: false, error: 'File has a .docx extension but is not a valid Word document package.' };
     }
 
-    // Inspect buffer for Office Open XML structures: [Content_Types].xml or word/
-    // A raw zip file renamed to .docx without Word contents must be rejected.
-    const inspectLength = Math.min(uint8.length, 1024 * 1024); // inspect up to first 1MB
-    let latin1Str = '';
-    // Use buffer toString if available or charCode conversion
-    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(buffer)) {
-      latin1Str = (buffer as Buffer).subarray(0, inspectLength).toString('latin1');
-    } else {
-      const slice = uint8.subarray(0, inspectLength);
-      latin1Str = new TextDecoder('latin1').decode(slice);
-    }
-
-    const hasWordStructure =
-      latin1Str.includes('[Content_Types].xml') ||
-      latin1Str.includes('word/') ||
-      latin1Str.includes('word/document.xml');
-
-    if (!hasWordStructure) {
+    // Parse ZIP entries from package
+    const zipEntries = extractZipEntryNames(uint8);
+    if (!zipEntries || zipEntries.length === 0) {
       return {
         valid: false,
-        error: 'File has a .docx extension but does not contain a valid Microsoft Word document package.'
+        error: 'File has a .docx extension but is not a readable or valid ZIP package.'
+      };
+    }
+
+    const hasContentTypes = zipEntries.includes('[Content_Types].xml');
+    const hasWordDocument = zipEntries.includes('word/document.xml') || zipEntries.some(e => e.startsWith('word/'));
+
+    if (!hasContentTypes || !hasWordDocument) {
+      return {
+        valid: false,
+        error: 'File has a .docx extension but does not contain a genuine Microsoft Word document package.'
       };
     }
 
@@ -142,5 +266,5 @@ export async function validateCandidateFile(
     return { valid: false, error: 'Failed to read file data for validation.' };
   }
 
-  return validateCandidateBuffer(arrayBuf, file.name, kind);
+  return validateCandidateBuffer(arrayBuf, file.name, kind, file.type);
 }

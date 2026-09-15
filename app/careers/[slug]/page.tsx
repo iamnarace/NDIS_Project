@@ -322,6 +322,11 @@ export default async function VacancyDetailPage({ params }: PageProps) {
                   childRelatedRole={vacancy.child_related_role}
                   driverLicenceRequired={vacancy.driver_licence_required}
                   vehicleRequired={vacancy.vehicle_required}
+                  ndiswcRequired={vacancy.ndiswc_required}
+                  policeCheckRequired={vacancy.police_check_required}
+                  firstAidRequired={vacancy.first_aid_required}
+                  cprRequired={vacancy.cpr_required}
+                  qualificationRequired={vacancy.qualification_required}
                 />
               )}
             </section>
