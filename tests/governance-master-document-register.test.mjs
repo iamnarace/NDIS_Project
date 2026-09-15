@@ -202,11 +202,15 @@ test('Master Document Register — Payroll Boundary & Factual Approved Input Exp
     assert.ok(payslipsRoute.includes('createSignedUrl'), 'Payslips route must generate secure signed URLs');
   });
 
-  await t.test('Timesheets tab includes payroll export action', () => {
+  await t.test('Timesheets tab includes payroll export action and explanatory notice', () => {
     const timesheetsTab = readProjectFile('components/admin/TimesheetsTab.tsx');
     assert.ok(
       timesheetsTab.includes('Export Payroll Inputs') || timesheetsTab.includes('Export Payroll (SCHADS CSV)'),
       'TimesheetsTab must offer Export Payroll button'
+    );
+    assert.ok(
+      timesheetsTab.includes('Exports approved source data for import/reconciliation with an external payroll system. External payroll software remains responsible for award interpretation, PAYG, superannuation, STP reporting and statutory payslips.'),
+      'TimesheetsTab must include required export boundary notice'
     );
   });
 });

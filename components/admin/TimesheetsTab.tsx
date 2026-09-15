@@ -255,6 +255,9 @@ export default function TimesheetsTab() {
           <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--oc-muted)' }}>
             Weekly support worker hours, break deductions, mileage variance, and manager billing authorization.
           </p>
+          <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: 'var(--oc-muted)', maxWidth: 720 }}>
+            Exports approved source data for import/reconciliation with an external payroll system. External payroll software remains responsible for award interpretation, PAYG, superannuation, STP reporting and statutory payslips.
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <a
