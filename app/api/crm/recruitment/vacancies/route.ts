@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { nextReferenceNumber } from '@/lib/referenceNumber';
+import { nextYearlyReferenceNumber } from '@/lib/referenceNumber';
+import { validateVacancyForPublication } from '@/lib/recruitmentValidation';
 import { userFacingError } from '@/lib/userFacingError';
 
 function generateSlug(title: string, ref: string): string {
@@ -89,27 +90,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Role overview / about role is required.' }, { status: 400 });
     }
 
-    const referenceNumber = await nextReferenceNumber(supabase, 'job_vacancies', 'JOB-2026', 4);
+    const referenceNumber = await nextYearlyReferenceNumber(supabase, 'job_vacancies', 'JOB');
     const slug = body.slug ? String(body.slug).trim().toLowerCase() : generateSlug(title, referenceNumber);
 
     const now = new Date().toISOString();
-    const status = body.status === 'published' ? 'published' : 'draft';
+    const requestedStatus = body.status === 'published' ? 'published' : 'draft';
 
     const newVacancy = {
       reference_number: referenceNumber,
       slug: slug,
       title: title,
-      category: body.category || 'Direct Support',
+      category: body.category || 'Disability Support',
       short_summary: shortSummary,
       about_role: aboutRole,
       responsibilities: Array.isArray(body.responsibilities) ? body.responsibilities : [],
       essential_criteria: Array.isArray(body.essential_criteria) ? body.essential_criteria : [],
       desirable_criteria: Array.isArray(body.desirable_criteria) ? body.desirable_criteria : [],
       service_area_ids: Array.isArray(body.service_area_ids) ? body.service_area_ids : [],
-      location_notes: body.location_notes || null,
-      employment_basis: Array.isArray(body.employment_basis) ? body.employment_basis : ['casual'],
-      engagement_relationship: body.engagement_relationship === 'contractor' ? 'contractor' : 'employee',
-      positions_count: body.positions_count ? Number(body.positions_count) : 1,
+      location_notes: body.location_notes ? String(body.location_notes).trim() : null,
+      employment_basis: Array.isArray(body.employment_basis) ? body.employment_basis : [],
+      engagement_relationship: body.engagement_relationship || 'employee',
+      positions_count: body.positions_count ? Number(body.positions_count) : null,
       driver_licence_required: Boolean(body.driver_licence_required),
       vehicle_required: Boolean(body.vehicle_required),
       ndiswc_required: Boolean(body.ndiswc_required),
@@ -119,30 +120,41 @@ export async function POST(req: Request) {
       child_related_role: Boolean(body.child_related_role),
       qualification_required: Boolean(body.qualification_required),
       other_requirements: Array.isArray(body.other_requirements) ? body.other_requirements : [],
-      pay_display_mode: ['hidden', 'award_text', 'custom_text'].includes(body.pay_display_mode) ? body.pay_display_mode : 'award_text',
-      pay_public_text: body.pay_public_text || null,
-      status: status,
+      pay_display_mode: body.pay_display_mode || 'award_text',
+      pay_public_text: body.pay_public_text ? String(body.pay_public_text).trim() : null,
+      status: requestedStatus,
       featured: Boolean(body.featured),
       opens_at: body.opens_at || null,
       closes_at: body.closes_at || null,
-      published_at: status === 'published' ? (body.published_at || now) : null,
+      published_at: requestedStatus === 'published' ? now : null,
       created_by: actorId,
       updated_by: actorId
     };
 
-    const { data: created, error: insertError } = await supabase
+    if (requestedStatus === 'published') {
+      const validation = validateVacancyForPublication(newVacancy);
+      if (!validation.valid) {
+        return NextResponse.json({
+          ok: false,
+          error: 'Cannot publish incomplete vacancy: ' + validation.errors.join(' '),
+          errors: validation.errors
+        }, { status: 400 });
+      }
+    }
+
+    const { data: created, error } = await supabase
       .from('job_vacancies')
       .insert(newVacancy)
       .select('*')
       .single();
 
-    if (insertError) {
-      console.error('Failed to create vacancy:', insertError.message);
-      return NextResponse.json({ ok: false, error: userFacingError(insertError.message) }, { status: 500 });
+    if (error) {
+      console.error('Failed to create vacancy:', error.message);
+      return NextResponse.json({ ok: false, error: userFacingError(error.message) }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, vacancy: created });
   } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message || 'Invalid vacancy payload.' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: err?.message || 'Failed to create vacancy.' }, { status: 500 });
   }
 }

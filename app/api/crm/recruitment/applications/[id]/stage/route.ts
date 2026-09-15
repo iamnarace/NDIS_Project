@@ -42,6 +42,13 @@ export async function PATCH(
       }, { status: 400 });
     }
 
+    if (toStage === 'hired') {
+      return NextResponse.json({
+        ok: false,
+        error: 'Use Hire Candidate to complete the worker handoff.'
+      }, { status: 400 });
+    }
+
     // 1. Get current stage
     const { data: currentApp, error: fetchErr } = await supabase
       .from('job_applications')
@@ -51,6 +58,13 @@ export async function PATCH(
 
     if (fetchErr || !currentApp) {
       return NextResponse.json({ ok: false, error: 'Application not found.' }, { status: 404 });
+    }
+
+    if (currentApp.stage === 'hired') {
+      return NextResponse.json({
+        ok: false,
+        error: 'Application is already marked as hired and its stage cannot be modified directly.'
+      }, { status: 400 });
     }
 
     const fromStage = currentApp.stage;

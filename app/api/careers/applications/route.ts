@@ -1,25 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { nextReferenceNumber } from '@/lib/referenceNumber';
+import { nextYearlyReferenceNumber } from '@/lib/referenceNumber';
 import { sendCareersApplicantAcknowledgement, sendCareersAdminAlert } from '@/lib/email';
+import { validateCandidateFile } from '@/lib/recruitmentFileValidation';
+import { isVacancyCurrentlyOpen } from '@/lib/recruitmentValidation';
 import crypto from 'crypto';
-
-const ALLOWED_EXTENSIONS = new Set(['.pdf', '.doc', '.docx']);
-const ALLOWED_MIMES = new Set([
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/octet-stream', // often sent by windows browsers for doc/docx
-]);
-
-function getExtension(filename: string): string {
-  const idx = filename.lastIndexOf('.');
-  return idx !== -1 ? filename.substring(idx).toLowerCase() : '';
-}
-
-function sanitizeFilename(filename: string): string {
-  return filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-}
 
 export async function POST(req: Request) {
   const supabase = createAdminClient();
@@ -42,7 +27,6 @@ export async function POST(req: Request) {
           coverFile = value;
         } else if (typeof value === 'string') {
           try {
-            // Check if stringified JSON (for arrays or availability)
             if ((value.startsWith('[') && value.endsWith(']')) || (value.startsWith('{') && value.endsWith('}'))) {
               fields[key] = JSON.parse(value);
             } else {
@@ -57,9 +41,18 @@ export async function POST(req: Request) {
       fields = await req.json();
     }
 
-    // Honeypot check — catch automated spam bots silently
+    // 1. Spam & Anti-Bot Protection
     if (fields.website_url || fields.fax_number || fields.bot_check) {
-      return NextResponse.json({ ok: true, reference_number: 'APP-2026-9999' });
+      return NextResponse.json({ ok: true, reference_number: 'APP-2026-99999' });
+    }
+
+    // Timing check: if form loaded in < 2 seconds, reject bot submission
+    if (fields._form_loaded_at) {
+      const loadedAt = parseInt(fields._form_loaded_at, 10);
+      const now = Date.now();
+      if (!isNaN(loadedAt) && (now - loadedAt) < 2000) {
+        return NextResponse.json({ ok: false, error: 'Please take your time to review the application before submitting.' }, { status: 400 });
+      }
     }
 
     const applicationType = fields.application_type === 'eoi' ? 'eoi' : 'vacancy';
@@ -71,10 +64,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: 'Vacancy ID is required for vacancy applications.' }, { status: 400 });
       }
 
-      // Check vacancy status and closing date
+      // Check vacancy status and opening / closing dates
       const { data: vacancy, error: vacError } = await supabase
         .from('job_vacancies')
-        .select('id, title, status, closes_at')
+        .select('id, title, status, opens_at, closes_at')
         .eq('id', vacancyId)
         .maybeSingle();
 
@@ -82,18 +75,23 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: 'The selected job opportunity was not found.' }, { status: 404 });
       }
 
-      if (vacancy.status !== 'published') {
-        return NextResponse.json({ ok: false, error: 'This opportunity is not currently accepting applications.' }, { status: 400 });
+      const now = Date.now();
+      if (vacancy.opens_at && new Date(vacancy.opens_at).getTime() > now) {
+        return NextResponse.json({ ok: false, error: 'Applications for this position have not opened yet.' }, { status: 400 });
       }
 
-      if (vacancy.closes_at && new Date(vacancy.closes_at).getTime() < Date.now()) {
+      if (vacancy.closes_at && new Date(vacancy.closes_at).getTime() < now) {
         return NextResponse.json({ ok: false, error: 'Applications for this role have now closed.' }, { status: 400 });
+      }
+
+      if (vacancy.status !== 'published') {
+        return NextResponse.json({ ok: false, error: 'This opportunity is not currently accepting applications.' }, { status: 400 });
       }
 
       vacancyTitle = vacancy.title;
     }
 
-    // Validate applicant details
+    // 2. Validate applicant identity & contact
     const firstName = String(fields.first_name || '').trim();
     const lastName = String(fields.last_name || '').trim();
     const email = String(fields.email || '').trim().toLowerCase();
@@ -101,255 +99,302 @@ export async function POST(req: Request) {
     const suburb = String(fields.suburb || '').trim();
     const postcode = String(fields.postcode || '').trim();
 
-    if (!firstName || firstName.length > 80) {
-      return NextResponse.json({ ok: false, error: 'Please provide a valid first name (up to 80 characters).' }, { status: 400 });
+    if (!firstName || !lastName) {
+      return NextResponse.json({ ok: false, error: 'First name and last name are required.' }, { status: 400 });
     }
-    if (!lastName || lastName.length > 80) {
-      return NextResponse.json({ ok: false, error: 'Please provide a valid last name (up to 80 characters).' }, { status: 400 });
+    if (!email || !email.includes('@') || email.length > 150) {
+      return NextResponse.json({ ok: false, error: 'A valid email address is required.' }, { status: 400 });
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email) || email.length > 160) {
-      return NextResponse.json({ ok: false, error: 'Please provide a valid email address.' }, { status: 400 });
+    if (!phone || phone.length < 8 || phone.length > 30) {
+      return NextResponse.json({ ok: false, error: 'A valid Australian contact number is required.' }, { status: 400 });
     }
-    if (!phone || phone.length > 40) {
-      return NextResponse.json({ ok: false, error: 'Please provide a contact phone number.' }, { status: 400 });
-    }
-    if (!suburb || suburb.length > 100) {
-      return NextResponse.json({ ok: false, error: 'Please provide your residential suburb.' }, { status: 400 });
-    }
-    if (!/^\d{4}$/.test(postcode)) {
-      return NextResponse.json({ ok: false, error: 'Please provide a valid 4-digit Australian postcode.' }, { status: 400 });
+    if (!suburb || !postcode || !/^\d{4}$/.test(postcode)) {
+      return NextResponse.json({ ok: false, error: 'NSW suburb and a valid 4-digit postcode are required.' }, { status: 400 });
     }
 
-    // Consent declarations
-    const privacyConsent = Boolean(fields.privacy_consent);
-    const accuracyDeclaration = Boolean(fields.accuracy_declaration);
-
-    if (!privacyConsent) {
-      return NextResponse.json({ ok: false, error: 'You must confirm that you have read and agreed to the Privacy Policy to apply.' }, { status: 400 });
-    }
-    if (!accuracyDeclaration) {
-      return NextResponse.json({ ok: false, error: 'You must declare that the information provided is accurate to the best of your knowledge.' }, { status: 400 });
-    }
-
-    // File validation
-    if (applicationType === 'vacancy' && (!resumeFile || resumeFile.size === 0)) {
-      return NextResponse.json({ ok: false, error: 'Please attach your Resume / CV in PDF, DOC, or DOCX format.' }, { status: 400 });
-    }
-
-    if (resumeFile && resumeFile.size > 0) {
-      if (resumeFile.size > 8 * 1024 * 1024) {
-        return NextResponse.json({ ok: false, error: 'Resume file exceeds the maximum limit of 8 MB.' }, { status: 400 });
-      }
-      const ext = getExtension(resumeFile.name);
-      if (!ALLOWED_EXTENSIONS.has(ext)) {
-        return NextResponse.json({ ok: false, error: 'Resume must be a PDF, DOC, or DOCX document.' }, { status: 400 });
-      }
-    }
-
-    if (coverFile && coverFile.size > 0) {
-      if (coverFile.size > 5 * 1024 * 1024) {
-        return NextResponse.json({ ok: false, error: 'Cover letter file exceeds the maximum limit of 5 MB.' }, { status: 400 });
-      }
-      const ext = getExtension(coverFile.name);
-      if (!ALLOWED_EXTENSIONS.has(ext)) {
-        return NextResponse.json({ ok: false, error: 'Cover letter must be a PDF, DOC, or DOCX document.' }, { status: 400 });
-      }
-    }
-
-    // Work preferences & declarations
-    const preferredServiceAreaIds = Array.isArray(fields.preferred_service_area_ids) ? fields.preferred_service_area_ids : [];
-    const employmentPreferences = Array.isArray(fields.employment_preferences) ? fields.employment_preferences : [];
-    const workRightsStatus = String(fields.work_rights_status || 'yes').trim();
-    const earliestStartDate = fields.earliest_start_date ? String(fields.earliest_start_date).slice(0, 10) : null;
-
-    const experienceSummary = fields.experience_summary ? String(fields.experience_summary).slice(0, 1500) : null;
-    const qualificationSummary = fields.qualification_summary ? String(fields.qualification_summary).slice(0, 1000) : null;
-
-    const driverLicenceStatus = fields.driver_licence_status ? String(fields.driver_licence_status) : null;
-    const vehicleAccessStatus = fields.vehicle_access_status ? String(fields.vehicle_access_status) : null;
-    const ndiswcStatusDeclared = fields.ndiswc_status_declared ? String(fields.ndiswc_status_declared) : null;
-    const policeCheckStatusDeclared = fields.police_check_status_declared ? String(fields.police_check_status_declared) : null;
-    const firstAidStatusDeclared = fields.first_aid_status_declared ? String(fields.first_aid_status_declared) : null;
-    const cprStatusDeclared = fields.cpr_status_declared ? String(fields.cpr_status_declared) : null;
-    const wwccStatusDeclared = fields.wwcc_status_declared ? String(fields.wwcc_status_declared) : null;
-
-    const availability = typeof fields.availability === 'object' && fields.availability !== null ? fields.availability : {};
-    const availabilityNotes = fields.availability_notes ? String(fields.availability_notes).slice(0, 500) : null;
-    const motivation = fields.motivation ? String(fields.motivation).slice(0, 1000) : null;
-
-    // Fetch config for retention and careers destination email
-    const { data: config } = await supabase
-      .from('provider_config')
-      .select('recruitment_retention_months, careers_email, support_email')
-      .limit(1)
-      .maybeSingle();
-
-    const retentionMonths = config?.recruitment_retention_months || 12;
-    const retentionUntil = new Date();
-    retentionUntil.setMonth(retentionUntil.getMonth() + retentionMonths);
-
-    // Generate APP-2026-XXXX reference number
-    const referenceNumber = await nextReferenceNumber(supabase, 'job_applications', 'APP-2026', 4);
-    const nowTimestamp = new Date().toISOString();
-
-    // 1. Insert application record
-    const { data: insertedApp, error: insertError } = await supabase
+    // 3. Duplicate Prevention Check (15 min window for same email + vacancy/eoi)
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    let dupQuery = supabase
       .from('job_applications')
-      .insert({
-        reference_number: referenceNumber,
-        application_type: applicationType,
-        vacancy_id: applicationType === 'vacancy' ? vacancyId : null,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        phone: phone,
-        suburb: suburb,
-        postcode: postcode,
-        preferred_service_area_ids: preferredServiceAreaIds,
-        employment_preferences: employmentPreferences,
-        work_rights_status: workRightsStatus,
-        earliest_start_date: earliestStartDate,
-        experience_summary: experienceSummary,
-        qualification_summary: qualificationSummary,
-        driver_licence_status: driverLicenceStatus,
-        vehicle_access_status: vehicleAccessStatus,
-        ndiswc_status_declared: ndiswcStatusDeclared,
-        police_check_status_declared: policeCheckStatusDeclared,
-        first_aid_status_declared: firstAidStatusDeclared,
-        cpr_status_declared: cprStatusDeclared,
-        wwcc_status_declared: wwccStatusDeclared,
-        availability: availability,
-        availability_notes: availabilityNotes,
-        motivation: motivation,
-        privacy_consent_at: nowTimestamp,
-        accuracy_declaration_at: nowTimestamp,
-        stage: 'new',
-        source: 'website',
-        submitted_at: nowTimestamp,
-        retention_until: retentionUntil.toISOString().split('T')[0]
-      })
-      .select('id, reference_number')
-      .single();
+      .select('id, reference_number, submitted_at')
+      .eq('email', email)
+      .gte('submitted_at', fifteenMinsAgo);
 
-    if (insertError || !insertedApp) {
-      console.error('Failed to insert job application:', insertError?.message);
-      return NextResponse.json({ ok: false, error: 'Could not record application. Please try again.' }, { status: 500 });
+    if (applicationType === 'vacancy') {
+      dupQuery = dupQuery.eq('vacancy_id', vacancyId);
+    } else {
+      dupQuery = dupQuery.eq('application_type', 'eoi');
     }
 
-    const applicationId = insertedApp.id;
+    const { data: duplicateApp } = await dupQuery.limit(1);
+    if (duplicateApp && duplicateApp.length > 0) {
+      return NextResponse.json({
+        ok: false,
+        duplicate_detected: true,
+        error: `We have already received an application from this email address recently. Your reference is ${duplicateApp[0].reference_number}.`
+      }, { status: 409 });
+    }
 
-    // 2. Upload files if provided
-    const uploadedFiles: Array<{ kind: string; name: string; size: number; mime: string; path: string }> = [];
+    // 4. Validate Mandatory Declarations & Work Rights
+    const declarationAccurate = fields.declaration_accurate_information === true || fields.declaration_accurate_information === 'true';
+    const declarationPrivacy = fields.declaration_privacy_consent === true || fields.declaration_privacy_consent === 'true';
 
+    if (!declarationAccurate || !declarationPrivacy) {
+      return NextResponse.json({
+        ok: false,
+        error: 'You must confirm the accuracy of your application and agree to the privacy policy before submitting.'
+      }, { status: 400 });
+    }
+
+    const workRights = fields.work_rights_status;
+    const validWorkRights = ['citizen_pr', 'valid_visa', 'no_rights'];
+    if (!workRights || !validWorkRights.includes(workRights)) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Please explicitly specify your Australian work rights status.'
+      }, { status: 400 });
+    }
+
+    // 5. Validate Candidate Files (Resume is mandatory for vacancy application)
+    let resumeValidation: any = null;
     if (resumeFile && resumeFile.size > 0) {
-      const buffer = Buffer.from(await resumeFile.arrayBuffer());
-      const safeName = sanitizeFilename(resumeFile.name);
-      const storagePath = `recruitment/applications/${applicationId}/${crypto.randomUUID()}_${safeName}`;
+      resumeValidation = await validateCandidateFile(resumeFile, 'resume');
+      if (!resumeValidation.valid) {
+        return NextResponse.json({ ok: false, error: resumeValidation.error }, { status: 400 });
+      }
+    } else if (applicationType === 'vacancy') {
+      return NextResponse.json({ ok: false, error: 'A valid Resume / CV (.pdf, .doc, or .docx) is required for vacancy applications.' }, { status: 400 });
+    }
 
-      const { error: uploadErr } = await supabase.storage
-        .from('crm-documents')
-        .upload(storagePath, buffer, {
-          contentType: resumeFile.type || 'application/octet-stream',
-          upsert: false
-        });
-
-      if (uploadErr) {
-        console.error('Failed to store resume in crm-documents:', uploadErr.message);
-      } else {
-        await supabase.from('job_application_files').insert({
-          application_id: applicationId,
-          file_kind: 'resume',
-          file_name: resumeFile.name,
-          file_size: resumeFile.size,
-          mime_type: resumeFile.type || 'application/octet-stream',
-          storage_path: storagePath
-        });
-        uploadedFiles.push({ kind: 'resume', name: resumeFile.name, size: resumeFile.size, mime: resumeFile.type, path: storagePath });
+    let coverValidation: any = null;
+    if (coverFile && coverFile.size > 0) {
+      coverValidation = await validateCandidateFile(coverFile, 'cover_letter');
+      if (!coverValidation.valid) {
+        return NextResponse.json({ ok: false, error: coverValidation.error }, { status: 400 });
       }
     }
 
-    if (coverFile && coverFile.size > 0) {
-      const buffer = Buffer.from(await coverFile.arrayBuffer());
-      const safeName = sanitizeFilename(coverFile.name);
-      const storagePath = `recruitment/applications/${applicationId}/${crypto.randomUUID()}_${safeName}`;
+    // 6. Generate Next Canonical Reference Number (APP-YYYY-XXXXX)
+    const referenceNumber = await nextYearlyReferenceNumber(supabase, 'job_applications', 'APP');
+    const applicationId = crypto.randomUUID();
+    const nowIso = new Date().toISOString();
 
-      const { error: uploadErr } = await supabase.storage
+    const preferredServiceAreas = Array.isArray(fields.preferred_service_area_ids)
+      ? fields.preferred_service_area_ids.slice(0, 20)
+      : [];
+    const employmentPreferences = Array.isArray(fields.employment_preferences)
+      ? fields.employment_preferences.slice(0, 10)
+      : [];
+
+    // Role interest for EOI
+    const roleInterest = applicationType === 'eoi' ? String(fields.role_interest || '').slice(0, 100) : null;
+    const roleInterestOther = applicationType === 'eoi' ? String(fields.role_interest_other || '').slice(0, 200) : null;
+
+    // 7. Atomic Resume Upload with Fail-Closed DB & Storage Rollback
+    let uploadedResumePath: string | null = null;
+    let uploadedCoverPath: string | null = null;
+
+    if (resumeFile && resumeValidation && resumeValidation.valid) {
+      const resumeUuid = crypto.randomUUID();
+      uploadedResumePath = `recruitment/applications/${applicationId}/${resumeUuid}_${resumeValidation.sanitizedFilename}`;
+      const resumeBuffer = Buffer.from(await resumeFile.arrayBuffer());
+
+      const { error: resumeUploadErr } = await supabase.storage
         .from('crm-documents')
-        .upload(storagePath, buffer, {
-          contentType: coverFile.type || 'application/octet-stream',
+        .upload(uploadedResumePath, resumeBuffer, {
+          contentType: resumeValidation.canonicalMime,
           upsert: false
         });
 
-      if (uploadErr) {
-        console.error('Failed to store cover letter in crm-documents:', uploadErr.message);
-      } else {
-        await supabase.from('job_application_files').insert({
+      if (resumeUploadErr) {
+        console.error('Storage resume upload failed:', resumeUploadErr.message);
+        return NextResponse.json({
+          ok: false,
+          error: 'Failed to securely store your resume. Please try again.'
+        }, { status: 500 });
+      }
+    }
+
+    // Insert job_applications record
+    const { error: appErr } = await supabase.from('job_applications').insert({
+      id: applicationId,
+      reference_number: referenceNumber,
+      application_type: applicationType,
+      vacancy_id: vacancyId,
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone,
+      suburb,
+      postcode,
+      preferred_service_area_ids: preferredServiceAreas,
+      employment_preferences: employmentPreferences,
+      earliest_start_date: fields.earliest_start_date || null,
+      notes_summary: fields.notes_summary ? String(fields.notes_summary).slice(0, 2000) : null,
+      work_rights_status: workRights,
+      work_rights_visa_details: fields.work_rights_visa_details ? String(fields.work_rights_visa_details).slice(0, 500) : null,
+      ndis_worker_screening_status: fields.ndis_worker_screening_status || null,
+      national_police_check_status: fields.national_police_check_status || null,
+      first_aid_cpr_status: fields.first_aid_cpr_status || null,
+      driver_licence_status: fields.driver_licence_status || null,
+      vehicle_access_status: fields.vehicle_access_status || null,
+      declaration_accurate_information: true,
+      declaration_privacy_consent: true,
+      role_interest: roleInterest,
+      role_interest_other: roleInterestOther,
+      stage: 'new',
+      submitted_at: nowIso
+    });
+
+    if (appErr) {
+      console.error('Failed to insert job_applications:', appErr.message);
+      // Clean up uploaded resume object from storage
+      if (uploadedResumePath) {
+        await supabase.storage.from('crm-documents').remove([uploadedResumePath]).catch(() => {});
+      }
+      return NextResponse.json({ ok: false, error: 'Failed to record application. Please try again.' }, { status: 500 });
+    }
+
+    // Insert job_application_files record for Resume
+    if (resumeFile && resumeValidation && uploadedResumePath) {
+      const { error: fileErr } = await supabase.from('job_application_files').insert({
+        application_id: applicationId,
+        file_kind: 'resume',
+        storage_bucket: 'crm-documents',
+        storage_path: uploadedResumePath,
+        file_name: resumeFile.name,
+        file_size: resumeFile.size,
+        mime_type: resumeValidation.canonicalMime
+      });
+
+      if (fileErr) {
+        console.error('Failed to insert job_application_files for resume:', fileErr.message);
+        // Clean up DB application and storage file
+        try {
+          await supabase.from('job_applications').delete().eq('id', applicationId);
+          await supabase.storage.from('crm-documents').remove([uploadedResumePath]);
+        } catch {}
+        return NextResponse.json({ ok: false, error: 'Failed to register resume metadata. Please try again.' }, { status: 500 });
+      }
+    }
+
+    // Attempt optional Cover Letter upload
+    let coverLetterFailed = false;
+    if (coverFile && coverValidation && coverValidation.valid) {
+      const coverUuid = crypto.randomUUID();
+      uploadedCoverPath = `recruitment/applications/${applicationId}/${coverUuid}_${coverValidation.sanitizedFilename}`;
+      const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
+
+      const { error: coverUploadErr } = await supabase.storage
+        .from('crm-documents')
+        .upload(uploadedCoverPath, coverBuffer, {
+          contentType: coverValidation.canonicalMime,
+          upsert: false
+        });
+
+      if (!coverUploadErr) {
+        const { error: coverFileErr } = await supabase.from('job_application_files').insert({
           application_id: applicationId,
           file_kind: 'cover_letter',
+          storage_bucket: 'crm-documents',
+          storage_path: uploadedCoverPath,
           file_name: coverFile.name,
           file_size: coverFile.size,
-          mime_type: coverFile.type || 'application/octet-stream',
-          storage_path: storagePath
+          mime_type: coverValidation.canonicalMime
         });
-        uploadedFiles.push({ kind: 'cover_letter', name: coverFile.name, size: coverFile.size, mime: coverFile.type, path: storagePath });
+        if (coverFileErr) {
+          coverLetterFailed = true;
+          try {
+            await supabase.storage.from('crm-documents').remove([uploadedCoverPath]);
+          } catch {}
+        }
+      } else {
+        coverLetterFailed = true;
       }
     }
 
-    // 3. Insert initial event in timeline
+    // 8. Insert timeline submitted event
     await supabase.from('job_application_events').insert({
       application_id: applicationId,
       event_type: 'submitted',
       from_stage: null,
       to_stage: 'new',
-      note: applicationType === 'eoi' ? 'Expression of Interest submitted via website' : `Application submitted for vacancy: ${vacancyTitle}`,
-      actor: 'applicant'
+      note: applicationType === 'eoi'
+        ? `Expression of Interest submitted online (${roleInterest || 'General'})`
+        : `Application submitted online for vacancy: ${vacancyTitle}`,
+      actor: 'system'
     });
 
-    // 4. Attempt email notifications (fail-safe: application is already persisted)
-    try {
-      const roleOrEoiLabel = applicationType === 'eoi' ? 'Expression of Interest' : vacancyTitle;
-      const appLabel = applicationType === 'eoi' ? 'Expression of Interest' : 'job application';
-
-      await sendCareersApplicantAcknowledgement({
-        firstName: firstName,
-        referenceNumber: referenceNumber,
-        roleOrEoi: roleOrEoiLabel,
-        applicationLabel: appLabel,
-        email: email
-      });
-
-      await sendCareersAdminAlert({
-        referenceNumber: referenceNumber,
-        applicantName: `${firstName} ${lastName}`,
-        roleOrEoi: roleOrEoiLabel,
-        applicationType: applicationType,
-        email: email,
-        phone: phone,
-        suburb: suburb,
-        postcode: postcode,
-        preferredServiceAreas: preferredServiceAreaIds,
-        employmentPreferences: employmentPreferences,
-        submittedAt: new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' }),
-        toEmail: config?.careers_email || config?.support_email || undefined
-      });
-    } catch (emailErr: any) {
-      console.error('Careers notification email failed safely:', emailErr?.message || emailErr);
+    if (coverLetterFailed) {
       await supabase.from('job_application_events').insert({
         application_id: applicationId,
-        event_type: 'email_delivery_failed',
-        note: 'Email notification delivery could not be completed at submission time.',
+        event_type: 'attachment_warning',
+        from_stage: null,
+        to_stage: null,
+        note: 'Optional cover letter upload failed during submission; candidate resume was securely preserved.',
         actor: 'system'
       });
+    }
+
+    // 9. Fail-Safe Email Dispatch & Audit Logging
+    const applicantEmailPromise = sendCareersApplicantAcknowledgement({
+      firstName,
+      referenceNumber,
+      roleOrEoi: vacancyTitle,
+      roleInterest: roleInterest || undefined,
+      applicationLabel: applicationType === 'eoi' ? 'Expression of Interest' : 'application',
+      email
+    });
+
+    const adminEmailPromise = sendCareersAdminAlert({
+      referenceNumber,
+      applicantName: `${firstName} ${lastName}`,
+      roleOrEoi: vacancyTitle,
+      roleInterest: roleInterest || undefined,
+      applicationType,
+      email,
+      phone,
+      suburb,
+      postcode,
+      preferredServiceAreas,
+      employmentPreferences,
+      submittedAt: new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney' }),
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://opuscare.com.au'
+    });
+
+    const [applicantResult, adminResult] = await Promise.all([applicantEmailPromise, adminEmailPromise]);
+
+    if (!applicantResult.ok) {
+      try {
+        await supabase.from('job_application_events').insert({
+          application_id: applicationId,
+          event_type: 'email_delivery_failed',
+          note: 'Failed to deliver automated applicant acknowledgement email.',
+          actor: 'system'
+        });
+      } catch {}
+    }
+
+    if (!adminResult.ok) {
+      try {
+        await supabase.from('job_application_events').insert({
+          application_id: applicationId,
+          event_type: 'email_delivery_failed',
+          note: 'Failed to deliver automated recruitment admin notification email.',
+          actor: 'system'
+        });
+      } catch {}
     }
 
     return NextResponse.json({
       ok: true,
       reference_number: referenceNumber,
-      application_id: applicationId
+      application_id: applicationId,
+      role_title: vacancyTitle
     });
+
   } catch (err: any) {
-    console.error('Unhandled error in careers application submission:', err?.message || err);
-    return NextResponse.json({ ok: false, error: 'A system error occurred while processing your application. Please try again.' }, { status: 500 });
+    console.error('Unhandled error in careers application API:', err);
+    return NextResponse.json({ ok: false, error: 'An unexpected error occurred while processing your application.' }, { status: 500 });
   }
 }

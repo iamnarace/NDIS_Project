@@ -50,11 +50,23 @@ export async function POST(req: Request) {
     }
 
     let result;
-    if (id) {
+    let targetId = id;
+    if (!targetId) {
+      const { data: existingRow } = await supabase
+        .from('provider_config')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+      if (existingRow?.id) {
+        targetId = existingRow.id;
+      }
+    }
+
+    if (targetId) {
       result = await supabase
         .from('provider_config')
         .update(updates)
-        .eq('id', id)
+        .eq('id', targetId)
         .select()
         .single();
     } else {

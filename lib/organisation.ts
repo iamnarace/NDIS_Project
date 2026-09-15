@@ -174,6 +174,8 @@ export async function getOrganisationProfile(
     websiteUrl: 'https://opuscare.com.au',
     supportEmail: 'support@opuscare.com.au',
     referralsEmail: 'referrals@opuscare.com.au',
+    careersEmail: 'support@opuscare.com.au',
+    recruitmentRetentionMonths: 12,
     facebookUrl: 'https://opuscare.com.au',
     instagramUrl: 'https://opuscare.com.au',
     linkedinUrl: 'https://opuscare.com.au',
@@ -276,6 +278,7 @@ export async function getOrganisationProfile(
     const websiteUrl = config.website_url?.trim() || 'https://opuscare.com.au';
     const supportEmail = config.support_email?.trim() || config.email?.trim() || fallback.email;
     const referralsEmail = config.referrals_email?.trim() || 'referrals@opuscare.com.au';
+    const careersEmail = config.careers_email?.trim() || process.env.CAREERS_TO_EMAIL?.trim() || supportEmail;
     const facebookUrl = config.facebook_url?.trim() || 'https://opuscare.com.au';
     const instagramUrl = config.instagram_url?.trim() || 'https://opuscare.com.au';
     const linkedinUrl = config.linkedin_url?.trim() || 'https://opuscare.com.au';
@@ -312,7 +315,7 @@ export async function getOrganisationProfile(
       websiteUrl,
       supportEmail,
       referralsEmail,
-      careersEmail: config.careers_email?.trim() || 'careers@opuscare.com.au',
+      careersEmail,
       recruitmentRetentionMonths: config.recruitment_retention_months || 12,
       facebookUrl,
       instagramUrl,

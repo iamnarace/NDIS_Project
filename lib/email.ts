@@ -83,14 +83,17 @@ export interface CareersApplicantEmailData {
   firstName: string;
   referenceNumber: string;
   roleOrEoi: string;
+  roleInterest?: string;
   applicationLabel: string; // e.g. 'application' or 'Expression of Interest'
   email: string;
+  replyTo?: string;
 }
 
 export interface CareersAdminEmailData {
   referenceNumber: string;
   applicantName: string;
   roleOrEoi: string;
+  roleInterest?: string;
   applicationType: 'vacancy' | 'eoi';
   email: string;
   phone: string;
@@ -103,10 +106,10 @@ export interface CareersAdminEmailData {
   appUrl?: string;
 }
 
-const CAREERS_DEFAULT_EMAIL = process.env.CAREERS_TO_EMAIL || 'careers@opuscare.com.au';
+const CAREERS_DEFAULT_EMAIL = process.env.CAREERS_TO_EMAIL || 'support@opuscare.com.au';
 
 export async function sendCareersApplicantAcknowledgement(data: CareersApplicantEmailData) {
-  if (!data.email) return { ok: false, message: 'No applicant email provided' };
+  if (!data.email) return { ok: false, error: 'No applicant email provided' };
 
   const subject = `We've received your application · Opus Care Support Services · ${data.referenceNumber}`;
   const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1e293b;line-height:1.6">
@@ -114,7 +117,7 @@ export async function sendCareersApplicantAcknowledgement(data: CareersApplicant
 <p>Hello <strong>${data.firstName}</strong>,</p>
 <p>Thank you for your interest in joining Opus Care Support Services.</p>
 <p>We've received your ${data.applicationLabel || 'application'} for:</p>
-<p style="font-size:1.1rem;font-weight:bold;color:#0f172a;background:#f1f5f9;padding:10px 14px;border-radius:6px;">${data.roleOrEoi}</p>
+<p style="font-size:1.1rem;font-weight:bold;color:#0f172a;background:#f1f5f9;padding:10px 14px;border-radius:6px;">${data.roleOrEoi}${data.roleInterest ? ` (${data.roleInterest})` : ''}</p>
 <p>Application reference: <strong>${data.referenceNumber}</strong></p>
 <p>Our team will review your information and contact you if we need anything further or would like to progress your application.</p>
 <p style="color:#64748b;font-size:0.875rem;border-left:3px solid #cbd5e1;padding-left:12px;margin:20px 0;">
@@ -128,14 +131,17 @@ Please do not email sensitive identity, banking, tax or screening documents unle
     const result = await resend.emails.send({
       from: DEFAULT_FROM,
       to: [data.email],
-      replyTo: CAREERS_DEFAULT_EMAIL,
+      replyTo: data.replyTo || CAREERS_DEFAULT_EMAIL,
       subject,
       html,
     });
+    if ((result as any)?.error) {
+      return { ok: false, error: (result as any).error.message || 'Resend delivery rejected' };
+    }
     return { ok: true, data: result };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send careers applicant acknowledgement', error);
-    return { ok: false, error };
+    return { ok: false, error: error?.message || 'Failed to send applicant email' };
   }
 }
 
@@ -147,7 +153,7 @@ export async function sendCareersAdminAlert(data: CareersAdminEmailData) {
 <h2>New Careers Application Received</h2>
 <table style="border-collapse:collapse;width:100%;max-width:600px;font-size:0.95rem;">
   <tr><td style="padding:6px 0;color:#64748b;width:160px;">Reference:</td><td><strong>${data.referenceNumber}</strong></td></tr>
-  <tr><td style="padding:6px 0;color:#64748b;">Type / Role:</td><td><strong>${data.roleOrEoi}</strong> (${data.applicationType.toUpperCase()})</td></tr>
+  <tr><td style="padding:6px 0;color:#64748b;">Type / Role:</td><td><strong>${data.roleOrEoi}</strong> (${data.applicationType.toUpperCase()})${data.roleInterest ? ` · Interest: ${data.roleInterest}` : ''}</td></tr>
   <tr><td style="padding:6px 0;color:#64748b;">Applicant:</td><td><strong>${data.applicantName}</strong></td></tr>
   <tr><td style="padding:6px 0;color:#64748b;">Email:</td><td><a href="mailto:${data.email}">${data.email}</a></td></tr>
   <tr><td style="padding:6px 0;color:#64748b;">Mobile:</td><td>${data.phone}</td></tr>
@@ -175,9 +181,12 @@ Note: For privacy and security, candidate CVs and cover letters are stored secur
       subject,
       html,
     });
+    if ((result as any)?.error) {
+      return { ok: false, error: (result as any).error.message || 'Resend delivery rejected' };
+    }
     return { ok: true, data: result };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to send careers admin alert email', error);
-    return { ok: false, error };
+    return { ok: false, error: error?.message || 'Failed to send admin alert email' };
   }
 }

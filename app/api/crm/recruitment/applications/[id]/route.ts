@@ -40,34 +40,20 @@ export async function GET(
     return NextResponse.json({ ok: false, error: 'Application not found.' }, { status: 404 });
   }
 
-  // 1. Files with signed download URLs
+  // 1. Files metadata (on-demand signed URLs generated via /files/[fileId])
   const { data: rawFiles } = await supabase
     .from('job_application_files')
-    .select('*')
+    .select('id, file_kind, file_name, file_size, mime_type, created_at')
     .eq('application_id', id);
 
-  const filesWithSignedUrls = await Promise.all(
-    (rawFiles || []).map(async (f: any) => {
-      let signedUrl = null;
-      try {
-        const { data: signData } = await supabase.storage
-          .from('crm-documents')
-          .createSignedUrl(f.storage_path, 900); // 15 min expiry
-        signedUrl = signData?.signedUrl || null;
-      } catch (err: any) {
-        console.error('Failed to generate signed URL for application file:', err?.message);
-      }
-      return {
-        id: f.id,
-        file_kind: f.file_kind,
-        file_name: f.file_name,
-        file_size: f.file_size,
-        mime_type: f.mime_type,
-        created_at: f.created_at,
-        download_url: signedUrl
-      };
-    })
-  );
+  const filesMetadata = (rawFiles || []).map((f: any) => ({
+    id: f.id,
+    file_kind: f.file_kind,
+    file_name: f.file_name,
+    file_size: f.file_size,
+    mime_type: f.mime_type,
+    created_at: f.created_at
+  }));
 
   // 2. Timeline events
   const { data: events } = await supabase
@@ -105,7 +91,7 @@ export async function GET(
     ok: true,
     application: {
       ...application,
-      files: filesWithSignedUrls,
+      files: filesMetadata,
       events: events || [],
       interviews: interviews || [],
       references: references || [],

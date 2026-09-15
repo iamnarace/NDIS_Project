@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedAdminActor, isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { validateVacancyForPublication } from '@/lib/recruitmentValidation';
 import { userFacingError } from '@/lib/userFacingError';
 
 export async function GET(
@@ -53,6 +54,16 @@ export async function PATCH(
   }
 
   try {
+    const { data: existing, error: fetchErr } = await supabase
+      .from('job_vacancies')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !existing) {
+      return NextResponse.json({ ok: false, error: 'Vacancy not found.' }, { status: 404 });
+    }
+
     const body = await req.json();
     const now = new Date().toISOString();
 
@@ -85,11 +96,24 @@ export async function PATCH(
       updates.status = newStatus;
 
       if (newStatus === 'published') {
-        updates.published_at = body.published_at || now;
+        updates.published_at = body.published_at || existing.published_at || now;
       } else if (newStatus === 'closed') {
         updates.closed_at = now;
       } else if (newStatus === 'archived') {
         updates.archived_at = now;
+      }
+    }
+
+    const merged = { ...existing, ...updates };
+
+    if (merged.status === 'published') {
+      const validation = validateVacancyForPublication(merged);
+      if (!validation.valid) {
+        return NextResponse.json({
+          ok: false,
+          error: 'Cannot publish incomplete vacancy: ' + validation.errors.join(' '),
+          errors: validation.errors
+        }, { status: 400 });
       }
     }
 

@@ -269,6 +269,24 @@ export default function RecruitmentTab({
   const [hireDuplicate, setHireDuplicate] = useState<any | null>(null);
   const [hireResult, setHireResult] = useState<any | null>(null);
 
+  const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
+
+  const handleDownloadFile = async (appId: string, fileId: string) => {
+    setDownloadingFileId(fileId);
+    try {
+      const res = await fetch(`/api/crm/recruitment/applications/${appId}/files/${fileId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.download_url) {
+          window.open(data.download_url, '_blank', 'noopener,noreferrer');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to get download URL:', err);
+    }
+    setDownloadingFileId(null);
+  };
+
   // Vacancy Drawer state
   const [showVacancyDrawer, setShowVacancyDrawer] = useState(false);
   const [editingVacancyId, setEditingVacancyId] = useState<string | null>(null);
@@ -1539,18 +1557,16 @@ export default function RecruitmentTab({
                               </div>
                             </div>
 
-                            {f.download_url && (
-                              <a
-                                href={f.download_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btnSecondary"
-                                style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                              >
-                                <Download size={13} />
-                                <span>Download</span>
-                              </a>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadFile(appDetail.id, f.id)}
+                              disabled={downloadingFileId === f.id}
+                              className="btnSecondary"
+                              style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                            >
+                              <Download size={13} />
+                              <span>{downloadingFileId === f.id ? 'Opening...' : 'Download'}</span>
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -1886,6 +1902,29 @@ export default function RecruitmentTab({
                       onChange={e => setHireForm(f => ({ ...f, employment_start_date: e.target.value }))}
                       style={{ width: '100%', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: 8, fontSize: '0.875rem' }}
                     />
+                  </div>
+
+                  <div style={{ marginBottom: 18 }}>
+                    <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: '#334155', marginBottom: 6 }}>
+                      Approved Service Areas
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                      {RECRUITMENT_SERVICE_AREAS.map(area => (
+                        <label key={area.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: '#334155' }}>
+                          <input
+                            type="checkbox"
+                            checked={hireForm.suburbs.includes(area.id)}
+                            onChange={e => {
+                              const next = e.target.checked
+                                ? [...hireForm.suburbs, area.id]
+                                : hireForm.suburbs.filter(id => id !== area.id);
+                              setHireForm(f => ({ ...f, suburbs: next }));
+                            }}
+                          />
+                          <span>{area.name}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   <div style={{

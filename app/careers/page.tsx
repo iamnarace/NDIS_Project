@@ -17,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getOrganisationProfile } from '@/lib/organisation';
 import { CareersApplicationForm } from '@/components/careers/CareersApplicationForm';
 import { getRecruitmentAreaName } from '@/lib/regions';
 
@@ -61,7 +62,11 @@ async function getPublishedVacancies() {
 }
 
 export default async function CareersPage() {
-  const vacancies = await getPublishedVacancies();
+  const [vacancies, orgProfile] = await Promise.all([
+    getPublishedVacancies(),
+    getOrganisationProfile()
+  ]);
+  const careersContactEmail = orgProfile.careersEmail || orgProfile.supportEmail || 'support@opuscare.com.au';
 
   return (
     <main className="careersPageRoot">
@@ -377,8 +382,8 @@ export default async function CareersPage() {
               <p>
                 Opus Care Support Services is committed to fair, respectful and merit-based recruitment. We welcome applications from people with diverse backgrounds and lived experiences. If you need a reasonable adjustment to participate in the application or interview process, contact our team and tell us what would help. You do not need to disclose a diagnosis.
               </p>
-              <a href="mailto:careers@opuscare.com.au" className="inclusionEmailLink">
-                Email our recruitment team: careers@opuscare.com.au
+              <a href={`mailto:${careersContactEmail}`} className="inclusionEmailLink">
+                Email our recruitment team: {careersContactEmail}
               </a>
             </div>
           </div>

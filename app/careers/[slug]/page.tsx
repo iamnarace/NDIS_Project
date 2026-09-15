@@ -18,6 +18,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getOrganisationProfile } from '@/lib/organisation';
 import { CareersApplicationForm } from '@/components/careers/CareersApplicationForm';
 import { getRecruitmentAreaName } from '@/lib/regions';
 
@@ -89,13 +90,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function VacancyDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const vacancy = await getVacancy(slug);
+  const [vacancy, orgProfile] = await Promise.all([
+    getVacancy(slug),
+    getOrganisationProfile()
+  ]);
 
   if (!vacancy) {
     notFound();
   }
 
-  const isClosed = vacancy.closes_at && new Date(vacancy.closes_at).getTime() < Date.now();
+  const now = Date.now();
+  const isNotYetOpen = vacancy.opens_at && new Date(vacancy.opens_at).getTime() > now;
+  const isClosed = vacancy.closes_at && new Date(vacancy.closes_at).getTime() < now;
+  const careersContactEmail = orgProfile.careersEmail || orgProfile.supportEmail || 'support@opuscare.com.au';
   const basisList = Array.isArray(vacancy.employment_basis) ? vacancy.employment_basis : [];
   const serviceAreas = Array.isArray(vacancy.service_area_ids) ? vacancy.service_area_ids : [];
   const responsibilities = Array.isArray(vacancy.responsibilities) ? vacancy.responsibilities : [];
@@ -273,7 +280,7 @@ export default async function VacancyDetailPage({ params }: PageProps) {
               <h3>Need an Adjustment to Apply or Interview?</h3>
               <p>
                 Opus Care welcomes requests for reasonable adjustments during recruitment. Contact our team at{' '}
-                <a href="mailto:careers@opuscare.com.au">careers@opuscare.com.au</a> and tell us what would help you participate. You do not need to disclose a diagnosis.
+                <a href={`mailto:${careersContactEmail}`}>{careersContactEmail}</a> and tell us what would help you participate. You do not need to disclose a diagnosis.
               </p>
             </section>
 
@@ -285,7 +292,18 @@ export default async function VacancyDetailPage({ params }: PageProps) {
                 <p>Complete the form below to apply for <strong>{vacancy.title}</strong> ({vacancy.reference_number}).</p>
               </div>
 
-              {isClosed ? (
+              {isNotYetOpen ? (
+                <div className="closedNoticeCard">
+                  <Clock size={24} className="textMuted" />
+                  <h4>Applications have not opened yet</h4>
+                  <p>
+                    Applications for this position will open on {new Date(vacancy.opens_at).toLocaleDateString('en-AU')}. You are welcome to submit an Expression of Interest in the meantime.
+                  </p>
+                  <Link href="/careers#eoi" className="btnSecondary">
+                    Submit an Expression of Interest
+                  </Link>
+                </div>
+              ) : isClosed ? (
                 <div className="closedNoticeCard">
                   <AlertCircle size={24} className="textMuted" />
                   <h4>Applications are now closed</h4>
@@ -315,28 +333,40 @@ export default async function VacancyDetailPage({ params }: PageProps) {
               <h3>Role Requirements Checklist</h3>
               <ul className="sidebarChecklist">
                 <li>
-                  <ShieldCheck size={16} className="textEmerald" />
+                  <CheckCircle2 size={16} className="textEmerald" />
                   <span>
-                    <strong>NDIS Worker Screening:</strong> Required by Opus Care internal policy before participant-facing work.
+                    <strong>Work Rights:</strong> Legal entitlement to work in Australia.
                   </span>
                 </li>
-                <li>
-                  <ShieldCheck size={16} className="textEmerald" />
-                  <span>
-                    <strong>Police Check:</strong> Current National Police Check where required.
-                  </span>
-                </li>
-                <li>
-                  <ShieldCheck size={16} className="textEmerald" />
-                  <span>
-                    <strong>First Aid &amp; CPR:</strong> HLTAID011 / HLTAID009 required for active support.
-                  </span>
-                </li>
+                {vacancy.ndiswc_required && (
+                  <li>
+                    <ShieldCheck size={16} className="textEmerald" />
+                    <span>
+                      <strong>NDIS Worker Screening:</strong> Required by Opus Care internal policy before direct support.
+                    </span>
+                  </li>
+                )}
+                {vacancy.police_check_required && (
+                  <li>
+                    <ShieldCheck size={16} className="textEmerald" />
+                    <span>
+                      <strong>Police Check:</strong> Current National Police Check (within 3 years).
+                    </span>
+                  </li>
+                )}
+                {(vacancy.first_aid_required || vacancy.cpr_required) && (
+                  <li>
+                    <ShieldCheck size={16} className="textEmerald" />
+                    <span>
+                      <strong>First Aid &amp; CPR:</strong> Current HLTAID011 / HLTAID009 certificate.
+                    </span>
+                  </li>
+                )}
                 {vacancy.driver_licence_required && (
                   <li>
                     <Car size={16} className="textEmerald" />
                     <span>
-                      <strong>Driver Licence:</strong> Current valid Australian driver licence.
+                      <strong>Driver Licence:</strong> Current valid Australian driver licence (C-Class).
                     </span>
                   </li>
                 )}
@@ -352,15 +382,29 @@ export default async function VacancyDetailPage({ params }: PageProps) {
                   <li>
                     <ShieldCheck size={16} className="textEmerald" />
                     <span>
-                      <strong>WWCC:</strong> NSW Working With Children Check required for child-related work.
+                      <strong>WWCC:</strong> NSW Working With Children Check (child-related support only).
                     </span>
                   </li>
                 )}
+                {vacancy.qualification_required && (
+                  <li>
+                    <Award size={16} className="textEmerald" />
+                    <span>
+                      <strong>Qualification:</strong> Relevant Certificate III/IV or disability qualification.
+                    </span>
+                  </li>
+                )}
+                <li>
+                  <HeartHandshake size={16} className="textEmerald" />
+                  <span>
+                    <strong>Values:</strong> Commitment to participant dignity, choice and person-centred care.
+                  </span>
+                </li>
               </ul>
 
               <div className="sidebarPrivacyBadge">
                 <HeartHandshake size={18} className="textEmerald" />
-                <span>We value honest self-declarations. All documents are verified during onboarding.</span>
+                <span>We value honest self-declarations. Credentials are formally verified during onboarding.</span>
               </div>
             </div>
           </aside>
