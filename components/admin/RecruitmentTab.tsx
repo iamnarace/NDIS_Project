@@ -734,7 +734,7 @@ export default function RecruitmentTab({
   return (
     <div className="crmRecruitmentTabRoot" style={{ padding: '24px 32px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div className="recruitmentPageHeader" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>
             Recruitment
@@ -744,7 +744,7 @@ export default function RecruitmentTab({
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="recruitmentHeaderActions" style={{ display: 'flex', gap: 10 }}>
           <button
             type="button"
             className="btnSecondary"
@@ -1791,7 +1791,7 @@ export default function RecruitmentTab({
 
       {/* ════════ HIRE CANDIDATE MODAL ════════ */}
       {showHireModal && appDetail && (
-        <div style={{
+        <div className="recruitmentModalOverlay" style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -1804,7 +1804,7 @@ export default function RecruitmentTab({
           justifyContent: 'center',
           padding: 20
         }}>
-          <div style={{
+          <div className="recruitmentHireModal" style={{
             background: '#FFFFFF',
             borderRadius: 20,
             maxWidth: 580,
@@ -2085,7 +2085,7 @@ export default function RecruitmentTab({
 
       {/* ════════ VACANCY EDITOR DRAWER ════════ */}
       {showVacancyDrawer && (
-        <div style={{
+        <div className="recruitmentVacancyDrawer" style={{
           position: 'fixed',
           top: 0,
           right: 0,
@@ -2119,7 +2119,7 @@ export default function RecruitmentTab({
             </button>
           </div>
 
-          <form onSubmit={handleSaveVacancy} style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+          <form className="recruitmentVacancyForm" onSubmit={handleSaveVacancy} style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, color: '#334155', marginBottom: 4 }}>
                 Job Title *

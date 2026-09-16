@@ -7847,13 +7847,16 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 20px 48px;
+  justify-content: center;
+  padding: 72px 20px 48px;
+  position: relative;
 }
 
 .portalLoginBackStrip {
   width: 100%;
   max-width: 460px;
-  margin-bottom: 20px;
+  position: absolute;
+  top: 24px;
 }
 
 .portalBackLink {
@@ -11033,4 +11036,187 @@ a {
   font-size: 0.775rem;
   color: #166534;
   line-height: 1.4;
+}
+
+/* Careers application: spacious, guided, mobile-first form */
+.careersFormContainer {
+  background: #fff;
+  border: 1px solid #dbe5ec;
+  border-radius: 8px;
+  box-shadow: 0 14px 36px rgba(22, 46, 86, 0.08);
+  margin: 0 auto;
+  max-width: 920px;
+  padding: 34px 40px 40px;
+}
+
+.careersStepTracker {
+  align-items: flex-start;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 38px;
+}
+
+.stepDot {
+  align-items: center;
+  color: #718096;
+  display: flex;
+  flex: 0 0 82px;
+  flex-direction: column;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 7px;
+  text-align: center;
+}
+
+.stepNum {
+  align-items: center;
+  background: #eef3f7;
+  border: 2px solid #d6e0e8;
+  border-radius: 50%;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.stepDot.active { color: #173f6c; }
+.stepDot.active .stepNum { background: #173f6c; border-color: #173f6c; color: #fff; }
+.stepDot.done .stepNum { background: #277b78; border-color: #277b78; color: #fff; }
+.stepLine { background: #dbe5ec; flex: 1; height: 2px; margin: 17px -10px 0; max-width: 84px; }
+
+.formStepFieldset {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.formStepFieldset .stepTitle {
+  color: #17345d;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 8px;
+  padding: 0;
+  width: 100%;
+}
+
+.stepDescription {
+  color: #5e6c7d;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  margin: 0 0 30px;
+  max-width: 720px;
+}
+
+.formRowGrid {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.formGroup { margin-bottom: 24px; }
+.formLabel { color: #243b57; display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; }
+
+.formInput,
+.formSelect,
+.formTextarea {
+  background: #fff;
+  border: 1px solid #b9c8d3;
+  border-radius: 6px;
+  color: #142d4f;
+  font: inherit;
+  font-size: 0.96rem;
+  min-height: 50px;
+  outline: none;
+  padding: 12px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.formTextarea { min-height: 118px; resize: vertical; }
+.formInput:focus, .formSelect:focus, .formTextarea:focus { border-color: #397f86; box-shadow: 0 0 0 3px rgba(57,127,134,.14); }
+
+.checkboxGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.checkboxGrid label,
+.checkboxConsentLabel {
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #dce5eb;
+  border-radius: 6px;
+  color: #334b65;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  line-height: 1.5;
+  padding: 13px 14px;
+}
+
+.checkboxGrid input,
+.checkboxConsentLabel input { flex: none; height: 18px; margin-top: 2px; width: 18px; }
+
+.privacyProtectionNotice,
+.adjustmentNoticeBox,
+.successSecurityNotice {
+  align-items: flex-start;
+  background: #eef8f6;
+  border: 1px solid #c9e4df;
+  border-radius: 6px;
+  color: #275d5b;
+  display: flex;
+  font-size: 0.87rem;
+  gap: 10px;
+  line-height: 1.55;
+  margin: 4px 0 26px;
+  padding: 14px 16px;
+}
+
+.formErrorAlert { align-items: center; background: #fff2f2; border: 1px solid #efcaca; border-radius: 6px; color: #a52b2b; display: flex; gap: 10px; margin-bottom: 24px; padding: 14px 16px; }
+.formNavRow { align-items: center; border-top: 1px solid #e3ebf0; display: flex; gap: 12px; justify-content: space-between; margin-top: 30px; padding-top: 24px; }
+.consentBox { display: grid; gap: 12px; margin: 24px 0; }
+.reviewSummaryCard { background: #f5f8fa; border: 1px solid #dce5eb; border-radius: 6px; margin: 24px 0; padding: 18px 20px; }
+.reviewRow { border-bottom: 1px solid #e1e8ed; display: grid; gap: 20px; grid-template-columns: 165px 1fr; padding: 11px 0; }
+.reviewRow:last-child { border-bottom: 0; }
+.reviewLabel { color: #5d6d7f; font-weight: 700; }
+.daysPillRow, .timesPillRow { display: flex; flex-wrap: wrap; gap: 9px; }
+.dayPillBtn, .timePillBtn { background: #fff; border: 1px solid #bdcad4; border-radius: 999px; color: #334b65; cursor: pointer; min-height: 40px; padding: 8px 14px; }
+.dayPillBtn.selected, .timePillBtn.selected { background: #e8f5f4; border-color: #397f86; color: #215f64; font-weight: 700; }
+
+/* Recruitment CRM: roomier operational forms without changing workflow logic */
+.crmRecruitmentTabRoot { margin: 0 auto; max-width: 1680px; padding: 32px clamp(20px, 3vw, 48px) !important; }
+.recruitmentPageHeader { gap: 24px; }
+.recruitmentHeaderActions { flex-wrap: wrap; justify-content: flex-end; }
+.recruitmentModalOverlay { overflow-y: auto; padding: 32px !important; }
+.recruitmentHireModal { max-height: calc(100vh - 64px); max-width: 760px !important; overflow-y: auto; padding: 36px !important; }
+.recruitmentHireModal input, .recruitmentHireModal select, .recruitmentVacancyForm input, .recruitmentVacancyForm select, .recruitmentVacancyForm textarea { min-height: 48px; padding: 11px 13px !important; }
+.recruitmentVacancyDrawer { max-width: 820px !important; }
+.recruitmentVacancyForm { padding: 30px 36px 40px !important; }
+.recruitmentVacancyForm textarea { min-height: 130px; resize: vertical; }
+
+@media (max-width: 760px) {
+  .portalLoginWrapper { justify-content: flex-start; padding: 76px 16px 32px; }
+  .portalLoginBackStrip { left: 16px; right: 16px; top: 20px; width: auto; }
+  .portalAuthCard { border-radius: 8px; padding: 28px 20px; }
+  .portalRoleToggle { flex-direction: column; }
+  .careersFormContainer { border-left: 0; border-radius: 0; border-right: 0; padding: 26px 18px 32px; }
+  .careersStepTracker { justify-content: space-between; margin-bottom: 30px; overflow-x: auto; padding-bottom: 6px; }
+  .stepDot { flex-basis: 56px; font-size: 0.68rem; }
+  .stepLine { min-width: 18px; }
+  .formRowGrid, .checkboxGrid { grid-template-columns: 1fr; gap: 0; }
+  .formStepFieldset .stepTitle { font-size: 1.35rem; }
+  .formNavRow { align-items: stretch; flex-direction: column-reverse; }
+  .formNavRow .btnPrimary, .formNavRow .btnSecondary { justify-content: center; width: 100%; }
+  .reviewRow { gap: 4px; grid-template-columns: 1fr; }
+  .crmRecruitmentTabRoot { padding: 20px 14px !important; }
+  .recruitmentPageHeader { align-items: stretch !important; flex-direction: column; }
+  .recruitmentHeaderActions { display: grid !important; grid-template-columns: 1fr; }
+  .recruitmentModalOverlay { align-items: flex-start !important; padding: 12px !important; }
+  .recruitmentHireModal { border-radius: 8px !important; max-height: none; padding: 22px 18px !important; }
+  .recruitmentVacancyDrawer { border-left: 0 !important; max-width: none !important; }
+  .recruitmentVacancyForm { padding: 22px 18px 32px !important; }
 }
