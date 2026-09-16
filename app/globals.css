@@ -1024,6 +1024,23 @@ a {
   align-items: start;
 }
 
+.planningEstimatorFullWidth {
+  margin: 0 auto;
+  max-width: 1120px;
+}
+
+.coverageSectionBand {
+  background: #f4f9fc;
+  border-bottom: 1px solid #e1ebf0;
+  border-top: 1px solid #e1ebf0;
+  padding: 18px 0 72px;
+}
+
+.coverageSectionBand .coverageCardWrapper {
+  margin: 0 auto;
+  max-width: 1280px;
+}
+
 .supportFinderCard, .coverageCardWrapper {
   background: #FFFFFF;
   border: 1.5px solid var(--border-card);
@@ -6898,6 +6915,18 @@ a {
   color: #475569;
   margin: 0;
   line-height: 1.45;
+}
+
+.iLoveNdisDisclosure {
+  color: #5b6475;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.homeNdisProviderPanel {
+  padding-bottom: 28px;
+  padding-top: 28px;
 }
 
 /* =============================================================================
