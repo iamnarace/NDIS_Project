@@ -31,6 +31,7 @@ export function createDocumentSnapshot(agreement: any, org?: any): { snapshot: R
     template_version: agreement.template_version,
     template_code: agreement.template?.template_code || 'CONTROLLED AGREEMENT',
     source_basis: agreement.template?.source_basis || 'SCHADS Industry Award 2010',
+    template_clause_schema: sortKeys(agreement.template?.clause_schema || {}),
     owner_type: agreement.owner_type,
     owner_id: agreement.owner_id,
     title: agreement.title,
@@ -41,7 +42,9 @@ export function createDocumentSnapshot(agreement: any, org?: any): { snapshot: R
     review_date: agreement.review_date || null,
     expiry_date: agreement.expiry_date || null,
     estimated_budget: agreement.estimated_budget || null,
-    provider_legal_name: org?.tradingName || org?.legalName || 'Opus Care Support Services',
+    provider_legal_name:
+      org?.proprietorLegalName || org?.legalName || org?.tradingName || 'Opus Care Support Services',
+    provider_trading_name: org?.tradingName || 'Opus Care Support Services',
     provider_abn: org?.abn || '41 267 197 576',
     provider_proprietor: org?.proprietorLegalName || null,
   };
@@ -475,6 +478,36 @@ export async function executeProviderSigning(
     ['worker', 'participant', 'guardian', 'contractor'].includes(s.party_role)
   );
 
+  let frozenRecipientSnapshot: Record<string, any> | null = null;
+  if (recipientSig?.signing_method === 'email_link') {
+    const { data: signedInvitation, error: invitationError } = await supabase
+      .from('agreement_signing_invitations')
+      .select('document_snapshot, document_hash_sha256')
+      .eq('agreement_id', agreementId)
+      .eq('party_role', recipientSig.party_role)
+      .eq('status', 'signed')
+      .order('signed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (invitationError || !signedInvitation) {
+      return {
+        ok: false,
+        error: 'The recipient signing snapshot could not be verified. Issue a controlled variation instead of countersigning this agreement.',
+      };
+    }
+
+    const currentSnapshot = createDocumentSnapshot(agreement, org);
+    if (currentSnapshot.hash !== signedInvitation.document_hash_sha256) {
+      return {
+        ok: false,
+        error: 'The agreement terms differ from the document signed by the recipient. Create a controlled variation and obtain fresh signatures.',
+      };
+    }
+
+    frozenRecipientSnapshot = signedInvitation.document_snapshot;
+  }
+
   let executedPdfPath = '';
   let executedHash = '';
 
@@ -493,7 +526,9 @@ export async function executeProviderSigning(
 
     const combinedSignatures = [...existingSigs, providerCandidateSig];
     const pdfBytes = await generateAuthoritativeExecutedPdf({
-      agreement,
+      agreement: frozenRecipientSnapshot
+        ? { ...agreement, frozen_snapshot: frozenRecipientSnapshot }
+        : agreement,
       signatures: combinedSignatures,
       org,
     });

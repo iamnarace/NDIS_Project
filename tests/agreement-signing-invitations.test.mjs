@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { PDFDocument } from 'pdf-lib';
 import {
   hashSigningToken,
   createDocumentSnapshot,
@@ -49,6 +50,9 @@ test('Agreement External Signing — Frozen Snapshot Integrity & Expansion', () 
     template: {
       template_code: 'DOC-WRK-01',
       source_basis: 'SCHADS Industry Award 2010',
+      clause_schema: {
+        confidentiality: 'Protect participant and worker information.',
+      },
     },
   };
 
@@ -64,8 +68,10 @@ test('Agreement External Signing — Frozen Snapshot Integrity & Expansion', () 
 
   // Proves snapshot contains contractual terms, verified ABN, and provider legal name
   assert.equal(snapshot.provider_abn, '41 267 197 576');
-  assert.equal(snapshot.provider_legal_name, 'Opus Care Support Services');
+  assert.equal(snapshot.provider_legal_name, 'Authorised Proprietor');
+  assert.equal(snapshot.provider_trading_name, 'Opus Care Support Services');
   assert.equal(snapshot.compiled_clauses.confidentiality, 'Strict non-disclosure of participant information.');
+  assert.equal(snapshot.template_clause_schema.confidentiality, 'Protect participant and worker information.');
 
   // Tampering with material terms must change snapshot hash
   const tampered = {
@@ -98,10 +104,13 @@ test('Agreement External Signing — Genuine PDF Generation (%PDF-)', async () =
       },
       frozen_snapshot: {
         provider_abn: '41 267 197 576',
-        provider_legal_name: 'Opus Care Support Services',
+        provider_legal_name: 'Authorised Proprietor',
         compiled_clauses: {
           classification: 'Support Worker Level 2',
           frozen_terms: 'Frozen contractual terms at issuance.',
+        },
+        template_clause_schema: {
+          complete_terms: 'This complete approved clause must continue without truncation. '.repeat(450),
         },
       },
     },
@@ -135,6 +144,9 @@ test('Agreement External Signing — Genuine PDF Generation (%PDF-)', async () =
   // Verify valid PDF magic bytes (%PDF-)
   const magicBytes = pdfBuffer.subarray(0, 5).toString('ascii');
   assert.equal(magicBytes, '%PDF-', 'Document must begin with %PDF-');
+
+  const loadedPdf = await PDFDocument.load(pdfBuffer);
+  assert.ok(loadedPdf.getPageCount() > 2, 'Long approved clauses must flow across continuation pages');
 
   // Authoritative hash must be 64-char lowercase hex of the actual PDF bytes
   const hash = calculateAuthoritativeHash(pdfBuffer);
@@ -180,6 +192,7 @@ test('Agreement External Signing — Storage Failure Aborts Execution', async ()
 
 test('Agreement External Signing — Neutral Footer & Database RPC Guarantees', () => {
   const migration = readFileSync('supabase/migrations/20260916210000_agreement_signing_invitations.sql', 'utf8');
+  const integrityMigration = readFileSync('supabase/migrations/20260917110000_agreement_snapshot_integrity_closure.sql', 'utf8');
 
   // 1. Prove duplicate provider signature is prevented by database unique index
   assert.match(migration, /create unique index if not exists uq_agreement_provider_signature/i);
@@ -200,10 +213,22 @@ test('Agreement External Signing — Neutral Footer & Database RPC Guarantees', 
   assert.match(migration, /revoke all on function public\.execute_internal_recipient_signature/i);
   assert.match(migration, /grant execute on function public\.execute_internal_recipient_signature.*to service_role/i);
 
-  // 5. Neutral legal wording in executed document footer (no determination assertions)
+  // 5. Material terms lock as soon as an invitation or signature exists.
+  assert.match(integrityMigration, /agreement_material_terms_locked_after_signing_started/i);
+  assert.match(integrityMigration, /agreement_signatures/i);
+  assert.match(integrityMigration, /status in \('pending', 'viewed', 'signed'\)/i);
+
+  // 6. Neutral legal wording and complete multi-page clause rendering.
   const agreementPdfCode = readFileSync('lib/services/agreementPdf.ts', 'utf8');
   assert.match(agreementPdfCode, /This document records electronic signatures applied by the parties/);
   assert.doesNotMatch(agreementPdfCode, /constitutes a binding legal agreement/i);
+  assert.doesNotMatch(agreementPdfCode, /substring\(0,\s*180\)/i);
+  assert.match(agreementPdfCode, /APPROVED CONTRACTUAL TERMS & CONDITIONS \(CONTINUED\)/i);
+
+  const agreementExecutionCode = readFileSync('lib/services/agreementExecution.ts', 'utf8');
+  assert.match(agreementExecutionCode, /provider_legal_name:\s*\n?\s*org\?\.proprietorLegalName/i);
+  assert.match(agreementExecutionCode, /signedInvitation\.document_snapshot/i);
+  assert.match(agreementExecutionCode, /terms differ from the document signed by the recipient/i);
 });
 
 test('Agreement External Signing — Expiration Lifecycle Transitions', async () => {

@@ -41,6 +41,10 @@ function sanitizeText(str: any): string {
   return String(str).replace(/[^\x20-\x7E\t\n\r]/g, ' ');
 }
 
+function titleizeClauseKey(key: string): string {
+  return key.replace(/[_-]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocumentPayload): Promise<Buffer> {
   const { agreement, signatures, org } = payload;
   // Frozen Snapshot Integrity: Draw all terms from the frozen snapshot if present, else compiled clauses
@@ -82,7 +86,16 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
   y -= 18;
 
   const abnDisplay = snapshot.provider_abn || org?.abn || '41 267 197 576';
-  const providerEntity = snapshot.provider_legal_name || org?.tradingName || 'Opus Care Support Services';
+  const providerLegalName =
+    snapshot.provider_legal_name ||
+    org?.proprietorLegalName ||
+    org?.legalName ||
+    org?.tradingName ||
+    'Opus Care Support Services';
+  const providerTradingName = snapshot.provider_trading_name || org?.tradingName || 'Opus Care Support Services';
+  const providerEntity = providerLegalName === providerTradingName
+    ? providerLegalName
+    : `${providerLegalName}, trading as ${providerTradingName}`;
   const recipientName = qData.worker_name || qData.participant_name || recipientSig?.signer_name || 'Recorded Recipient';
 
   const partyDetails = [
@@ -123,24 +136,148 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
   page1.drawText('3. APPROVED CONTRACTUAL TERMS & CONDITIONS', { x: 50, y, size: 12, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
   y -= 18;
 
-  const contractualTerms = snapshot.compiled_clauses || clauses || {};
+  const snapshotTemplateClauses = snapshot.template_clause_schema || {};
+  const contractualTerms = Object.keys(snapshotTemplateClauses).length > 0
+    ? snapshotTemplateClauses
+    : snapshot.compiled_clauses || clauses || {};
   const entries = Object.entries(contractualTerms);
 
   if (entries.length > 0) {
-    for (const [key, val] of entries) {
-      if (y < 120) {
-        // Stop on page 1, let remaining flow or render summarized
-        break;
-      }
-      const heading = key.replace(/[_-]+/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-      page1.drawText(sanitizeText(heading), { x: 60, y, size: 10, font: fontBold, color: rgb(0.1, 0.15, 0.25) });
-      y -= 14;
+    let termsPage = page1;
+    let termsY = y;
+    const marginBottom = 54;
+    const contentLeft = 70;
+    const contentRight = 50;
 
-      const textVal = typeof val === 'string' || typeof val === 'number' ? String(val) : JSON.stringify(val);
-      const truncated = textVal.length > 180 ? textVal.substring(0, 180) + '...' : textVal;
-      page1.drawText(sanitizeText(truncated), { x: 70, y, size: 9, font, color: rgb(0.3, 0.35, 0.45) });
-      y -= 16;
+    const addTermsContinuationPage = () => {
+      termsPage = pdfDoc.addPage([595.28, 841.89]);
+      termsY = height - 50;
+      termsPage.drawText('OPUS CARE SUPPORT SERVICES', {
+        x: 50,
+        y: termsY,
+        size: 10,
+        font: fontBold,
+        color: rgb(0.01, 0.52, 0.78),
+      });
+      termsY -= 20;
+      termsPage.drawText('3. APPROVED CONTRACTUAL TERMS & CONDITIONS (CONTINUED)', {
+        x: 50,
+        y: termsY,
+        size: 11,
+        font: fontBold,
+        color: rgb(0.06, 0.09, 0.16),
+      });
+      termsY -= 14;
+      termsPage.drawLine({
+        start: { x: 50, y: termsY },
+        end: { x: width - 50, y: termsY },
+        thickness: 1.2,
+        color: rgb(0.01, 0.52, 0.78),
+      });
+      termsY -= 24;
+    };
+
+    const ensureTermsSpace = (requiredHeight: number) => {
+      if (termsY - requiredHeight < marginBottom) addTermsContinuationPage();
+    };
+
+    const wrapText = (value: string, maxWidth: number, size: number, textFont: typeof font) => {
+      const paragraphs = sanitizeText(value).split(/\r?\n/);
+      const lines: string[] = [];
+
+      for (const paragraph of paragraphs) {
+        const words = paragraph.trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) {
+          lines.push('');
+          continue;
+        }
+
+        let current = '';
+        for (const word of words) {
+          const candidate = current ? `${current} ${word}` : word;
+          if (textFont.widthOfTextAtSize(candidate, size) <= maxWidth) {
+            current = candidate;
+            continue;
+          }
+
+          if (current) lines.push(current);
+          current = word;
+        }
+        if (current) lines.push(current);
+      }
+
+      return lines;
+    };
+
+    const drawWrappedClauseText = (
+      value: string,
+      options: { indent?: number; size?: number; bold?: boolean; color?: ReturnType<typeof rgb>; lineHeight?: number } = {}
+    ) => {
+      const indent = options.indent || 0;
+      const size = options.size || 9;
+      const lineHeight = options.lineHeight || 13;
+      const textFont = options.bold ? fontBold : font;
+      const maxWidth = width - contentLeft - contentRight - indent;
+      const lines = wrapText(value, maxWidth, size, textFont);
+
+      for (const line of lines) {
+        ensureTermsSpace(lineHeight);
+        if (line) {
+          termsPage.drawText(line, {
+            x: contentLeft + indent,
+            y: termsY,
+            size,
+            font: textFont,
+            color: options.color || rgb(0.3, 0.35, 0.45),
+          });
+        }
+        termsY -= lineHeight;
+      }
+    };
+
+    const drawClauseValue = (value: unknown, depth = 0): void => {
+      if (value == null) return;
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item != null && typeof item === 'object') {
+            drawClauseValue(item, depth + 1);
+          } else {
+            drawWrappedClauseText(`- ${String(item)}`, { indent: Math.min(depth * 12, 48) });
+          }
+        }
+        return;
+      }
+
+      if (typeof value === 'object') {
+        for (const [nestedKey, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+          ensureTermsSpace(30);
+          drawWrappedClauseText(titleizeClauseKey(nestedKey), {
+            indent: Math.min(depth * 12, 48),
+            size: 9,
+            bold: true,
+            color: rgb(0.16, 0.22, 0.32),
+          });
+          drawClauseValue(nestedValue, depth + 1);
+          termsY -= 4;
+        }
+        return;
+      }
+
+      drawWrappedClauseText(String(value), { indent: Math.min(depth * 12, 48) });
+    };
+
+    for (const [key, val] of entries) {
+      ensureTermsSpace(36);
+      drawWrappedClauseText(titleizeClauseKey(key), {
+        size: 10,
+        bold: true,
+        color: rgb(0.1, 0.15, 0.25),
+        lineHeight: 14,
+      });
+      drawClauseValue(val);
+      termsY -= 8;
     }
+    y = termsY;
   } else {
     page1.drawText('Standard approved terms and conditions apply as documented in the operational master schedule.', {
       x: 60,

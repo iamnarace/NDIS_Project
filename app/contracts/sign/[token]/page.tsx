@@ -252,6 +252,11 @@ export default function ContractSignPage() {
   const qData = agr.questionnaire_data || {};
   const clauses = agr.compiled_clauses || {};
   const template = agr.template || {};
+  const providerLegalName = documentData?.org?.legalName || 'Opus Care Support Services';
+  const providerTradingName = documentData?.org?.tradingName || 'Opus Care Support Services';
+  const providerPartyName = providerLegalName === providerTradingName
+    ? providerLegalName
+    : `${providerLegalName}, trading as ${providerTradingName}`;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '32px 16px', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif' }}>
@@ -297,7 +302,7 @@ export default function ContractSignPage() {
           <section style={{ padding: '20px 0', borderBottom: '1px solid #f1f5f9' }}>
             <h2 style={{ fontSize: 16, margin: '0 0 16px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.02em' }}>Parties &amp; Commencement</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 32px' }}>
-              <div><dt style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Provider</dt><dd style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600 }}>Opus Care Support Services (ABN 41 267 197 576)</dd></div>
+              <div><dt style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Provider</dt><dd style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600 }}>{providerPartyName} (ABN {documentData?.org?.abn || '41 267 197 576'})</dd></div>
               <div><dt style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{agr.owner_type === 'participant' ? 'Participant' : 'Worker / Employee'}</dt><dd style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600 }}>{qData.participant_name || qData.worker_name || documentData?.invitation?.recipient_name}</dd></div>
               <div><dt style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Commencement Date</dt><dd style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600 }}>{agr.commencement_date || 'Immediate'}</dd></div>
               <div><dt style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Review / Expiry Date</dt><dd style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600 }}>{agr.review_date || agr.expiry_date || '12 Months'}</dd></div>

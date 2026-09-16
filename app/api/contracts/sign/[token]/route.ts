@@ -93,11 +93,20 @@ export async function GET(
       expiry_date: agreement.expiry_date,
       questionnaire_data: snapshot.questionnaire_data || agreement.questionnaire_data,
       compiled_clauses: snapshot.compiled_clauses || agreement.compiled_clauses,
-      template: agreement.template,
+      template: {
+        template_code: snapshot.template_code || agreement.template?.template_code,
+        source_basis: snapshot.source_basis || agreement.template?.source_basis,
+        clause_schema: snapshot.template_clause_schema || agreement.template?.clause_schema || {},
+      },
     },
     provider_signed: (agreement.signatures || []).some((s: any) => s.party_role === 'provider_rep'),
     org: {
-      tradingName: org.tradingName,
+      legalName:
+        snapshot.provider_legal_name ||
+        org.proprietorLegalName ||
+        org.legalName ||
+        org.tradingName,
+      tradingName: snapshot.provider_trading_name || org.tradingName,
       abn: org.abn,
       supportEmail: org.supportEmail,
     },
