@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getOrganisationProfile } from '@/lib/organisation';
-import { hashSigningToken, executeExternalSigning } from '@/lib/services/agreementExecution';
+import {
+  hashSigningToken,
+  executeExternalSigning,
+  checkAndExpireInvitations,
+} from '@/lib/services/agreementExecution';
 import { sendAgreementExecutionCompletedEmail } from '@/lib/email';
 
 const PRIVACY_HEADERS = {
@@ -50,6 +54,7 @@ export async function GET(
   }
 
   if (inv.status === 'expired' || new Date() > new Date(inv.expires_at)) {
+    await checkAndExpireInvitations(supabase, inv.agreement_id);
     return NextResponse.json({
       message: 'This signing invitation has expired. Please contact support@opuscare.com.au for an updated agreement.',
       code: 'EXPIRED',

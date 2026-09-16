@@ -1,5 +1,5 @@
 -- Migration: 20260916210000_agreement_signing_invitations.sql
--- Description: External contract signing invitations, token hashing, audit trail, and atomic execution RPCs.
+-- Description: External contract signing invitations, token hashing, audit trail, idempotent provider signing, and atomic execution RPCs.
 
 -- 1. Create table for tokenized external signing invitations
 create table if not exists public.agreement_signing_invitations (
@@ -48,11 +48,16 @@ create unique index if not exists uq_agreement_active_invitation
   on public.agreement_signing_invitations (agreement_id, party_role)
   where status in ('pending', 'viewed');
 
--- 3. Additional query indexes
+-- 3. Idempotency Guard: Prevent duplicate provider_rep signatures on the same agreement
+create unique index if not exists uq_agreement_provider_signature
+  on public.agreement_signatures (agreement_id)
+  where party_role = 'provider_rep';
+
+-- 4. Additional query indexes
 create index if not exists idx_agreement_invitations_token_hash on public.agreement_signing_invitations(token_hash);
 create index if not exists idx_agreement_invitations_agreement_id on public.agreement_signing_invitations(agreement_id);
 
--- 4. RLS & Permissions: Complete lockdown from public/authenticated direct access
+-- 5. RLS & Permissions: Complete lockdown from public/authenticated direct access
 alter table public.agreement_signing_invitations enable row level security;
 
 -- Revoke all direct privileges from public and anon
@@ -71,7 +76,7 @@ create policy "Server service-role manages signing invitations"
   using (true)
   with check (true);
 
--- 5. Atomic PostgreSQL RPC for external recipient signing
+-- 6. Atomic PostgreSQL RPC for external recipient signing
 create or replace function public.execute_external_agreement_signature(
   p_token_hash text,
   p_signer_name text,
@@ -125,7 +130,6 @@ begin
   end if;
 
   -- 3. Verify server-recorded email is used (not client-supplied email)
-  -- Insert immutable signature into agreement_signatures
   insert into public.agreement_signatures (
     agreement_id,
     party_role,
@@ -209,7 +213,7 @@ begin
 end;
 $$;
 
--- 6. Atomic PostgreSQL RPC for provider counter-signing / internal execution finalization
+-- 7. Atomic PostgreSQL RPC for provider signing (Idempotent: prevents duplicate provider signatures)
 create or replace function public.execute_provider_agreement_signature(
   p_agreement_id uuid,
   p_signer_name text,
@@ -219,8 +223,8 @@ create or replace function public.execute_provider_agreement_signature(
   p_signature_image_data text,
   p_ip_address text,
   p_user_agent text,
-  p_executed_pdf_path text,
-  p_executed_hash_sha256 text
+  p_executed_pdf_path text default null,
+  p_executed_hash_sha256 text default null
 )
 returns jsonb
 language plpgsql
@@ -232,6 +236,7 @@ declare
   v_has_recipient boolean;
   v_sig_id uuid;
   v_prior_agreement_id uuid;
+  v_existing_sig_id uuid;
 begin
   -- 1. Lock agreement record
   select * into v_agreement
@@ -243,32 +248,41 @@ begin
     return jsonb_build_object('ok', false, 'error', 'Agreement not found or cannot be signed.');
   end if;
 
-  -- 2. Insert provider signature
-  insert into public.agreement_signatures (
-    agreement_id,
-    party_role,
-    signer_name,
-    signer_title,
-    signer_email,
-    signing_method,
-    signature_image_data,
-    ip_address,
-    user_agent,
-    signed_at,
-    is_verified
-  ) values (
-    p_agreement_id,
-    'provider_rep',
-    p_signer_name,
-    p_signer_title,
-    p_signer_email,
-    p_signing_method,
-    p_signature_image_data,
-    p_ip_address,
-    p_user_agent,
-    now(),
-    true
-  ) returning id into v_sig_id;
+  -- 2. Idempotent check: Check if provider representative has ALREADY signed
+  select id into v_existing_sig_id
+  from public.agreement_signatures
+  where agreement_id = p_agreement_id and party_role = 'provider_rep'
+  limit 1;
+
+  if v_existing_sig_id is not null then
+    v_sig_id := v_existing_sig_id;
+  else
+    insert into public.agreement_signatures (
+      agreement_id,
+      party_role,
+      signer_name,
+      signer_title,
+      signer_email,
+      signing_method,
+      signature_image_data,
+      ip_address,
+      user_agent,
+      signed_at,
+      is_verified
+    ) values (
+      p_agreement_id,
+      'provider_rep',
+      p_signer_name,
+      p_signer_title,
+      p_signer_email,
+      p_signing_method,
+      p_signature_image_data,
+      p_ip_address,
+      p_user_agent,
+      now(),
+      true
+    ) returning id into v_sig_id;
+  end if;
 
   -- 3. Check if recipient (worker or participant) has signed
   select exists (
@@ -314,9 +328,127 @@ begin
 end;
 $$;
 
--- 7. Hard Security Definer Lockdown: Explicitly revoke execute from PUBLIC, anon, and authenticated
+-- 8. Atomic PostgreSQL RPC for internal recipient signing (Unifies internal signing path)
+create or replace function public.execute_internal_recipient_signature(
+  p_agreement_id uuid,
+  p_party_role text,
+  p_signer_name text,
+  p_signer_title text,
+  p_signer_email text,
+  p_signing_method text,
+  p_signature_image_data text,
+  p_ip_address text,
+  p_user_agent text,
+  p_executed_pdf_path text default null,
+  p_executed_hash_sha256 text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_agreement record;
+  v_has_provider boolean;
+  v_sig_id uuid;
+  v_prior_agreement_id uuid;
+  v_existing_sig_id uuid;
+begin
+  -- 1. Row-lock agreement
+  select * into v_agreement
+  from public.agreement_records
+  where id = p_agreement_id
+  for update;
+
+  if not found or v_agreement.status in ('superseded', 'terminated', 'expired') then
+    return jsonb_build_object('ok', false, 'error', 'Agreement not found or cannot be signed.');
+  end if;
+
+  -- 2. Check if this role has already signed
+  select id into v_existing_sig_id
+  from public.agreement_signatures
+  where agreement_id = p_agreement_id and party_role = p_party_role
+  limit 1;
+
+  if v_existing_sig_id is not null then
+    v_sig_id := v_existing_sig_id;
+  else
+    insert into public.agreement_signatures (
+      agreement_id,
+      party_role,
+      signer_name,
+      signer_title,
+      signer_email,
+      signing_method,
+      signature_image_data,
+      ip_address,
+      user_agent,
+      signed_at,
+      is_verified
+    ) values (
+      p_agreement_id,
+      p_party_role,
+      p_signer_name,
+      p_signer_title,
+      p_signer_email,
+      p_signing_method,
+      p_signature_image_data,
+      p_ip_address,
+      p_user_agent,
+      now(),
+      true -- Internal in-person signing recorded by authenticated staff
+    ) returning id into v_sig_id;
+  end if;
+
+  -- 3. Check if provider rep has signed
+  select exists (
+    select 1 from public.agreement_signatures
+    where agreement_id = p_agreement_id and party_role = 'provider_rep'
+  ) into v_has_provider;
+
+  if v_has_provider then
+    -- Hard Guard: Active status requires authoritative executed evidence
+    if p_executed_pdf_path is null or p_executed_pdf_path = '' or p_executed_hash_sha256 is null or p_executed_hash_sha256 !~ '^[0-9a-f]{64}$' then
+      raise exception 'active_status_requires_valid_executed_evidence';
+    end if;
+
+    update public.agreement_records
+    set status = 'active',
+        executed_at = now(),
+        executed_hash_sha256 = p_executed_hash_sha256,
+        executed_pdf_path = p_executed_pdf_path,
+        updated_at = now()
+    where id = p_agreement_id;
+
+    -- Supersede prior if variation
+    v_prior_agreement_id := (v_agreement.compiled_clauses->>'variation_of_agreement_id')::uuid;
+    if v_prior_agreement_id is not null then
+      update public.agreement_records
+      set status = 'superseded',
+          superseded_by_id = p_agreement_id,
+          updated_at = now()
+      where id = v_prior_agreement_id
+        and status in ('active', 'fully_signed');
+    end if;
+
+    return jsonb_build_object('ok', true, 'signature_id', v_sig_id, 'agreement_status', 'active', 'is_fully_signed', true);
+  else
+    update public.agreement_records
+    set status = 'partially_signed',
+        updated_at = now()
+    where id = p_agreement_id;
+
+    return jsonb_build_object('ok', true, 'signature_id', v_sig_id, 'agreement_status', 'partially_signed', 'is_fully_signed', false);
+  end if;
+end;
+$$;
+
+-- 9. Hard Security Definer Lockdown: Explicitly revoke execute from PUBLIC, anon, and authenticated
 revoke all on function public.execute_external_agreement_signature(text, text, text, text, text, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.execute_external_agreement_signature(text, text, text, text, text, text, text, text, text) to service_role;
 
 revoke all on function public.execute_provider_agreement_signature(uuid, text, text, text, text, text, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.execute_provider_agreement_signature(uuid, text, text, text, text, text, text, text, text, text) to service_role;
+
+revoke all on function public.execute_internal_recipient_signature(uuid, text, text, text, text, text, text, text, text, text, text) from public, anon, authenticated;
+grant execute on function public.execute_internal_recipient_signature(uuid, text, text, text, text, text, text, text, text, text, text) to service_role;

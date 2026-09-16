@@ -6,6 +6,7 @@ import {
   createSigningInvitation,
   revokeSigningInvitation,
   executeProviderSigning,
+  checkAndExpireInvitations,
 } from '@/lib/services/agreementExecution';
 import { sendAgreementSigningInvitationEmail } from '@/lib/email';
 
@@ -21,6 +22,9 @@ export async function GET(
 
   const { id: agreementId } = await params;
   if (!agreementId) return NextResponse.json({ message: 'Agreement ID is required' }, { status: 400 });
+
+  // Run expiry sweep on invitations past expires_at
+  await checkAndExpireInvitations(supabase, agreementId);
 
   const { data: invitations, error } = await supabase
     .from('agreement_signing_invitations')
@@ -60,7 +64,6 @@ export async function POST(
       return NextResponse.json({ message: 'Recipient name and email are required.' }, { status: 400 });
     }
 
-    // Check legal contracting identity
     const org = await getOrganisationProfile(supabase);
     if (!org.proprietorLegalName || !org.proprietorLegalName.trim()) {
       return NextResponse.json({
@@ -68,36 +71,46 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // 1. Explicit Provider Pre-Signing (requires explicit intent and signature data)
+    // 1. Provider Pre-Signing (Idempotent: Reuse existing provider signature if already on file)
     if (sign_as_provider) {
-      if (!provider_signature_data) {
-        return NextResponse.json({
-          message: 'Provider signature is required when selecting "Sign as Provider & Send".'
-        }, { status: 400 });
-      }
+      const { data: existingProvSig } = await supabase
+        .from('agreement_signatures')
+        .select('id')
+        .eq('agreement_id', agreementId)
+        .eq('party_role', 'provider_rep')
+        .maybeSingle();
 
-      const provResult = await executeProviderSigning(supabase, {
-        agreementId,
-        signerName: provider_signer_name || 'Naresh Admin',
-        signerTitle: 'Managing Director, Opus Care Support Services',
-        signerEmail: org.supportEmail || 'support@opuscare.com.au',
-        signatureImageData: provider_signature_data,
-        signingMethod: 'digital_canvas',
-        org,
-      });
+      if (!existingProvSig) {
+        if (!provider_signature_data) {
+          return NextResponse.json({
+            message: 'Provider signature is required when selecting "Sign as Provider & Send".'
+          }, { status: 400 });
+        }
 
-      if (!provResult.ok) {
-        return NextResponse.json({ message: provResult.error || 'Failed to record provider signature.' }, { status: 500 });
+        const provResult = await executeProviderSigning(supabase, {
+          agreementId,
+          signerName: provider_signer_name || 'Naresh Admin',
+          signerTitle: 'Managing Director, Opus Care Support Services',
+          signerEmail: org.supportEmail || 'support@opuscare.com.au',
+          signatureImageData: provider_signature_data,
+          signingMethod: 'digital_canvas',
+          org,
+        });
+
+        if (!provResult.ok) {
+          return NextResponse.json({ message: provResult.error || 'Failed to record provider signature.' }, { status: 500 });
+        }
       }
     }
 
-    // 2. Create signing invitation with frozen snapshot
+    // 2. Create signing invitation with expanded frozen snapshot
     const invResult = await createSigningInvitation(supabase, {
       agreementId,
       partyRole: party_role,
       recipientName: recipient_name,
       recipientEmail: recipient_email,
       createdBy: 'Admin',
+      org,
     });
 
     if (!invResult.ok || !invResult.rawToken || !invResult.invitation) {
@@ -129,7 +142,7 @@ export async function POST(
     });
 
     if (!mailResult.ok) {
-      // Record delivery failure
+      // Record delivery failure strictly
       await supabase
         .from('agreement_signing_invitations')
         .update({

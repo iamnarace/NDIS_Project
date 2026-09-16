@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
-  generateAuthoritativeExecutedBytes,
+  generateAuthoritativeExecutedPdf,
   calculateAuthoritativeHash,
   uploadExecutedDocument,
   cleanupUploadedExecutedDocument,
@@ -24,11 +24,13 @@ export function sortKeys(obj: any): any {
     }, {});
 }
 
-export function createDocumentSnapshot(agreement: any): { snapshot: Record<string, any>; hash: string } {
+export function createDocumentSnapshot(agreement: any, org?: any): { snapshot: Record<string, any>; hash: string } {
   const snapshot = {
     agreement_reference: agreement.agreement_reference,
     template_id: agreement.template_id,
     template_version: agreement.template_version,
+    template_code: agreement.template?.template_code || 'CONTROLLED AGREEMENT',
+    source_basis: agreement.template?.source_basis || 'SCHADS Industry Award 2010',
     owner_type: agreement.owner_type,
     owner_id: agreement.owner_id,
     title: agreement.title,
@@ -39,6 +41,9 @@ export function createDocumentSnapshot(agreement: any): { snapshot: Record<strin
     review_date: agreement.review_date || null,
     expiry_date: agreement.expiry_date || null,
     estimated_budget: agreement.estimated_budget || null,
+    provider_legal_name: org?.tradingName || org?.legalName || 'Opus Care Support Services',
+    provider_abn: org?.abn || '41 267 197 576',
+    provider_proprietor: org?.proprietorLegalName || null,
   };
 
   const canonicalString = JSON.stringify(sortKeys(snapshot));
@@ -71,6 +76,68 @@ export function validateSignatureImageData(dataUrl?: string | null): { ok: boole
   return { ok: true };
 }
 
+export async function checkAndExpireInvitations(supabase: SupabaseClient, agreementId?: string): Promise<void> {
+  const now = new Date().toISOString();
+  let query = supabase
+    .from('agreement_signing_invitations')
+    .select('id, agreement_id')
+    .in('status', ['pending', 'viewed'])
+    .lt('expires_at', now);
+
+  if (agreementId) {
+    query = query.eq('agreement_id', agreementId);
+  }
+
+  const { data: expiredList } = await query;
+  if (!expiredList || expiredList.length === 0) return;
+
+  const expiredIds = expiredList.map((i: any) => i.id);
+  await supabase
+    .from('agreement_signing_invitations')
+    .update({
+      status: 'expired',
+      expired_at: now,
+      updated_at: now,
+    })
+    .in('id', expiredIds);
+
+  // Group by agreement_id and evaluate lifecycle transition
+  const agreementIds = Array.from(new Set(expiredList.map((i: any) => i.agreement_id)));
+  for (const agrId of agreementIds) {
+    const { data: remaining } = await supabase
+      .from('agreement_signing_invitations')
+      .select('id')
+      .eq('agreement_id', agrId)
+      .in('status', ['pending', 'viewed']);
+
+    if (!remaining || remaining.length === 0) {
+      const { data: agr } = await supabase
+        .from('agreement_records')
+        .select('status')
+        .eq('id', agrId)
+        .single();
+
+      if (agr && agr.status === 'sent_for_signature') {
+        const { data: providerSig } = await supabase
+          .from('agreement_signatures')
+          .select('id')
+          .eq('agreement_id', agrId)
+          .eq('party_role', 'provider_rep')
+          .maybeSingle();
+
+        const fallback = providerSig ? 'partially_signed' : 'draft';
+        await supabase
+          .from('agreement_records')
+          .update({
+            status: fallback,
+            updated_at: now,
+          })
+          .eq('id', agrId);
+      }
+    }
+  }
+}
+
 export async function createSigningInvitation(
   supabase: SupabaseClient,
   params: {
@@ -79,15 +146,15 @@ export async function createSigningInvitation(
     recipientName: string;
     recipientEmail: string;
     createdBy?: string;
+    org?: any;
   }
 ): Promise<{ ok: boolean; rawToken?: string; invitation?: any; error?: string }> {
-  const { agreementId, partyRole, recipientName, recipientEmail, createdBy = 'Admin' } = params;
+  const { agreementId, partyRole, recipientName, recipientEmail, createdBy = 'Admin', org } = params;
 
   if (!recipientEmail || !recipientEmail.includes('@')) {
     return { ok: false, error: 'A valid recipient email address is required.' };
   }
 
-  // Fetch agreement and template
   const { data: agreement, error: fetchErr } = await supabase
     .from('agreement_records')
     .select('*, template:document_templates(*)')
@@ -116,14 +183,12 @@ export async function createSigningInvitation(
     .eq('party_role', partyRole)
     .in('status', ['pending', 'viewed']);
 
-  // Freeze document snapshot
-  const { snapshot, hash: docHash } = createDocumentSnapshot(agreement);
+  // Freeze document snapshot with all contractual terms and provider details
+  const { snapshot, hash: docHash } = createDocumentSnapshot(agreement, org);
 
-  // Generate 256-bit cryptographically secure raw token
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = hashSigningToken(rawToken);
 
-  // Insert invitation (only token_hash is stored)
   const { data: invitation, error: insertErr } = await supabase
     .from('agreement_signing_invitations')
     .insert({
@@ -147,7 +212,6 @@ export async function createSigningInvitation(
     return { ok: false, error: insertErr?.message || 'Failed to create signing invitation.' };
   }
 
-  // Update agreement status to sent_for_signature
   await supabase
     .from('agreement_records')
     .update({
@@ -198,7 +262,6 @@ export async function revokeSigningInvitation(
     .in('status', ['pending', 'viewed']);
 
   if (!remaining || remaining.length === 0) {
-    // Check if provider has signed
     const { data: providerSig } = await supabase
       .from('agreement_signatures')
       .select('id')
@@ -233,13 +296,11 @@ export async function executeExternalSigning(
 ): Promise<{ ok: boolean; error?: string; is_fully_signed?: boolean; agreement_reference?: string; code?: string }> {
   const { rawToken, signerName, signerTitle = 'Recipient', signatureImageData, ipAddress, userAgent, org } = params;
 
-  // 1. Validate signature image format and size
   const sigVal = validateSignatureImageData(signatureImageData);
   if (!sigVal.ok) {
     return { ok: false, error: sigVal.error, code: 'INVALID_SIGNATURE' };
   }
 
-  // 2. Hash raw token for lookup
   const tokenHash = hashSigningToken(rawToken);
 
   const { data: invitation, error: invErr } = await supabase
@@ -257,6 +318,8 @@ export async function executeExternalSigning(
   }
 
   if (invitation.status === 'revoked' || invitation.status === 'expired' || new Date() > new Date(invitation.expires_at)) {
+    // Run expiry handler
+    await checkAndExpireInvitations(supabase, invitation.agreement_id);
     return { ok: false, error: 'This signing link has expired or been revoked.', code: 'EXPIRED' };
   }
 
@@ -265,8 +328,8 @@ export async function executeExternalSigning(
     return { ok: false, error: 'Agreement is no longer active for signing.', code: 'AGREEMENT_INACTIVE' };
   }
 
-  // 3. Frozen snapshot integrity check: Ensure agreement terms have not been altered since invitation
-  const currentSnapshot = createDocumentSnapshot(agreement);
+  // Snapshot Integrity Check
+  const currentSnapshot = createDocumentSnapshot(agreement, org);
   if (currentSnapshot.hash !== invitation.document_hash_sha256) {
     return {
       ok: false,
@@ -275,7 +338,6 @@ export async function executeExternalSigning(
     };
   }
 
-  // 4. Check existing signatures on agreement
   const { data: existingSigs } = await supabase
     .from('agreement_signatures')
     .select('*')
@@ -287,7 +349,6 @@ export async function executeExternalSigning(
   let executedPdfPath: string | null = null;
   let executedHash: string | null = null;
 
-  // 5. If this signature completes execution, generate authoritative PDF bytes and hash before DB commit
   if (willBeFullySigned) {
     const candidateRecipientSig = {
       party_role: invitation.party_role,
@@ -302,18 +363,32 @@ export async function executeExternalSigning(
     };
 
     const combinedSignatures = [...(existingSigs || []), candidateRecipientSig];
-    const pdfBytes = generateAuthoritativeExecutedBytes({
-      agreement,
+
+    // Generate real PDF strictly from frozen snapshot + immutable signatures
+    const pdfBytes = await generateAuthoritativeExecutedPdf({
+      agreement: {
+        ...agreement,
+        frozen_snapshot: invitation.document_snapshot,
+      },
       signatures: combinedSignatures,
       org,
     });
 
-    const uploadRes = await uploadExecutedDocument(supabase, agreement.agreement_reference, pdfBytes);
-    executedPdfPath = uploadRes.path;
-    executedHash = uploadRes.hash;
+    // Hard Storage Requirement: Upload must succeed or abort!
+    try {
+      const uploadRes = await uploadExecutedDocument(supabase, agreement.agreement_reference, pdfBytes);
+      executedPdfPath = uploadRes.path;
+      executedHash = uploadRes.hash;
+    } catch (storageErr: any) {
+      return {
+        ok: false,
+        error: `Execution aborted: Failed to securely store executed PDF document (${storageErr.message}).`,
+        code: 'STORAGE_FAILURE',
+      };
+    }
   }
 
-  // 6. Execute atomic DB transaction
+  // Execute atomic DB transaction
   try {
     const { data: rpcResult, error: rpcError } = await supabase.rpc('execute_external_agreement_signature', {
       p_token_hash: tokenHash,
@@ -395,7 +470,6 @@ export async function executeProviderSigning(
     return { ok: false, error: 'Agreement record not found.' };
   }
 
-  // Check if recipient has already signed
   const existingSigs = agreement.signatures || [];
   const recipientSig = existingSigs.find((s: any) =>
     ['worker', 'participant', 'guardian', 'contractor'].includes(s.party_role)
@@ -405,7 +479,6 @@ export async function executeProviderSigning(
   let executedHash = '';
 
   if (recipientSig) {
-    // Dual signing is complete -> generate authoritative executed PDF and hash
     const providerCandidateSig = {
       party_role: 'provider_rep',
       signer_name: signerName.trim(),
@@ -419,15 +492,22 @@ export async function executeProviderSigning(
     };
 
     const combinedSignatures = [...existingSigs, providerCandidateSig];
-    const pdfBytes = generateAuthoritativeExecutedBytes({
+    const pdfBytes = await generateAuthoritativeExecutedPdf({
       agreement,
       signatures: combinedSignatures,
       org,
     });
 
-    const uploadRes = await uploadExecutedDocument(supabase, agreement.agreement_reference, pdfBytes);
-    executedPdfPath = uploadRes.path;
-    executedHash = uploadRes.hash;
+    try {
+      const uploadRes = await uploadExecutedDocument(supabase, agreement.agreement_reference, pdfBytes);
+      executedPdfPath = uploadRes.path;
+      executedHash = uploadRes.hash;
+    } catch (storageErr: any) {
+      return {
+        ok: false,
+        error: `Execution aborted: Failed to securely store executed PDF document (${storageErr.message}).`,
+      };
+    }
   }
 
   try {
@@ -474,5 +554,134 @@ export async function executeProviderSigning(
       await cleanupUploadedExecutedDocument(supabase, executedPdfPath);
     }
     return { ok: false, error: err?.message || 'Server error during provider agreement execution.' };
+  }
+}
+
+export async function executeInternalRecipientSigning(
+  supabase: SupabaseClient,
+  params: {
+    agreementId: string;
+    partyRole: string;
+    signerName: string;
+    signerTitle?: string;
+    signerEmail?: string;
+    signatureImageData?: string | null;
+    signingMethod?: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    org?: any;
+  }
+): Promise<{ ok: boolean; error?: string; is_fully_signed?: boolean; agreement?: any }> {
+  const {
+    agreementId,
+    partyRole,
+    signerName,
+    signerTitle = 'Recipient',
+    signerEmail = '',
+    signatureImageData = null,
+    signingMethod = 'digital_canvas',
+    ipAddress,
+    userAgent,
+    org,
+  } = params;
+
+  if (signatureImageData) {
+    const val = validateSignatureImageData(signatureImageData);
+    if (!val.ok) return { ok: false, error: val.error };
+  }
+
+  const { data: agreement, error: fetchErr } = await supabase
+    .from('agreement_records')
+    .select('*, template:document_templates(*), signatures:agreement_signatures(*)')
+    .eq('id', agreementId)
+    .single();
+
+  if (fetchErr || !agreement) {
+    return { ok: false, error: 'Agreement record not found.' };
+  }
+
+  const existingSigs = agreement.signatures || [];
+  const providerSig = existingSigs.find((s: any) => s.party_role === 'provider_rep');
+
+  let executedPdfPath = '';
+  let executedHash = '';
+
+  if (providerSig) {
+    const recipientCandidateSig = {
+      party_role: partyRole,
+      signer_name: signerName.trim(),
+      signer_title: signerTitle,
+      signer_email: signerEmail,
+      signed_at: new Date().toISOString(),
+      signing_method: signingMethod,
+      signature_image_data: signatureImageData,
+      is_verified: true,
+      ip_address: ipAddress || null,
+    };
+
+    const combinedSignatures = [...existingSigs, recipientCandidateSig];
+    const pdfBytes = await generateAuthoritativeExecutedPdf({
+      agreement,
+      signatures: combinedSignatures,
+      org,
+    });
+
+    try {
+      const uploadRes = await uploadExecutedDocument(supabase, agreement.agreement_reference, pdfBytes);
+      executedPdfPath = uploadRes.path;
+      executedHash = uploadRes.hash;
+    } catch (storageErr: any) {
+      return {
+        ok: false,
+        error: `Execution aborted: Failed to securely store executed PDF document (${storageErr.message}).`,
+      };
+    }
+  }
+
+  try {
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('execute_internal_recipient_signature', {
+      p_agreement_id: agreementId,
+      p_party_role: partyRole,
+      p_signer_name: signerName.trim(),
+      p_signer_title: signerTitle,
+      p_signer_email: signerEmail,
+      p_signing_method: signingMethod,
+      p_signature_image_data: signatureImageData,
+      p_ip_address: ipAddress || null,
+      p_user_agent: userAgent || null,
+      p_executed_pdf_path: executedPdfPath || null,
+      p_executed_hash_sha256: executedHash || null,
+    });
+
+    if (rpcError) {
+      if (executedPdfPath) {
+        await cleanupUploadedExecutedDocument(supabase, executedPdfPath);
+      }
+      return { ok: false, error: rpcError.message };
+    }
+
+    if (!rpcResult?.ok) {
+      if (executedPdfPath) {
+        await cleanupUploadedExecutedDocument(supabase, executedPdfPath);
+      }
+      return { ok: false, error: rpcResult?.error || 'Internal recipient signing failed.' };
+    }
+
+    const { data: updatedAgreement } = await supabase
+      .from('agreement_records')
+      .select('*, template:document_templates(*), signatures:agreement_signatures(*)')
+      .eq('id', agreementId)
+      .single();
+
+    return {
+      ok: true,
+      is_fully_signed: rpcResult.is_fully_signed,
+      agreement: updatedAgreement,
+    };
+  } catch (err: any) {
+    if (executedPdfPath) {
+      await cleanupUploadedExecutedDocument(supabase, executedPdfPath);
+    }
+    return { ok: false, error: err?.message || 'Server error during internal recipient signing.' };
   }
 }
