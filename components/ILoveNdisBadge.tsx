@@ -60,6 +60,9 @@ export function ILoveNdisBadge({ className = '', variant = 'pill' }: ILoveNdisBa
         <p className="iLoveNdisSubtext">
           Proudly supporting participants across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers.
         </p>
+        <p className="iLoveNdisDisclosure">
+          Opus Care is an unregistered NDIS provider supporting self-managed and plan-managed participants.
+        </p>
       </div>
     </div>
   );

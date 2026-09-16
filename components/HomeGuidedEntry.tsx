@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Check, Search, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 
 type PathKey = 'participant' | 'current' | 'family' | 'professional';
 
@@ -117,13 +117,6 @@ export function HomeGuidedEntry() {
             Whether you are looking for support for yourself, helping someone you care for, or making a professional referral, choose a card below and we will guide you to the right place.
           </p>
 
-          <div className="macQuickLinks" aria-label="Popular actions">
-            <Link href="/services">Explore supports</Link>
-            <Link href="/service-areas">Check your area</Link>
-            <Link href="/faq">Understand pricing</Link>
-            <Link href="/contact"><Search size={16} /> Ask a question</Link>
-          </div>
-
           <div className="macAudienceGrid">
             {(Object.entries(paths) as [PathKey, Path][]).map(([key, item]) => (
               <button key={key} type="button" className="macAudienceCard" onClick={() => openPath(key)}>
@@ -132,7 +125,9 @@ export function HomeGuidedEntry() {
                 </span>
                 <span className="macAudienceLabel">
                   <span>{item.label}</span>
-                  <ArrowRight size={22} aria-hidden="true" />
+                  <span className="macAudienceArrow" aria-hidden="true">
+                    <ArrowRight size={19} />
+                  </span>
                 </span>
               </button>
             ))}
