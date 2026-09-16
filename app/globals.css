@@ -11959,3 +11959,24 @@ a {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.macFundingBoundary {
+  align-items: center;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  color: #536273;
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: 800;
+  gap: 10px 24px;
+  justify-content: center;
+  letter-spacing: 0.06em;
+  padding: 11px 20px;
+  text-align: center;
+}
+
+.macFundingBoundary span:first-child { color: #934D27; }
+
+@media (max-width: 560px) {
+  .macFundingBoundary { align-items: stretch; flex-direction: column; gap: 3px; }
+}

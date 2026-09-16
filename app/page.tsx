@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import './home-guided-entry.css';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import { HomeGuidedEntry } from '../components/HomeGuidedEntry';
 import { SupportFinderWidget } from '../components/SupportFinderWidget';
 import { RegionalCoverageChecker } from '../components/RegionalCoverageChecker';
 import { NdisFundingSection } from '../components/NdisFundingSection';
@@ -9,15 +10,11 @@ import { JourneyBeginsSection } from '../components/JourneyBeginsSection';
 import { NdisToolsResourcesSection } from '../components/NdisToolsResourcesSection';
 import { NdisBlogNewsSection } from '../components/NdisBlogNewsSection';
 import { ReadyCtaSection } from '../components/ReadyCtaSection';
-import { ILoveNdisBadge } from '../components/ILoveNdisBadge';
-import { SafetyPriorityNote } from '../components/SafetyPriorityNote';
 import { CareSupportReadySection } from '../components/CareSupportReadySection';
 import { ParticipantPortalSection } from '../components/ParticipantPortalSection';
 
 import { 
-  Heart, Users, Compass, Clock, ShieldCheck, MapPin, ArrowRight, 
-  CheckCircle2, Sparkles, FileText, HeartHandshake,
-  Home, Activity, Accessibility, UserCheck, ArrowUpRight, Mail
+  ArrowRight, FileText, HeartHandshake, Mail
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -26,59 +23,11 @@ export default function HomePage() {
       <SiteHeader />
 
       <main className="mainContentWrap">
-        {/* ═══════════════════════════════════════════════════════════════════
-            UNIFIED HERO SECTION: Authentic Local Care + Direct Actions
-        ═══════════════════════════════════════════════════════════════════ */}
-        <section className="unifiedHeroSection">
-          <div className="shell">
-            <div className="unifiedHeroBox">
-              <Image
-                src="/images/ndis-community-walk.jpg"
-                alt="Opus Care Support Worker and participant enjoying a coastal morning walk in Northern NSW"
-                fill
-                priority
-                className="unifiedHeroCoverImg"
-              />
-              <div className="unifiedHeroOverlay lightOverlay" />
-              <div className="unifiedHeroContentCard lightCard">
-                <span className="unifiedHeroBadge lightBadge">
-                  EMPOWER YOUR NDIS JOURNEY · NORTHERN NSW
-                </span>
-
-                <h1 className="unifiedHeroTitle lightTitle">
-                  Working towards your best life, one step at a time
-                </h1>
-
-                <p className="unifiedHeroDesc lightDesc">
-                  At Opus Care Support Services, we match you with trusted, compassionate local support workers. Supporting Self-Managed and Plan-Managed Participants with genuine choice, control, and transparent 1-on-1 care across Coffs Coast, Clarence Valley, Richmond Valley & Northern Rivers.
-                </p>
-
-                <div className="unifiedHeroBtnRow">
-                  <Link className="heroPillBtn purpleBtn" href="/referral">
-                    <span>Sign Up in a Few Easy Steps</span>
-                    <ArrowRight size={16} />
-                  </Link>
-                  <Link className="heroPillBtn outlinePurple" href="/services">
-                    <span>View Our Services</span>
-                    <ArrowUpRight size={18} />
-                  </Link>
-                </div>
-
-                <div className="heroSubtagRow">
-                  <span className="heroSubtagText">
-                    🛡️ UNREGISTERED NDIS PROVIDER · SUPPORTING SELF & PLAN-MANAGED PARTICIPANTS
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* "I 💚 NDIS" Trust Strip */}
-            <ILoveNdisBadge />
-
-            {/* Safety Priority Reassurance Micro-Note */}
-            <SafetyPriorityNote />
-          </div>
-        </section>
+        <HomeGuidedEntry />
+        <div className="macFundingBoundary">
+          <span>UNREGISTERED NDIS PROVIDER</span>
+          <span>SUPPORTING SELF & PLAN-MANAGED PARTICIPANTS</span>
+        </div>
 
         {/* ═══════════════════════════════════════════════════════════════════
             CARE & SUPPORT READY: 8 Circular Activity Badges
