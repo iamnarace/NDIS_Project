@@ -7843,6 +7843,7 @@ a {
 ============================================================================= */
 .portalLoginWrapper {
   min-height: 100vh;
+  width: 100%;
   background: #F8FAFC;
   display: flex;
   flex-direction: column;
@@ -7855,8 +7856,10 @@ a {
 .portalLoginBackStrip {
   width: 100%;
   max-width: 460px;
+  left: 50%;
   position: absolute;
   top: 24px;
+  transform: translateX(-50%);
 }
 
 .portalBackLink {
@@ -7876,6 +7879,7 @@ a {
 .portalLoginCardContainer {
   width: 100%;
   max-width: 460px;
+  margin-inline: auto;
 }
 
 .portalLoginLogoWrap {
@@ -11200,7 +11204,7 @@ a {
 
 @media (max-width: 760px) {
   .portalLoginWrapper { justify-content: flex-start; padding: 76px 16px 32px; }
-  .portalLoginBackStrip { left: 16px; right: 16px; top: 20px; width: auto; }
+  .portalLoginBackStrip { left: 16px; right: 16px; top: 20px; width: auto; transform: none; }
   .portalAuthCard { border-radius: 8px; padding: 28px 20px; }
   .portalRoleToggle { flex-direction: column; }
   .careersFormContainer { border-left: 0; border-radius: 0; border-right: 0; padding: 26px 18px 32px; }
