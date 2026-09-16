@@ -190,3 +190,120 @@ Note: For privacy and security, candidate CVs and cover letters are stored secur
     return { ok: false, error: error?.message || 'Failed to send admin alert email' };
   }
 }
+
+export interface AgreementInvitationEmailData {
+  recipientName: string;
+  recipientEmail: string;
+  agreementTitle: string;
+  agreementReference: string;
+  signingUrl: string;
+  expiresAt: string;
+  providerTradingName?: string;
+}
+
+export async function sendAgreementSigningInvitationEmail(data: AgreementInvitationEmailData) {
+  if (!data.recipientEmail) return { ok: false, error: 'No recipient email address provided' };
+
+  const tradingName = data.providerTradingName || 'Opus Care Support Services';
+  const subject = `Action Required: Please review and sign your agreement · ${data.agreementReference} · ${tradingName}`;
+  const expiryDateFormatted = new Date(data.expiresAt).toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const html = `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;line-height:1.6;margin:0;padding:24px;background:#f8fafc;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:32px;">
+  <div style="border-bottom:2px solid #0284c7;padding-bottom:12px;margin-bottom:24px;">
+    <span style="color:#0284c7;font-size:12px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;">${tradingName}</span>
+    <h2 style="color:#0f172a;margin:6px 0 0;font-size:20px;">Review &amp; Sign Agreement</h2>
+  </div>
+  <p>Hello <strong>${data.recipientName}</strong>,</p>
+  <p>An official document has been prepared for your electronic signature:</p>
+  <div style="background:#f1f5f9;border-radius:6px;padding:14px 18px;margin:20px 0;">
+    <div style="font-size:11px;color:#64748b;font-weight:700;text-transform:uppercase;">Document Details</div>
+    <div style="font-size:16px;font-weight:700;color:#0f172a;margin-top:2px;">${data.agreementTitle}</div>
+    <div style="font-size:13px;color:#475569;margin-top:4px;">Reference: <strong>${data.agreementReference}</strong></div>
+    <div style="font-size:12px;color:#dc2626;margin-top:6px;">Link expires: <strong>${expiryDateFormatted}</strong></div>
+  </div>
+  <p>Please click the button below to review the full agreement particulars, terms, and apply your digital signature:</p>
+  <div style="margin:28px 0;text-align:center;">
+    <a href="${data.signingUrl}" style="display:inline-block;background:#0284c7;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:600;font-size:15px;">
+      Review &amp; Sign Agreement
+    </a>
+  </div>
+  <p style="font-size:12px;color:#64748b;line-height:1.5;margin-top:28px;border-top:1px solid #f1f5f9;padding-top:16px;">
+    <strong>Security &amp; Privacy Notice:</strong> This link is unique to you and cryptographically protected. Do not forward this email. In accordance with the <em>Electronic Transactions Act 1999 (Cth)</em>, submitting your digital signature constitutes a binding legal agreement.
+  </p>
+  <p style="font-size:12px;color:#94a3b8;margin-top:12px;">
+    Questions? Contact <a href="mailto:support@opuscare.com.au" style="color:#0284c7;">support@opuscare.com.au</a>.
+  </p>
+</div>
+</body></html>`;
+
+  if (!resend) return { ok: true, simulated: true };
+  try {
+    const result = await resend.emails.send({
+      from: DEFAULT_FROM,
+      to: [data.recipientEmail],
+      replyTo: 'support@opuscare.com.au',
+      subject,
+      html,
+    });
+    if ((result as any)?.error) {
+      return { ok: false, error: (result as any).error.message || 'Resend delivery rejected' };
+    }
+    return { ok: true, data: result, messageId: (result as any)?.data?.id };
+  } catch (error: any) {
+    console.error('Failed to send agreement signing invitation email', error);
+    return { ok: false, error: error?.message || 'Failed to dispatch email' };
+  }
+}
+
+export async function sendAgreementExecutionCompletedEmail(data: {
+  recipientName: string;
+  recipientEmail: string;
+  agreementTitle: string;
+  agreementReference: string;
+  executedAt: string;
+}) {
+  if (!data.recipientEmail) return { ok: false, error: 'No recipient email provided' };
+
+  const subject = `Agreement Executed: ${data.agreementTitle} · ${data.agreementReference} · Opus Care Support Services`;
+  const html = `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;line-height:1.6;margin:0;padding:24px;background:#f8fafc;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:32px;">
+  <div style="border-bottom:2px solid #059669;padding-bottom:12px;margin-bottom:24px;">
+    <span style="color:#059669;font-size:12px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;">Opus Care Support Services</span>
+    <h2 style="color:#0f172a;margin:6px 0 0;font-size:20px;">Agreement Fully Executed</h2>
+  </div>
+  <p>Hello <strong>${data.recipientName}</strong>,</p>
+  <p>All required signatures have been successfully recorded. Your agreement is now officially executed and active.</p>
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:14px 18px;margin:20px 0;">
+    <div style="font-size:15px;font-weight:700;color:#166534;">${data.agreementTitle}</div>
+    <div style="font-size:13px;color:#15803d;margin-top:2px;">Reference: <strong>${data.agreementReference}</strong></div>
+    <div style="font-size:12px;color:#166534;margin-top:4px;">Executed: ${new Date(data.executedAt).toISOString()}</div>
+  </div>
+  <p style="font-size:13px;color:#475569;">
+    An authoritative immutable original has been permanently sealed in Opus Care's record system. If you require an updated PDF copy, reply to this email or access your participant/staff portal.
+  </p>
+  <p style="font-size:12px;color:#94a3b8;margin-top:20px;border-top:1px solid #f1f5f9;padding-top:14px;">
+    Opus Care Support Services · ABN 41 267 197 576
+  </p>
+</div>
+</body></html>`;
+
+  if (!resend) return { ok: true, simulated: true };
+  try {
+    const result = await resend.emails.send({
+      from: DEFAULT_FROM,
+      to: [data.recipientEmail, 'support@opuscare.com.au'],
+      replyTo: 'support@opuscare.com.au',
+      subject,
+      html,
+    });
+    return { ok: true, data: result };
+  } catch (error: any) {
+    console.error('Failed to send execution completed email', error);
+    return { ok: false, error: error?.message || 'Failed to dispatch email' };
+  }
+}

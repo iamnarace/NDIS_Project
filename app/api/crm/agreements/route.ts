@@ -229,6 +229,28 @@ export async function PATCH(req: Request) {
         }, { status: 403 });
       }
     } else {
+      // Frozen-Snapshot Integrity: While an invitation is pending or viewed, material terms must not be altered.
+      const { data: activeInv } = await supabase
+        .from('agreement_signing_invitations')
+        .select('id')
+        .eq('agreement_id', id)
+        .in('status', ['pending', 'viewed'])
+        .limit(1)
+        .maybeSingle();
+
+      if (activeInv) {
+        const materialFields = new Set([
+          'template_id', 'owner_type', 'owner_id', 'title', 'questionnaire_data',
+          'compiled_clauses', 'commencement_date', 'review_date', 'expiry_date',
+          'estimated_budget'
+        ]);
+        if (incomingFields.some((field) => materialFields.has(field))) {
+          return NextResponse.json({
+            message: 'An external signing invitation is currently active. You must revoke the outstanding invitation before modifying agreement terms.'
+          }, { status: 409 });
+        }
+      }
+
       const draftFields = new Set([
         'template_id', 'owner_type', 'owner_id', 'title', 'questionnaire_data',
         'compiled_clauses', 'commencement_date', 'review_date', 'expiry_date',
@@ -240,7 +262,7 @@ export async function PATCH(req: Request) {
     }
 
     // Governance G0.1 Hard Guard: Cannot activate or send agreements without configured proprietor legal name
-    if (updates.status && ['active', 'fully_signed', 'sent'].includes(updates.status)) {
+    if (updates.status && ['active', 'fully_signed', 'sent_for_signature'].includes(updates.status)) {
       const { data: provConfig } = await supabase
         .from('provider_config')
         .select('proprietor_legal_name')

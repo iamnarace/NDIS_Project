@@ -5402,7 +5402,7 @@ export default function AdminCrmPage() {
                       <div className="ocRecordActionBar">
                         <div>
                           <strong>Employment documents</strong>
-                          <span>Create and review this worker's contract in the agreement workspace.</span>
+                          <span>Create and review this worker&apos;s contract in the agreement workspace.</span>
                         </div>
                         <button
                           type="button"
