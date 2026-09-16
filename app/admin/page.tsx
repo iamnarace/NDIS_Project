@@ -229,6 +229,7 @@ export default function AdminCrmPage() {
   const [selectedParticipantForConsents, setSelectedParticipantForConsents] = useState<Participant | null>(null);
   const [showAddWorker, setShowAddWorker] = useState(false);
   const [showAgreementGenerator, setShowAgreementGenerator] = useState(false);
+  const [agreementInitialOwnerId, setAgreementInitialOwnerId] = useState('');
   const [selectedAgreementToView, setSelectedAgreementToView] = useState<any | null>(null);
   const [variationTarget, setVariationTarget] = useState<any | null>(null);
   const [draftAgreementTarget, setDraftAgreementTarget] = useState<any | null>(null);
@@ -5397,6 +5398,24 @@ export default function AdminCrmPage() {
                   )}
 
                   {selectedStaff && (
+                    <>
+                      <div className="ocRecordActionBar">
+                        <div>
+                          <strong>Employment documents</strong>
+                          <span>Create and review this worker's contract in the agreement workspace.</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="headerCtaBtn"
+                          onClick={() => {
+                            setAgreementInitialOwnerId(selectedStaff.id);
+                            setShowAgreementGenerator(true);
+                          }}
+                        >
+                          <FileText size={15} />
+                          <span>Create Employment Contract</span>
+                        </button>
+                      </div>
                     <div className="crmDetailGrid">
                       <div>
                         <label>Worker Name</label>
@@ -5444,6 +5463,7 @@ export default function AdminCrmPage() {
                       </div>
                       <WorkerReadinessPanel staffId={selectedStaff.id} />
                     </div>
+                    </>
                   )}
                 </div>
               )}
@@ -5957,9 +5977,12 @@ export default function AdminCrmPage() {
           staff={staff}
           onClose={() => {
             setShowAgreementGenerator(false);
+            setAgreementInitialOwnerId('');
             setVariationTarget(null);
             setDraftAgreementTarget(null);
           }}
+          initialTemplateCode={agreementInitialOwnerId ? 'DOC-WRK-01' : undefined}
+          initialOwnerId={agreementInitialOwnerId}
           variationOf={variationTarget}
           draftAgreement={draftAgreementTarget}
           onCreated={(newA) => {

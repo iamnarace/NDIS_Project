@@ -35,6 +35,7 @@ interface AgreementGeneratorModalProps {
   onClose: () => void;
   onCreated: (newAgreement: any) => void;
   initialTemplateCode?: string;
+  initialOwnerId?: string;
   variationOf?: any;
   draftAgreement?: any;
 }
@@ -54,6 +55,7 @@ export default function AgreementGeneratorModal({
   onClose,
   onCreated,
   initialTemplateCode = 'PACK-PART-01',
+  initialOwnerId = '',
   variationOf = null,
   draftAgreement = null,
 }: AgreementGeneratorModalProps) {
@@ -81,7 +83,7 @@ export default function AgreementGeneratorModal({
 
   // Selected owner state
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>(
-    sourceAgreement ? sourceAgreement.owner_id : ''
+    sourceAgreement ? sourceAgreement.owner_id : initialOwnerId
   );
 
   // Recipient info
@@ -179,6 +181,14 @@ export default function AgreementGeneratorModal({
     }
     checkProviderConfig();
   }, []);
+
+  useEffect(() => {
+    if (!sourceAgreement && initialOwnerId) {
+      handleOwnerSelect(initialOwnerId);
+    }
+  // The initial owner is intentionally applied only when the workspace opens.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialOwnerId]);
 
   // Canvas
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -494,7 +504,7 @@ export default function AgreementGeneratorModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             agreement_id: savedAgr.id,
-            signer_type: ownerType,
+            party_role: ownerType === 'staff' ? 'worker' : ownerType,
             signer_name: signerName.trim() || recipientName,
             signer_title: signerTitle,
             signing_method: 'digital_canvas',
@@ -514,7 +524,7 @@ export default function AgreementGeneratorModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             agreement_id: savedAgr.id,
-            signer_type: 'provider_rep',
+            party_role: 'provider_rep',
             signer_name: providerSignerName,
             signer_title: 'Managing Director, Opus Care Support Services',
             signing_method: 'digital_canvas',
@@ -540,7 +550,7 @@ export default function AgreementGeneratorModal({
   };
 
   return (
-    <FormDrawer isOpen onClose={onClose} wide>
+    <FormDrawer isOpen onClose={onClose} wide fullPage>
       <DrawerHeader
         title={
           draftAgreement

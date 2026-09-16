@@ -20,6 +20,51 @@ interface AgreementViewerModalProps {
   onResumeDraft?: (agreement: any) => void;
 }
 
+function formatClauseLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function renderClauseContent(value: unknown, path = 'clause'): React.ReactNode {
+  if (value == null || value === '') return null;
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    return <p key={path}>{String(value)}</p>;
+  }
+
+  if (typeof value === 'boolean') {
+    return <p key={path}>{value ? 'Yes' : 'No'}</p>;
+  }
+
+  if (Array.isArray(value)) {
+    const simpleItems = value.every((item) => ['string', 'number'].includes(typeof item));
+    if (simpleItems) {
+      return (
+        <ul key={path}>
+          {value.map((item, index) => <li key={`${path}-${index}`}>{String(item)}</li>)}
+        </ul>
+      );
+    }
+    return value.map((item, index) => (
+      <div className="agreementClauseGroup" key={`${path}-${index}`}>
+        {renderClauseContent(item, `${path}-${index}`)}
+      </div>
+    ));
+  }
+
+  if (typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>).map(([key, child]) => (
+      <section className="agreementClauseSection" key={`${path}-${key}`}>
+        <h4>{formatClauseLabel(key)}</h4>
+        {renderClauseContent(child, `${path}-${key}`)}
+      </section>
+    ));
+  }
+
+  return null;
+}
+
 export default function AgreementViewerModal({
   agreement,
   onClose,
@@ -37,7 +82,7 @@ export default function AgreementViewerModal({
   const clauses = agreement.compiled_clauses || {};
 
   return (
-    <FormDrawer isOpen onClose={onClose} wide>
+    <FormDrawer isOpen onClose={onClose} wide fullPage>
       {/* Header Bar */}
       <div className="drawer-header">
         <div className="header-title-block">
@@ -157,6 +202,57 @@ export default function AgreementViewerModal({
             </div>
           </div>
         </div>
+
+        <article className="agreementDocumentPage">
+          <header className="agreementDocumentHeader">
+            <div>
+              <span>OPUS CARE SUPPORT SERVICES</span>
+              <h1>{agreement.title}</h1>
+              <p>{agreement.template?.template_code || 'CONTROLLED AGREEMENT'} · Version {agreement.template_version || agreement.version_number}</p>
+            </div>
+            <div className="agreementDocumentReference">
+              <span>Agreement reference</span>
+              <strong>{agreement.agreement_reference}</strong>
+              <span>Status</span>
+              <strong>{String(agreement.status || 'draft').replaceAll('_', ' ')}</strong>
+            </div>
+          </header>
+
+          <section className="agreementDocumentSection">
+            <h2>Parties and commencement</h2>
+            <dl className="agreementParticularsGrid">
+              <div><dt>Provider</dt><dd>Opus Care Support Services</dd></div>
+              <div><dt>{agreement.owner_type === 'participant' ? 'Participant' : 'Worker'}</dt><dd>{qData.participant_name || qData.worker_name || 'Not recorded'}</dd></div>
+              <div><dt>Commencement date</dt><dd>{agreement.commencement_date || 'Not recorded'}</dd></div>
+              <div><dt>Review or end date</dt><dd>{agreement.review_date || agreement.expiry_date || 'Not recorded'}</dd></div>
+            </dl>
+          </section>
+
+          {agreement.owner_type !== 'participant' && (
+            <section className="agreementDocumentSection">
+              <h2>Employment particulars</h2>
+              <dl className="agreementParticularsGrid">
+                <div><dt>Classification</dt><dd>{qData.worker_classification || clauses.classification || 'Not recorded'}</dd></div>
+                <div><dt>Employment basis</dt><dd>{String(qData.worker_basis || clauses.basis || 'Not recorded').replaceAll('_', ' ')}</dd></div>
+                <div><dt>Ordinary hourly rate</dt><dd>${Number(qData.hourly_rate || clauses.hourly_rate || 0).toFixed(2)} AUD</dd></div>
+                <div><dt>Agreed weekly hours</dt><dd>{Number(qData.agreed_weekly_hours || 0)} hours</dd></div>
+                <div><dt>Superannuation</dt><dd>{Number(qData.super_rate_pct || clauses.super_pct || 0).toFixed(2)}%</dd></div>
+                <div><dt>Applicable instrument</dt><dd>{agreement.template?.source_basis || 'Template source not recorded'}</dd></div>
+              </dl>
+            </section>
+          )}
+
+          <section className="agreementDocumentSection agreementTermsSection">
+            <h2>Approved terms and conditions</h2>
+            {agreement.template?.clause_schema && Object.keys(agreement.template.clause_schema).length > 0 ? (
+              renderClauseContent(agreement.template.clause_schema)
+            ) : (
+              <div className="agreementMissingClauses">
+                This template record does not contain approved clause text. Add legally reviewed clauses to the document template before sending it for signature.
+              </div>
+            )}
+          </section>
+        </article>
 
         {/* Schedule of Supports (For Participants) */}
         {clauses.service_schedule && Array.isArray(clauses.service_schedule) && (

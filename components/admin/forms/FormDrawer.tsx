@@ -6,6 +6,7 @@ export interface FormDrawerProps {
   isOpen?: boolean;
   onClose: () => void;
   wide?: boolean;
+  fullPage?: boolean;
   children: React.ReactNode;
 }
 
@@ -13,6 +14,7 @@ export default function FormDrawer({
   isOpen = true,
   onClose,
   wide = false,
+  fullPage = false,
   children,
 }: FormDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,7 +47,7 @@ export default function FormDrawer({
     >
       <div
         ref={containerRef}
-        className={`drawer-container ${wide ? 'drawer-container-wide' : ''}`}
+        className={`drawer-container ${wide ? 'drawer-container-wide' : ''} ${fullPage ? 'drawer-container-full-page' : ''}`}
       >
         {children}
       </div>

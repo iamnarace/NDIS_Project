@@ -99,6 +99,20 @@ test('Governance G3 - Agreement & Legal Baseline Alignment', async (t) => {
     const agreementViewer = readFileSync('components/admin/AgreementViewerModal.tsx', 'utf8');
     assert.ok(!agreementViewer.includes('Pty Ltd'));
   });
+
+  await t.test('uses the signing API contract and full-page agreement workspace', () => {
+    const agreementGenerator = readFileSync('components/admin/AgreementGeneratorModal.tsx', 'utf8');
+    const agreementViewer = readFileSync('components/admin/AgreementViewerModal.tsx', 'utf8');
+    const formDrawer = readFileSync('components/admin/forms/FormDrawer.tsx', 'utf8');
+
+    assert.match(agreementGenerator, /party_role:\s*ownerType === 'staff' \? 'worker' : ownerType/);
+    assert.match(agreementGenerator, /party_role:\s*'provider_rep'/);
+    assert.doesNotMatch(agreementGenerator, /signer_type:/);
+    assert.match(agreementGenerator, /<FormDrawer[^>]+fullPage/);
+    assert.match(agreementViewer, /<FormDrawer[^>]+fullPage/);
+    assert.match(agreementViewer, /template\?\.clause_schema/);
+    assert.match(formDrawer, /drawer-container-full-page/);
+  });
 });
 
 test('Governance G3 - Help Centre & Operations Guide', async (t) => {
