@@ -3,6 +3,7 @@ import './home-guided-entry.css';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { HomeGuidedEntry } from '../components/HomeGuidedEntry';
+import { ILoveNdisBadge } from '../components/ILoveNdisBadge';
 import { SupportFinderWidget } from '../components/SupportFinderWidget';
 import { RegionalCoverageChecker } from '../components/RegionalCoverageChecker';
 import { NdisFundingSection } from '../components/NdisFundingSection';
@@ -24,9 +25,12 @@ export default function HomePage() {
 
       <main className="mainContentWrap">
         <HomeGuidedEntry />
-        <div className="macFundingBoundary">
-          <span>UNREGISTERED NDIS PROVIDER</span>
-          <span>SUPPORTING SELF & PLAN-MANAGED PARTICIPANTS</span>
+        <div
+          className="shell homeNdisProviderPanel"
+          data-provider-status="UNREGISTERED NDIS PROVIDER"
+          data-funding-scope="SUPPORTING SELF & PLAN-MANAGED PARTICIPANTS"
+        >
+          <ILoveNdisBadge variant="hero" />
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════
@@ -35,29 +39,9 @@ export default function HomePage() {
         <CareSupportReadySection />
 
         {/* ═══════════════════════════════════════════════════════════════════
-            PARTICIPANT & CARER CRM PORTAL SECTION (Careview / Enabled4Life Style)
-        ═══════════════════════════════════════════════════════════════════ */}
-        <ParticipantPortalSection />
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            NEW SECTION 1: UNDERSTANDING YOUR NDIS FUNDING (Reference 1)
-        ═══════════════════════════════════════════════════════════════════ */}
-        <NdisFundingSection />
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            NEW SECTION 2: YOUR JOURNEY BEGINS HERE (Reference 4)
+            YOUR JOURNEY BEGINS HERE
         ═══════════════════════════════════════════════════════════════════ */}
         <JourneyBeginsSection />
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            NEW SECTION 3: FREE NDIS TOOLS & RESOURCES (Reference 3)
-        ═══════════════════════════════════════════════════════════════════ */}
-        <NdisToolsResourcesSection />
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            NEW SECTION 4: NDIS NEWS / BLOG READS (Reference 2)
-        ═══════════════════════════════════════════════════════════════════ */}
-        <NdisBlogNewsSection />
 
         {/* ═══════════════════════════════════════════════════════════════════
             INTAKE PROCESS PANE: Simple & Supportive
@@ -126,16 +110,37 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="interactivePanesGrid">
-              <div className="interactivePaneCol">
-                <SupportFinderWidget />
-              </div>
-              <div className="interactivePaneCol">
-                <RegionalCoverageChecker />
-              </div>
+            <div className="planningEstimatorFullWidth">
+              <SupportFinderWidget />
             </div>
           </div>
         </section>
+
+        <section className="coverageSectionBand" aria-label="Opus Care service coverage">
+          <div className="shell">
+            <RegionalCoverageChecker />
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            UNDERSTANDING YOUR NDIS FUNDING
+        ═══════════════════════════════════════════════════════════════════ */}
+        <NdisFundingSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            PARTICIPANT & CARER CRM PORTAL SECTION
+        ═══════════════════════════════════════════════════════════════════ */}
+        <ParticipantPortalSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            FREE NDIS TOOLS & RESOURCES
+        ═══════════════════════════════════════════════════════════════════ */}
+        <NdisToolsResourcesSection />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            NDIS NEWS / BLOG READS
+        ═══════════════════════════════════════════════════════════════════ */}
+        <NdisBlogNewsSection />
 
         {/* ═══════════════════════════════════════════════════════════════════
             NEW SECTION 5: READY TO GET STARTED CTA BANNER (Reference 4)
