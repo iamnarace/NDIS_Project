@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
   FileText,
   Printer,
@@ -668,9 +669,50 @@ export default function AgreementViewerModal({
         </div>
 
         <article className="agreementDocumentPage">
+          <section className="agreementCoverPage">
+            <div className="agreementCoverBrand">
+              <Image
+                src="/brand/Opus_Care_Logo_Transparent.png"
+                alt="Opus Care Support Services"
+                width={260}
+                height={72}
+                priority
+              />
+            </div>
+            <div className="agreementCoverContent">
+              <span className="agreementCoverKicker">Controlled agreement</span>
+              <h1>{agreement.title}</h1>
+              <p className="agreementCoverType">
+                {agreement.owner_type === 'participant' ? 'Participant service agreement' : agreement.owner_type === 'contractor' ? 'Independent contractor agreement' : 'Employment agreement'}
+              </p>
+
+              <dl className="agreementCoverSummary">
+                <div><dt>Agreement reference</dt><dd>{agreement.agreement_reference}</dd></div>
+                <div><dt>Prepared for</dt><dd>{qData.participant_name || qData.worker_name || 'Recorded recipient'}</dd></div>
+                <div><dt>Commencement</dt><dd>{agreement.commencement_date || 'To be confirmed'}</dd></div>
+                <div><dt>Document version</dt><dd>{agreement.template_version || agreement.version_number || '1'}</dd></div>
+              </dl>
+
+              <div className="agreementCoverStatement">
+                By signing this document, <strong>{qData.participant_name || qData.worker_name || 'the named recipient'}</strong> confirms that they have read and understood the agreement, had an opportunity to ask questions or seek independent advice, and agree to the terms recorded in this document and its schedules.
+              </div>
+            </div>
+            <footer className="agreementCoverFooter">
+              <span>Opus Care Support Services</span>
+              <span>ABN 41 267 197 576 · opuscare.com.au</span>
+            </footer>
+          </section>
+
+          <div className="agreementDocumentBody">
           <header className="agreementDocumentHeader">
             <div>
-              <span>OPUS CARE SUPPORT SERVICES</span>
+              <Image
+                src="/brand/Opus_Care_Logo_Transparent.png"
+                alt="Opus Care Support Services"
+                width={190}
+                height={52}
+                className="agreementDocumentLogo"
+              />
               <h1>{agreement.title}</h1>
               <p>{agreement.template?.template_code || 'CONTROLLED AGREEMENT'} · Version {agreement.template_version || agreement.version_number}</p>
             </div>
@@ -728,6 +770,7 @@ export default function AgreementViewerModal({
             <span>Opus Care Support Services</span>
             <span>{agreement.agreement_reference} · Controlled copy</span>
           </footer>
+          </div>
         </article>
 
         {/* Schedule of Supports (For Participants) */}

@@ -1028,6 +1028,111 @@ header.top-action-bar {
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
 }
 
+.agreementCoverPage {
+  min-height: 980px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 6px 0;
+  break-after: page;
+  page-break-after: always;
+}
+
+.agreementCoverBrand img {
+  width: 260px;
+  height: auto;
+  object-fit: contain;
+}
+
+.agreementCoverContent {
+  width: min(620px, 100%);
+  margin: auto 0;
+}
+
+.agreementCoverKicker {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--brand-primary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.agreementCoverContent h1 {
+  max-width: 650px;
+  margin: 0;
+  color: var(--text-heading);
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.agreementCoverType {
+  margin: 12px 0 40px;
+  color: var(--text-muted);
+  font-size: 17px;
+}
+
+.agreementCoverSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.agreementCoverSummary > div {
+  min-height: 76px;
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.agreementCoverSummary dt {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.agreementCoverSummary dd {
+  margin: 5px 0 0;
+  color: var(--text-heading);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.agreementCoverStatement {
+  margin-top: 30px;
+  padding: 18px 20px;
+  border-left: 3px solid var(--brand-primary);
+  background: #F8FAFF;
+  color: var(--text-body);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.agreementCoverFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+.agreementDocumentBody {
+  min-height: 980px;
+}
+
+.agreementDocumentLogo {
+  width: 190px;
+  height: auto;
+  object-fit: contain;
+}
+
 .agreementDocumentHeader {
   display: flex;
   align-items: flex-start;
@@ -1042,16 +1147,6 @@ header.top-action-bar {
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
-}
-
-.agreementDocumentHeader > div:first-child > span::before {
-  content: '';
-  display: inline-block;
-  width: 24px;
-  height: 3px;
-  margin-right: 8px;
-  vertical-align: middle;
-  background: var(--brand-primary);
 }
 
 .agreementDocumentHeader h1 {
@@ -1181,8 +1276,43 @@ header.top-action-bar {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm 14mm;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #FFFFFF !important;
+  }
+
   body * {
     visibility: hidden;
+  }
+
+  .drawer-overlay,
+  .drawer-container,
+  .drawer-container-full-page,
+  .drawer-body,
+  .ocRecordOverlay,
+  .ocRecordDrawer,
+  .crmModalBody {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #FFFFFF !important;
   }
 
   .agreementDocumentPage,
@@ -1191,13 +1321,34 @@ header.top-action-bar {
   }
 
   .agreementDocumentPage {
-    position: absolute;
-    inset: 0;
+    position: static !important;
     width: 100%;
     margin: 0;
-    padding: 14mm 16mm;
+    padding: 0;
     border: 0;
     box-shadow: none;
+  }
+
+  .agreementCoverPage,
+  .agreementDocumentBody {
+    min-height: calc(297mm - 28mm);
+  }
+
+  .agreementCoverPage {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .agreementClauseSection,
+  .agreementParticularsGrid > div,
+  .agreementDocumentNotice {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .agreementDocumentHeader,
+  .agreementDocumentFooter {
+    break-inside: avoid;
   }
 }
 

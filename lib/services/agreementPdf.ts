@@ -90,7 +90,84 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
     });
   };
 
-  // Page 1: Agreement Details & Particulars
+  const abnDisplay = snapshot.provider_abn || org?.abn || '41 267 197 576';
+  const providerLegalName =
+    snapshot.provider_legal_name ||
+    org?.proprietorLegalName ||
+    org?.legalName ||
+    org?.tradingName ||
+    'Opus Care Support Services';
+  const providerTradingName = snapshot.provider_trading_name || org?.tradingName || 'Opus Care Support Services';
+  const providerEntity = providerLegalName === providerTradingName
+    ? providerLegalName
+    : `${providerLegalName}, trading as ${providerTradingName}`;
+  const recipientName = qData.worker_name || qData.participant_name || recipientSig?.signer_name || 'Recorded Recipient';
+
+  // Cover page: a stable first page before agreement particulars and clauses.
+  const coverPage = pdfDoc.addPage([595.28, 841.89]);
+  const coverWidth = coverPage.getWidth();
+  drawBrandHeader(coverPage, 785);
+  coverPage.drawText('CONTROLLED AGREEMENT', {
+    x: 50,
+    y: 655,
+    size: 10,
+    font: fontBold,
+    color: rgb(0.31, 0.27, 0.9),
+  });
+  coverPage.drawText(sanitizeText(agreement.title), {
+    x: 50,
+    y: 608,
+    size: 24,
+    font: fontBold,
+    color: rgb(0.06, 0.09, 0.16),
+    maxWidth: coverWidth - 100,
+    lineHeight: 29,
+  });
+  coverPage.drawText(
+    agreement.owner_type === 'participant'
+      ? 'Participant service agreement'
+      : agreement.owner_type === 'contractor'
+      ? 'Independent contractor agreement'
+      : 'Employment agreement',
+    { x: 50, y: 558, size: 13, font, color: rgb(0.39, 0.45, 0.55) }
+  );
+  coverPage.drawLine({
+    start: { x: 50, y: 525 },
+    end: { x: coverWidth - 50, y: 525 },
+    thickness: 2,
+    color: rgb(0.31, 0.27, 0.9),
+  });
+  coverPage.drawText('PREPARED FOR', { x: 50, y: 482, size: 9, font: fontBold, color: rgb(0.39, 0.45, 0.55) });
+  coverPage.drawText(sanitizeText(recipientName), { x: 50, y: 455, size: 18, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
+  coverPage.drawText(`Agreement reference: ${sanitizeText(agreement.agreement_reference)}`, { x: 50, y: 420, size: 10, font, color: rgb(0.2, 0.25, 0.33) });
+  coverPage.drawText(`Commencement: ${sanitizeText(agreement.commencement_date || 'To be confirmed')}`, { x: 50, y: 402, size: 10, font, color: rgb(0.2, 0.25, 0.33) });
+  coverPage.drawRectangle({
+    x: 50,
+    y: 235,
+    width: coverWidth - 100,
+    height: 112,
+    color: rgb(0.973, 0.98, 1),
+    borderColor: rgb(0.78, 0.82, 0.98),
+    borderWidth: 1,
+  });
+  const acknowledgementLines = [
+    `By signing this document, ${sanitizeText(recipientName)} confirms that they have read and`,
+    'understood the agreement, had an opportunity to ask questions or seek independent advice,',
+    'and agree to the terms recorded in this document and its schedules. The detailed agreement',
+    'begins on the following page.',
+  ];
+  acknowledgementLines.forEach((line, index) => {
+    coverPage.drawText(line, { x: 68, y: 316 - (index * 17), size: 10, font, color: rgb(0.2, 0.25, 0.33) });
+  });
+  coverPage.drawText(`${sanitizeText(providerEntity)}  |  ABN ${sanitizeText(abnDisplay)}  |  opuscare.com.au`, {
+    x: 50,
+    y: 46,
+    size: 8.5,
+    font,
+    color: rgb(0.39, 0.45, 0.55),
+  });
+
+  // Page 2 onward: agreement details, particulars and complete clauses.
   const page1 = pdfDoc.addPage([595.28, 841.89]); // A4
   const { width, height } = page1.getSize();
 
@@ -115,19 +192,6 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
   // Section: Parties & Commencement
   page1.drawText('1. PARTIES AND COMMENCEMENT', { x: 50, y, size: 12, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
   y -= 18;
-
-  const abnDisplay = snapshot.provider_abn || org?.abn || '41 267 197 576';
-  const providerLegalName =
-    snapshot.provider_legal_name ||
-    org?.proprietorLegalName ||
-    org?.legalName ||
-    org?.tradingName ||
-    'Opus Care Support Services';
-  const providerTradingName = snapshot.provider_trading_name || org?.tradingName || 'Opus Care Support Services';
-  const providerEntity = providerLegalName === providerTradingName
-    ? providerLegalName
-    : `${providerLegalName}, trading as ${providerTradingName}`;
-  const recipientName = qData.worker_name || qData.participant_name || recipientSig?.signer_name || 'Recorded Recipient';
 
   const partyDetails = [
     `Provider: ${providerEntity} (ABN: ${abnDisplay})`,

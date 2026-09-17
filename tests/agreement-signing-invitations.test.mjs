@@ -124,7 +124,7 @@ test('Participant service agreement expands placeholder section IDs into control
     org: { tradingName: 'Opus Care Support Services', abn: '41 267 197 576' },
   });
   const pdf = await PDFDocument.load(pdfBuffer);
-  assert.ok(pdf.getPageCount() >= 10 && pdf.getPageCount() <= 13, `Expected a 10-13 page agreement, received ${pdf.getPageCount()}`);
+  assert.ok(pdf.getPageCount() >= 11 && pdf.getPageCount() <= 14, `Expected an 11-14 page agreement including cover, received ${pdf.getPageCount()}`);
 });
 
 test('Worker employment agreement expands into a complete controlled document', () => {
@@ -283,6 +283,16 @@ test('Agreement External Signing — Neutral Footer & Database RPC Guarantees', 
   assert.doesNotMatch(agreementPdfCode, /constitutes a binding legal agreement/i);
   assert.doesNotMatch(agreementPdfCode, /substring\(0,\s*180\)/i);
   assert.match(agreementPdfCode, /APPROVED CONTRACTUAL TERMS & CONDITIONS \(CONTINUED\)/i);
+  assert.match(agreementPdfCode, /Opus_Care_Logo_Transparent\.png/);
+  assert.match(agreementPdfCode, /The detailed agreement/i);
+  assert.match(agreementPdfCode, /begins on the following page/i);
+
+  const agreementViewerCode = readFileSync('components/admin/AgreementViewerModal.tsx', 'utf8');
+  const crmStyles = readFileSync('app/opus.css', 'utf8');
+  assert.match(agreementViewerCode, /agreementCoverPage/);
+  assert.match(agreementViewerCode, /Opus_Care_Logo_Transparent\.png/);
+  assert.match(crmStyles, /page-break-after:\s*always/i);
+  assert.match(crmStyles, /\.drawer-container-full-page[\s\S]*overflow:\s*visible\s*!important/i);
 
   const agreementExecutionCode = readFileSync('lib/services/agreementExecution.ts', 'utf8');
   assert.match(agreementExecutionCode, /provider_legal_name:\s*\n?\s*org\?\.proprietorLegalName/i);
