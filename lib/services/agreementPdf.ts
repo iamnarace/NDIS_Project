@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { isCanonicalParticipantAgreement } from '@/lib/agreements/canonicalClauses';
 
 export interface ExecutedDocumentPayload {
   agreement: {
@@ -141,6 +142,10 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
     ? snapshotTemplateClauses
     : snapshot.compiled_clauses || clauses || {};
   const entries = Object.entries(contractualTerms);
+  const startMajorClausesOnNewPages = isCanonicalParticipantAgreement(
+    snapshot.template_code,
+    agreement.owner_type
+  );
 
   if (entries.length > 0) {
     let termsPage = page1;
@@ -266,7 +271,10 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
       drawWrappedClauseText(String(value), { indent: Math.min(depth * 12, 48) });
     };
 
-    for (const [key, val] of entries) {
+    for (const [entryIndex, [key, val]] of entries.entries()) {
+      if (startMajorClausesOnNewPages && entryIndex > 0) {
+        addTermsContinuationPage();
+      }
       ensureTermsSpace(36);
       drawWrappedClauseText(titleizeClauseKey(key), {
         size: 10,
@@ -382,6 +390,17 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
     `Document Reference: ${sanitizeText(agreement.agreement_reference)}   |   Sealed Original`,
     { x: 50, y: 46, size: 8, font: fontBold, color: rgb(0.5, 0.55, 0.65) }
   );
+
+  const allPages = pdfDoc.getPages();
+  allPages.forEach((page, index) => {
+    page.drawText(`Page ${index + 1} of ${allPages.length}`, {
+      x: width - 92,
+      y: 24,
+      size: 8,
+      font,
+      color: rgb(0.45, 0.5, 0.58),
+    });
+  });
 
   const pdfBytes = await pdfDoc.save();
   return Buffer.from(pdfBytes);

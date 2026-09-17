@@ -6,6 +6,7 @@ import {
   uploadExecutedDocument,
   cleanupUploadedExecutedDocument,
 } from '@/lib/services/agreementPdf';
+import { resolveAgreementClauseSchema } from '@/lib/agreements/canonicalClauses';
 
 export const MAX_SIGNATURE_PAYLOAD_BYTES = 512 * 1024; // 512 KB
 
@@ -25,13 +26,25 @@ export function sortKeys(obj: any): any {
 }
 
 export function createDocumentSnapshot(agreement: any, org?: any): { snapshot: Record<string, any>; hash: string } {
+  const templateCode = agreement.template?.template_code || 'CONTROLLED AGREEMENT';
+  const resolvedTemplateClauses = resolveAgreementClauseSchema(
+    templateCode,
+    agreement.template?.clause_schema,
+    agreement.owner_type
+  );
   const snapshot = {
     agreement_reference: agreement.agreement_reference,
     template_id: agreement.template_id,
     template_version: agreement.template_version,
-    template_code: agreement.template?.template_code || 'CONTROLLED AGREEMENT',
-    source_basis: agreement.template?.source_basis || 'SCHADS Industry Award 2010',
-    template_clause_schema: sortKeys(agreement.template?.clause_schema || {}),
+    template_code: templateCode,
+    source_basis:
+      agreement.template?.source_basis ||
+      (agreement.owner_type === 'participant'
+        ? 'NDIS service agreement operational template'
+        : agreement.owner_type === 'contractor'
+        ? 'Independent contractor operational template'
+        : 'SCHADS Industry Award 2010'),
+    template_clause_schema: sortKeys(resolvedTemplateClauses),
     owner_type: agreement.owner_type,
     owner_id: agreement.owner_id,
     title: agreement.title,

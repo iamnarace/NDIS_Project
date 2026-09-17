@@ -379,6 +379,15 @@ export function CareersApplicationForm({
     }
   };
 
+  const handleCompactEoiSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep(1) || !validateStep(2)) {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    await handleSubmit(e);
+  };
+
   // SUCCESS STATE
   if (successReference) {
     return (
@@ -415,6 +424,205 @@ export function CareersApplicationForm({
             View Opus Care Services
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  if (applicationType === 'eoi') {
+    return (
+      <div className="careersFormContainer eoiCompactForm">
+        <header className="eoiCompactHeader">
+          <div className="eoiCompactIcon" aria-hidden="true"><Briefcase size={22} /></div>
+          <div>
+            <span className="eoiCompactEyebrow">Expression of interest</span>
+            <h3>Tell us how we can contact you</h3>
+            <p>Share the essentials now. We will ask for detailed checks and documents only if a suitable role becomes available.</p>
+          </div>
+        </header>
+
+        {errorMessage && (
+          <div ref={errorRef} className="formErrorAlert" role="alert" aria-live="assertive">
+            <AlertCircle size={18} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleCompactEoiSubmit} noValidate>
+          <div style={{ display: 'none' }} aria-hidden="true">
+            <input
+              type="text"
+              name="website_url"
+              tabIndex={-1}
+              autoComplete="off"
+              value={formData.website_url}
+              onChange={e => handleInputChange('website_url', e.target.value)}
+            />
+          </div>
+
+          <section className="eoiCompactSection">
+            <div className="eoiCompactSectionHeading">
+              <span>1</span>
+              <div><h4>Contact and role</h4><p>How should our recruitment team reach you?</p></div>
+            </div>
+
+            <div className="formGroup">
+              <label htmlFor="role_interest" className="formLabel">Role of interest *</label>
+              <select
+                id="role_interest"
+                className="formSelect"
+                value={formData.role_interest}
+                onChange={e => handleInputChange('role_interest', e.target.value)}
+              >
+                <option value="">Select a role</option>
+                <option value="Disability Support Worker">Disability Support Worker</option>
+                <option value="Community Support Worker">Community Support Worker</option>
+                <option value="Future support opportunities">Future support opportunities</option>
+                <option value="Administration / coordination">Administration / coordination</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            {formData.role_interest === 'Other' && (
+              <div className="formGroup">
+                <label htmlFor="role_interest_other" className="formLabel">Role or area of interest *</label>
+                <input
+                  id="role_interest_other"
+                  className="formInput"
+                  maxLength={100}
+                  value={formData.role_interest_other}
+                  onChange={e => handleInputChange('role_interest_other', e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="formRowGrid">
+              <div className="formGroup">
+                <label htmlFor="first_name" className="formLabel">First name *</label>
+                <input id="first_name" className="formInput" maxLength={80} autoComplete="given-name" value={formData.first_name} onChange={e => handleInputChange('first_name', e.target.value)} />
+              </div>
+              <div className="formGroup">
+                <label htmlFor="last_name" className="formLabel">Last name *</label>
+                <input id="last_name" className="formInput" maxLength={80} autoComplete="family-name" value={formData.last_name} onChange={e => handleInputChange('last_name', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="formRowGrid">
+              <div className="formGroup">
+                <label htmlFor="email" className="formLabel">Email *</label>
+                <input id="email" type="email" className="formInput" maxLength={160} autoComplete="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} />
+              </div>
+              <div className="formGroup">
+                <label htmlFor="phone" className="formLabel">Mobile or phone *</label>
+                <input id="phone" type="tel" className="formInput" maxLength={40} autoComplete="tel" value={formData.phone} onChange={e => handleInputChange('phone', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="formRowGrid eoiLocationGrid">
+              <div className="formGroup">
+                <label htmlFor="suburb" className="formLabel">Suburb or town *</label>
+                <input id="suburb" className="formInput" maxLength={100} autoComplete="address-level2" value={formData.suburb} onChange={e => handleInputChange('suburb', e.target.value)} />
+              </div>
+              <div className="formGroup">
+                <label htmlFor="postcode" className="formLabel">Postcode *</label>
+                <input id="postcode" inputMode="numeric" className="formInput" maxLength={4} autoComplete="postal-code" value={formData.postcode} onChange={e => handleInputChange('postcode', e.target.value.replace(/\D/g, '').slice(0, 4))} />
+              </div>
+            </div>
+          </section>
+
+          <section className="eoiCompactSection">
+            <div className="eoiCompactSectionHeading">
+              <span>2</span>
+              <div><h4>Work preferences</h4><p>Enough detail to match you with a future opportunity.</p></div>
+            </div>
+
+            <div className="formGroup">
+              <label className="formLabel">Areas you could work in *</label>
+              <div className="eoiChoiceGrid">
+                {RECRUITMENT_SERVICE_AREAS.map(area => (
+                  <label key={area.id} className={formData.preferred_service_area_ids.includes(area.id) ? 'selected' : ''}>
+                    <input type="checkbox" checked={formData.preferred_service_area_ids.includes(area.id)} onChange={() => toggleArrayItem('preferred_service_area_ids', area.id)} />
+                    <span><strong>{area.name}</strong><small>{area.region}</small></span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="formRowGrid">
+              <div className="formGroup">
+                <label className="formLabel">Preferred work arrangement *</label>
+                <div className="eoiOptionStack">
+                  {[
+                    ['casual', 'Casual'],
+                    ['part_time', 'Part-time'],
+                    ['full_time', 'Full-time'],
+                    ['fixed_term', 'Fixed-term'],
+                    ['flexible', 'Open to discussion'],
+                  ].map(([id, label]) => (
+                    <label key={id} className={formData.employment_preferences.includes(id) ? 'selected' : ''}>
+                      <input type="checkbox" checked={formData.employment_preferences.includes(id)} onChange={() => toggleArrayItem('employment_preferences', id)} />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="formGroup">
+                  <label htmlFor="work_rights_status" className="formLabel">Australian work rights *</label>
+                  <select id="work_rights_status" className="formSelect" value={formData.work_rights_status} onChange={e => handleInputChange('work_rights_status', e.target.value)}>
+                    <option value="">Select your status</option>
+                    <option value="citizen_pr">Citizen, permanent resident or NZ citizen</option>
+                    <option value="valid_visa">Valid visa with work rights</option>
+                    <option value="no_rights">No current work rights</option>
+                  </select>
+                </div>
+                <div className="formGroup">
+                  <label htmlFor="experience_summary" className="formLabel">Brief relevant experience <span>(optional)</span></label>
+                  <textarea id="experience_summary" className="formTextarea" rows={4} maxLength={800} placeholder="Disability support, aged care, community work, volunteering or transferable experience" value={formData.experience_summary} onChange={e => handleInputChange('experience_summary', e.target.value)} />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="eoiCompactSection eoiCompactFinalSection">
+            <div className="eoiCompactSectionHeading">
+              <span>3</span>
+              <div><h4>Optional resume and consent</h4><p>You can send a resume now, or provide it later if we contact you.</p></div>
+            </div>
+
+            <div className="eoiResumeRow">
+              <button type="button" className="eoiUploadButton" onClick={() => resumeInputRef.current?.click()}>
+                <Upload size={18} />
+                <span>{resumeFile ? 'Replace resume' : 'Attach resume (optional)'}</span>
+              </button>
+              <input
+                ref={resumeInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                hidden
+                onChange={e => setResumeFile(e.target.files?.[0] || null)}
+              />
+              {resumeFile && <span className="eoiFileName"><FileText size={15} /> {resumeFile.name}</span>}
+            </div>
+
+            <div className="consentBox eoiConsentBox">
+              <label className="checkboxConsentLabel">
+                <input type="checkbox" checked={formData.privacy_consent} onChange={e => handleInputChange('privacy_consent', e.target.checked)} />
+                <span className="consentText">I agree that Opus Care may use this information to consider me for recruitment opportunities. I have read the <Link href="/privacy" target="_blank" className="textUnderline">Privacy Policy</Link>. *</span>
+              </label>
+              <label className="checkboxConsentLabel">
+                <input type="checkbox" checked={formData.accuracy_declaration} onChange={e => handleInputChange('accuracy_declaration', e.target.checked)} />
+                <span className="consentText">I confirm the information provided is accurate. I understand any licences, clearances or qualifications will be checked later if I progress. *</span>
+              </label>
+            </div>
+
+            <div className="eoiSubmitRow">
+              <div className="eoiPrivacyNote"><ShieldCheck size={17} /><span>Do not send TFN, bank, Medicare or identity numbers.</span></div>
+              <button type="submit" className="btnPrimary btnSubmit" disabled={submitting}>
+                {submitting ? <><Loader2 size={16} className="spinner" /><span>Submitting...</span></> : <><Send size={16} /><span>Send Expression of Interest</span></>}
+              </button>
+            </div>
+          </section>
+        </form>
       </div>
     );
   }
@@ -474,32 +682,11 @@ export function CareersApplicationForm({
         {step === 1 && (
           <fieldset className="formStepFieldset">
             <legend className="stepTitle">
-              {applicationType === 'eoi' ? 'Expression of Interest — Your Contact Details' : `Apply for: ${vacancyTitle || 'Support Role'}`}
+              Apply for: {vacancyTitle || 'Support Role'}
             </legend>
             <p className="stepDescription">
-              {applicationType === 'eoi'
-                ? 'Tell us who you are and what type of support work you are interested in across Northern NSW or Sydney.'
-                : 'Please complete your contact details. We will use these to acknowledge your application and stay in touch.'}
+              Please complete your contact details. We will use these to acknowledge your application and stay in touch.
             </p>
-
-            {applicationType === 'eoi' && (
-              <div className="formGroup">
-                <label htmlFor="role_interest" className="formLabel">Role of Interest *</label>
-                <select
-                  id="role_interest"
-                  className="formSelect"
-                  value={formData.role_interest}
-                  onChange={e => handleInputChange('role_interest', e.target.value)}
-                >
-                  <option value="">-- Please select a role of interest --</option>
-                  <option value="Disability Support Worker">Disability Support Worker</option>
-                  <option value="Community Support Worker">Community Support Worker</option>
-                  <option value="Future support opportunities">Future support opportunities</option>
-                  <option value="Administration / coordination">Administration / coordination</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            )}
 
             <div className="formRowGrid">
               <div className="formGroup">

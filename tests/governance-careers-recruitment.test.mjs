@@ -333,6 +333,15 @@ test('Governance & Compliance — Careers Privacy Boundary & Neutral Declaration
     assert.ok(apiContent.includes('_form_loaded_at') || apiContent.includes('submitted too quickly'), 'API checks submission timing');
   });
 
+  await t.test('Expression of Interest uses a compact enquiry while vacancy applications keep full workflow', () => {
+    const formContent = readProjectFile('components/careers/CareersApplicationForm.tsx');
+    assert.ok(formContent.includes("if (applicationType === 'eoi')"), 'EOI must have a dedicated compact rendering path');
+    assert.ok(formContent.includes('Share the essentials now.'), 'EOI must explain its short initial collection boundary');
+    assert.ok(formContent.includes('Attach resume (optional)'), 'EOI resume must remain optional');
+    assert.ok(formContent.includes('Apply for: {vacancyTitle'), 'Vacancy applications must retain the detailed application workflow');
+    assert.ok(!formContent.includes('Expression of Interest — Your Contact Details'), 'Old EOI form heading must be removed');
+  });
+
   await t.test('Careers form and API strictly exclude TFN and bank account details', () => {
     const formContent = readProjectFile('components/careers/CareersApplicationForm.tsx');
     const apiContent = readProjectFile('app/api/careers/applications/route.ts');

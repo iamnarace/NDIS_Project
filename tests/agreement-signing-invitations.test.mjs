@@ -85,6 +85,47 @@ test('Agreement External Signing — Frozen Snapshot Integrity & Expansion', () 
   assert.notEqual(initialHash, tamperedHash, 'Tampering with contractual terms must change snapshot hash');
 });
 
+test('Participant service agreement expands placeholder section IDs into controlled terms', async () => {
+  const agreement = {
+    id: '33333333-3333-3333-3333-333333333334',
+    agreement_reference: 'AGR-2026-0010',
+    template_id: 'f11ede83-fc58-4171-a6ab-d5751f4c6807',
+    template_version: '2026.1',
+    owner_type: 'participant',
+    owner_id: '44444444-4444-4444-4444-444444444444',
+    title: 'NDIS Service Agreement and Schedule of Supports',
+    version_number: 1,
+    commencement_date: '2026-10-01',
+    review_date: '2027-10-01',
+    questionnaire_data: { participant_name: 'Test Participant', funding_type: 'Plan-Managed' },
+    compiled_clauses: { service_schedule: [] },
+    template: {
+      template_code: 'DOC-PART-01',
+      source_basis: 'NDIS service agreement operational template',
+      clause_schema: { sections: ['parties', 'payments_invoicing', 'cancellations', 'execution'] },
+    },
+  };
+
+  const { snapshot } = createDocumentSnapshot(agreement, {
+    proprietorLegalName: 'Authorised Proprietor',
+    tradingName: 'Opus Care Support Services',
+    abn: '41 267 197 576',
+  });
+
+  assert.equal(Object.keys(snapshot.template_clause_schema).length, 10);
+  assert.match(JSON.stringify(snapshot.template_clause_schema), /Australian Consumer Law/);
+  assert.match(JSON.stringify(snapshot.template_clause_schema), /short-notice cancellation/i);
+  assert.doesNotMatch(JSON.stringify(snapshot.template_clause_schema), /\["parties"/);
+
+  const pdfBuffer = await generateAuthoritativeExecutedPdf({
+    agreement: { ...agreement, frozen_snapshot: snapshot },
+    signatures: [],
+    org: { tradingName: 'Opus Care Support Services', abn: '41 267 197 576' },
+  });
+  const pdf = await PDFDocument.load(pdfBuffer);
+  assert.ok(pdf.getPageCount() >= 10 && pdf.getPageCount() <= 13, `Expected a 10-13 page agreement, received ${pdf.getPageCount()}`);
+});
+
 test('Agreement External Signing — Genuine PDF Generation (%PDF-)', async () => {
   const payload = {
     agreement: {
@@ -303,4 +344,15 @@ test('Agreement External Signing — Resend Failure Never Produces False Sent St
 
   // Verify error response is returned from sendAgreementSigningInvitationEmail
   assert.match(emailModule, /return\s*{\s*ok:\s*false,\s*error:\s*\(result\s*as\s*any\)\.error\.message\s*\|\|\s*'Resend delivery rejected'\s*}/);
+});
+
+test('CRM dashboard keeps operational work first and moves owner readiness to Settings', () => {
+  const dashboard = readFileSync('components/admin/CanonicalDashboard.tsx', 'utf8');
+  const adminPage = readFileSync('app/admin/page.tsx', 'utf8');
+
+  assert.doesNotMatch(dashboard, /<OwnerReadinessDashboard/);
+  assert.match(dashboard, /Things Needing Attention/);
+  assert.match(dashboard, /Upcoming Shifts &amp; Service Delivery/);
+  assert.match(dashboard, /Delivery &amp; Billing/);
+  assert.match(adminPage, /tab === 'settings'[\s\S]*?<OwnerReadinessDashboard/);
 });

@@ -18,6 +18,7 @@ import TimesheetsTab from '@/components/admin/TimesheetsTab';
 import ProgressNotesTab from '@/components/admin/ProgressNotesTab';
 import RecruitmentTab from '@/components/admin/RecruitmentTab';
 import CanonicalDashboard from '@/components/admin/CanonicalDashboard';
+import OwnerReadinessDashboard from '@/components/admin/OwnerReadinessDashboard';
 import SuitabilityAssessmentModal from '@/components/admin/SuitabilityAssessmentModal';
 import ParticipantOnboardingDrawer from '@/components/admin/ParticipantOnboardingDrawer';
 import WorkerReadinessPanel from '@/components/admin/WorkerReadinessPanel';
@@ -1486,6 +1487,16 @@ export default function AdminCrmPage() {
   const countAssessment = referrals.filter(r => r.status === 'assessment').length;
   const countAgreements = referrals.filter(r => r.status === 'agreement_sent').length;
   const countActive = referrals.filter(r => r.status === 'accepted').length;
+  const activeParticipantsCount = participants.some(p => typeof p.status === 'string' && p.status.trim())
+    ? participants.filter(p => p.status?.toLowerCase() === 'active').length
+    : participants.length;
+  const clearedStaffCount = staff.filter(s => {
+    const screening = String(s.ndisScreening || '').toLowerCase().trim();
+    if (!['verified', 'cleared', 'current'].includes(screening)) return false;
+    if (!s.ndisScreeningExpiry) return true;
+    const expiry = new Date(s.ndisScreeningExpiry).getTime();
+    return !Number.isNaN(expiry) && expiry > Date.now();
+  }).length;
 
   const totalRefs = referrals.length || 1;
   const pctNew = Math.round((countNew / totalRefs) * 100) || 25;
@@ -4308,6 +4319,16 @@ export default function AdminCrmPage() {
               Manage your administrator account, provider legal configuration, and system preferences.
             </p>
           </div>
+
+          <OwnerReadinessDashboard
+            participantsCount={participants.length}
+            activeParticipantsCount={activeParticipantsCount}
+            staffCount={staff.length}
+            clearedStaffCount={clearedStaffCount}
+            agreementsCount={agreements.length}
+            onSelectTab={(newTab) => setTab(newTab)}
+            onOpenAddInsurance={() => setTab('settings')}
+          />
 
           {/* Organisation Readiness & Legal Configuration Panel */}
           <div className="vsCard" style={{ marginBottom: 24, padding: '24px 24px 20px' }}>

@@ -18,6 +18,7 @@ import {
   Copy,
 } from 'lucide-react';
 import FormDrawer from './forms/FormDrawer';
+import { resolveAgreementClauseSchema } from '@/lib/agreements/canonicalClauses';
 
 interface AgreementViewerModalProps {
   agreement: any;
@@ -88,6 +89,13 @@ export default function AgreementViewerModal({
   const isExecuted = agreement.status === 'active' || agreement.status === 'fully_signed';
   const qData = agreement.questionnaire_data || {};
   const clauses = agreement.compiled_clauses || {};
+  const displayedClauseSchema =
+    agreement.frozen_snapshot?.template_clause_schema ||
+    resolveAgreementClauseSchema(
+      agreement.template?.template_code,
+      agreement.template?.clause_schema,
+      agreement.owner_type
+    );
 
   // Invitations state
   const [invitations, setInvitations] = useState<any[]>([]);
@@ -700,8 +708,8 @@ export default function AgreementViewerModal({
 
           <section className="agreementDocumentSection agreementTermsSection">
             <h2>Approved terms and conditions</h2>
-            {agreement.template?.clause_schema && Object.keys(agreement.template.clause_schema).length > 0 ? (
-              renderClauseContent(agreement.template.clause_schema)
+            {displayedClauseSchema && Object.keys(displayedClauseSchema).length > 0 ? (
+              renderClauseContent(displayedClauseSchema)
             ) : (
               <div className="agreementMissingClauses">
                 This template record does not contain approved clause text. Add legally reviewed clauses to the document template before sending it for signature.
