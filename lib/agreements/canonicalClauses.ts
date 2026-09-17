@@ -64,31 +64,69 @@ const PARTICIPANT_SERVICE_AGREEMENT: ClauseSchema = {
 };
 
 const WORKER_EMPLOYMENT_AGREEMENT: ClauseSchema = {
-  '1. Appointment and classification': [
-    'The employee is appointed to the role and employment basis recorded in the agreement particulars. Duties include delivering respectful participant support, completing required records, following lawful and reasonable directions, and performing other duties reasonably within the role, skills and classification.',
-    'The applicable classification, industrial instrument and pay details must be confirmed from current employment information before issue. The template does not replace an award classification assessment or independent workplace relations advice.',
+  '1. Parties, appointment and commencement': [
+    'Opus Care Support Services employs the person named in the agreement particulars in the recorded position from the commencement date. The employee reports to the manager or delegate identified by Opus Care and accepts the employment basis stated in the particulars.',
+    'The employee will perform the duties in the attached position description, deliver respectful participant support, maintain required records, follow lawful and reasonable directions, and perform other duties reasonably within the role, skills and classification.',
+    'Any probation or minimum-employment period recorded in the particulars is an assessment period and does not reduce a right or entitlement under applicable law. Opus Care will explain performance concerns and provide a reasonable opportunity to respond before making an employment decision, except where immediate action is lawfully required.',
   ],
-  '2. Hours, rosters and location': [
+  '2. Employment status, award and classification': [
+    'The employment status, classification, pay point and industrial instrument are those recorded in the particulars. These details must be confirmed against current role duties and workplace information before the agreement is issued.',
+    'The National Employment Standards and any applicable modern award, enterprise agreement or legislation apply to the employment relationship. This agreement does not exclude or provide less than a minimum legal entitlement. Where a minimum entitlement is more beneficial than an inconsistent term, the minimum entitlement applies.',
+    'A change in duties does not automatically change classification. Opus Care will review classification when duties materially change or when the employee raises a reasonable classification concern.',
+  ],
+  '3. Hours, rosters, breaks and place of work': [
     'Ordinary hours, availability and any guaranteed pattern are those recorded in the particulars. Additional or changed shifts are offered and managed in accordance with the employment basis, applicable industrial instrument and operational needs. A participant cancellation does not itself determine the employee\'s lawful pay entitlement.',
     'Work may occur in participant homes and community locations across approved service regions. Travel, breaks, minimum engagements, overtime, penalties and allowances are managed under the applicable instrument and confirmed employment settings.',
+    'The employee must accurately record start and finish times, breaks, travel and approved expenses using the nominated system. Working outside an approved roster requires prior approval unless urgent action is reasonably necessary to protect health or safety.',
+    'Opus Care will consult where required about material changes to regular rosters or ordinary hours. The employee must promptly identify availability changes, fatigue concerns or circumstances that could make an assigned shift unsafe.',
   ],
-  '3. Remuneration and superannuation': [
+  '4. Remuneration, allowances, expenses and superannuation': [
     'The ordinary rate and superannuation percentage are recorded in the particulars. Applicable penalties, overtime, allowances and reimbursements are handled separately under the relevant industrial instrument and verified work records. Payroll deductions will be made only where authorised or required by law.',
+    'Wages will be paid at the frequency and by the method recorded in the particulars or payroll settings. The employee will receive a payslip and should promptly raise any apparent error so it can be investigated and corrected.',
+    'Approved work expenses will be reimbursed under the applicable policy and industrial instrument after sufficient evidence is supplied. Participant transport, provider travel and employee vehicle reimbursement are distinct records and must not be combined or claimed twice.',
   ],
-  '4. Conditions before participant-facing work': [
+  '5. Leave and absence': [
+    'Leave entitlements arise under the National Employment Standards, applicable industrial instrument and Opus Care policies. The employee should request planned leave as early as practicable and must notify the designated manager of an unexpected absence before the affected shift, or as soon as reasonably possible.',
+    'Evidence may be requested where permitted by law. The employee must not attend work when unfit to provide safe support and must immediately report a communicable illness, injury, medication effect or other condition that creates a material work health and safety risk.',
+  ],
+  '6. Conditions before participant-facing work': [
     'Employment and independent rostering are subject to identity and work-right checks, Opus Care screening policy, required clearances, qualifications, induction, training, current First Aid or CPR where required, and role-specific competency. A declaration made during recruitment is not treated as verified evidence.',
+    'The employee must keep required credentials current, notify Opus Care of a suspension, restriction, charge or other relevant change where lawful and reasonably connected to the role, and provide updated evidence by the requested date. Opus Care may withhold participant-facing duties where a mandatory readiness requirement is not verified.',
   ],
-  '5. Conduct, safety and participant rights': [
+  '7. Participant rights, professional conduct and boundaries': [
     'The employee must protect participant dignity, privacy, choice and safety; follow the NDIS Code of Conduct where applicable; report incidents and safeguarding concerns; comply with reasonable WHS instructions; and work only within competence and approved participant plans. Violence, abuse, neglect, exploitation, falsification and unauthorised restrictive practices are prohibited.',
+    'The employee must maintain professional boundaries, disclose actual or potential conflicts of interest, decline inappropriate gifts or financial arrangements, and never borrow from, lend to, trade with or become a beneficiary of a participant except where expressly lawful and approved under policy.',
+    'The employee must not provide clinical, restrictive-practice, medication, financial or other specialised support outside their verified competence, delegation and approved participant instructions. Unclear or unsafe directions must be escalated before proceeding unless immediate emergency action is required.',
   ],
-  '6. Confidentiality, records and systems': [
+  '8. Work health and safety, incidents and emergencies': [
+    'Opus Care and the employee share responsibilities for a safe workplace. The employee must take reasonable care, use supplied equipment correctly, follow risk controls, report hazards and injuries promptly, and participate in reasonable consultation, training and incident review.',
+    'In an emergency the employee must prioritise immediate safety, contact emergency services where appropriate, act within training and competence, preserve relevant evidence and notify Opus Care as soon as practicable. Incident and near-miss reports must be factual, timely and complete.',
+    'The employee may stop or decline work where they reasonably believe there is a serious and immediate safety risk, while remaining available for reasonable alternative safe duties and following the escalation process.',
+  ],
+  '9. Confidentiality, privacy, records and systems': [
     'Confidential participant, worker and business information may be used only for authorised work. Records must be accurate, timely and stored in approved systems. Access credentials must not be shared. Confidentiality continues after employment ends, subject to lawful disclosure and protected workplace rights.',
+    'Participant information must not be stored on personal devices, personal cloud accounts or unapproved applications. Photography, audio, video and social-media activity involving participants or service information require documented authority and compliance with policy and law.',
+    'Employment and service records created in the course of duties remain Opus Care records. Nothing in this clause prevents the employee from accessing their lawful rights, making a protected disclosure, obtaining professional advice or communicating with a regulator or representative as permitted by law.',
   ],
-  '7. Policies, changes and termination': [
-    'The employee must follow lawful workplace policies as amended from time to time, but a policy does not reduce a contractual or statutory entitlement. Material changes to classification, basis, guaranteed hours or pay require an appropriate written variation. Notice and termination are governed by this agreement, the applicable industrial instrument, the National Employment Standards and other applicable law.',
+  '10. Property, intellectual property and conflicts': [
+    'The employee must take reasonable care of keys, devices, identification, documents, vehicles and other property provided for work and return them when requested or when employment ends. Loss, damage or unauthorised access must be reported promptly.',
+    'Materials created specifically in the course of employment for Opus Care belong to Opus Care to the extent permitted by law. This does not transfer ownership of the employee\'s pre-existing material, personal knowledge or legally protected rights.',
+    'Other work or business activity must not create unmanaged fatigue, misuse confidential information, divert an Opus Care opportunity, interfere with roster commitments or create an undisclosed conflict with participant interests.',
   ],
-  '8. Acceptance': [
-    'The employee confirms they have reviewed the particulars, had an opportunity to ask questions and received or been directed to the information statements applicable to their employment basis. The parties should obtain independent advice where a term or classification is uncertain.',
+  '11. Performance, policies and workplace concerns': [
+    'The employee must follow lawful and reasonable workplace policies and procedures as amended from time to time. Policies provide operational direction but do not form part of this agreement unless expressly stated and do not reduce a contractual or statutory entitlement.',
+    'Performance, conduct and attendance concerns will be addressed fairly and proportionately. The employee will ordinarily be told the concern, given relevant information and a reasonable opportunity to respond, with a support person available where applicable.',
+    'Workplace concerns may be raised with the manager, owner or another nominated contact without victimisation. The parties should first try to resolve a dispute through direct discussion and the applicable workplace process, while preserving any right to seek external assistance.',
+  ],
+  '12. Changes, stand down and ending employment': [
+    'Material changes to classification, employment basis, guaranteed hours, ordinary rate or other core terms require an appropriate written variation accepted by the parties, except where a lawful change applies independently of agreement.',
+    'Notice, final pay, redundancy, abandonment, stand down and termination are governed by this agreement, the applicable industrial instrument, the National Employment Standards and other applicable law. Nothing in this agreement authorises an unlawful deduction, stand down or termination.',
+    'When employment ends, the employee must return property, complete outstanding records, protect continuing confidentiality and reasonably assist with a safe participant handover. Opus Care will provide final pay and employment records within the legally required timeframe.',
+  ],
+  '13. General terms and acceptance': [
+    'This agreement, its particulars, the position description and any signed written variation record the contractual terms between the parties. If a provision is invalid or unenforceable, it is severed to the minimum extent necessary and the remaining provisions continue.',
+    'A failure or delay in exercising a right does not automatically waive that right. Electronic records and signatures may be used. The agreement is governed by the applicable laws of New South Wales and the Commonwealth of Australia.',
+    'The employee confirms they have reviewed the agreement and particulars, had an opportunity to ask questions and seek independent advice, and received or been directed to the information statements applicable to their employment basis. The parties must resolve any uncertain award, classification or entitlement before issue or obtain appropriate professional advice.',
   ],
 };
 

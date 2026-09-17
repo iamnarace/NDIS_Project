@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { isCanonicalParticipantAgreement } from '@/lib/agreements/canonicalClauses';
@@ -60,6 +62,34 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+  let brandLogo: Awaited<ReturnType<typeof pdfDoc.embedPng>> | null = null;
+  try {
+    const logoBytes = await readFile(path.join(process.cwd(), 'public', 'brand', 'Opus_Care_Logo_Transparent.png'));
+    brandLogo = await pdfDoc.embedPng(logoBytes);
+  } catch {
+    // The document remains usable in non-filesystem runtimes via the text fallback.
+  }
+
+  const drawBrandHeader = (page: ReturnType<typeof pdfDoc.addPage>, headerY: number) => {
+    if (brandLogo) {
+      const scaled = brandLogo.scaleToFit(150, 42);
+      page.drawImage(brandLogo, {
+        x: 50,
+        y: headerY - scaled.height + 7,
+        width: scaled.width,
+        height: scaled.height,
+      });
+      return;
+    }
+    page.drawText('OPUS CARE SUPPORT SERVICES', {
+      x: 50,
+      y: headerY,
+      size: 10,
+      font: fontBold,
+      color: rgb(0.31, 0.27, 0.9),
+    });
+  };
+
   // Page 1: Agreement Details & Particulars
   const page1 = pdfDoc.addPage([595.28, 841.89]); // A4
   const { width, height } = page1.getSize();
@@ -67,8 +97,8 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
   let y = height - 50;
 
   // Header Banner
-  page1.drawText('OPUS CARE SUPPORT SERVICES', { x: 50, y, size: 10, font: fontBold, color: rgb(0.01, 0.52, 0.78) });
-  y -= 22;
+  drawBrandHeader(page1, y);
+  y -= 48;
   page1.drawText(sanitizeText(agreement.title), { x: 50, y, size: 18, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
   y -= 16;
   page1.drawText(`Document Reference: ${sanitizeText(agreement.agreement_reference)}   |   Status: FULLY EXECUTED`, {
@@ -157,14 +187,8 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
     const addTermsContinuationPage = () => {
       termsPage = pdfDoc.addPage([595.28, 841.89]);
       termsY = height - 50;
-      termsPage.drawText('OPUS CARE SUPPORT SERVICES', {
-        x: 50,
-        y: termsY,
-        size: 10,
-        font: fontBold,
-        color: rgb(0.01, 0.52, 0.78),
-      });
-      termsY -= 20;
+      drawBrandHeader(termsPage, termsY);
+      termsY -= 48;
       termsPage.drawText('3. APPROVED CONTRACTUAL TERMS & CONDITIONS (CONTINUED)', {
         x: 50,
         y: termsY,
@@ -301,8 +325,8 @@ export async function generateAuthoritativeExecutedPdf(payload: ExecutedDocument
   const page2 = pdfDoc.addPage([595.28, 841.89]);
   let y2 = height - 50;
 
-  page2.drawText('OPUS CARE SUPPORT SERVICES', { x: 50, y: y2, size: 10, font: fontBold, color: rgb(0.01, 0.52, 0.78) });
-  y2 -= 20;
+  drawBrandHeader(page2, y2);
+  y2 -= 48;
   page2.drawText('4. AUTHORITATIVE EXECUTION & AUDIT EVIDENCE', { x: 50, y: y2, size: 14, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
   y2 -= 14;
   page2.drawLine({ start: { x: 50, y: y2 }, end: { x: width - 50, y: y2 }, thickness: 1.5, color: rgb(0.01, 0.52, 0.78) });

@@ -682,6 +682,13 @@ export default function AgreementViewerModal({
             </div>
           </header>
 
+          <div className="agreementDocumentNotice">
+            <strong>Controlled document</strong>
+            <span>
+              Read this agreement together with its particulars, position description, schedules and signed variations.
+            </span>
+          </div>
+
           <section className="agreementDocumentSection">
             <h2>Parties and commencement</h2>
             <dl className="agreementParticularsGrid">
@@ -707,7 +714,7 @@ export default function AgreementViewerModal({
           )}
 
           <section className="agreementDocumentSection agreementTermsSection">
-            <h2>Approved terms and conditions</h2>
+            <h2>Terms and conditions</h2>
             {displayedClauseSchema && Object.keys(displayedClauseSchema).length > 0 ? (
               renderClauseContent(displayedClauseSchema)
             ) : (
@@ -716,6 +723,11 @@ export default function AgreementViewerModal({
               </div>
             )}
           </section>
+
+          <footer className="agreementDocumentFooter">
+            <span>Opus Care Support Services</span>
+            <span>{agreement.agreement_reference} · Controlled copy</span>
+          </footer>
         </article>
 
         {/* Schedule of Supports (For Participants) */}

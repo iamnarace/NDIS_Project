@@ -7,6 +7,7 @@ import {
   UserCheck,
   FileText,
   AlertCircle,
+  BellRing,
   CalendarClock,
   Clock,
   ArrowRight,
@@ -150,20 +151,35 @@ export default function CanonicalDashboard({
     (staffCount > 0 && staffCount > clearedStaffCount ? 1 : 0);
 
   return (
-    <div>
+    <div className="canonical-dashboard">
       {/* Page Header */}
-      <div className="page-header-row">
-        <h1 className="page-title">Your care operations, at a glance</h1>
-        <p className="page-subtitle">
-          Review incoming referrals, coordinate your team, and keep participant support moving.
-        </p>
+      <div className="page-header-row dashboard-heading-row">
+        <div>
+          <span className="dashboard-eyebrow">Operations overview</span>
+          <h1 className="page-title">Good day, here is what needs attention</h1>
+          <p className="page-subtitle">
+            Live participant, workforce, service delivery and billing information.
+          </p>
+        </div>
+        <div className="dashboard-header-actions">
+          {onOpenAddParticipant && (
+            <button type="button" className="btn btn-surface" onClick={onOpenAddParticipant}>
+              <UserPlus size={15} /> New participant
+            </button>
+          )}
+          {onOpenAgreementGenerator && (
+            <button type="button" className="btn btn-primary" onClick={onOpenAgreementGenerator}>
+              <FileText size={15} /> New agreement
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ONE High-Priority Action Banner */}
       <div className="priority-alert-banner">
         <div className="alert-left-details">
           <div className="alert-bell-bubble" aria-hidden="true">
-            🔔
+            <BellRing size={17} />
           </div>
           <div className="alert-text-title">
             {countNew > 0
@@ -181,10 +197,9 @@ export default function CanonicalDashboard({
         </button>
       </div>
 
-      {/* 4 Bright Pastel KPI Cards (Uniform Row) */}
+      {/* Four stable operational metrics */}
       <div className="kpi-row-grid">
-        {/* 1. Active Participants (Sky / Cyan) */}
-        <div className="kpi-card cyan">
+        <div className="kpi-card metric-participants">
           <div className="kpi-head">
             <span className="kpi-label">{participantKpiLabel}</span>
             <Users className="kpi-icon" size={24} />
@@ -207,8 +222,7 @@ export default function CanonicalDashboard({
           </div>
         </div>
 
-        {/* 2. New Referrals (Peach / Amber) */}
-        <div className="kpi-card amber">
+        <div className="kpi-card metric-referrals">
           <div className="kpi-head">
             <span className="kpi-label">New Referrals</span>
             <UserPlus className="kpi-icon" size={24} />
@@ -227,8 +241,7 @@ export default function CanonicalDashboard({
           </div>
         </div>
 
-        {/* 3. Workforce (Mint / Emerald) */}
-        <div className="kpi-card mint">
+        <div className="kpi-card metric-workforce">
           <div className="kpi-head">
             <span className="kpi-label">Workforce</span>
             <UserCheck className="kpi-icon" size={24} />
@@ -253,8 +266,7 @@ export default function CanonicalDashboard({
           </div>
         </div>
 
-        {/* 4. Agreements (Lavender / Purple) */}
-        <div className="kpi-card lavender">
+        <div className="kpi-card metric-agreements">
           <div className="kpi-head">
             <span className="kpi-label">Active Agreements</span>
             <FileText className="kpi-icon" size={24} />

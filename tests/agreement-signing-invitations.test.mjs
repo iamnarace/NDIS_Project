@@ -13,6 +13,7 @@ import {
   calculateAuthoritativeHash,
   uploadExecutedDocument,
 } from '../lib/services/agreementPdf.ts';
+import { resolveAgreementClauseSchema } from '../lib/agreements/canonicalClauses.ts';
 
 test('Agreement External Signing — Cryptographic Token Hashing', () => {
   const rawToken = 'a'.repeat(64);
@@ -124,6 +125,23 @@ test('Participant service agreement expands placeholder section IDs into control
   });
   const pdf = await PDFDocument.load(pdfBuffer);
   assert.ok(pdf.getPageCount() >= 10 && pdf.getPageCount() <= 13, `Expected a 10-13 page agreement, received ${pdf.getPageCount()}`);
+});
+
+test('Worker employment agreement expands into a complete controlled document', () => {
+  const clauses = resolveAgreementClauseSchema(
+    'DOC-WRK-01',
+    { sections: ['appointment', 'pay', 'termination'] },
+    'staff'
+  );
+
+  assert.equal(Object.keys(clauses).length, 13);
+  const rendered = JSON.stringify(clauses);
+  assert.match(rendered, /National Employment Standards/);
+  assert.match(rendered, /classification/i);
+  assert.match(rendered, /work health and safety/i);
+  assert.match(rendered, /privacy/i);
+  assert.match(rendered, /ending employment/i);
+  assert.doesNotMatch(rendered, /\["appointment"/);
 });
 
 test('Agreement External Signing — Genuine PDF Generation (%PDF-)', async () => {
