@@ -342,6 +342,16 @@ test('Governance & Compliance — Careers Privacy Boundary & Neutral Declaration
     assert.ok(!formContent.includes('Expression of Interest — Your Contact Details'), 'Old EOI form heading must be removed');
   });
 
+  await t.test('Public careers page keeps Expression of Interest as the primary experience', () => {
+    const pageContent = readProjectFile('app/careers/page.tsx');
+    assert.ok(pageContent.includes('careersEoiPrimary'), 'EOI section must remain the primary careers content');
+    assert.ok(pageContent.includes('careersCompactFacts'), 'Essential recruitment context must remain available in compact form');
+    assert.ok(pageContent.includes('careersCompactOpportunities'), 'Current vacancies must remain visible');
+    assert.ok(!pageContent.includes('RECRUITMENT JOURNEY'), 'Long recruitment journey section must stay removed');
+    assert.ok(!pageContent.includes('COMPLIANCE &amp; SAFETY'), 'Long compliance section must stay removed');
+    assert.ok(!pageContent.includes('OUR CULTURE &amp; VALUES'), 'Long values section must stay removed');
+  });
+
   await t.test('Careers form and API strictly exclude TFN and bank account details', () => {
     const formContent = readProjectFile('components/careers/CareersApplicationForm.tsx');
     const apiContent = readProjectFile('app/api/careers/applications/route.ts');
