@@ -32,6 +32,7 @@ import {
   Menu,
   BookOpen,
   Briefcase,
+  LogOut,
 } from 'lucide-react';
 import CrmNotificationItem from './CrmNotificationItem';
 
@@ -71,6 +72,7 @@ export interface CrmContainerProps {
   onOpenAddWorker?: () => void;
   onOpenNewAgreement?: () => void;
   adminProfile?: { displayName: string; email: string | null; role: 'owner' | 'admin' } | null;
+  onLogout?: () => void;
 }
 
 export default function CrmContainer({
@@ -88,6 +90,7 @@ export default function CrmContainer({
   onOpenAddWorker,
   onOpenNewAgreement,
   adminProfile,
+  onLogout,
 }: CrmContainerProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -445,18 +448,32 @@ export default function CrmContainer({
 
         {/* Sidebar Footer with User Profile */}
         <div className="sidebar-footer">
-          <div
-            className="user-block"
-            onClick={() => handleTabClick('settings')}
-            title="Administrator Profile & Settings"
-          >
-            <div className="user-avatar">{adminProfile?.displayName?.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'OA'}</div>
-            <div className="user-meta" style={{ minWidth: 0, flex: 1 }}>
-              <div className="user-meta-name">{adminProfile?.displayName || 'Opus Admin'}</div>
-              <div className="user-meta-sub" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                {adminProfile?.email || (adminProfile?.role === 'owner' ? 'Owner' : 'Administrator')}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div
+              className="user-block"
+              onClick={() => handleTabClick('settings')}
+              title="Administrator Profile & Settings"
+              style={{ flex: 1, minWidth: 0 }}
+            >
+              <div className="user-avatar">{adminProfile?.displayName?.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'OA'}</div>
+              <div className="user-meta" style={{ minWidth: 0, flex: 1 }}>
+                <div className="user-meta-name">{adminProfile?.displayName || 'Opus Admin'}</div>
+                <div className="user-meta-sub" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {adminProfile?.email || (adminProfile?.role === 'owner' ? 'Owner' : 'Administrator')}
+                </div>
               </div>
             </div>
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                aria-label="Sign out of CRM"
+                title="Sign out"
+                style={{ width: 36, height: 36, flex: '0 0 36px', display: 'grid', placeItems: 'center', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', borderRadius: 6, cursor: 'pointer' }}
+              >
+                <LogOut size={16} />
+              </button>
+            )}
           </div>
         </div>
       </aside>

@@ -1658,6 +1658,7 @@ export default function AdminCrmPage() {
       onOpenAddWorker={() => setShowAddWorker(true)}
       onOpenNewAgreement={() => setShowAgreementGenerator(true)}
       adminProfile={adminProfile}
+      onLogout={handleLogout}
     >
       {statusNotice && (
         <div style={{

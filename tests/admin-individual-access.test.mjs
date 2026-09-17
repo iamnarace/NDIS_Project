@@ -10,6 +10,7 @@ test('individual CRM administrator access is private and revocable', async t => 
   const loginRoute = read('app/api/admin/auth/route.ts');
   const accessRoute = read('app/api/admin/access/route.ts');
   const manager = read('components/admin/AdminAccessManager.tsx');
+  const container = read('components/admin/ui/CrmContainer.tsx');
 
   await t.test('database stores only key and session hashes behind forced RLS', () => {
     assert.match(migration, /create table if not exists public\.crm_admin_users/);
@@ -44,5 +45,6 @@ test('individual CRM administrator access is private and revocable', async t => 
     assert.match(manager, /Lock/);
     assert.match(manager, /Unlock/);
     assert.match(manager, /At least 10 characters\. A memorable phrase is allowed\./);
+    assert.match(container, /aria-label="Sign out of CRM"/);
   });
 });
