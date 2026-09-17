@@ -324,7 +324,7 @@ export default function RecruitmentTab({
 
   // Owner settings state
   const [ownerConfig, setOwnerConfig] = useState({
-    careers_email: 'support@opuscare.com.au',
+    careers_email: 'admin@opuscare.com.au',
     recruitment_retention_months: 12
   });
   const [savingConfig, setSavingConfig] = useState(false);
@@ -353,7 +353,7 @@ export default function RecruitmentTab({
       if (configRes.ok) {
         const cData = await configRes.json();
         setOwnerConfig({
-          careers_email: cData.careers_email || cData.support_email || 'support@opuscare.com.au',
+          careers_email: 'admin@opuscare.com.au',
           recruitment_retention_months: cData.recruitment_retention_months || 12
         });
       }
@@ -665,12 +665,12 @@ export default function RecruitmentTab({
     setConfigSavedNotice(false);
     setConfigSaveError('');
     try {
-      const submittedEmail = ownerConfig.careers_email;
+      const submittedEmail = 'admin@opuscare.com.au';
       const submittedRetention = ownerConfig.recruitment_retention_months;
       const res = await fetch('/api/crm/provider-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ownerConfig)
+        body: JSON.stringify({ ...ownerConfig, careers_email: submittedEmail })
       });
       if (res.ok) {
         // Readback verification
@@ -680,7 +680,7 @@ export default function RecruitmentTab({
           const readbackEmail = cData.careers_email || cData.support_email || '';
           const readbackRetention = cData.recruitment_retention_months || 12;
           setOwnerConfig({
-            careers_email: readbackEmail || 'support@opuscare.com.au',
+            careers_email: readbackEmail || 'admin@opuscare.com.au',
             recruitment_retention_months: readbackRetention
           });
 

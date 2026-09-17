@@ -9,6 +9,7 @@ import {
   checkAndExpireInvitations,
 } from '@/lib/services/agreementExecution';
 import { sendAgreementSigningInvitationEmail } from '@/lib/email';
+import { ADMIN_EMAIL } from '@/lib/emailAddresses';
 
 export async function GET(
   req: Request,
@@ -91,7 +92,7 @@ export async function POST(
           agreementId,
           signerName: provider_signer_name || 'Naresh Admin',
           signerTitle: 'Managing Director, Opus Care Support Services',
-          signerEmail: org.supportEmail || 'support@opuscare.com.au',
+          signerEmail: ADMIN_EMAIL,
           signatureImageData: provider_signature_data,
           signingMethod: 'digital_canvas',
           org,

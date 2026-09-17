@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { ADMIN_EMAIL } from '@/lib/emailAddresses';
 
 export type GstStatus = 'registered' | 'not_registered' | 'unconfigured';
 export type BusinessStructure = 'sole_trader' | 'company' | 'partnership' | 'trust' | 'unconfigured';
@@ -154,7 +155,7 @@ export async function getOrganisationProfile(
     registeredAddress: null, // genuine legal business/correspondence address pending configuration
     phone: null,
     email: 'support@opuscare.com.au',
-    billingEmail: 'support@opuscare.com.au',
+    billingEmail: ADMIN_EMAIL,
     website: 'opuscare.com.au',
     ndisRegistrationStatus: 'unregistered',
     gstStatus: 'not_registered',
@@ -174,7 +175,7 @@ export async function getOrganisationProfile(
     websiteUrl: 'https://opuscare.com.au',
     supportEmail: 'support@opuscare.com.au',
     referralsEmail: 'referrals@opuscare.com.au',
-    careersEmail: 'support@opuscare.com.au',
+    careersEmail: ADMIN_EMAIL,
     recruitmentRetentionMonths: 12,
     facebookUrl: 'https://opuscare.com.au',
     instagramUrl: 'https://opuscare.com.au',
@@ -278,7 +279,7 @@ export async function getOrganisationProfile(
     const websiteUrl = config.website_url?.trim() || 'https://opuscare.com.au';
     const supportEmail = config.support_email?.trim() || config.email?.trim() || fallback.email;
     const referralsEmail = config.referrals_email?.trim() || 'referrals@opuscare.com.au';
-    const careersEmail = config.careers_email?.trim() || process.env.CAREERS_TO_EMAIL?.trim() || supportEmail;
+    const careersEmail = ADMIN_EMAIL;
     const facebookUrl = config.facebook_url?.trim() || 'https://opuscare.com.au';
     const instagramUrl = config.instagram_url?.trim() || 'https://opuscare.com.au';
     const linkedinUrl = config.linkedin_url?.trim() || 'https://opuscare.com.au';
@@ -295,7 +296,7 @@ export async function getOrganisationProfile(
       registeredAddress,
       phone: config.phone?.trim() || null,
       email: config.email?.trim() || fallback.email,
-      billingEmail: config.email?.trim() || fallback.billingEmail,
+        billingEmail: ADMIN_EMAIL,
       website: 'opuscare.com.au',
       ndisRegistrationStatus: 'unregistered',
       gstStatus,

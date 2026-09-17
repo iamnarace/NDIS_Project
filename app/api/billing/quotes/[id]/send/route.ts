@@ -5,6 +5,7 @@ import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { isValidUuid } from '@/lib/uuid';
 import { Resend } from 'resend';
 import { logAuditEvent } from '@/lib/audit';
+import { ADMIN_EMAIL, ADMIN_FROM } from '@/lib/emailAddresses';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       try {
         const resend = new Resend(resendApiKey);
         await resend.emails.send({
-          from: 'Opus Care Support <intake@opuscare.com.au>',
+          from: ADMIN_FROM,
+          replyTo: ADMIN_EMAIL,
           to: [recipientEmail],
           subject: `Your NDIS Support Service Estimate / Quote (${quote.quote_reference}) - Opus Care`,
           html: `
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               </div>
               <p>You can review, print, and accept this quote through your Opus Care Participant Portal or by replying to this email.</p>
               <p style="margin-top: 30px; font-size: 12px; color: #64748b;">
-                Opus Care Support Services &bull; ABN 41 267 197 576 &bull; support@opuscare.com.au
+                Opus Care Support Services &bull; ABN 41 267 197 576 &bull; ${ADMIN_EMAIL}
               </p>
             </div>
           `,

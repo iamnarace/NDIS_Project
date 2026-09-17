@@ -6,6 +6,7 @@ import { isValidUuid } from '@/lib/uuid';
 import { Resend } from 'resend';
 import { logAuditEvent } from '@/lib/audit';
 import { getOrganisationProfile } from '@/lib/organisation';
+import { ADMIN_EMAIL, ADMIN_FROM } from '@/lib/emailAddresses';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -59,7 +60,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       try {
         const resend = new Resend(resendApiKey);
         await resend.emails.send({
-          from: `${org.tradingName} Accounts <${org.billingEmail}>`,
+          from: ADMIN_FROM,
+          replyTo: ADMIN_EMAIL,
           to: [recipientEmail],
           subject: `${docType} ${invoice.invoice_reference} - ${org.tradingName}`,
           html: `

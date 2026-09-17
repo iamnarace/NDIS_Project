@@ -4,6 +4,7 @@ import { isAuthenticatedAdmin } from '@/lib/adminAuth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidUuid } from '@/lib/uuid';
 import { getOrganisationProfile } from '@/lib/organisation';
+import { ADMIN_EMAIL } from '@/lib/emailAddresses';
 import {
   executeProviderSigning,
   executeInternalRecipientSigning,
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
         agreementId: agreement_id,
         signerName: signer_name,
         signerTitle: signer_title || 'Managing Director, Opus Care Support Services',
-        signerEmail: signer_email || org.supportEmail || 'support@opuscare.com.au',
+        signerEmail: signer_email || ADMIN_EMAIL,
         signatureImageData: signature_image_data,
         signingMethod: signing_method,
         ipAddress,

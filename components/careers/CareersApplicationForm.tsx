@@ -1279,7 +1279,7 @@ export function CareersApplicationForm({
             <div className="adjustmentNoticeBox">
               <Info size={16} />
               <span>
-                <strong>Need a reasonable adjustment?</strong> Opus Care welcomes requests for reasonable adjustments during recruitment. Contact our team at <a href="mailto:careers@opuscare.com.au">careers@opuscare.com.au</a> to discuss adjustments. You do not need to disclose a medical diagnosis.
+                <strong>Need a reasonable adjustment?</strong> Opus Care welcomes requests for reasonable adjustments during recruitment. Contact our team at <a href="mailto:admin@opuscare.com.au">admin@opuscare.com.au</a> to discuss adjustments. You do not need to disclose a medical diagnosis.
               </span>
             </div>
 

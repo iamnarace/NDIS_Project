@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { Resend, type ListAttachmentsResponseSuccess } from 'resend';
+import { ADMIN_EMAIL, ADMIN_FROM } from '@/lib/emailAddresses';
 
 export const runtime = 'nodejs';
 
@@ -8,11 +9,12 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 const forwardTo = process.env.INBOUND_FORWARD_TO || 'ausplaitv@gmail.com';
 const forwardFrom =
-  process.env.INBOUND_FORWARD_FROM || 'Opus Care Mail <support@opuscare.com.au>';
+  process.env.INBOUND_FORWARD_FROM || ADMIN_FROM;
 
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 const allowedRecipients = new Set([
+  ADMIN_EMAIL,
   'support@opuscare.com.au',
   'hello@opuscare.com.au',
   'referrals@opuscare.com.au',

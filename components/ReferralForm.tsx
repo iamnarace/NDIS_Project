@@ -97,7 +97,7 @@ export function ReferralForm() {
       setMessage('Thank you! Your referral enquiry has been received and recorded in the Opus Care CRM. Our intake team will contact you shortly.');
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please email us at referrals@opuscare.com.au.');
+      setMessage(error instanceof Error ? error.message : 'Unable to submit referral at this time. Please email us at admin@opuscare.com.au.');
     }
   }
 

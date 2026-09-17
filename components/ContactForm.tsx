@@ -71,7 +71,7 @@ export function ContactForm() {
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      setErrorMsg(error instanceof Error ? error.message : 'Unable to send enquiry. Please contact us directly at support@opuscare.com.au');
+      setErrorMsg(error instanceof Error ? error.message : 'Unable to send enquiry. Please contact us directly at admin@opuscare.com.au');
     } finally {
       setSubmitting(false);
     }
@@ -83,7 +83,7 @@ export function ContactForm() {
         <div className="successCircle"><CheckCircle2 size={40} /></div>
         <h2>Enquiry Submitted Successfully</h2>
         <p>
-          Thank you. Your enquiry has been received by Opus Care and sent to <strong>contact@opuscare.com.au</strong>.
+          Thank you. Your enquiry has been received by Opus Care and sent to <strong>admin@opuscare.com.au</strong>.
           We will respond to <strong>{submittedEmail}</strong> within 24 business hours.
         </p>
         <div className="successEmailNote"><Mail size={16} /><span>Submission complete — your form has been cleared.</span></div>

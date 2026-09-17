@@ -60,10 +60,26 @@ test('Governance & Compliance — Careers & Recruitment Navigation & Profile', a
     const content = readProjectFile('lib/organisation.ts');
     assert.ok(content.includes('careersEmail'), 'OrganisationProfile must have careersEmail');
     assert.ok(content.includes('recruitmentRetentionMonths'), 'OrganisationProfile must have recruitmentRetentionMonths');
-    assert.ok(
-      content.includes('support@opuscare.com.au') || content.includes('careers@opuscare.com.au'),
-      'Has valid fallback careers email'
-    );
+    assert.ok(content.includes('ADMIN_EMAIL'), 'Careers email must use the central administration address');
+  });
+
+  await t.test('CRM operational email is consistently admin@opuscare.com.au', () => {
+    const addressModule = readProjectFile('lib/emailAddresses.ts');
+    const emailService = readProjectFile('lib/email.ts');
+    const inboundRoute = readProjectFile('app/api/email/inbound/route.ts');
+    const quoteRoute = readProjectFile('app/api/billing/quotes/[id]/send/route.ts');
+    const invoiceRoute = readProjectFile('app/api/billing/invoices/[id]/send/route.ts');
+    const agreementService = readProjectFile('lib/services/agreementExecution.ts');
+
+    assert.match(addressModule, /ADMIN_EMAIL\s*=\s*'admin@opuscare\.com\.au'/);
+    assert.match(emailService, /const DEFAULT_FROM = ADMIN_FROM/);
+    assert.match(emailService, /const REFERRAL_EMAIL = ADMIN_EMAIL/);
+    assert.match(emailService, /const CONTACT_EMAIL = ADMIN_EMAIL/);
+    assert.match(emailService, /const CAREERS_DEFAULT_EMAIL = ADMIN_EMAIL/);
+    assert.match(inboundRoute, /allowedRecipients[\s\S]*ADMIN_EMAIL/);
+    assert.match(quoteRoute, /from: ADMIN_FROM[\s\S]*replyTo: ADMIN_EMAIL/);
+    assert.match(invoiceRoute, /from: ADMIN_FROM[\s\S]*replyTo: ADMIN_EMAIL/);
+    assert.match(agreementService, /signerEmail = 'admin@opuscare\.com\.au'/);
   });
 });
 

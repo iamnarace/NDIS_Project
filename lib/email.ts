@@ -1,11 +1,12 @@
 import { Resend } from 'resend';
+import { ADMIN_EMAIL, ADMIN_FROM } from '@/lib/emailAddresses';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-const DEFAULT_FROM = process.env.FROM_EMAIL || 'Opus Care <support@opuscare.com.au>';
-const REFERRAL_EMAIL = process.env.REFERRAL_TO_EMAIL || 'referrals@opuscare.com.au';
-const CONTACT_EMAIL = process.env.CONTACT_TO_EMAIL || 'contact@opuscare.com.au';
+const DEFAULT_FROM = ADMIN_FROM;
+const REFERRAL_EMAIL = ADMIN_EMAIL;
+const CONTACT_EMAIL = ADMIN_EMAIL;
 
 export interface ReferralData {
   id: string;
@@ -34,7 +35,7 @@ export async function sendReferralClientConfirmation(referral: ReferralData) {
   if (!referral.email) return { ok: false, message: 'No client email provided' };
 
   const subject = `Thank you for your referral, ${referral.participantName || referral.name} · Opus Care Support Services`;
-  const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1e293b"><h2>Thank you for contacting Opus Care</h2><p>Hello <strong>${referral.name}</strong>,</p><p>We have received your NDIS support referral for <strong>${referral.participantName || referral.name}</strong>. Our team will review it and contact you within 24 business hours.</p><p><strong>Referral ID:</strong> ${referral.id}<br><strong>Location:</strong> ${referral.suburb}<br><strong>Services:</strong> ${referral.services}</p><p>Questions? Reply to this email or contact <a href="mailto:referrals@opuscare.com.au">referrals@opuscare.com.au</a>.</p><p>Kind regards,<br><strong>Opus Care Support Services</strong></p></body></html>`;
+  const html = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1e293b"><h2>Thank you for contacting Opus Care</h2><p>Hello <strong>${referral.name}</strong>,</p><p>We have received your NDIS support referral for <strong>${referral.participantName || referral.name}</strong>. Our team will review it and contact you within 24 business hours.</p><p><strong>Referral ID:</strong> ${referral.id}<br><strong>Location:</strong> ${referral.suburb}<br><strong>Services:</strong> ${referral.services}</p><p>Questions? Reply to this email or contact <a href="mailto:${ADMIN_EMAIL}">${ADMIN_EMAIL}</a>.</p><p>Kind regards,<br><strong>Opus Care Support Services</strong></p></body></html>`;
 
   if (!resend) return { ok: true, simulated: true };
   try {
@@ -64,7 +65,7 @@ export async function sendContactEmails(contact: ContactData) {
   const adminSubject = `New Website Enquiry from ${contact.name}: ${contact.subject || 'General Enquiry'}`;
   const adminHtml = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#0f172a"><h2>New Website Enquiry</h2><p><strong>Name:</strong> ${contact.name}</p><p><strong>Email:</strong> ${contact.email}</p>${contact.phone ? `<p><strong>Phone:</strong> ${contact.phone}</p>` : ''}${contact.subject ? `<p><strong>Subject:</strong> ${contact.subject}</p>` : ''}<p><strong>Message:</strong></p><p>${contact.message}</p></body></html>`;
   const clientSubject = 'We have received your enquiry · Opus Care Support Services';
-  const clientHtml = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1e293b"><h2>Thank you for contacting Opus Care</h2><p>Hello ${contact.name},</p><p>We have received your enquiry and our support team will reply within 24 business hours.</p><p>Kind regards,<br><strong>Opus Care Support Services</strong><br><a href="mailto:contact@opuscare.com.au">contact@opuscare.com.au</a></p></body></html>`;
+  const clientHtml = `<!DOCTYPE html><html><body style="font-family:Arial,Helvetica,sans-serif;color:#1e293b"><h2>Thank you for contacting Opus Care</h2><p>Hello ${contact.name},</p><p>We have received your enquiry and our support team will reply within 24 business hours.</p><p>Kind regards,<br><strong>Opus Care Support Services</strong><br><a href="mailto:${ADMIN_EMAIL}">${ADMIN_EMAIL}</a></p></body></html>`;
 
   if (!resend) return { ok: true, simulated: true };
   try {
@@ -106,7 +107,7 @@ export interface CareersAdminEmailData {
   appUrl?: string;
 }
 
-const CAREERS_DEFAULT_EMAIL = process.env.CAREERS_TO_EMAIL || 'support@opuscare.com.au';
+const CAREERS_DEFAULT_EMAIL = ADMIN_EMAIL;
 
 export async function sendCareersApplicantAcknowledgement(data: CareersApplicantEmailData) {
   if (!data.email) return { ok: false, error: 'No applicant email provided' };
@@ -236,7 +237,7 @@ export async function sendAgreementSigningInvitationEmail(data: AgreementInvitat
     <strong>Security &amp; Privacy Notice:</strong> This link is unique to you and cryptographically protected. Do not forward this email. In accordance with the <em>Electronic Transactions Act 1999 (Cth)</em>, submitting your digital signature constitutes a binding legal agreement.
   </p>
   <p style="font-size:12px;color:#94a3b8;margin-top:12px;">
-    Questions? Contact <a href="mailto:support@opuscare.com.au" style="color:#0284c7;">support@opuscare.com.au</a>.
+    Questions? Contact <a href="mailto:${ADMIN_EMAIL}" style="color:#0284c7;">${ADMIN_EMAIL}</a>.
   </p>
 </div>
 </body></html>`;
@@ -246,7 +247,7 @@ export async function sendAgreementSigningInvitationEmail(data: AgreementInvitat
     const result = await resend.emails.send({
       from: DEFAULT_FROM,
       to: [data.recipientEmail],
-      replyTo: 'support@opuscare.com.au',
+      replyTo: ADMIN_EMAIL,
       subject,
       html,
     });
@@ -296,8 +297,8 @@ export async function sendAgreementExecutionCompletedEmail(data: {
   try {
     const result = await resend.emails.send({
       from: DEFAULT_FROM,
-      to: [data.recipientEmail, 'support@opuscare.com.au'],
-      replyTo: 'support@opuscare.com.au',
+      to: [data.recipientEmail, ADMIN_EMAIL],
+      replyTo: ADMIN_EMAIL,
       subject,
       html,
     });
