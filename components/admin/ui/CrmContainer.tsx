@@ -70,6 +70,7 @@ export interface CrmContainerProps {
   onOpenAddParticipant?: () => void;
   onOpenAddWorker?: () => void;
   onOpenNewAgreement?: () => void;
+  adminProfile?: { displayName: string; email: string | null; role: 'owner' | 'admin' } | null;
 }
 
 export default function CrmContainer({
@@ -86,6 +87,7 @@ export default function CrmContainer({
   onOpenAddParticipant,
   onOpenAddWorker,
   onOpenNewAgreement,
+  adminProfile,
 }: CrmContainerProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -448,11 +450,11 @@ export default function CrmContainer({
             onClick={() => handleTabClick('settings')}
             title="Administrator Profile & Settings"
           >
-            <div className="user-avatar">OA</div>
+            <div className="user-avatar">{adminProfile?.displayName?.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'OA'}</div>
             <div className="user-meta" style={{ minWidth: 0, flex: 1 }}>
-              <div className="user-meta-name">Opus Admin</div>
+              <div className="user-meta-name">{adminProfile?.displayName || 'Opus Admin'}</div>
               <div className="user-meta-sub" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                support@opuscare.com.au
+                {adminProfile?.email || (adminProfile?.role === 'owner' ? 'Owner' : 'Administrator')}
               </div>
             </div>
           </div>

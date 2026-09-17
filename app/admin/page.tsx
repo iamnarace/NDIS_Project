@@ -25,6 +25,7 @@ import WorkerReadinessPanel from '@/components/admin/WorkerReadinessPanel';
 import HelpCentrePanel from '@/components/admin/HelpCentrePanel';
 import ParticipantConsentDrawer from '@/components/admin/ParticipantConsentDrawer';
 import MasterDocumentRegisterPanel from '@/components/admin/MasterDocumentRegisterPanel';
+import AdminAccessManager from '@/components/admin/AdminAccessManager';
 import {
   FormDrawer,
   DrawerHeader,
@@ -215,6 +216,7 @@ const PIPELINE_STAGES = [
 
 export default function AdminCrmPage() {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
+  const [adminProfile, setAdminProfile] = useState<any>(null);
   const [adminKey, setAdminKey] = useState('');
   const [authError, setAuthError] = useState('');
   const [authSubmitting, setAuthSubmitting] = useState(false);
@@ -522,6 +524,7 @@ export default function AdminCrmPage() {
       const data = await res.json();
       if (data.authenticated) {
         setIsAuth(true);
+        setAdminProfile(data.profile || null);
         loadAllData();
       } else {
         setIsAuth(false);
@@ -833,6 +836,7 @@ export default function AdminCrmPage() {
       const data = await res.json();
       if (res.ok && data.ok) {
         setIsAuth(true);
+        setAdminProfile(data.profile || null);
         setAuthError('');
         loadAllData();
       } else {
@@ -850,6 +854,7 @@ export default function AdminCrmPage() {
       await fetch('/api/admin/auth', { method: 'DELETE' });
     } catch {}
     setIsAuth(false);
+    setAdminProfile(null);
     setReferrals([]);
     setParticipants([]);
     setStaff([]);
@@ -1652,6 +1657,7 @@ export default function AdminCrmPage() {
       onOpenAddParticipant={() => setShowAddParticipant(true)}
       onOpenAddWorker={() => setShowAddWorker(true)}
       onOpenNewAgreement={() => setShowAgreementGenerator(true)}
+      adminProfile={adminProfile}
     >
       {statusNotice && (
         <div style={{
@@ -4329,6 +4335,8 @@ export default function AdminCrmPage() {
             onSelectTab={(newTab) => setTab(newTab)}
             onOpenAddInsurance={() => setTab('settings')}
           />
+
+          <AdminAccessManager currentProfile={adminProfile} />
 
           {/* Organisation Readiness & Legal Configuration Panel */}
           <div className="vsCard" style={{ marginBottom: 24, padding: '24px 24px 20px' }}>

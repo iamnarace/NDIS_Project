@@ -1,7 +1,17 @@
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const ADMIN_COOKIE_NAME = 'opus_admin_session';
+export const ADMIN_SESSION_DAYS = 7;
+
+export type AdminIdentity = {
+  id: string;
+  displayName: string;
+  email: string | null;
+  role: 'owner' | 'admin';
+  legacy: boolean;
+};
 
 export function getAdminSecret(): string {
   return process.env.ADMIN_ACCESS_KEY || '';
@@ -23,36 +33,80 @@ export function verifyAdminSecret(inputKey: string): boolean {
   return provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
 }
 
-export async function isAuthenticatedAdmin(req?: Request): Promise<boolean> {
-  const secret = getAdminSecret();
-  if (!secret) return false;
-  const expectedToken = generateSessionToken(secret);
+export function hashAdminAccessKey(inputKey: string): string {
+  const pepper = getAdminSecret();
+  if (!pepper) throw new Error('ADMIN_ACCESS_KEY is required as the access-key hashing pepper.');
+  return crypto.createHmac('sha256', pepper).update(inputKey.trim(), 'utf8').digest('hex');
+}
 
-  // 1. Check HttpOnly cookie
+export function hashAdminSessionToken(token: string): string {
+  return crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+export function validateChosenAdminKey(inputKey: string): string | null {
+  const key = inputKey.trim();
+  if (key.length < 10) return 'Access key must be at least 10 characters.';
+  if (key.length > 128) return 'Access key must be 128 characters or fewer.';
+  return null;
+}
+
+async function getIndividualIdentity(token: string): Promise<AdminIdentity | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  const tokenHash = hashAdminSessionToken(token);
+  const now = new Date().toISOString();
+  const { data } = await supabase
+    .from('crm_admin_sessions')
+    .select('id, admin_user_id, expires_at, revoked_at, crm_admin_users!inner(id, display_name, email, role, active)')
+    .eq('token_hash', tokenHash)
+    .is('revoked_at', null)
+    .gt('expires_at', now)
+    .maybeSingle();
+
+  const user = data?.crm_admin_users as any;
+  if (!data || !user?.active) return null;
+  void supabase.from('crm_admin_sessions').update({ last_seen_at: now }).eq('id', data.id);
+  return {
+    id: user.id,
+    displayName: user.display_name,
+    email: user.email || null,
+    role: user.role === 'owner' ? 'owner' : 'admin',
+    legacy: false,
+  };
+}
+
+export async function getAuthenticatedAdminIdentity(req?: Request): Promise<AdminIdentity | null> {
+  let token = '';
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
-    if (token && token === expectedToken) {
-      return true;
-    }
+    token = cookieStore.get(ADMIN_COOKIE_NAME)?.value || '';
   } catch {
-    // Non-cookie environment or background call
+    // Non-cookie environment or background call.
   }
 
-  // 2. A server-generated session token may be supplied by trusted non-browser
-  // callers. The raw administrator credential is accepted only by the login
-  // endpoint and is never a reusable API header.
-  if (req) {
-    const authHeader = req.headers.get('authorization');
-    if (authHeader) {
-      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-      if (token === expectedToken) {
-        return true;
-      }
-    }
+  if (!token && req) {
+    token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
   }
+  if (!token) return null;
 
-  return false;
+  const individualIdentity = await getIndividualIdentity(token);
+  if (individualIdentity) return individualIdentity;
+
+  const secret = getAdminSecret();
+  if (secret && token === generateSessionToken(secret)) {
+    return {
+      id: `admin-session:${generateSessionToken(secret).slice(0, 16)}`,
+      displayName: 'Legacy Owner',
+      email: null,
+      role: 'owner',
+      legacy: true,
+    };
+  }
+  return null;
+}
+
+export async function isAuthenticatedAdmin(req?: Request): Promise<boolean> {
+  return Boolean(await getAuthenticatedAdminIdentity(req));
 }
 
 /**
@@ -61,8 +115,6 @@ export async function isAuthenticatedAdmin(req?: Request): Promise<boolean> {
  * profiles, so never accept an actor label from a request body.
  */
 export async function getAuthenticatedAdminActor(req?: Request): Promise<string | null> {
-  if (!(await isAuthenticatedAdmin(req))) return null;
-  const secret = getAdminSecret();
-  if (!secret) return null;
-  return `admin-session:${generateSessionToken(secret).slice(0, 16)}`;
+  const identity = await getAuthenticatedAdminIdentity(req);
+  return identity?.id || null;
 }
