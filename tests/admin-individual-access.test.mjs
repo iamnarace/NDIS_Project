@@ -5,7 +5,7 @@ import test from 'node:test';
 const read = path => readFileSync(path, 'utf8');
 
 test('individual CRM administrator access is private and revocable', async t => {
-  const migration = read('supabase/migrations/20260917180000_crm_individual_admin_access.sql');
+  const migration = read('supabase/migrations/20260917112325_crm_individual_admin_access.sql');
   const auth = read('lib/adminAuth.ts');
   const loginRoute = read('app/api/admin/auth/route.ts');
   const accessRoute = read('app/api/admin/access/route.ts');
