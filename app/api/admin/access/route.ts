@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const displayName = String(body.displayName || '').trim();
   const email = cleanEmail(body.email);
-  const role = body.role === 'owner' ? 'owner' : 'admin';
+  const role = 'admin';
   const accessKey = String(body.accessKey || '').trim();
   if (displayName.length < 2 || displayName.length > 100) {
     return NextResponse.json({ message: 'Enter a name between 2 and 100 characters.' }, { status: 400 });

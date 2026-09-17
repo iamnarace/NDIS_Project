@@ -11,6 +11,7 @@ test('individual CRM administrator access is private and revocable', async t => 
   const accessRoute = read('app/api/admin/access/route.ts');
   const manager = read('components/admin/AdminAccessManager.tsx');
   const container = read('components/admin/ui/CrmContainer.tsx');
+  const singleOwnerMigration = read('supabase/migrations/20260917122158_enforce_single_crm_owner.sql');
 
   await t.test('database stores only key and session hashes behind forced RLS', () => {
     assert.match(migration, /create table if not exists public\.crm_admin_users/);
@@ -36,6 +37,8 @@ test('individual CRM administrator access is private and revocable', async t => 
     assert.match(accessRoute, /The final active owner cannot be locked/);
     assert.match(accessRoute, /You cannot lock the profile currently signed in/);
     assert.match(accessRoute, /\.from\('crm_admin_sessions'\)[\s\S]*revoked_at/);
+    assert.match(accessRoute, /const role = 'admin'/);
+    assert.match(singleOwnerMigration, /unique index[\s\S]*where role = 'owner'/);
   });
 
   await t.test('settings UI supports assigned keys and administrator controls', () => {
@@ -45,6 +48,7 @@ test('individual CRM administrator access is private and revocable', async t => 
     assert.match(manager, /Lock/);
     assert.match(manager, /Unlock/);
     assert.match(manager, /At least 10 characters\. A memorable phrase is allowed\./);
+    assert.doesNotMatch(manager, /<option value="owner">/);
     assert.match(container, /aria-label="Sign out of CRM"/);
   });
 });

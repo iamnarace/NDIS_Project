@@ -30,7 +30,7 @@ export default function AdminAccessManager({ currentProfile }: { currentProfile:
   const [showCreate, setShowCreate] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [resetTarget, setResetTarget] = useState<AdminProfile | null>(null);
-  const [form, setForm] = useState({ displayName: '', email: '', role: 'admin', accessKey: '' });
+  const [form, setForm] = useState({ displayName: '', email: '', accessKey: '' });
   const [resetKey, setResetKey] = useState('');
 
   const loadProfiles = useCallback(async () => {
@@ -63,7 +63,7 @@ export default function AdminAccessManager({ currentProfile }: { currentProfile:
     const data = await res.json();
     if (!res.ok) return setError(data.message || 'Unable to create administrator profile.');
     setNotice(`${data.profile.display_name} can now sign in with the assigned access key.`);
-    setForm({ displayName: '', email: '', role: 'admin', accessKey: '' });
+    setForm({ displayName: '', email: '', accessKey: '' });
     setShowCreate(false);
     setShowKey(false);
     await loadProfiles();
@@ -144,7 +144,7 @@ export default function AdminAccessManager({ currentProfile }: { currentProfile:
             <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>Create administrator profile</strong><button type="button" aria-label="Close" onClick={() => setShowCreate(false)} style={{ border: 0, background: 'transparent' }}><X size={18} /></button></div>
             <label>Name<input required className="formInput" value={form.displayName} onChange={e => setForm({ ...form, displayName: e.target.value })} /></label>
             <label>Work email (optional)<input type="email" className="formInput" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></label>
-            <label>Access level<select className="formInput" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}><option value="admin">Administrator</option><option value="owner">Owner</option></select></label>
+            <label>Access level<input className="formInput" value="Administrator" readOnly /></label>
             <label>Assign access key<div style={{ display: 'flex', gap: 8 }}><input required minLength={10} maxLength={128} type={showKey ? 'text' : 'password'} className="formInput" autoComplete="new-password" value={form.accessKey} onChange={e => setForm({ ...form, accessKey: e.target.value })} /><button type="button" className="vsBtnOutline" aria-label={showKey ? 'Hide key' : 'Show key'} onClick={() => setShowKey(!showKey)}>{showKey ? <EyeOff size={16} /> : <Eye size={16} />}</button></div><small style={{ color: '#64748b' }}>At least 10 characters. A memorable phrase is allowed.</small></label>
             <button type="submit" className="vsBtnPrimary">Create access</button>
           </form>
